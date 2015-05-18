@@ -173,31 +173,32 @@ void QNode::sendTask(pap_common::DESTINATION destination, pap_common::TASK task,
 void QNode::statusCallback(const pap_common::StatusConstPtr& statusMsg) {
 	ROS_INFO("Got status msg");
 
+	int index = statusMsg->data1;
 	// TODO : Sort by controller
 	if (statusMsg->status == pap_common::ENERGIZED) {
-		motorcontrollerStatus.energized = true;
+		motorcontrollerStatus[index].energized = true;
 	}
 	if (statusMsg->status == pap_common::NOENERGY) {
-		motorcontrollerStatus.energized = false;
+		motorcontrollerStatus[index].energized = false;
 	}
 
 	if (statusMsg->status == pap_common::POSITIONREACHED) {
-		motorcontrollerStatus.positionReached = true;
+		motorcontrollerStatus[index].positionReached = true;
 	}
 
 	if (statusMsg->status == pap_common::POSITIONNOTREACHED) {
-		motorcontrollerStatus.positionReached = false;
+		motorcontrollerStatus[index].positionReached = false;
 	}
 
 	if (statusMsg->status == pap_common::ERROR) {
-		motorcontrollerStatus.error = true;
+		motorcontrollerStatus[index].error = true;
 	}
 
 	if (statusMsg->status == pap_common::NOERROR) {
-		motorcontrollerStatus.error = false;
+		motorcontrollerStatus[index].error = false;
 	}
 
-	Q_EMIT statusUpdated();
+	Q_EMIT statusUpdated(index);
 }
 
 }  // namespace pap_gui

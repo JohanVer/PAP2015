@@ -9,7 +9,8 @@ enum TASK {
   // COORD : set x,y,z coordinates of target point as data(1,2,3)
   COORD =3,
   // MANUAL : Set DIRECTION in data 1 and MOTOR in data 2
-  MANUAL = 4
+  MANUAL = 4,
+  CONNECT = 5
 };
 
 enum DESTINATION {

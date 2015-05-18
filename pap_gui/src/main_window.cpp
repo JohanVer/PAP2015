@@ -56,8 +56,8 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent) :
 			SLOT(cameraUpdated(int )));
 
 	// Status
-	QObject::connect(&qnode, SIGNAL(statusUpdated()), this,
-			SLOT(statusUpdated()));
+	QObject::connect(&qnode, SIGNAL(statusUpdated(int)), this,
+			SLOT(statusUpdated(int)));
 
 }
 
@@ -238,18 +238,72 @@ void MainWindow::on_ZManNeg_clicked(bool check) {
 			(float) pap_common::ZMOTOR, (float) pap_common::BACKWARD, 0.0);
 }
 
-void MainWindow::statusUpdated() {
-	if (qnode.getStatus()->energized) {
-		ui.label_9->setText("on");
-	} else {
-		ui.label_9->setText("off");
-	}
+void MainWindow::statusUpdated(int index) {
+	switch (index) {
+	case 1:
+		if ((qnode.getStatus())[index].energized) {
+			ui.powerLabel1->setText("on");
+		} else {
+			ui.powerLabel1->setText("off");
+		}
 
-	if (qnode.getStatus()->error) {
-		ui.statusLabel->setText("ERROR");
-	} else {
-		ui.statusLabel->setText("OK");
+		if ((qnode.getStatus())[index].error) {
+			ui.errorLabel1->setText("ERROR");
+		} else {
+			ui.errorLabel1->setText("OK");
+		}
+
+		if ((qnode.getStatus())[index].positionReached) {
+			ui.posLabel1->setText("reached");
+		} else {
+			ui.posLabel1->setText("busy");
+		}
+		break;
+
+	case 2:
+		if ((qnode.getStatus())[index].energized) {
+			ui.powerLabel2->setText("on");
+		} else {
+			ui.powerLabel2->setText("off");
+		}
+
+		if ((qnode.getStatus())[index].error) {
+			ui.errorLabel2->setText("ERROR");
+		} else {
+			ui.errorLabel2->setText("OK");
+		}
+
+		if ((qnode.getStatus())[index].positionReached) {
+			ui.posLabel2->setText("reached");
+		} else {
+			ui.posLabel2->setText("busy");
+		}
+		break;
+
+	case 3:
+		if ((qnode.getStatus())[index].energized) {
+			ui.powerLabel3->setText("on");
+		} else {
+			ui.powerLabel3->setText("off");
+		}
+
+		if ((qnode.getStatus())[index].error) {
+			ui.errorLabel3->setText("ERROR");
+		} else {
+			ui.errorLabel3->setText("OK");
+		}
+
+		if ((qnode.getStatus())[index].positionReached) {
+			ui.posLabel3->setText("reached");
+		} else {
+			ui.posLabel3->setText("busy");
+		}
+		break;
 	}
+}
+
+void MainWindow::on_connectButton_clicked(bool check) {
+	qnode.sendTask(pap_common::CONTROLLER, pap_common::CONNECT);
 }
 
 }

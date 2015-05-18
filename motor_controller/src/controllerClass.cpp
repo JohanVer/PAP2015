@@ -46,6 +46,9 @@ unsigned int motorController::UpdateCRC16(unsigned int crc,
 
 motorController::motorController() {
 	controlWord1 = 0;
+	controllerConnected_1_ = false;
+	controllerConnected_2_ = false;
+	controllerConnected_3_ = false;
 }
 
 motorController::~motorController() {
@@ -219,6 +222,33 @@ bool motorController::checkForACK() {
 	}
 }
 
+void motorController::searchForDevices() {
+	controllerStatus statusTemp;
+	statusTemp = getStatusController(1);
+	if (statusTemp.failed == false) {
+		controllerConnected_1_ = true;
+		ROS_INFO("Controller 1 connected...");
+	} else {
+		controllerConnected_1_ = false;
+	}
+
+	statusTemp = getStatusController(2);
+	if (statusTemp.failed == false) {
+		controllerConnected_2_ = true;
+		ROS_INFO("Controller 2 connected...");
+	} else {
+		controllerConnected_2_ = false;
+	}
+
+	statusTemp = getStatusController(3);
+	if (statusTemp.failed == false) {
+		controllerConnected_3_ = true;
+		ROS_INFO("Controller 3 connected...");
+	} else {
+		controllerConnected_3_ = false;
+	}
+}
+
 void motorController::connectToBus() {
 	if (serialPort.isOpen())
 		ROS_INFO("Serialport opened...");
@@ -260,9 +290,12 @@ controllerStatus motorController::getStatusController(
 		unsigned char adressDevice) {
 	controllerStatus status;
 	unsigned int statusByte = readInt16AddressParker(adressDevice, 1000, 3);
-	if(statusByte == 0){
+	if (statusByte == 0) {
 		ROS_INFO("Error while requesting status on device: %d", adressDevice);
+		status.failed = true;
 		return status;
+	} else {
+		status.failed = false;
 	}
 	ROS_INFO("StatusByte: %d", statusByte);
 	if (statusByte & (0x01 << 8)) {
@@ -379,21 +412,33 @@ bool motorController::manual(unsigned char deviceAddress,
 }
 
 bool motorController::sendHoming() {
-	bool error = false;
+	bool error = true;;
 	// Start setting with address zero
-	if (!startSetting(1, 0)) {
-		ROS_ERROR("Error while sending homing command for x-axis");
-		error = true;
+	if (controllerConnected_1_) {
+		if (!startSetting(1, 0)) {
+			ROS_ERROR("Error while sending homing command for x-axis");
+			error = false;
+		}
+	} else {
+		ROS_INFO("Homing: Controller 1 not connected");
 	}
 
-	if (!startSetting(2, 0)) {
-		ROS_ERROR("Error while sending homing command for x-axis");
-		error = true;
+	if (controllerConnected_2_) {
+		if (!startSetting(2, 0)) {
+			ROS_ERROR("Error while sending homing command for x-axis");
+			error = false;
+		}
+	} else {
+		ROS_INFO("Homing: Controller 2 not connected");
 	}
 
-	if (!startSetting(3, 0)) {
-		ROS_ERROR("Error while sending homing command for x-axis");
-		error = true;
+	if (controllerConnected_3_) {
+		if (!startSetting(3, 0)) {
+			ROS_ERROR("Error while sending homing command for x-axis");
+			error = false;
+		}
+	} else {
+		ROS_INFO("Homing: Controller 3 not connected");
 	}
 	return error;
 }
@@ -402,30 +447,54 @@ int motorController::gotoCoord(float x, float y, float z) {
 	ROS_INFO("Sending coordinate command...");
 	int error = NO_ERROR;
 
-	// Setting lines and collumns in the postion-set
-	if (!setSetting(1, 1, x, 380, 1000, 1000)) {
-		error = X_ERROR;
+	if (controllerConnected_1_) {
+		// Setting lines and collumns in the postion-set
+		if (!setSetting(1, 1, x, 380, 1000, 1000)) {
+			error = X_ERROR;
+		}
+	} else {
+		ROS_INFO("Move: Controller 1 not connected");
 	}
 
-	if (!setSetting(2, 1, y, 380, 1000, 1000)) {
-		error = Y_ERROR;
+	if (controllerConnected_2_) {
+		if (!setSetting(2, 1, y, 380, 1000, 1000)) {
+			error = Y_ERROR;
+		}
+	} else {
+		ROS_INFO("Move: Controller 2 not connected");
 	}
 
-	if (!setSetting(3, 1, z, 380, 1000, 1000)) {
-		error = Z_ERROR;
+	if (controllerConnected_3_) {
+		if (!setSetting(3, 1, z, 380, 1000, 1000)) {
+			error = Z_ERROR;
+		}
+	} else {
+		ROS_INFO("Move: Controller 3 not connected");
 	}
 
 	// Starting the positon-set
-	if (!startSetting(1, 1)) {
-		error = X_ERROR;
+	if (controllerConnected_1_ && error != X_ERROR) {
+		if (!startSetting(1, 1)) {
+			error = X_ERROR;
+		}
+	} else {
+		ROS_INFO("Move start: Controller 1 not connected");
 	}
 
-	if (!startSetting(2, 1)) {
-		error = Y_ERROR;
+	if (controllerConnected_2_ && error != Y_ERROR) {
+		if (!startSetting(2, 1)) {
+			error = Y_ERROR;
+		}
+	} else {
+		ROS_INFO("Move start: Controller 2 not connected");
 	}
 
-	if (!startSetting(3, 1)) {
-		error = Z_ERROR;
+	if (controllerConnected_3_ && error != Z_ERROR) {
+		if (!startSetting(3, 1)) {
+			error = Z_ERROR;
+		}
+	} else {
+		ROS_INFO("Move start: Controller 3 not connected");
 	}
 
 	return error;

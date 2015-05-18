@@ -66,7 +66,7 @@ int main(int argc, char **argv) {
 	statusPublisher = n.advertise<pap_common::Status>("status", 1000);
 
 	ROS_INFO("Motor controller started...");
-	ros::Rate loop_rate(10);
+	ros::Rate loop_rate(5);
 	controller.connectToBus();
 
 	state = STATUS;
@@ -77,9 +77,20 @@ int main(int argc, char **argv) {
 			break;
 		case STATUS:
 
-			checkStatusController(1,&controllerState1,&oldControllerState1);
-			checkStatusController(2,&controllerState2,&oldControllerState2);
-			checkStatusController(3,&controllerState3,&oldControllerState3);
+			if (controller.controllerConnected_1_) {
+				checkStatusController(1, &controllerState1,
+						&oldControllerState1);
+			}
+
+			if (controller.controllerConnected_2_) {
+				checkStatusController(2, &controllerState2,
+						&oldControllerState2);
+			}
+
+			if (controller.controllerConnected_3_) {
+				checkStatusController(3, &controllerState3,
+						&oldControllerState3);
+			}
 			break;
 
 		}
@@ -163,9 +174,12 @@ void parseTask(const pap_common::TaskConstPtr& taskMsg) {
 				}
 			}
 			break;
+
+		case pap_common::CONNECT:
+			ROS_INFO("Searching for devices...");
+			controller.searchForDevices();
+			break;
 		}
 		break;
-
 	}
-
 }

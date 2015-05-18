@@ -30,11 +30,13 @@ public:
 		error = false;
 		energized = false;
 		positionReached = false;
+		failed = false;
 	}
 
 	bool error;
 	bool energized;
 	bool positionReached;
+	bool failed;
 private:
 };
 
@@ -56,6 +58,7 @@ public:
 	bool checkForACK();
 
 	bool sendHoming();
+	void searchForDevices();
 	void connectToBus();
 	bool checkError(unsigned char adressDevice);
 	controllerStatus getStatusController(unsigned char adressDevice);
@@ -67,10 +70,13 @@ public:
 	bool startSetting(unsigned char adressDevice, unsigned int settingAddress);
 	bool manual(unsigned char deviceAddress, unsigned char direction);
 	int gotoCoord(float x, float y, float z);
+
+
+	bool controllerConnected_1_,controllerConnected_2_,controllerConnected_3_;
 private:
 	unsigned int UpdateCRC16(unsigned int crc, unsigned char wert);
 	//serial::Serial serialPort;
 	unsigned char buffer[100];
 	unsigned int controlWord1;
-	bool controllerConnected_1_,controllerConnected_2_,controllerConnected_3_;
+
 };

@@ -36,6 +36,7 @@
 #include "pap_common/Status.h"
 #include "../../../pap_common/include/pap_common/task_message_def.h"
 #include "../../../pap_common/include/pap_common/status_message_def.h"
+#include <vector>
 
 //#include <cv_bridge/cv_bridge.h>
 
@@ -85,7 +86,7 @@ public:
 
 	QStringListModel* loggingModel() { return &logging_model; }
 	QImage* getCamera1() { return &cameraImage_; }
-	controllerStatus* getStatus(){ return &motorcontrollerStatus;}
+	controllerStatus* getStatus(){ return motorcontrollerStatus;}
 	void log( const LogLevel &level, const std::string &msg);
 	void cameraCallback(const sensor_msgs::Image::ConstPtr& camera_msg);
 	void sendTask(pap_common::DESTINATION,pap_common::TASK);
@@ -94,7 +95,7 @@ public:
 
 Q_SIGNALS:
 	void loggingUpdated();
-	void statusUpdated();
+	void statusUpdated(int index);
 	void cameraUpdated(int index);
     void rosShutdown();
 
@@ -107,7 +108,7 @@ private:
     QStringListModel logging_model;
     image_transport::Subscriber image_sub_;
     cv_bridge::CvImagePtr cv_ptr;
-    controllerStatus motorcontrollerStatus;
+    controllerStatus motorcontrollerStatus[3];
     QImage cameraImage_;
 };
 

@@ -58,9 +58,10 @@ public Q_SLOTS:
 	void on_YManNeg_clicked(bool check);
 	void on_ZManPos_clicked(bool check);
 	void on_ZManNeg_clicked(bool check);
+	void on_connectButton_clicked(bool check);
 	void on_checkbox_use_environment_stateChanged(int state);
 	void cameraUpdated(int index);
-	void statusUpdated();
+	void statusUpdated(int index);
 
     /******************************************
     ** Manual connections
