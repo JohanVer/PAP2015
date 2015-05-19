@@ -62,6 +62,7 @@ public Q_SLOTS:
 	void on_checkbox_use_environment_stateChanged(int state);
 	void cameraUpdated(int index);
 	void statusUpdated(int index);
+	void on_valve1Button_clicked(bool check);
 
     /******************************************
     ** Manual connections

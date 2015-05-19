@@ -306,6 +306,10 @@ void MainWindow::on_connectButton_clicked(bool check) {
 	qnode.sendTask(pap_common::CONTROLLER, pap_common::CONNECT);
 }
 
+void MainWindow::on_valve1Button_clicked(bool check) {
+	qnode.sendRelaisTask(true);
+}
+
 }
 // namespace pap_gui
 

@@ -50,6 +50,7 @@ bool QNode::init() {
 	// Add your ros communications here.
 	chatter_publisher = n_.advertise<std_msgs::String>("chatter", 1000);
 	task_publisher = n_.advertise<pap_common::Task>("task", 1000);
+	arduino_publisher_ = n_.advertise<std_msgs::ByteMultiArray>("arduinoTx",1000);
 	image_sub_ = it_.subscribe("camera1", 1, &QNode::cameraCallback, this);
 	statusSubsriber_ = n_.subscribe("status", 1, &QNode::statusCallback, this);
 	start();
@@ -70,6 +71,7 @@ bool QNode::init(const std::string &master_url, const std::string &host_url) {
 	// Add your ros communications here.
 	chatter_publisher = n_.advertise<std_msgs::String>("chatter", 1000);
 	task_publisher = n_.advertise<pap_common::Task>("task", 1000);
+	arduino_publisher_ = n_.advertise<std_msgs::ByteMultiArray>("arduinoTx",1000);
 	image_sub_ = it_.subscribe("/camera1", 1, &QNode::cameraCallback, this);
 	statusSubsriber_ = n_.subscribe("status", 1, &QNode::statusCallback, this);
 	start();
@@ -199,6 +201,18 @@ void QNode::statusCallback(const pap_common::StatusConstPtr& statusMsg) {
 	}
 
 	Q_EMIT statusUpdated(index);
+}
+
+void QNode::sendRelaisTask(bool value){
+	/*
+	std_msgs::ByteMultiArray msg;
+	std_msgs::MultiArrayLayout layout;
+	layout.dim = std::vector<>;
+	layout.data_offset = 0;
+	msg.layout = layout;
+	msg.data[0] = 1;
+	arduino_publisher_.publish(msg);
+	*/
 }
 
 }  // namespace pap_gui

@@ -23,6 +23,7 @@
 #include "sensor_msgs/Image.h"
 #include <cv_bridge/cv_bridge.h>
 #include "std_msgs/Header.h"
+#include "std_msgs/ByteMultiArray.h"
 #include <sensor_msgs/image_encodings.h>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
@@ -92,6 +93,7 @@ public:
 	void sendTask(pap_common::DESTINATION,pap_common::TASK);
 	void sendTask(pap_common::DESTINATION destination,pap_common::TASK task, float x, float y, float z );
 	void statusCallback(const pap_common::StatusConstPtr&  statusMsg);
+	void sendRelaisTask(bool value);
 
 Q_SIGNALS:
 	void loggingUpdated();
@@ -103,7 +105,7 @@ private:
 	int init_argc;
 	char** init_argv;
 	ros::Publisher chatter_publisher;
-	ros::Publisher task_publisher;
+	ros::Publisher task_publisher, arduino_publisher_;
 	ros::Subscriber statusSubsriber_;
     QStringListModel logging_model;
     image_transport::Subscriber image_sub_;
