@@ -16,6 +16,11 @@ make test
 make install
 
 
+BUILD ARDUINO-MSGS:
+
+rosrun rosserial_arduino make_libraries.py
+
+
 BUILD ECLIPSE FILES:
 
 First :

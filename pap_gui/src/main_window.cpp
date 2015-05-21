@@ -59,6 +59,7 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent) :
 	QObject::connect(&qnode, SIGNAL(statusUpdated(int)), this,
 			SLOT(statusUpdated(int)));
 
+	valve1Active_ = false;
 }
 
 MainWindow::~MainWindow() {
@@ -306,8 +307,16 @@ void MainWindow::on_connectButton_clicked(bool check) {
 	qnode.sendTask(pap_common::CONTROLLER, pap_common::CONNECT);
 }
 
-void MainWindow::on_valve1Button_clicked(bool check) {
-	qnode.sendRelaisTask(true);
+void MainWindow::on_valveToggle1_clicked(bool check) {
+	if (!valve1Active_) {
+		qnode.sendRelaisTask(1, true);
+		ui.valveStatus1->setText("On");
+		valve1Active_ = true;
+	} else {
+		qnode.sendRelaisTask(1, false);
+		ui.valveStatus1->setText("Off");
+		valve1Active_ = false;
+	}
 }
 
 }

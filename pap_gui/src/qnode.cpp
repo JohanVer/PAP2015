@@ -48,9 +48,9 @@ bool QNode::init() {
 	ros::NodeHandle n_;
 	image_transport::ImageTransport it_(n_);
 	// Add your ros communications here.
-	chatter_publisher = n_.advertise<std_msgs::String>("chatter", 1000);
 	task_publisher = n_.advertise<pap_common::Task>("task", 1000);
-	arduino_publisher_ = n_.advertise<std_msgs::ByteMultiArray>("arduinoTx",1000);
+	arduino_publisher_ = n_.advertise<pap_common::ArduinoMsg>("arduinoTx",
+			1000);
 	image_sub_ = it_.subscribe("camera1", 1, &QNode::cameraCallback, this);
 	statusSubsriber_ = n_.subscribe("status", 1, &QNode::statusCallback, this);
 	start();
@@ -69,9 +69,9 @@ bool QNode::init(const std::string &master_url, const std::string &host_url) {
 	ros::NodeHandle n_;
 	image_transport::ImageTransport it_(n_);
 	// Add your ros communications here.
-	chatter_publisher = n_.advertise<std_msgs::String>("chatter", 1000);
 	task_publisher = n_.advertise<pap_common::Task>("task", 1000);
-	arduino_publisher_ = n_.advertise<std_msgs::ByteMultiArray>("arduinoTx",1000);
+	arduino_publisher_ = n_.advertise<pap_common::ArduinoMsg>("arduinoTx",
+			1000);
 	image_sub_ = it_.subscribe("/camera1", 1, &QNode::cameraCallback, this);
 	statusSubsriber_ = n_.subscribe("status", 1, &QNode::statusCallback, this);
 	start();
@@ -102,16 +102,8 @@ void QNode::run() {
 	ros::Rate loop_rate(1);
 	int count = 0;
 	while (ros::ok()) {
-
-		std_msgs::String msg;
-		std::stringstream ss;
-		ss << "hello world " << count;
-		msg.data = ss.str();
-		chatter_publisher.publish(msg);
-		log(Info, std::string("I sent: ") + msg.data);
 		ros::spinOnce();
 		loop_rate.sleep();
-		++count;
 	}
 	std::cout << "Ros shutdown, proceeding to close the gui." << std::endl;
 	Q_EMIT rosShutdown(); // used to signal the gui for a shutdown (useful to roslaunch)
@@ -203,16 +195,16 @@ void QNode::statusCallback(const pap_common::StatusConstPtr& statusMsg) {
 	Q_EMIT statusUpdated(index);
 }
 
-void QNode::sendRelaisTask(bool value){
-	/*
-	std_msgs::ByteMultiArray msg;
-	std_msgs::MultiArrayLayout layout;
-	layout.dim = std::vector<>;
-	layout.data_offset = 0;
-	msg.layout = layout;
-	msg.data[0] = 1;
-	arduino_publisher_.publish(msg);
-	*/
+void QNode::sendRelaisTask(int relaisNumber, bool value) {
+	pap_common::ArduinoMsg arduinoMsg;
+	if (value) {
+		arduinoMsg.command = pap_common::SETRELAIS;
+		arduinoMsg.data = relaisNumber;
+	} else {
+		arduinoMsg.command = pap_common::RESETRELAIS;
+		arduinoMsg.data = relaisNumber;
+	}
+	arduino_publisher_.publish(arduinoMsg);
 }
 
 }  // namespace pap_gui

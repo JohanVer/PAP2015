@@ -35,8 +35,11 @@
 #include <image_transport/image_transport.h>
 #include "pap_common/Task.h"
 #include "pap_common/Status.h"
+#include "pap_common/ArduinoMsg.h"
 #include "../../../pap_common/include/pap_common/task_message_def.h"
 #include "../../../pap_common/include/pap_common/status_message_def.h"
+#include "../../../pap_common/include/pap_common/arduino_message_def.h"
+
 #include <vector>
 
 //#include <cv_bridge/cv_bridge.h>
@@ -93,7 +96,7 @@ public:
 	void sendTask(pap_common::DESTINATION,pap_common::TASK);
 	void sendTask(pap_common::DESTINATION destination,pap_common::TASK task, float x, float y, float z );
 	void statusCallback(const pap_common::StatusConstPtr&  statusMsg);
-	void sendRelaisTask(bool value);
+	void sendRelaisTask(int relaisNumber,bool value);
 
 Q_SIGNALS:
 	void loggingUpdated();
