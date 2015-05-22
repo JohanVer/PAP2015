@@ -30,9 +30,41 @@ void messageCb( const pap_common::ArduinoMsg& arduinoMsg){
   if(arduinoMsg.command == SETRELAIS ){
     switch(arduinoMsg.data){
     case 1:
+      digitalWrite(13, HIGH);
       break;
 
     case 2:
+    digitalWrite(12, HIGH);
+      break;
+      
+    case 3:
+      break;
+
+    case 4:
+      break;
+
+    case 5:
+      break;
+
+    case 6:
+      break;
+
+    case 7:
+      break;
+
+    case 8:
+      break;
+    }
+  }
+
+  if(arduinoMsg.command == RESETRELAIS ){
+    switch(arduinoMsg.data){
+    case 1:
+      digitalWrite(13, LOW);
+      break;
+
+    case 2:
+      digitalWrite(12, LOW);
       break;
 
     case 3:
@@ -54,12 +86,13 @@ void messageCb( const pap_common::ArduinoMsg& arduinoMsg){
       break;
     }
   }
-  //digitalWrite(13, HIGH-digitalRead(13));   // blink the led
+
 }
 
 void setup()
 {
   pinMode(13, OUTPUT);
+  pinMode(12, OUTPUT);
   nh.initNode();
   nh.advertise(statusPublisher);
   nh.subscribe(arduinoMessageSub);
@@ -68,6 +101,8 @@ void setup()
 void loop()
 {
   nh.spinOnce();
-  delay(500);
+  delay(1);
 }
+
+
 
