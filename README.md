@@ -15,6 +15,14 @@ make
 make test
 make install
 
+INSTALL ZBAR PACKAGE:
+(go into catkin_workspace/src)
+
+git clone https://github.com/ZBar/ZBar.git
+./configure (use automake to generate configure exe)
+make
+make check (optional)
+make install
 
 BUILD ARDUINO-MSGS:
 
