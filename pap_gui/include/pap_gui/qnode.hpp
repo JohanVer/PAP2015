@@ -107,7 +107,6 @@ Q_SIGNALS:
 private:
 	int init_argc;
 	char** init_argv;
-	ros::Publisher chatter_publisher;
 	ros::Publisher task_publisher, arduino_publisher_;
 	ros::Subscriber statusSubsriber_;
     QStringListModel logging_model;
