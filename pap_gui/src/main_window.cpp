@@ -16,7 +16,7 @@
 
 #include "cv.h"
 #include "highgui.h"
-#include "../include/zbar/zbar/QZBar.h"
+//#include "../include/zbar/zbar/QZBar.h"
 //#include ""
 
 /*****************************************************************************
