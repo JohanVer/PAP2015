@@ -33,8 +33,11 @@
       <property name="locale">
        <locale language="English" country="Australia"/>
       </property>
+      <property name="tabPosition">
+       <enum>QTabWidget::North</enum>
+      </property>
       <property name="currentIndex">
-       <number>4</number>
+       <number>3</number>
       </property>
       <widget class="QWidget" name="tab_status">
        <attribute name="title">
@@ -1210,9 +1213,9 @@
         </layout>
        </widget>
       </widget>
-      <widget class="QWidget" name="ComponentPlacement">
+      <widget class="QWidget" name="tab_completePCB">
        <attribute name="title">
-        <string>Page</string>
+        <string>PAP-Complete PCB</string>
        </attribute>
        <widget class="QGroupBox" name="groupBox_4">
         <property name="geometry">
@@ -1246,7 +1249,7 @@
           <item>
            <widget class="QLabel" name="label_49">
             <property name="text">
-             <string>Comp. nr.:</string>
+             <string>Comp. box:</string>
             </property>
            </widget>
           </item>
@@ -1336,7 +1339,7 @@
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_23">
           <item>
-           <widget class="QPushButton" name="pushButton_6">
+           <widget class="QPushButton" name="setCompBoxNrButton">
             <property name="text">
              <string>Set comp. box nr.</string>
             </property>
@@ -1350,7 +1353,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="pushButton_8">
+           <widget class="QPushButton" name="compOrientButton">
             <property name="text">
              <string>Change orientation</string>
             </property>
@@ -1389,35 +1392,35 @@
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_24">
           <item>
-           <widget class="QLabel" name="label_51">
+           <widget class="QLabel" name="label_compName">
             <property name="text">
              <string>-</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QLabel" name="label_53">
+           <widget class="QLabel" name="label_compBox">
             <property name="text">
              <string>-</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QLabel" name="label_54">
+           <widget class="QLabel" name="label_compPos">
             <property name="text">
              <string>-</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QLabel" name="label_50">
+           <widget class="QLabel" name="label_compOrient">
             <property name="text">
              <string>-</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QLabel" name="label_52">
+           <widget class="QLabel" name="label_compSize">
             <property name="text">
              <string>-</string>
             </property>
@@ -1426,7 +1429,7 @@
          </layout>
         </widget>
        </widget>
-       <widget class="QPushButton" name="pushButton_3">
+       <widget class="QPushButton" name="startPlacementButton">
         <property name="geometry">
          <rect>
           <x>570</x>
@@ -1460,7 +1463,7 @@
          <string>Pick and place - Complete PCB</string>
         </property>
        </widget>
-       <widget class="QPushButton" name="pushButton_5">
+       <widget class="QPushButton" name="pausePlacementButton">
         <property name="geometry">
          <rect>
           <x>410</x>
@@ -1549,28 +1552,28 @@
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_25">
           <item>
-           <widget class="QLabel" name="label_42">
+           <widget class="QLabel" name="label_PlacementStatus">
             <property name="text">
              <string>Not running</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QLabel" name="label_55">
+           <widget class="QLabel" name="label_compTotal">
             <property name="text">
              <string>0</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QLabel" name="label_56">
+           <widget class="QLabel" name="label_compLeft">
             <property name="text">
              <string>0</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QLabel" name="label_41">
+           <widget class="QLabel" name="label_currentComp">
             <property name="text">
              <string>-</string>
             </property>
@@ -1590,14 +1593,14 @@
         </property>
         <layout class="QVBoxLayout" name="verticalLayout_22">
          <item>
-          <widget class="QPushButton" name="pushButton">
+          <widget class="QPushButton" name="loadGerberFileButton">
            <property name="text">
             <string>Load Gerber File</string>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="pushButton_4">
+          <widget class="QPushButton" name="clearTableButton">
            <property name="text">
             <string>Clear table</string>
            </property>
@@ -1647,22 +1650,11 @@
           </rect>
          </property>
         </widget>
-        <zorder>line_3</zorder>
-        <zorder>line_3</zorder>
-        <zorder>tableView</zorder>
        </widget>
-       <zorder>groupBox_4</zorder>
-       <zorder>pushButton_3</zorder>
-       <zorder>label_8</zorder>
-       <zorder>pushButton_5</zorder>
-       <zorder>groupBox_3</zorder>
-       <zorder>verticalLayoutWidget_5</zorder>
-       <zorder>groupBox_5</zorder>
-       <zorder>line_3</zorder>
       </widget>
-      <widget class="QWidget" name="tab_3">
+      <widget class="QWidget" name="tab_singleComponent">
        <attribute name="title">
-        <string>Page</string>
+        <string>PAP-Single Component</string>
        </attribute>
        <widget class="QLabel" name="label_9">
         <property name="geometry">
@@ -1990,21 +1982,21 @@
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_20">
           <item>
-           <widget class="QCheckBox" name="checkBox_2">
+           <widget class="QCheckBox" name="checkBox_PCBplaced">
             <property name="text">
              <string/>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QCheckBox" name="checkBox_3">
+           <widget class="QCheckBox" name="checkBox_PCBscanned">
             <property name="text">
              <string/>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QCheckBox" name="checkBox_4">
+           <widget class="QCheckBox" name="checkBox_comPosSet">
             <property name="text">
              <string/>
             </property>
@@ -2037,7 +2029,7 @@
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_31">
           <item>
-           <widget class="QPushButton" name="pushButton_14">
+           <widget class="QPushButton" name="scanPCBButton">
             <property name="text">
              <string>Scan PCB</string>
             </property>

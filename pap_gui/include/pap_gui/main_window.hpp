@@ -64,6 +64,12 @@ public Q_SLOTS:
 	void statusUpdated(int index);
 	void on_valveToggle1_clicked(bool check);
 
+    void on_loadGerberFileButton_clicked();
+    void on_startPlacementButton_clicked();
+    void on_pausePlacementButton_clicked();
+    void on_setCompBoxNrButton_clicked();
+    void on_compOrientButton_clicked();
+
     /******************************************
     ** Manual connections
     *******************************************/
@@ -75,6 +81,7 @@ private:
 	QPixmap cameraPicture1;
 	QGraphicsScene scene_;
 	bool valve1Active_;
+    QTableView tableView;
 };
 
 }  // namespace pap_gui

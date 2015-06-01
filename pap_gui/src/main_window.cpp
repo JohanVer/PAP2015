@@ -19,6 +19,13 @@
 //#include "../include/zbar/zbar/QZBar.h"
 //#include ""
 
+#include <string>
+#include <vector>
+#include <iostream>
+#include <sstream>
+#include <fstream>
+
+
 /*****************************************************************************
  ** Namespaces
  *****************************************************************************/
@@ -30,6 +37,10 @@ using namespace Qt;
 /*****************************************************************************
  ** Implementation [MainWindow]
  *****************************************************************************/
+
+bool componentTableEmpty = true;
+bool placementProcessRunning = false;
+
 
 MainWindow::MainWindow(int argc, char** argv, QWidget *parent) :
 		QMainWindow(parent), qnode(argc, argv) {
@@ -72,9 +83,162 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent) :
 MainWindow::~MainWindow() {
 }
 
-/*****************************************************************************
+/********************************************************************"*********
  ** Implementation [Slots]
  *****************************************************************************/
+
+void MainWindow::on_setCompBoxNrButton_clicked() {
+
+
+
+    bool ok = false;
+    QInputDialog* inputDialog = new QInputDialog();
+    inputDialog->setOptions(QInputDialog::NoButtons);
+
+    // TODO: Adapt to show current component box number
+    const QString compBox = "0";
+
+    // TODO: Change to get only integer!!
+    QString text = inputDialog->getText(this, "Set component box number",
+                                        "Enter box number and press ok:", QLineEdit::Normal,
+                                        compBox, &ok);
+
+    if (ok) {
+        // TODO: Update label and component table
+        ui.label_compBox->setText(text);
+    }
+
+}
+
+
+void MainWindow::on_compOrientButton_clicked() {
+
+}
+
+
+
+QStandardItemModel* createModel(QObject* parent) {
+    const int numRows = 10;
+    const int numColumns = 10;
+
+    QStandardItemModel* model = new QStandardItemModel(numRows, numColumns);
+
+    for (int row = 0; row < numRows; row++) {
+        for (int column = 0; column < numColumns; column++) {
+            QString text = QString('A' + row) + QString::number(column + 1);
+            QStandardItem* item = new QStandardItem(text);
+            model->setItem(row, column, item);
+        }
+    }
+}
+
+
+
+
+void MainWindow::on_loadGerberFileButton_clicked() {
+
+    /* Create a struct containing all necessary component information */
+
+    int componentCount = 0;
+    std::ifstream datafile;
+    std::string value, package, posX, posY, rotation, side, name;
+
+
+    datafile.open("example.TXT");
+
+    /* ok, proceed  */
+    if (datafile.is_open()) {
+
+        std::cout << "File opened!" << std::endl;
+
+        std::string componentString;
+        while(getline(datafile, componentString)) {
+
+            /* Filter only component data */
+            if(!(componentString.at(0) == (char) 42)){
+
+                componentCount++;
+
+                int pos1 = componentString.find('"');
+                componentString = componentString.substr(pos1+1, componentString.size()-pos1);
+
+                /* Be careful - neglecting one position!!! */
+                pos1 = componentString.find('//');
+                value = componentString.substr(0,pos1);
+                componentString = componentString.substr(pos1+2, componentString.size()-pos1);
+
+                pos1 = componentString.find('"');
+                package = componentString.substr(0,pos1);
+                componentString = componentString.substr(pos1+3, componentString.size()-pos1);
+
+                pos1 = componentString.find('"');
+                posX = componentString.substr(0,pos1);
+                componentString = componentString.substr(pos1+3, componentString.size()-pos1);
+
+                pos1 = componentString.find('"');
+                posY = componentString.substr(0,pos1);
+                componentString = componentString.substr(pos1+3, componentString.size()-pos1);
+
+                pos1 = componentString.find('"');
+                rotation = componentString.substr(0,pos1);
+                componentString = componentString.substr(pos1+2, componentString.size()-pos1);
+
+                pos1 = componentString.find(',');
+                side = componentString.substr(0,pos1);
+                componentString = componentString.substr(pos1+2, componentString.size()-pos1);
+
+                pos1 = componentString.find('"');
+                name = componentString.substr(0,pos1);
+
+                std::cout << value << " - " << package << " - " << posX << " - " << posY << " - " << rotation << " - " << side << " - " << name << std::endl;
+            }
+
+
+        }
+
+        std::cout << "Number of components: " << componentCount << std::endl;
+
+    } else {
+        std::cout << "Could not open file!" << std::endl;
+    }
+
+    datafile.close();
+
+
+    //ui.tableView->setModel(createModel(tableView));
+
+
+
+
+}
+
+
+void MainWindow::on_startPlacementButton_clicked() {
+
+    if (componentTableEmpty) {
+        QMessageBox msgBox;
+        msgBox.setText("Component table empty. Please select Gerber file first.");
+        msgBox.exec();
+        msgBox.close();
+
+        std::cout << "Message box has returned" << std::endl;
+
+    }
+}
+
+
+void MainWindow::on_pausePlacementButton_clicked() {
+
+    if (!placementProcessRunning) {
+        QMessageBox msgBox;
+        msgBox.setText("Component table empty. Please select Gerber file first.");
+        msgBox.exec();
+        close();
+    } else {
+
+    }
+}
+
 
 void MainWindow::showNoMasterMessage() {
 	QMessageBox msgBox;
