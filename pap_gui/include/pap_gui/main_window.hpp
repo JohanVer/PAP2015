@@ -17,6 +17,8 @@
 #include "qnode.hpp"
 #include "pap_common/Task.h"
 
+#include <QStandardItemModel>
+
 
 /*****************************************************************************
 ** Namespace
@@ -69,6 +71,10 @@ public Q_SLOTS:
     void on_pausePlacementButton_clicked();
     void on_setCompBoxNrButton_clicked();
     void on_compOrientButton_clicked();
+    void on_clearTableButton_clicked();
+    void on_tableWidget_clicked();
+    void on_compDeleteButton_clicked();
+    void updateComponentTable();
 
     /******************************************
     ** Manual connections

@@ -14,16 +14,17 @@
 #include <iostream>
 #include "../include/pap_gui/main_window.hpp"
 
-#include "cv.h"
-#include "highgui.h"
-//#include "../include/zbar/zbar/QZBar.h"
-//#include ""
+//#include "cv.h"
+//#include "highgui.h"
 
 #include <string>
 #include <vector>
 #include <iostream>
 #include <sstream>
 #include <fstream>
+#include <QStandardItemModel>
+#include <QVector>
+#include <QString>
 
 
 /*****************************************************************************
@@ -33,6 +34,7 @@
 namespace pap_gui {
 
 using namespace Qt;
+using namespace std;
 
 /*****************************************************************************
  ** Implementation [MainWindow]
@@ -40,7 +42,19 @@ using namespace Qt;
 
 bool componentTableEmpty = true;
 bool placementProcessRunning = false;
+int componentCount = 0;
+int boxNumberMax = 50;
+int boxNumberMin = 1;
+int boxNumberSug = 1;
 
+struct componentEntry {
+    string name, package, side, value;
+    float posX, posY;
+    int rotation;
+    int box;
+};
+
+QVector<componentEntry> componentVector;
 
 MainWindow::MainWindow(int argc, char** argv, QWidget *parent) :
 		QMainWindow(parent), qnode(argc, argv) {
@@ -75,6 +89,9 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent) :
 	QObject::connect(&qnode, SIGNAL(statusUpdated(int)), this,
 			SLOT(statusUpdated(int)));
 
+    // Show Ros status dockwidget
+    ui.dock_status->show();
+
 	valve1Active_ = false;
 
 
@@ -89,114 +106,195 @@ MainWindow::~MainWindow() {
 
 void MainWindow::on_setCompBoxNrButton_clicked() {
 
+    // Check if table empty
+    if(!componentTableEmpty) {
 
+    	/* Get current component */
+        int currentComponent = ui.tableWidget->currentRow();
 
-    bool ok = false;
-    QInputDialog* inputDialog = new QInputDialog();
-    inputDialog->setOptions(QInputDialog::NoButtons);
+        /* If no component selected */
+        if(currentComponent == -1) {
 
-    // TODO: Adapt to show current component box number
-    const QString compBox = "0";
+            QMessageBox msgBox;
+            msgBox.setText("Please select a component.");
+            msgBox.exec();
+            msgBox.close();
 
-    // TODO: Change to get only integer!!
-    QString text = inputDialog->getText(this, "Set component box number",
-                                        "Enter box number and press ok:", QLineEdit::Normal,
-                                        compBox, &ok);
+        } else {
 
-    if (ok) {
-        // TODO: Update label and component table
-        ui.label_compBox->setText(text);
+            bool ok = false;
+            QInputDialog* inputDialog = new QInputDialog();
+            inputDialog->setOptions(QInputDialog::NoButtons);
+
+            /* Get boxNumber input */
+            int currentBox = componentVector.at(currentComponent).box;
+            if(currentBox == -1) {
+            	currentBox = boxNumberSug;
+            }
+
+            //int boxNumber = inputDialog->getInt(this, "enter number", "enter number", currentBox, boxNumberMax, boxNumberMin, boxNumberStep, &ok, 0);
+            int boxNumber = inputDialog->getInt(this, "enter number", "enter number", currentBox);
+
+            if(boxNumber <= boxNumberMax && boxNumber >= boxNumberMin) {
+            	componentVector[currentComponent].box = boxNumber;
+                ui.label_compBox->setText(QString::number(boxNumber));
+                boxNumberSug++;
+
+            } else {
+                QMessageBox msgBox;
+                msgBox.setText("BoxNumberMin = 1, BoxNumberMax = 50");
+                msgBox.exec();
+                msgBox.close();
+
+            }
+        }
+
+    /* If no table empty */
+    } else {
+        QMessageBox msgBox;
+        msgBox.setText("Component table empty. Please select gerber file first.");
+        msgBox.exec();
+        msgBox.close();
     }
+}
 
+void MainWindow::on_compDeleteButton_clicked() {
+
+	/* Get current component */
+    int currentComp = ui.tableWidget->currentRow();
+
+    if(currentComp == -1) {
+        QMessageBox msgBox;
+        msgBox.setText("No component selected.");
+        msgBox.exec();
+        msgBox.close();
+
+    } else {
+        /* Delete component from vector */
+    	componentVector.remove(currentComp);
+
+    	/* Update component table */
+    	updateComponentTable();
+    }
+}
+
+
+void MainWindow::on_tableWidget_clicked() {
+
+    int currentComp = ui.tableWidget->currentRow();
+
+    // Update component information based on componentVector and currentComponent
+    ui.label_compName->setText(componentVector.at(currentComp).name.c_str());
+    ui.label_compPackage->setText(componentVector.at(currentComp).package.c_str());
+    ui.label_compPos->setText(QString::number(componentVector.at(currentComp).posX) + " / " + QString::number(componentVector.at(currentComp).posY));
+    ui.label_compOrient->setText(QString::number(componentVector.at(currentComp).rotation));
+    ui.label_compSide->setText(componentVector.at(currentComp).side.c_str());
+
+    if(componentVector.at(currentComp).box == -1) {
+    	ui.label_compBox->setText("unknown");
+    } else {
+    	ui.label_compBox->setText(QString::number(componentVector.at(currentComp).box));
+    }
+}
+
+void MainWindow::on_clearTableButton_clicked() {
+
+	if(componentTableEmpty){
+        QMessageBox msgBox;
+        msgBox.setText("No content to delete.");
+        msgBox.exec();
+        msgBox.close();
+
+	} else {
+		while(!componentVector.isEmpty()) {
+			componentVector.remove(0);
+		}
+		updateComponentTable();
+	}
 }
 
 
 void MainWindow::on_compOrientButton_clicked() {
 
+
+
 }
 
-
-
-QStandardItemModel* createModel(QObject* parent) {
-    const int numRows = 10;
-    const int numColumns = 10;
-
-    QStandardItemModel* model = new QStandardItemModel(numRows, numColumns);
-
-    for (int row = 0; row < numRows; row++) {
-        for (int column = 0; column < numColumns; column++) {
-            QString text = QString('A' + row) + QString::number(column + 1);
-            QStandardItem* item = new QStandardItem(text);
-            model->setItem(row, column, item);
-        }
-    }
-}
 
 
 
 
 void MainWindow::on_loadGerberFileButton_clicked() {
 
-    /* Create a struct containing all necessary component information */
+    /* Clear component vector and reset component number*/
+	componentVector.clear();
+	componentCount = 0;
 
-    int componentCount = 0;
-    std::ifstream datafile;
+	/* Load gerber file and add new components to vector */
+    std::fstream datafile;
     std::string value, package, posX, posY, rotation, side, name;
 
-
-    datafile.open("example.TXT");
+    datafile.open ("/home/nikolas/catkin_ws/src/PAP2015/pap_gui/src/example.txt", std::fstream::in | std::fstream::out | std::fstream::app);
 
     /* ok, proceed  */
     if (datafile.is_open()) {
 
         std::cout << "File opened!" << std::endl;
 
-        std::string componentString;
+        string componentString;
         while(getline(datafile, componentString)) {
 
             /* Filter only component data */
             if(!(componentString.at(0) == (char) 42)){
 
-                componentCount++;
+            	componentEntry newComponent;
 
                 int pos1 = componentString.find('"');
                 componentString = componentString.substr(pos1+1, componentString.size()-pos1);
 
                 /* Be careful - neglecting one position!!! */
                 pos1 = componentString.find('//');
-                value = componentString.substr(0,pos1);
+                newComponent.value = componentString.substr(0,pos1);
                 componentString = componentString.substr(pos1+2, componentString.size()-pos1);
 
                 pos1 = componentString.find('"');
-                package = componentString.substr(0,pos1);
+                newComponent.package = componentString.substr(0,pos1);
                 componentString = componentString.substr(pos1+3, componentString.size()-pos1);
 
                 pos1 = componentString.find('"');
-                posX = componentString.substr(0,pos1);
+                newComponent.posX = atof((componentString.substr(0,pos1)).c_str());
                 componentString = componentString.substr(pos1+3, componentString.size()-pos1);
 
                 pos1 = componentString.find('"');
-                posY = componentString.substr(0,pos1);
+                newComponent.posY = atof((componentString.substr(0,pos1)).c_str());
                 componentString = componentString.substr(pos1+3, componentString.size()-pos1);
 
                 pos1 = componentString.find('"');
-                rotation = componentString.substr(0,pos1);
+                newComponent.rotation = atoi((componentString.substr(0,pos1)).c_str());
                 componentString = componentString.substr(pos1+2, componentString.size()-pos1);
 
                 pos1 = componentString.find(',');
-                side = componentString.substr(0,pos1);
+                newComponent.side = componentString.substr(0,pos1);
                 componentString = componentString.substr(pos1+2, componentString.size()-pos1);
 
                 pos1 = componentString.find('"');
-                name = componentString.substr(0,pos1);
+                newComponent.name = componentString.substr(0,pos1);
 
-                std::cout << value << " - " << package << " - " << posX << " - " << posY << " - " << rotation << " - " << side << " - " << name << std::endl;
+                // Set box number of component
+                newComponent.box = -1;
+
+                //std::cout << newComponent.value << " - " << newComponent.package << " - " << to_string(newComponent.posX) << " - " << to_string(newComponent.posY) << " - " << newComponent.rotation << " - " << newComponent.side << " - " << newComponent.name << std::endl;
+
+                componentVector.append(newComponent);
+                componentCount++;
+
             }
 
 
         }
 
         std::cout << "Number of components: " << componentCount << std::endl;
+        std::cout << "Size of vector: " << componentVector.size() << std::endl;
 
     } else {
         std::cout << "Could not open file!" << std::endl;
@@ -204,12 +302,52 @@ void MainWindow::on_loadGerberFileButton_clicked() {
 
     datafile.close();
 
+    if(componentCount != 0) {
+        componentTableEmpty = false;
+        updateComponentTable();
+    }
 
-    //ui.tableView->setModel(createModel(tableView));
 
 
+}
 
+void MainWindow::updateComponentTable() {
 
+	   // Set size of table
+	    ui.tableWidget->setRowCount(componentVector.size());
+	    ui.tableWidget->setColumnCount(3);
+
+	    // Set labels
+	    QStringList hLabels, vLabels;
+	    hLabels << "Name" << "Value" << "Package";
+	    for(int i = 1; i < componentVector.size(); i++) {
+	    	vLabels << QString::number(i);
+	    }
+	    ui.tableWidget->setHorizontalHeaderLabels(hLabels);
+	    ui.tableWidget->setVerticalHeaderLabels(vLabels);
+
+	    // Set content
+	    for(int i = 0; i < ui.tableWidget->rowCount(); i++) {
+
+	        ui.tableWidget->setItem(i,0, new QTableWidgetItem((componentVector.at(i).name).c_str()));
+	        ui.tableWidget->setItem(i,1, new QTableWidgetItem((componentVector.at(i).value).c_str()));
+	        ui.tableWidget->setItem(i,2, new QTableWidgetItem((componentVector.at(i).package).c_str()));
+
+	    }
+
+	    // Table settings
+	    ui.tableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
+	    ui.tableWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
+	    //ui.tableWidget->verticalHeader()->setVisible(false);
+	    ui.tableWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+	    ui.tableWidget->horizontalHeader()->setResizeMode(QHeaderView::Stretch);
+
+	    //ui.tableWidget->setWindowTitle("QTableWidget");
+	    ui.tableWidget->show();
+
+	    // Set number of components
+	    ui.label_compTotal->setText(QString::number(componentVector.size()));
+	    ui.label_compLeft->setText(QString::number(componentVector.size()));
 }
 
 
@@ -217,12 +355,9 @@ void MainWindow::on_startPlacementButton_clicked() {
 
     if (componentTableEmpty) {
         QMessageBox msgBox;
-        msgBox.setText("Component table empty. Please select Gerber file first.");
+        msgBox.setText("Component table empty. Please select gerber file first.");
         msgBox.exec();
         msgBox.close();
-
-        std::cout << "Message box has returned" << std::endl;
-
     }
 }
 
@@ -233,7 +368,7 @@ void MainWindow::on_pausePlacementButton_clicked() {
         QMessageBox msgBox;
         msgBox.setText("Component table empty. Please select Gerber file first.");
         msgBox.exec();
-        close();
+        msgBox.close();
     } else {
 
     }
