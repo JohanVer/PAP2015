@@ -3,7 +3,7 @@
 using namespace std;
 using namespace error_codes;
 
-serial::Serial serialPort("/dev/ttyUSB0", 115200,
+serial::Serial serialPort("/dev/ttyUSB0", 38400,
 		serial::Timeout::simpleTimeout(100));
 
 const unsigned int CRC16_table[256] = { 0x0000, 0x1021, 0x2042, 0x3063, 0x4084,
@@ -61,6 +61,7 @@ void motorController::ReqParker(unsigned char rw, unsigned char* data,
 
 	int totalLength = 5 + length;
 
+
 	unsigned char dataComplete[totalLength];
 	dataComplete[0] = rw;
 	dataComplete[1] = adress;
@@ -103,7 +104,7 @@ unsigned int motorController::readInt16AddressParker(
 	int readBytes = serialPort.read(readBuffer, numToRead);
 
 	if (readBytes != numToRead) {
-		ROS_ERROR("Unexpected end of serial data");
+		ROS_ERROR("Unexpected end of serial data %d",readBytes);
 		return 0;
 	}
 	// Calc CRC
@@ -118,7 +119,7 @@ unsigned int motorController::readInt16AddressParker(
 	// Check crc and start sequence
 	if ((crc_h == readBuffer[numToRead - 2])
 			&& (crc_l == readBuffer[numToRead - 1]) && (readBuffer[0] = 0x05)) {
-		return (readBuffer[3] << 8) | (readBuffer[4]);
+		return (readBuffer[2] << 8) | (readBuffer[3]);
 	} else {
 		ROS_ERROR("CRC or start-sequence failed");
 		return 0;
@@ -193,7 +194,7 @@ bool motorController::checkForACK() {
 	int readBytes = serialPort.read(readBuffer, totalLength);
 
 	if (readBytes != totalLength) {
-		ROS_ERROR("Unexpected end of serial data");
+		ROS_ERROR("Unexpected end of serial data %d",readBytes);
 		return false;
 	}
 
@@ -297,7 +298,7 @@ controllerStatus motorController::getStatusController(
 	} else {
 		status.failed = false;
 	}
-	ROS_INFO("StatusByte: %d", statusByte);
+
 	if (statusByte & (0x01 << 8)) {
 		status.error = false;
 	} else {
