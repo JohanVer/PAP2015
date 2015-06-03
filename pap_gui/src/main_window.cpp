@@ -14,6 +14,11 @@
 #include <iostream>
 #include "../include/pap_gui/main_window.hpp"
 
+#include "cv.h"
+#include "highgui.h"
+//#include "../include/zbar/zbar/QZBar.h"
+//#include ""
+
 /*****************************************************************************
  ** Namespaces
  *****************************************************************************/
@@ -60,6 +65,8 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent) :
 			SLOT(statusUpdated(int)));
 
 	valve1Active_ = false;
+
+
 }
 
 MainWindow::~MainWindow() {
