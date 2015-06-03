@@ -460,7 +460,7 @@ int motorController::gotoCoord(float x, float y, float z) {
 
 	if (controllerConnected_1_) {
 		// Setting lines and collumns in the postion-set
-		if (!setSetting(1, 1, x, 380, 1000, 1000)) {
+		if (!setSetting(1, 1, x, 50, 300, 300)) {
 			error = X_ERROR;
 		}
 	} else {
@@ -468,7 +468,7 @@ int motorController::gotoCoord(float x, float y, float z) {
 	}
 
 	if (controllerConnected_2_) {
-		if (!setSetting(2, 1, y, 380, 1000, 1000)) {
+		if (!setSetting(2, 1, y, 300, 500, 500)) {
 			error = Y_ERROR;
 		}
 	} else {
@@ -476,7 +476,7 @@ int motorController::gotoCoord(float x, float y, float z) {
 	}
 
 	if (controllerConnected_3_) {
-		if (!setSetting(3, 1, z, 380, 1000, 1000)) {
+		if (!setSetting(3, 1, z, 300, 500, 500)) {
 			error = Z_ERROR;
 		}
 	} else {
