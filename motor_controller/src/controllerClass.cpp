@@ -412,6 +412,16 @@ bool motorController::manual(unsigned char deviceAddress,
 	}
 }
 
+bool motorController::stop(unsigned char deviceAddress) {
+	unsigned int control = controlWord1;
+
+	if (writeInt16AddressParker(deviceAddress, 1100, 3, control)) {
+		return true;
+	} else {
+		return false;
+	}
+}
+
 bool motorController::sendHoming() {
 	bool error = true;;
 	// Start setting with address zero

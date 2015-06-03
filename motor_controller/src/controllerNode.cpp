@@ -179,6 +179,16 @@ void parseTask(const pap_common::TaskConstPtr& taskMsg) {
 			ROS_INFO("Searching for devices...");
 			controller.searchForDevices();
 			break;
+
+		case pap_common::STOP:
+			if (taskMsg->data1 == (float) (pap_common::XMOTOR)) {
+				controller.stop(1);
+			} else if (taskMsg->data1 == (float) (pap_common::YMOTOR)) {
+				controller.stop(2);
+			} else if (taskMsg->data1 == (float) (pap_common::ZMOTOR)) {
+				controller.stop(3);
+			}
+			break;
 		}
 		break;
 	}

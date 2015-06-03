@@ -52,17 +52,23 @@ public Q_SLOTS:
 	void on_startHoming_clicked(bool check);
 	void on_switchCurrent_clicked(bool check);
 	void on_gotoCoord_clicked(bool check);
-	void on_xManPos_clicked(bool check);
-	void on_xManNeg_clicked(bool check);
-	void on_YManPos_clicked(bool check);
-	void on_YManNeg_clicked(bool check);
-	void on_ZManPos_clicked(bool check);
-	void on_ZManNeg_clicked(bool check);
+	void on_xManPos_pressed();
+	void on_xManNeg_pressed();
+	void on_YManPos_pressed();
+	void on_YManNeg_pressed();
+	void on_ZManPos_pressed();
+	void on_ZManNeg_pressed();
 	void on_connectButton_clicked(bool check);
 	void on_checkbox_use_environment_stateChanged(int state);
 	void cameraUpdated(int index);
 	void statusUpdated(int index);
 	void on_valveToggle1_clicked(bool check);
+    void releasexManPos();
+    void releaseyManPos();
+    void releasezManPos();
+    void releasexManNeg();
+    void releaseyManNeg();
+    void releasezManNeg();
 
     /******************************************
     ** Manual connections

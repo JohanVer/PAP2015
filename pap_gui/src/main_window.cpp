@@ -64,6 +64,14 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent) :
 	QObject::connect(&qnode, SIGNAL(statusUpdated(int)), this,
 			SLOT(statusUpdated(int)));
 
+	connect(ui.xManPos, SIGNAL (released()), this, SLOT (releasexManPos()));
+	connect(ui.xManNeg, SIGNAL (released()), this, SLOT (releasexManNeg()));
+	connect(ui.YManPos, SIGNAL (released()), this, SLOT (releaseyManPos()));
+	connect(ui.YManNeg, SIGNAL (released()), this, SLOT (releaseyManNeg()));
+	connect(ui.ZManPos, SIGNAL (released()), this, SLOT (releasezManPos()));
+	connect(ui.ZManNeg, SIGNAL (released()), this, SLOT (releasezManNeg()));
+
+
 	valve1Active_ = false;
 
 
@@ -216,34 +224,64 @@ void MainWindow::on_gotoCoord_clicked(bool check) {
 			(ui.zLineEdit->text()).toFloat());
 }
 
-void MainWindow::on_xManPos_clicked(bool check) {
+void MainWindow::on_xManPos_pressed() {
 	qnode.sendTask(pap_common::CONTROLLER, pap_common::MANUAL,
 			(float) pap_common::XMOTOR, (float) pap_common::FORWARD, 0.0);
 }
 
-void MainWindow::on_xManNeg_clicked(bool check) {
+void MainWindow::releasexManPos(){
+	qnode.sendTask(pap_common::CONTROLLER, pap_common::STOP,
+				(float) pap_common::XMOTOR, 0.0, 0.0);
+}
+
+void MainWindow::on_xManNeg_pressed() {
 	qnode.sendTask(pap_common::CONTROLLER, pap_common::MANUAL,
 			(float) pap_common::XMOTOR, (float) pap_common::BACKWARD, 0.0);
 }
 
-void MainWindow::on_YManPos_clicked(bool check) {
+void MainWindow::releasexManNeg(){
+	qnode.sendTask(pap_common::CONTROLLER, pap_common::STOP,
+				(float) pap_common::XMOTOR, 0.0, 0.0);
+}
+
+void MainWindow::on_YManPos_pressed() {
 	qnode.sendTask(pap_common::CONTROLLER, pap_common::MANUAL,
 			(float) pap_common::YMOTOR, (float) pap_common::FORWARD, 0.0);
 }
 
-void MainWindow::on_YManNeg_clicked(bool check) {
+void MainWindow::releaseyManPos(){
+	qnode.sendTask(pap_common::CONTROLLER, pap_common::STOP,
+				(float) pap_common::YMOTOR, 0.0, 0.0);
+}
+
+void MainWindow::on_YManNeg_pressed() {
 	qnode.sendTask(pap_common::CONTROLLER, pap_common::MANUAL,
 			(float) pap_common::YMOTOR, (float) pap_common::BACKWARD, 0.0);
 }
 
-void MainWindow::on_ZManPos_clicked(bool check) {
+void MainWindow::releaseyManNeg(){
+	qnode.sendTask(pap_common::CONTROLLER, pap_common::STOP,
+				(float) pap_common::YMOTOR, 0.0, 0.0);
+}
+
+void MainWindow::on_ZManPos_pressed() {
 	qnode.sendTask(pap_common::CONTROLLER, pap_common::MANUAL,
 			(float) pap_common::ZMOTOR, (float) pap_common::FORWARD, 0.0);
 }
 
-void MainWindow::on_ZManNeg_clicked(bool check) {
+void MainWindow::releasezManPos(){
+	qnode.sendTask(pap_common::CONTROLLER, pap_common::STOP,
+				(float) pap_common::ZMOTOR, 0.0, 0.0);
+}
+
+void MainWindow::on_ZManNeg_pressed() {
 	qnode.sendTask(pap_common::CONTROLLER, pap_common::MANUAL,
 			(float) pap_common::ZMOTOR, (float) pap_common::BACKWARD, 0.0);
+}
+
+void MainWindow::releasezManNeg(){
+	qnode.sendTask(pap_common::CONTROLLER, pap_common::STOP,
+				(float) pap_common::ZMOTOR, 0.0, 0.0);
 }
 
 void MainWindow::statusUpdated(int index) {
