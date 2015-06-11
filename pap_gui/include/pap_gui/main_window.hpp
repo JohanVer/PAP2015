@@ -63,6 +63,13 @@ public Q_SLOTS:
 	void cameraUpdated(int index);
 	void statusUpdated(int index);
 	void on_valveToggle1_clicked(bool check);
+	void on_valveToggle2_clicked(bool check);
+	void on_valveToggle3_clicked(bool check);
+	void on_valveToggle4_clicked(bool check);
+	void on_valveToggle5_clicked(bool check);
+	void on_valveToggle6_clicked(bool check);
+	void on_valveToggle7_clicked(bool check);
+	void on_valveToggle8_clicked(bool check);
     void releasexManPos();
     void releaseyManPos();
     void releasezManPos();

@@ -36,3 +36,7 @@ First :
 
 Then:
  awk -f $(rospack find mk)/eclipse.awk build/.project > build/.project_with_env && mv build/.project_with_env build/.project
+
+START ARDUINO SERVER:
+rosrun rosserial_python serial_node.py _port:=/dev/ttyACM0
+

@@ -364,6 +364,87 @@ void MainWindow::on_valveToggle1_clicked(bool check) {
 	}
 }
 
+void MainWindow::on_valveToggle2_clicked(bool check) {
+	if (!valve1Active_) {
+		qnode.sendRelaisTask(2, true);
+		ui.valveStatus1->setText("On");
+		valve1Active_ = true;
+	} else {
+		qnode.sendRelaisTask(2, false);
+		ui.valveStatus1->setText("Off");
+		valve1Active_ = false;
+	}
+}
+
+void MainWindow::on_valveToggle3_clicked(bool check) {
+	if (!valve1Active_) {
+		qnode.sendRelaisTask(3, true);
+		ui.valveStatus1->setText("On");
+		valve1Active_ = true;
+	} else {
+		qnode.sendRelaisTask(3, false);
+		ui.valveStatus1->setText("Off");
+		valve1Active_ = false;
+	}
+}
+void MainWindow::on_valveToggle4_clicked(bool check) {
+	if (!valve1Active_) {
+		qnode.sendRelaisTask(4, true);
+		ui.valveStatus1->setText("On");
+		valve1Active_ = true;
+	} else {
+		qnode.sendRelaisTask(4, false);
+		ui.valveStatus1->setText("Off");
+		valve1Active_ = false;
+	}
+}
+void MainWindow::on_valveToggle5_clicked(bool check) {
+	if (!valve1Active_) {
+		qnode.sendRelaisTask(5, true);
+		ui.valveStatus1->setText("On");
+		valve1Active_ = true;
+	} else {
+		qnode.sendRelaisTask(5, false);
+		ui.valveStatus1->setText("Off");
+		valve1Active_ = false;
+	}
+}
+void MainWindow::on_valveToggle6_clicked(bool check) {
+	if (!valve1Active_) {
+		qnode.sendRelaisTask(6, true);
+		ui.valveStatus1->setText("On");
+		valve1Active_ = true;
+	} else {
+		qnode.sendRelaisTask(6, false);
+		ui.valveStatus1->setText("Off");
+		valve1Active_ = false;
+	}
+}
+
+void MainWindow::on_valveToggle7_clicked(bool check) {
+	if (!valve1Active_) {
+		qnode.sendRelaisTask(7, true);
+		ui.valveStatus1->setText("On");
+		valve1Active_ = true;
+	} else {
+		qnode.sendRelaisTask(7, false);
+		ui.valveStatus1->setText("Off");
+		valve1Active_ = false;
+	}
+}
+
+void MainWindow::on_valveToggle8_clicked(bool check) {
+	if (!valve1Active_) {
+		qnode.sendRelaisTask(8, true);
+		ui.valveStatus1->setText("On");
+		valve1Active_ = true;
+	} else {
+		qnode.sendRelaisTask(8, false);
+		ui.valveStatus1->setText("Off");
+		valve1Active_ = false;
+	}
+}
+
 }
 // namespace pap_gui
 
