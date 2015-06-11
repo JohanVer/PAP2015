@@ -348,18 +348,21 @@ void MainWindow::statusUpdated(int index) {
 	}
 }
 
+// Vacuum valve 1
 void MainWindow::on_connectButton_clicked(bool check) {
 	qnode.sendTask(pap_common::CONTROLLER, pap_common::CONNECT);
 }
 
 void MainWindow::on_valveToggle1_clicked(bool check) {
 	if (!valve1Active_) {
-		qnode.sendRelaisTask(1, true);
-		ui.valveStatus1->setText("On");
+		qnode.sendRelaisTask(5, true);
+		ui.valveToggle1->setText("On");
+		//ui.valveStatus1->setText("On");
 		valve1Active_ = true;
 	} else {
-		qnode.sendRelaisTask(1, false);
-		ui.valveStatus1->setText("Off");
+		qnode.sendRelaisTask(5, false);
+		ui.valveToggle1->setText("Off");
+		//ui.valveStatus1->setText("Off");
 		valve1Active_ = false;
 	}
 }

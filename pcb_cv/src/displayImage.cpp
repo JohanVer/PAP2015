@@ -29,16 +29,16 @@ int main(int argc, char **argv) {
 	padFinder finder;
 	image_pub_ = it_.advertise("camera1", 1);
 
-	//CvCapture* capture = cvCaptureFromCAM(CV_CAP_ANY);
+	CvCapture* capture = cvCaptureFromCAM(CV_CAP_ANY);
 
 	int id_counter = 0;
 
 	while (ros::ok()) { //Create infinte loop for live streaming
-		//IplImage* frame = cvQueryFrame(capture); //Create image frames from capture
+		IplImage* frame = cvQueryFrame(capture); //Create image frames from capture
 		id_counter++;
 		cv_bridge::CvImage out_msg;
-		//cv::Mat input(frame);
-		cv::Mat input = cv::imread("/home/johan/Desktop/2015-03-27-200049.jpg");
+		cv::Mat input(frame);
+		//cv::Mat input = cv::imread("/home/johan/Desktop/2015-03-27-200049.jpg");
 		cv::Mat outputRGB;
 		//finder.findPads(input);
 
@@ -53,7 +53,7 @@ int main(int argc, char **argv) {
 		out_msg.image = outputRGB; // Your cv::Mat
 
 		image_pub_.publish(out_msg.toImageMsg());
-		ros::Duration(1.0).sleep();
+		ros::Duration(0.033).sleep();
 
 		//cvReleaseCapture(&capture); //Release capture.
 		//cvDestroyWindow("Camera_Output"); //Destroy Window

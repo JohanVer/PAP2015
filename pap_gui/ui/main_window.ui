@@ -34,7 +34,7 @@
        <locale language="English" country="Australia"/>
       </property>
       <property name="currentIndex">
-       <number>4</number>
+       <number>2</number>
       </property>
       <widget class="QWidget" name="tab_status">
        <attribute name="title">
@@ -986,121 +986,16 @@
          <rect>
           <x>410</x>
           <y>280</y>
-          <width>299</width>
-          <height>262</height>
+          <width>231</width>
+          <height>291</height>
          </rect>
         </property>
         <layout class="QHBoxLayout" name="horizontalLayout_10">
          <item>
-          <layout class="QVBoxLayout" name="verticalLayout_18">
-           <item>
-            <widget class="QPushButton" name="valveToggle1">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="text">
-              <string>Toggle 1</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="valveToggle2">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="text">
-              <string>Toggle 2</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="valveToggle3">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="text">
-              <string>Toggle 3</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="valveToggle4">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="text">
-              <string>Toggle 4</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="valveToggle5">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="text">
-              <string>Toggle 5</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="valveToggle6">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="text">
-              <string>Toggle 6</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="valveToggle7">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="text">
-              <string>Toggle 7</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="valveToggle8">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="text">
-              <string>Toggle 8</string>
-             </property>
-            </widget>
-           </item>
-          </layout>
+          <layout class="QVBoxLayout" name="verticalLayout_27"/>
          </item>
          <item>
-          <layout class="QVBoxLayout" name="verticalLayout_19">
+          <layout class="QVBoxLayout" name="verticalLayout_18">
            <item>
             <widget class="QLabel" name="valveStatus1">
              <property name="sizePolicy">
@@ -1110,7 +1005,7 @@
               </sizepolicy>
              </property>
              <property name="text">
-              <string>off</string>
+              <string>Vacuum valve 1</string>
              </property>
             </widget>
            </item>
@@ -1123,7 +1018,7 @@
               </sizepolicy>
              </property>
              <property name="text">
-              <string>off</string>
+              <string>Vacuum valve 2</string>
              </property>
             </widget>
            </item>
@@ -1207,7 +1102,126 @@
            </item>
           </layout>
          </item>
+         <item>
+          <layout class="QVBoxLayout" name="verticalLayout_19">
+           <item>
+            <widget class="QPushButton" name="valveToggle1">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string>Off</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="valveToggle2">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string>Off</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="valveToggle3">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string>Off</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="valveToggle4">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string>Toggle 4</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="valveToggle5">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string>Toggle 5</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="valveToggle6">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string>Toggle 6</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="valveToggle7">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string>Toggle 7</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="valveToggle8">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string>Toggle 8</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
         </layout>
+       </widget>
+       <widget class="QWidget" name="verticalLayoutWidget_17">
+        <property name="geometry">
+         <rect>
+          <x>720</x>
+          <y>70</y>
+          <width>151</width>
+          <height>161</height>
+         </rect>
+        </property>
+        <layout class="QVBoxLayout" name="verticalLayout_33"/>
        </widget>
       </widget>
       <widget class="QWidget" name="ComponentPlacement">
@@ -1647,18 +1661,7 @@
           </rect>
          </property>
         </widget>
-        <zorder>line_3</zorder>
-        <zorder>line_3</zorder>
-        <zorder>tableView</zorder>
        </widget>
-       <zorder>groupBox_4</zorder>
-       <zorder>pushButton_3</zorder>
-       <zorder>label_8</zorder>
-       <zorder>pushButton_5</zorder>
-       <zorder>groupBox_3</zorder>
-       <zorder>verticalLayoutWidget_5</zorder>
-       <zorder>groupBox_5</zorder>
-       <zorder>line_3</zorder>
       </widget>
       <widget class="QWidget" name="tab_3">
        <attribute name="title">
