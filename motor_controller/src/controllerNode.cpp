@@ -22,7 +22,7 @@ void checkStatusController(int numberOfController,
 	pap_common::Status stateMessage;
 	stateMessage.data1 = numberOfController;
 
-	if (controllerStatusAct->energized != controllerStatusOld->energized) {
+//	if (controllerStatusAct->energized != controllerStatusOld->energized) {
 
 		if (controllerStatusAct->energized) {
 			stateMessage.status = pap_common::ENERGIZED;
@@ -31,9 +31,9 @@ void checkStatusController(int numberOfController,
 		}
 		statusPublisher.publish(stateMessage);
 		controllerStatusOld->energized = controllerStatusAct->energized;
-	}
+//	}
 
-	if (controllerStatusAct->error != controllerStatusOld->error) {
+//	if (controllerStatusAct->error != controllerStatusOld->error) {
 
 		if (controllerStatusAct->error) {
 			stateMessage.status = pap_common::ERROR;
@@ -42,10 +42,10 @@ void checkStatusController(int numberOfController,
 		}
 		statusPublisher.publish(stateMessage);
 		controllerStatusOld->error = controllerStatusAct->error;
-	}
+//	}
 
-	if (controllerStatusAct->positionReached
-			!= controllerStatusOld->positionReached) {
+//	if (controllerStatusAct->positionReached
+//			!= controllerStatusOld->positionReached) {
 
 		if (controllerStatusAct->positionReached) {
 			stateMessage.status = pap_common::POSITIONREACHED;
@@ -55,7 +55,7 @@ void checkStatusController(int numberOfController,
 		statusPublisher.publish(stateMessage);
 		controllerStatusOld->positionReached =
 				controllerStatusAct->positionReached;
-	}
+//	}
 }
 
 int main(int argc, char **argv) {
@@ -178,6 +178,16 @@ void parseTask(const pap_common::TaskConstPtr& taskMsg) {
 		case pap_common::CONNECT:
 			ROS_INFO("Searching for devices...");
 			controller.searchForDevices();
+			break;
+
+		case pap_common::STOP:
+			if (taskMsg->data1 == (float) (pap_common::XMOTOR)) {
+				controller.stop(1);
+			} else if (taskMsg->data1 == (float) (pap_common::YMOTOR)) {
+				controller.stop(2);
+			} else if (taskMsg->data1 == (float) (pap_common::ZMOTOR)) {
+				controller.stop(3);
+			}
 			break;
 		}
 		break;

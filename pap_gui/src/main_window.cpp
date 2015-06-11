@@ -89,8 +89,16 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent) :
 	QObject::connect(&qnode, SIGNAL(statusUpdated(int)), this,
 			SLOT(statusUpdated(int)));
 
+	connect(ui.xManPos, SIGNAL (released()), this, SLOT (releasexManPos()));
+	connect(ui.xManNeg, SIGNAL (released()), this, SLOT (releasexManNeg()));
+	connect(ui.YManPos, SIGNAL (released()), this, SLOT (releaseyManPos()));
     // Show Ros status dockwidget
     ui.dock_status->show();
+
+	connect(ui.YManNeg, SIGNAL (released()), this, SLOT (releaseyManNeg()));
+	connect(ui.ZManPos, SIGNAL (released()), this, SLOT (releasezManPos()));
+	connect(ui.ZManNeg, SIGNAL (released()), this, SLOT (releasezManNeg()));
+
 
 	valve1Active_ = false;
 
@@ -515,34 +523,64 @@ void MainWindow::on_gotoCoord_clicked(bool check) {
 			(ui.zLineEdit->text()).toFloat());
 }
 
-void MainWindow::on_xManPos_clicked(bool check) {
+void MainWindow::on_xManPos_pressed() {
 	qnode.sendTask(pap_common::CONTROLLER, pap_common::MANUAL,
 			(float) pap_common::XMOTOR, (float) pap_common::FORWARD, 0.0);
 }
 
-void MainWindow::on_xManNeg_clicked(bool check) {
+void MainWindow::releasexManPos(){
+	qnode.sendTask(pap_common::CONTROLLER, pap_common::STOP,
+				(float) pap_common::XMOTOR, 0.0, 0.0);
+}
+
+void MainWindow::on_xManNeg_pressed() {
 	qnode.sendTask(pap_common::CONTROLLER, pap_common::MANUAL,
 			(float) pap_common::XMOTOR, (float) pap_common::BACKWARD, 0.0);
 }
 
-void MainWindow::on_YManPos_clicked(bool check) {
+void MainWindow::releasexManNeg(){
+	qnode.sendTask(pap_common::CONTROLLER, pap_common::STOP,
+				(float) pap_common::XMOTOR, 0.0, 0.0);
+}
+
+void MainWindow::on_YManPos_pressed() {
 	qnode.sendTask(pap_common::CONTROLLER, pap_common::MANUAL,
 			(float) pap_common::YMOTOR, (float) pap_common::FORWARD, 0.0);
 }
 
-void MainWindow::on_YManNeg_clicked(bool check) {
+void MainWindow::releaseyManPos(){
+	qnode.sendTask(pap_common::CONTROLLER, pap_common::STOP,
+				(float) pap_common::YMOTOR, 0.0, 0.0);
+}
+
+void MainWindow::on_YManNeg_pressed() {
 	qnode.sendTask(pap_common::CONTROLLER, pap_common::MANUAL,
 			(float) pap_common::YMOTOR, (float) pap_common::BACKWARD, 0.0);
 }
 
-void MainWindow::on_ZManPos_clicked(bool check) {
+void MainWindow::releaseyManNeg(){
+	qnode.sendTask(pap_common::CONTROLLER, pap_common::STOP,
+				(float) pap_common::YMOTOR, 0.0, 0.0);
+}
+
+void MainWindow::on_ZManPos_pressed() {
 	qnode.sendTask(pap_common::CONTROLLER, pap_common::MANUAL,
 			(float) pap_common::ZMOTOR, (float) pap_common::FORWARD, 0.0);
 }
 
-void MainWindow::on_ZManNeg_clicked(bool check) {
+void MainWindow::releasezManPos(){
+	qnode.sendTask(pap_common::CONTROLLER, pap_common::STOP,
+				(float) pap_common::ZMOTOR, 0.0, 0.0);
+}
+
+void MainWindow::on_ZManNeg_pressed() {
 	qnode.sendTask(pap_common::CONTROLLER, pap_common::MANUAL,
 			(float) pap_common::ZMOTOR, (float) pap_common::BACKWARD, 0.0);
+}
+
+void MainWindow::releasezManNeg(){
+	qnode.sendTask(pap_common::CONTROLLER, pap_common::STOP,
+				(float) pap_common::ZMOTOR, 0.0, 0.0);
 }
 
 void MainWindow::statusUpdated(int index) {
@@ -609,17 +647,101 @@ void MainWindow::statusUpdated(int index) {
 	}
 }
 
+// Vacuum valve 1
 void MainWindow::on_connectButton_clicked(bool check) {
 	qnode.sendTask(pap_common::CONTROLLER, pap_common::CONNECT);
 }
 
 void MainWindow::on_valveToggle1_clicked(bool check) {
 	if (!valve1Active_) {
-		qnode.sendRelaisTask(1, true);
+		qnode.sendRelaisTask(5, true);
+		ui.valveToggle1->setText("On");
+		//ui.valveStatus1->setText("On");
+		valve1Active_ = true;
+	} else {
+		qnode.sendRelaisTask(5, false);
+		ui.valveToggle1->setText("Off");
+		//ui.valveStatus1->setText("Off");
+		valve1Active_ = false;
+	}
+}
+
+void MainWindow::on_valveToggle2_clicked(bool check) {
+	if (!valve1Active_) {
+		qnode.sendRelaisTask(2, true);
 		ui.valveStatus1->setText("On");
 		valve1Active_ = true;
 	} else {
-		qnode.sendRelaisTask(1, false);
+		qnode.sendRelaisTask(2, false);
+		ui.valveStatus1->setText("Off");
+		valve1Active_ = false;
+	}
+}
+
+void MainWindow::on_valveToggle3_clicked(bool check) {
+	if (!valve1Active_) {
+		qnode.sendRelaisTask(3, true);
+		ui.valveStatus1->setText("On");
+		valve1Active_ = true;
+	} else {
+		qnode.sendRelaisTask(3, false);
+		ui.valveStatus1->setText("Off");
+		valve1Active_ = false;
+	}
+}
+void MainWindow::on_valveToggle4_clicked(bool check) {
+	if (!valve1Active_) {
+		qnode.sendRelaisTask(4, true);
+		ui.valveStatus1->setText("On");
+		valve1Active_ = true;
+	} else {
+		qnode.sendRelaisTask(4, false);
+		ui.valveStatus1->setText("Off");
+		valve1Active_ = false;
+	}
+}
+void MainWindow::on_valveToggle5_clicked(bool check) {
+	if (!valve1Active_) {
+		qnode.sendRelaisTask(5, true);
+		ui.valveStatus1->setText("On");
+		valve1Active_ = true;
+	} else {
+		qnode.sendRelaisTask(5, false);
+		ui.valveStatus1->setText("Off");
+		valve1Active_ = false;
+	}
+}
+void MainWindow::on_valveToggle6_clicked(bool check) {
+	if (!valve1Active_) {
+		qnode.sendRelaisTask(6, true);
+		ui.valveStatus1->setText("On");
+		valve1Active_ = true;
+	} else {
+		qnode.sendRelaisTask(6, false);
+		ui.valveStatus1->setText("Off");
+		valve1Active_ = false;
+	}
+}
+
+void MainWindow::on_valveToggle7_clicked(bool check) {
+	if (!valve1Active_) {
+		qnode.sendRelaisTask(7, true);
+		ui.valveStatus1->setText("On");
+		valve1Active_ = true;
+	} else {
+		qnode.sendRelaisTask(7, false);
+		ui.valveStatus1->setText("Off");
+		valve1Active_ = false;
+	}
+}
+
+void MainWindow::on_valveToggle8_clicked(bool check) {
+	if (!valve1Active_) {
+		qnode.sendRelaisTask(8, true);
+		ui.valveStatus1->setText("On");
+		valve1Active_ = true;
+	} else {
+		qnode.sendRelaisTask(8, false);
 		ui.valveStatus1->setText("Off");
 		valve1Active_ = false;
 	}

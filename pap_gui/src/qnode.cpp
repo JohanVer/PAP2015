@@ -52,7 +52,7 @@ bool QNode::init() {
 	arduino_publisher_ = n_.advertise<pap_common::ArduinoMsg>("arduinoTx",
 			1000);
 	image_sub_ = it_.subscribe("camera1", 1, &QNode::cameraCallback, this);
-	statusSubsriber_ = n_.subscribe("status", 1, &QNode::statusCallback, this);
+	statusSubsriber_ = n_.subscribe("status", 100, &QNode::statusCallback, this);
 	start();
 	return true;
 }
@@ -73,7 +73,7 @@ bool QNode::init(const std::string &master_url, const std::string &host_url) {
 	arduino_publisher_ = n_.advertise<pap_common::ArduinoMsg>("arduinoTx",
 			1000);
 	image_sub_ = it_.subscribe("/camera1", 1, &QNode::cameraCallback, this);
-	statusSubsriber_ = n_.subscribe("status", 1, &QNode::statusCallback, this);
+	statusSubsriber_ = n_.subscribe("status", 100, &QNode::statusCallback, this);
 	start();
 	return true;
 }
@@ -99,7 +99,7 @@ void QNode::cameraCallback(const sensor_msgs::ImageConstPtr& camera_msg) {
 }
 
 void QNode::run() {
-	ros::Rate loop_rate(1);
+	ros::Rate loop_rate(20);
 	int count = 0;
 	while (ros::ok()) {
 		ros::spinOnce();
@@ -165,10 +165,8 @@ void QNode::sendTask(pap_common::DESTINATION destination, pap_common::TASK task,
 }
 
 void QNode::statusCallback(const pap_common::StatusConstPtr& statusMsg) {
-	ROS_INFO("Got status msg");
 
 	int index = statusMsg->data1;
-	// TODO : Sort by controller
 	if (statusMsg->status == pap_common::ENERGIZED) {
 		motorcontrollerStatus[index].energized = true;
 	}

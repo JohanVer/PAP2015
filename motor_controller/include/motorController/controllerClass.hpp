@@ -70,6 +70,7 @@ public:
 	bool startSetting(unsigned char adressDevice, unsigned int settingAddress);
 	bool manual(unsigned char deviceAddress, unsigned char direction);
 	int gotoCoord(float x, float y, float z);
+	bool stop(unsigned char deviceAddress);
 
 
 	bool controllerConnected_1_,controllerConnected_2_,controllerConnected_3_;

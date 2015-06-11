@@ -3,7 +3,7 @@
 using namespace std;
 using namespace error_codes;
 
-serial::Serial serialPort("/dev/ttyUSB0", 115200,
+serial::Serial serialPort("/dev/ttyUSB0", 38400,
 		serial::Timeout::simpleTimeout(100));
 
 const unsigned int CRC16_table[256] = { 0x0000, 0x1021, 0x2042, 0x3063, 0x4084,
@@ -61,6 +61,7 @@ void motorController::ReqParker(unsigned char rw, unsigned char* data,
 
 	int totalLength = 5 + length;
 
+
 	unsigned char dataComplete[totalLength];
 	dataComplete[0] = rw;
 	dataComplete[1] = adress;
@@ -103,7 +104,7 @@ unsigned int motorController::readInt16AddressParker(
 	int readBytes = serialPort.read(readBuffer, numToRead);
 
 	if (readBytes != numToRead) {
-		ROS_ERROR("Unexpected end of serial data");
+		ROS_ERROR("Unexpected end of serial data %d",readBytes);
 		return 0;
 	}
 	// Calc CRC
@@ -118,7 +119,7 @@ unsigned int motorController::readInt16AddressParker(
 	// Check crc and start sequence
 	if ((crc_h == readBuffer[numToRead - 2])
 			&& (crc_l == readBuffer[numToRead - 1]) && (readBuffer[0] = 0x05)) {
-		return (readBuffer[3] << 8) | (readBuffer[4]);
+		return (readBuffer[2] << 8) | (readBuffer[3]);
 	} else {
 		ROS_ERROR("CRC or start-sequence failed");
 		return 0;
@@ -193,7 +194,7 @@ bool motorController::checkForACK() {
 	int readBytes = serialPort.read(readBuffer, totalLength);
 
 	if (readBytes != totalLength) {
-		ROS_ERROR("Unexpected end of serial data");
+		ROS_ERROR("Unexpected end of serial data %d",readBytes);
 		return false;
 	}
 
@@ -297,7 +298,7 @@ controllerStatus motorController::getStatusController(
 	} else {
 		status.failed = false;
 	}
-	ROS_INFO("StatusByte: %d", statusByte);
+
 	if (statusByte & (0x01 << 8)) {
 		status.error = false;
 	} else {
@@ -310,17 +311,33 @@ controllerStatus motorController::getStatusController(
 		status.energized = true;
 	}
 
-	if (statusByte & (0x01 << 9)) {
+	if (statusByte & (0x01 << 11)) {
 		status.positionReached = true;
 	} else {
 		status.positionReached = false;
 	}
-
 	return status;
 }
 
 bool motorController::energizeAxis(unsigned char adressDevice, bool trigger) {
-
+	if(adressDevice == 1){
+		if (!controllerConnected_1_) {
+		ROS_ERROR("Controller 1 not connected");
+		return false;
+		}
+	}
+	if(adressDevice == 2){
+		if (!controllerConnected_2_) {
+		ROS_ERROR("Controller 2 not connected");
+		return false;
+		}
+	}
+	if(adressDevice == 3){
+		if (!controllerConnected_3_) {
+		ROS_ERROR("Controller 3 not connected");
+		return false;
+		}
+	}
 	unsigned int control = 0x00;
 	if (trigger) {
 		controlWord1 = controlWord1 | 0x01;
@@ -340,15 +357,15 @@ bool motorController::startSetting(unsigned char adressDevice,
 
 	// First set start to zero (rising edge necessary)
 	unsigned int control = 0x00;
-	control = control | (settingAddress << 4); 	// Set address
+	control = control | (settingAddress << 8); 	// Set address
 	control = control | (0x4002); 				// Set no-stop flags
 	control = control | controlWord1;
 	if (!writeInt16AddressParker(adressDevice, 1100, 3, control)) {
 		return false;
 	}
-
 	// Set start flag
 	control = control | (0x2000);				// Set start-flag
+	// Set start flag
 	if (writeInt16AddressParker(adressDevice, 1100, 3, control)) {
 		return true;
 	} else {
@@ -380,19 +397,22 @@ bool motorController::setSetting(unsigned char addressDevice, unsigned int line,
 		return false;
 	}
 
-	if (!writeInt16AddressParker(addressDevice, 1906, line, acc)) {
+	if (!writeInt32AddressParker(addressDevice, 1906, line, acc)) {
 		return false;
 	}
 
-	if (!writeInt16AddressParker(addressDevice, 1907, line, dec)) {
+	if (!writeInt32AddressParker(addressDevice, 1907, line, dec)) {
 		return false;
 	}
 
-	if (writeInt16AddressParker(addressDevice, 1908, line, 10000)) {
-		return true;
-	} else {
+	if (!writeInt32AddressParker(addressDevice, 1908, line, 10000)) {
 		return false;
 	}
+
+	if (!writeInt16AddressParker(addressDevice, 1904, line, 0x0032)) {
+		return false;
+	}else
+	return true;
 }
 
 bool motorController::manual(unsigned char deviceAddress,
@@ -403,6 +423,15 @@ bool motorController::manual(unsigned char deviceAddress,
 	} else {
 		control = 0x400A | controlWord1;
 	}
+	if (writeInt16AddressParker(deviceAddress, 1100, 3, control)) {
+		return true;
+	} else {
+		return false;
+	}
+}
+
+bool motorController::stop(unsigned char deviceAddress) {
+	unsigned int control = controlWord1;
 
 	if (writeInt16AddressParker(deviceAddress, 1100, 3, control)) {
 		return true;
@@ -449,7 +478,7 @@ int motorController::gotoCoord(float x, float y, float z) {
 
 	if (controllerConnected_1_) {
 		// Setting lines and collumns in the postion-set
-		if (!setSetting(1, 1, x, 380, 1000, 1000)) {
+		if (!setSetting(1, 1, x, 300.0, 600, 800)) {
 			error = X_ERROR;
 		}
 	} else {
@@ -457,7 +486,7 @@ int motorController::gotoCoord(float x, float y, float z) {
 	}
 
 	if (controllerConnected_2_) {
-		if (!setSetting(2, 1, y, 380, 1000, 1000)) {
+		if (!setSetting(2, 1, y, 200, 600, 800)) {
 			error = Y_ERROR;
 		}
 	} else {
@@ -465,7 +494,7 @@ int motorController::gotoCoord(float x, float y, float z) {
 	}
 
 	if (controllerConnected_3_) {
-		if (!setSetting(3, 1, z, 380, 1000, 1000)) {
+		if (!setSetting(3, 1, z, 100, 300, 500)) {
 			error = Z_ERROR;
 		}
 	} else {

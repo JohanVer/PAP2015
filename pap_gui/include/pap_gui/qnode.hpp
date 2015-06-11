@@ -97,11 +97,14 @@ public:
 	void statusCallback(const pap_common::StatusConstPtr&  statusMsg);
 	void sendRelaisTask(int relaisNumber,bool value);
 
+
 Q_SIGNALS:
 	void loggingUpdated();
 	void statusUpdated(int index);
 	void cameraUpdated(int index);
     void rosShutdown();
+
+
 
 private:
 	int init_argc;
