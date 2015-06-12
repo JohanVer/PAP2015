@@ -88,6 +88,7 @@ public Q_SLOTS:
     void on_tableWidget_clicked();
     void on_compDeleteButton_clicked();
     void updateComponentTable();
+    void updateComponentInformation();
 
     /******************************************
     ** Manual connections

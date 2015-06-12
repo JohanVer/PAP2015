@@ -30,14 +30,17 @@
         <height>0</height>
        </size>
       </property>
+      <property name="font">
+       <font>
+        <weight>50</weight>
+        <bold>false</bold>
+       </font>
+      </property>
       <property name="locale">
        <locale language="English" country="Australia"/>
       </property>
-      <property name="tabPosition">
-       <enum>QTabWidget::North</enum>
-      </property>
       <property name="currentIndex">
-       <number>2</number>
+       <number>3</number>
       </property>
       <widget class="QWidget" name="tab_status">
        <attribute name="title">
@@ -984,260 +987,323 @@
          </layout>
         </widget>
        </widget>
-       <widget class="QWidget" name="horizontalLayoutWidget_3">
+       <widget class="QWidget" name="verticalLayoutWidget_10">
         <property name="geometry">
          <rect>
-          <x>410</x>
-          <y>280</y>
-          <width>231</width>
-          <height>291</height>
+          <x>30</x>
+          <y>550</y>
+          <width>111</width>
+          <height>61</height>
          </rect>
         </property>
-        <layout class="QHBoxLayout" name="horizontalLayout_10">
+        <layout class="QVBoxLayout" name="verticalLayout_34">
          <item>
-          <layout class="QVBoxLayout" name="verticalLayout_27"/>
+          <widget class="QPushButton" name="pushButton_4">
+           <property name="text">
+            <string>Turn left tip</string>
+           </property>
+          </widget>
          </item>
          <item>
-          <layout class="QVBoxLayout" name="verticalLayout_18">
-           <item>
-            <widget class="QLabel" name="valveStatus1">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="text">
-              <string>Vacuum valve 1</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QLabel" name="valveStatus2">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="text">
-              <string>Vacuum valve 2</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QLabel" name="valveStatus3">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="text">
-              <string>off</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QLabel" name="valveStatus4">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="text">
-              <string>off</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QLabel" name="valveStatus5">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="text">
-              <string>off</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QLabel" name="valveStatus6">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="text">
-              <string>off</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QLabel" name="valveStatus7">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="text">
-              <string>off</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QLabel" name="valveStatus8">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="text">
-              <string>off</string>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </item>
-         <item>
-          <layout class="QVBoxLayout" name="verticalLayout_19">
-           <item>
-            <widget class="QPushButton" name="valveToggle1">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="text">
-              <string>Off</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="valveToggle2">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="text">
-              <string>Off</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="valveToggle3">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="text">
-              <string>Off</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="valveToggle4">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="text">
-              <string>Toggle 4</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="valveToggle5">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="text">
-              <string>Toggle 5</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="valveToggle6">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="text">
-              <string>Toggle 6</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="valveToggle7">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="text">
-              <string>Toggle 7</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="valveToggle8">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="text">
-              <string>Toggle 8</string>
-             </property>
-            </widget>
-           </item>
-          </layout>
+          <widget class="QPushButton" name="pushButton_5">
+           <property name="text">
+            <string>Turn right tip</string>
+           </property>
+          </widget>
          </item>
         </layout>
        </widget>
-       <widget class="QWidget" name="verticalLayoutWidget_17">
+       <widget class="QWidget" name="verticalLayoutWidget_18">
         <property name="geometry">
          <rect>
-          <x>720</x>
-          <y>70</y>
-          <width>151</width>
-          <height>161</height>
+          <x>150</x>
+          <y>550</y>
+          <width>91</width>
+          <height>61</height>
          </rect>
         </property>
-        <layout class="QVBoxLayout" name="verticalLayout_33"/>
+        <layout class="QVBoxLayout" name="verticalLayout_35">
+         <item>
+          <widget class="QLineEdit" name="lineEdit">
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="lineEdit_2"/>
+         </item>
+        </layout>
+       </widget>
+       <widget class="QGroupBox" name="groupBox_8">
+        <property name="geometry">
+         <rect>
+          <x>420</x>
+          <y>270</y>
+          <width>241</width>
+          <height>321</height>
+         </rect>
+        </property>
+        <property name="title">
+         <string>Relais </string>
+        </property>
+        <widget class="QWidget" name="horizontalLayoutWidget_3">
+         <property name="geometry">
+          <rect>
+           <x>0</x>
+           <y>30</y>
+           <width>231</width>
+           <height>291</height>
+          </rect>
+         </property>
+         <layout class="QHBoxLayout" name="horizontalLayout_10">
+          <item>
+           <layout class="QVBoxLayout" name="verticalLayout_27"/>
+          </item>
+          <item>
+           <layout class="QVBoxLayout" name="verticalLayout_18">
+            <item>
+             <widget class="QLabel" name="valveStatus1">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text">
+               <string>Vacuum valve 1</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="valveStatus2">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text">
+               <string>Vacuum valve 2</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="valveStatus3">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text">
+               <string>Dispenser</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="valveStatus4">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text">
+               <string>Tip Left A</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="valveStatus5">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text">
+               <string>Tip Left B</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="valveStatus6">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text">
+               <string>Tip Right A+B</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="valveStatus7">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text">
+               <string>VacuumEjector A</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="valveStatus8">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text">
+               <string>VacuumEjector B</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QVBoxLayout" name="verticalLayout_19">
+            <item>
+             <widget class="QPushButton" name="valveToggle1">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text">
+               <string>Off</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="valveToggle2">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text">
+               <string>Off</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="valveToggle3">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text">
+               <string>Off</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="valveToggle4">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text">
+               <string>Off</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="valveToggle5">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text">
+               <string>Off</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="valveToggle6">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text">
+               <string>Off</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="valveToggle7">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text">
+               <string>Off</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="valveToggle8">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text">
+               <string>Off</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
+        <widget class="Line" name="line_14">
+         <property name="geometry">
+          <rect>
+           <x>-20</x>
+           <y>10</y>
+           <width>261</width>
+           <height>20</height>
+          </rect>
+         </property>
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+        </widget>
        </widget>
       </widget>
-      <widget class="QWidget" name="tab_completePCB">
+      <widget class="QWidget" name="ComponentPlacement">
        <attribute name="title">
-        <string>PAP-Complete PCB</string>
+        <string>Complete PCB</string>
        </attribute>
        <widget class="QGroupBox" name="groupBox_4">
         <property name="geometry">
          <rect>
-          <x>390</x>
-          <y>280</y>
+          <x>430</x>
+          <y>270</y>
           <width>361</width>
-          <height>201</height>
+          <height>321</height>
          </rect>
         </property>
         <property name="title">
@@ -1249,33 +1315,141 @@
            <x>10</x>
            <y>30</y>
            <width>91</width>
-           <height>171</height>
+           <height>271</height>
           </rect>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_26">
           <item>
            <widget class="QLabel" name="label_31">
+            <property name="font">
+             <font>
+              <weight>75</weight>
+              <bold>true</bold>
+             </font>
+            </property>
             <property name="text">
              <string>Name:</string>
             </property>
            </widget>
           </item>
           <item>
+           <widget class="QLabel" name="label_46">
+            <property name="font">
+             <font>
+              <weight>75</weight>
+              <bold>true</bold>
+             </font>
+            </property>
+            <property name="text">
+             <string>Value:</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_49">
+            <property name="font">
+             <font>
+              <weight>75</weight>
+              <bold>true</bold>
+             </font>
+            </property>
+            <property name="text">
+             <string>Box number:</string>
+            </property>
+           </widget>
+          </item>
+          <item>
            <widget class="QLabel" name="label_35">
+            <property name="font">
+             <font>
+              <weight>75</weight>
+              <bold>true</bold>
+             </font>
+            </property>
             <property name="text">
              <string>Package:</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QLabel" name="label_49">
+           <widget class="QLabel" name="label_51">
+            <property name="font">
+             <font>
+              <pointsize>9</pointsize>
+              <weight>75</weight>
+              <bold>true</bold>
+             </font>
+            </property>
             <property name="text">
-             <string>Box #:</string>
+             <string>Length:</string>
+            </property>
+            <property name="textFormat">
+             <enum>Qt::LogText</enum>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_52">
+            <property name="font">
+             <font>
+              <pointsize>9</pointsize>
+              <weight>75</weight>
+              <bold>true</bold>
+             </font>
+            </property>
+            <property name="text">
+             <string>Width:</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_53">
+            <property name="font">
+             <font>
+              <pointsize>9</pointsize>
+              <weight>75</weight>
+              <bold>true</bold>
+             </font>
+            </property>
+            <property name="text">
+             <string>Height:</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_50">
+            <property name="font">
+             <font>
+              <pointsize>9</pointsize>
+              <weight>75</weight>
+              <bold>true</bold>
+             </font>
+            </property>
+            <property name="text">
+             <string># of pins:</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
             </property>
            </widget>
           </item>
           <item>
            <widget class="QLabel" name="label_32">
+            <property name="font">
+             <font>
+              <weight>75</weight>
+              <bold>true</bold>
+             </font>
+            </property>
             <property name="text">
              <string>Position:</string>
             </property>
@@ -1283,6 +1457,12 @@
           </item>
           <item>
            <widget class="QLabel" name="label_37">
+            <property name="font">
+             <font>
+              <weight>75</weight>
+              <bold>true</bold>
+             </font>
+            </property>
             <property name="text">
              <string>Orientation:</string>
             </property>
@@ -1290,25 +1470,18 @@
           </item>
           <item>
            <widget class="QLabel" name="label_38">
+            <property name="font">
+             <font>
+              <weight>75</weight>
+              <bold>true</bold>
+             </font>
+            </property>
             <property name="text">
              <string>Side:</string>
             </property>
            </widget>
           </item>
          </layout>
-        </widget>
-        <widget class="Line" name="line_4">
-         <property name="geometry">
-          <rect>
-           <x>0</x>
-           <y>-10</y>
-           <width>291</width>
-           <height>20</height>
-          </rect>
-         </property>
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
         </widget>
         <widget class="Line" name="line_5">
          <property name="geometry">
@@ -1341,8 +1514,8 @@
           <rect>
            <x>190</x>
            <y>30</y>
-           <width>152</width>
-           <height>151</height>
+           <width>156</width>
+           <height>201</height>
           </rect>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_23">
@@ -1374,6 +1547,13 @@
             </property>
            </widget>
           </item>
+          <item>
+           <widget class="QPushButton" name="pushButton">
+            <property name="text">
+             <string>Change package</string>
+            </property>
+           </widget>
+          </item>
          </layout>
         </widget>
         <widget class="Line" name="line">
@@ -1395,12 +1575,26 @@
            <x>100</x>
            <y>30</y>
            <width>71</width>
-           <height>171</height>
+           <height>271</height>
           </rect>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_24">
           <item>
            <widget class="QLabel" name="label_compName">
+            <property name="text">
+             <string>-</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_compValue">
+            <property name="text">
+             <string>-</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_compBox">
             <property name="text">
              <string>-</string>
             </property>
@@ -1414,7 +1608,48 @@
            </widget>
           </item>
           <item>
-           <widget class="QLabel" name="label_compBox">
+           <widget class="QLabel" name="label_compLength">
+            <property name="font">
+             <font>
+              <pointsize>9</pointsize>
+             </font>
+            </property>
+            <property name="text">
+             <string>-</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_compWidth">
+            <property name="font">
+             <font>
+              <pointsize>9</pointsize>
+             </font>
+            </property>
+            <property name="text">
+             <string>-</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_compHeight">
+            <property name="font">
+             <font>
+              <pointsize>9</pointsize>
+             </font>
+            </property>
+            <property name="text">
+             <string>-</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_54">
+            <property name="font">
+             <font>
+              <pointsize>9</pointsize>
+             </font>
+            </property>
             <property name="text">
              <string>-</string>
             </property>
@@ -1443,12 +1678,25 @@
           </item>
          </layout>
         </widget>
+        <widget class="Line" name="line_6">
+         <property name="geometry">
+          <rect>
+           <x>0</x>
+           <y>300</y>
+           <width>351</width>
+           <height>16</height>
+          </rect>
+         </property>
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+        </widget>
        </widget>
        <widget class="QPushButton" name="startPlacementButton">
         <property name="geometry">
          <rect>
-          <x>580</x>
-          <y>500</y>
+          <x>820</x>
+          <y>110</y>
           <width>141</width>
           <height>51</height>
          </rect>
@@ -1481,8 +1729,8 @@
        <widget class="QPushButton" name="pausePlacementButton">
         <property name="geometry">
          <rect>
-          <x>420</x>
-          <y>500</y>
+          <x>820</x>
+          <y>170</y>
           <width>141</width>
           <height>51</height>
          </rect>
@@ -1494,8 +1742,8 @@
        <widget class="QGroupBox" name="groupBox_3">
         <property name="geometry">
          <rect>
-          <x>30</x>
-          <y>280</y>
+          <x>430</x>
+          <y>50</y>
           <width>301</width>
           <height>201</height>
          </rect>
@@ -1522,7 +1770,7 @@
            <x>0</x>
            <y>30</y>
            <width>111</width>
-           <height>111</height>
+           <height>141</height>
           </rect>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_21">
@@ -1530,6 +1778,13 @@
            <widget class="QLabel" name="label_33">
             <property name="text">
              <string>Status:</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_36">
+            <property name="text">
+             <string>Process:</string>
             </property>
            </widget>
           </item>
@@ -1547,20 +1802,34 @@
             </property>
            </widget>
           </item>
+          <item>
+           <widget class="QLabel" name="label_28">
+            <property name="text">
+             <string>Current comp.:</string>
+            </property>
+           </widget>
+          </item>
          </layout>
         </widget>
         <widget class="QWidget" name="verticalLayoutWidget_12">
          <property name="geometry">
           <rect>
-           <x>120</x>
+           <x>110</x>
            <y>30</y>
-           <width>91</width>
-           <height>111</height>
+           <width>101</width>
+           <height>141</height>
           </rect>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_25">
           <item>
-           <widget class="QLabel" name="label_PlacementStatus">
+           <widget class="QLabel" name="label_42">
+            <property name="text">
+             <string>Ok</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_45">
             <property name="text">
              <string>Not running</string>
             </property>
@@ -1580,6 +1849,13 @@
             </property>
            </widget>
           </item>
+          <item>
+           <widget class="QLabel" name="label_41">
+            <property name="text">
+             <string>-</string>
+            </property>
+           </widget>
+          </item>
          </layout>
         </widget>
        </widget>
@@ -1588,7 +1864,7 @@
          <rect>
           <x>40</x>
           <y>70</y>
-          <width>189</width>
+          <width>194</width>
           <height>95</height>
          </rect>
         </property>
@@ -1619,10 +1895,10 @@
        <widget class="QGroupBox" name="groupBox_5">
         <property name="geometry">
          <rect>
-          <x>390</x>
-          <y>20</y>
+          <x>40</x>
+          <y>270</y>
           <width>359</width>
-          <height>249</height>
+          <height>321</height>
          </rect>
         </property>
         <property name="title">
@@ -1645,71 +1921,30 @@
          <property name="geometry">
           <rect>
            <x>5</x>
-           <y>30</y>
+           <y>31</y>
            <width>341</width>
-           <height>201</height>
+           <height>271</height>
           </rect>
          </property>
         </widget>
-        <zorder>line_3</zorder>
-        <zorder>line_3</zorder>
-        <zorder>tableView</zorder>
-       </widget>
-       </widget>
-       <widget class="Line" name="line_6">
-        <property name="geometry">
-         <rect>
-          <x>390</x>
-          <y>480</y>
-          <width>351</width>
-          <height>16</height>
-         </rect>
-        </property>
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-       </widget>
-       <widget class="QGroupBox" name="groupBox_8">
-        <property name="geometry">
-         <rect>
-          <x>800</x>
-          <y>20</y>
-          <width>301</width>
-          <height>241</height>
-         </rect>
-        </property>
-        <property name="title">
-         <string>Info</string>
-        </property>
-        <widget class="Line" name="line_14">
+        <widget class="Line" name="line_15">
          <property name="geometry">
           <rect>
            <x>0</x>
-           <y>10</y>
-           <width>281</width>
-           <height>20</height>
+           <y>300</y>
+           <width>351</width>
+           <height>16</height>
           </rect>
          </property>
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
          </property>
         </widget>
-        <widget class="QWidget" name="horizontalLayoutWidget_4">
-         <property name="geometry">
-          <rect>
-           <x>10</x>
-           <y>30</y>
-           <width>101</width>
-           <height>191</height>
-          </rect>
-         </property>
-         <layout class="QHBoxLayout" name="horizontalLayout_11"/>
-        </widget>
        </widget>
       </widget>
-      <widget class="QWidget" name="tab_singleComponent">
+      <widget class="QWidget" name="tab_3">
        <attribute name="title">
-        <string>PAP-Single Component</string>
+        <string>Single Component</string>
        </attribute>
        <widget class="QLabel" name="label_9">
         <property name="geometry">
@@ -1848,7 +2083,7 @@
           <rect>
            <x>190</x>
            <y>30</y>
-           <width>152</width>
+           <width>156</width>
            <height>151</height>
           </rect>
          </property>
@@ -2037,21 +2272,21 @@
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_20">
           <item>
-           <widget class="QCheckBox" name="checkBox_PCBplaced">
+           <widget class="QCheckBox" name="checkBox_2">
             <property name="text">
              <string/>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QCheckBox" name="checkBox_PCBscanned">
+           <widget class="QCheckBox" name="checkBox_3">
             <property name="text">
              <string/>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QCheckBox" name="checkBox_comPosSet">
+           <widget class="QCheckBox" name="checkBox_4">
             <property name="text">
              <string/>
             </property>
@@ -2084,7 +2319,7 @@
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_31">
           <item>
-           <widget class="QPushButton" name="scanPCBButton">
+           <widget class="QPushButton" name="pushButton_14">
             <property name="text">
              <string>Scan PCB</string>
             </property>
@@ -2372,7 +2607,6 @@
     <string>About &amp;Qt</string>
    </property>
   </action>
-  <zorder>dock_status</zorder>
  </widget>
  <resources>
   <include location="../resources/images.qrc"/>

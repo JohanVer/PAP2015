@@ -14,9 +14,6 @@
 #include <iostream>
 #include "../include/pap_gui/main_window.hpp"
 
-//#include "cv.h"
-//#include "highgui.h"
-
 #include <string>
 #include <vector>
 #include <iostream>
@@ -49,9 +46,8 @@ int boxNumberSug = 1;
 
 struct componentEntry {
     string name, package, side, value;
-    float posX, posY;
-    int rotation;
-    int box;
+    float posX, posY, length, width, height;
+    int box, rotation, pins;
 };
 
 QVector<componentEntry> componentVector;
@@ -181,29 +177,38 @@ void MainWindow::on_compDeleteButton_clicked() {
         /* Delete component from vector */
     	componentVector.remove(currentComp);
 
-    	/* Update component table */
     	updateComponentTable();
+    	updateComponentInformation();
     }
+
+
+}
+
+void MainWindow::updateComponentInformation() {
+
+		int currentComp = ui.tableWidget->currentRow();
+
+	    ui.label_compName->setText(componentVector.at(currentComp).name.c_str());
+	    ui.label_compValue->setText(componentVector.at(currentComp).value.c_str());
+	    ui.label_compPackage->setText(componentVector.at(currentComp).package.c_str());
+	    ui.label_compPos->setText(QString::number(componentVector.at(currentComp).posX) + " / " + QString::number(componentVector.at(currentComp).posY));
+	    ui.label_compOrient->setText(QString::number(componentVector.at(currentComp).rotation));
+	    ui.label_compSide->setText(componentVector.at(currentComp).side.c_str());
+
+	    if(componentVector.at(currentComp).box == -1) {
+	    	ui.label_compBox->setText("unknown");
+	    } else {
+	    	ui.label_compBox->setText(QString::number(componentVector.at(currentComp).box));
+	    }
+
 }
 
 
 void MainWindow::on_tableWidget_clicked() {
 
-    int currentComp = ui.tableWidget->currentRow();
+	updateComponentInformation();
 
-    // Update component information based on componentVector and currentComponent
-    ui.label_compName->setText(componentVector.at(currentComp).name.c_str());
-    ui.label_compPackage->setText(componentVector.at(currentComp).package.c_str());
-    ui.label_compPos->setText(QString::number(componentVector.at(currentComp).posX) + " / " + QString::number(componentVector.at(currentComp).posY));
-    ui.label_compOrient->setText(QString::number(componentVector.at(currentComp).rotation));
-    ui.label_compSide->setText(componentVector.at(currentComp).side.c_str());
-
-    if(componentVector.at(currentComp).box == -1) {
-    	ui.label_compBox->setText("unknown");
-    } else {
-    	ui.label_compBox->setText(QString::number(componentVector.at(currentComp).box));
     }
-}
 
 void MainWindow::on_clearTableButton_clicked() {
 
