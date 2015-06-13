@@ -22,6 +22,7 @@
 #include <QStandardItemModel>
 #include <QVector>
 #include <QString>
+#include <QFile>
 
 
 /*****************************************************************************
@@ -44,6 +45,12 @@ int boxNumberMax = 50;
 int boxNumberMin = 1;
 int boxNumberSug = 1;
 
+struct databaseEntry {
+	QString package;
+	float length, width, height;
+	int pins;
+};
+
 struct componentEntry {
     string name, package, side, value;
     float posX, posY, length, width, height;
@@ -51,6 +58,7 @@ struct componentEntry {
 };
 
 QVector<componentEntry> componentVector;
+QVector<databaseEntry> databaseVector;
 
 MainWindow::MainWindow(int argc, char** argv, QWidget *parent) :
 		QMainWindow(parent), qnode(argc, argv) {
@@ -97,6 +105,17 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent) :
 
 
 	valve1Active_ = false;
+	valve2Active_ = false;
+	valve3Active_ = false;
+	valve4Active_ = false;
+	valve5Active_ = false;
+	valve6Active_ = false;
+	valve7Active_ = false;
+	valve8Active_ = false;
+
+	/* Load database */
+	loadDatabaseContent();
+	updateDatabaseTable();
 
 
 }
@@ -153,7 +172,7 @@ void MainWindow::on_setCompBoxNrButton_clicked() {
             }
         }
 
-    /* If no table empty */
+    /* If table empty */
     } else {
         QMessageBox msgBox;
         msgBox.setText("Component table empty. Please select gerber file first.");
@@ -233,6 +252,52 @@ void MainWindow::on_compOrientButton_clicked() {
 
 }
 
+void MainWindow::loadDatabaseContent() {
+
+	std::fstream databaseFile;
+	databaseFile.open ("/home/nikolas/catkin_ws/src/PAP2015/pap_gui/src/database.txt", std::fstream::in | std::fstream::out | std::fstream::app);
+
+	/* ok, proceed  */
+	if (databaseFile.is_open()) {
+
+		string lineString;
+		while(getline(databaseFile, lineString)) {
+
+			QString componentString = QString::fromStdString(lineString);
+			QRegExp sep(",");
+			bool ok;
+
+			/* Filter only valid database entries */
+			if(!(componentString.at(0) == (char) 42)){
+
+				databaseEntry newDatabaseEntry;
+
+				newDatabaseEntry.package = componentString.section(sep, 0, 0);
+				newDatabaseEntry.length = componentString.section(sep, 1, 1).toFloat(&ok);
+				newDatabaseEntry.width = componentString.section(sep, 2, 2).toFloat(&ok);
+				newDatabaseEntry.height = componentString.section(sep, 3, 3).toFloat(&ok);
+				newDatabaseEntry.pins = componentString.section(sep, 4, 4).toInt(&ok);
+				qDebug() << newDatabaseEntry.package << " " << newDatabaseEntry.length << " " <<
+						newDatabaseEntry.width << " " << newDatabaseEntry.height << " " << newDatabaseEntry.pins;
+
+				databaseVector.append(newDatabaseEntry);
+
+			}
+		}
+
+	} else {
+		std::cout << "Could not open database!" << std::endl;
+	}
+
+	databaseFile.close();
+
+	if(databaseVector.isEmpty()) {
+        QMessageBox msgBox;
+        msgBox.setText("No database found or not able to read database.");
+        msgBox.exec();
+        msgBox.close();
+	}
+}
 
 
 
@@ -243,16 +308,18 @@ void MainWindow::on_loadGerberFileButton_clicked() {
 	componentVector.clear();
 	componentCount = 0;
 
+	//get a filename to open
+	QString gerberFile = QFileDialog::getOpenFileName(this,
+	tr("Open Gerber file"), "/home/nikolas/Documents", tr("Text Files (*.txt *.csv)"));
+	std::cout << "Got filename: " << gerberFile.toStdString() << std::endl;
+
 	/* Load gerber file and add new components to vector */
     std::fstream datafile;
-    std::string value, package, posX, posY, rotation, side, name;
-
-    datafile.open ("/home/nikolas/catkin_ws/src/PAP2015/pap_gui/src/example.txt", std::fstream::in | std::fstream::out | std::fstream::app);
+    const char *filename = gerberFile.toLatin1().data();
+    datafile.open (filename, std::fstream::in | std::fstream::out | std::fstream::app);
 
     /* ok, proceed  */
     if (datafile.is_open()) {
-
-        std::cout << "File opened!" << std::endl;
 
         string componentString;
         while(getline(datafile, componentString)) {
@@ -302,12 +369,7 @@ void MainWindow::on_loadGerberFileButton_clicked() {
                 componentCount++;
 
             }
-
-
         }
-
-        std::cout << "Number of components: " << componentCount << std::endl;
-        std::cout << "Size of vector: " << componentVector.size() << std::endl;
 
     } else {
         std::cout << "Could not open file!" << std::endl;
@@ -319,14 +381,12 @@ void MainWindow::on_loadGerberFileButton_clicked() {
         componentTableEmpty = false;
         updateComponentTable();
     }
-
-
-
 }
+
 
 void MainWindow::updateComponentTable() {
 
-	   // Set size of table
+	    // Set size of table
 	    ui.tableWidget->setRowCount(componentVector.size());
 	    ui.tableWidget->setColumnCount(3);
 
@@ -361,6 +421,54 @@ void MainWindow::updateComponentTable() {
 	    // Set number of components
 	    ui.label_compTotal->setText(QString::number(componentVector.size()));
 	    ui.label_compLeft->setText(QString::number(componentVector.size()));
+}
+
+void MainWindow::updateDatabaseTable() {
+
+	    // Set size of table
+	    ui.packageTableWidget->setRowCount(databaseVector.size());
+	    ui.packageTableWidget->setColumnCount(5);
+
+	    // Set labels
+	    QStringList hLabels, vLabels;
+	    hLabels << "Package" << "Length" << "Width" << "Height" << "# of Pins";
+	    for(int i = 1; i < componentVector.size(); i++) {
+	    	vLabels << QString::number(i);
+	    }
+	    ui.packageTableWidget->setHorizontalHeaderLabels(hLabels);
+	    ui.packageTableWidget->setVerticalHeaderLabels(vLabels);
+
+	    // Set content
+	    for(int i = 0; i < ui.packageTableWidget->rowCount(); i++) {
+
+	        ui.packageTableWidget->setItem(i,0, new QTableWidgetItem(databaseVector.at(i).package));
+	        ui.packageTableWidget->setItem(i,1, new QTableWidgetItem(QString::number(databaseVector.at(i).length)));
+	        ui.packageTableWidget->setItem(i,2, new QTableWidgetItem(QString::number(databaseVector.at(i).width)));
+	        ui.packageTableWidget->setItem(i,3, new QTableWidgetItem(QString::number(databaseVector.at(i).height)));
+	        ui.packageTableWidget->setItem(i,4, new QTableWidgetItem(QString::number(databaseVector.at(i).pins)));
+
+	        ui.packageTableWidget->item(i,1)->setTextAlignment(Qt::AlignCenter);
+	        ui.packageTableWidget->item(i,2)->setTextAlignment(Qt::AlignCenter);
+	        ui.packageTableWidget->item(i,3)->setTextAlignment(Qt::AlignCenter);
+	        ui.packageTableWidget->item(i,4)->setTextAlignment(Qt::AlignCenter);
+
+
+
+	    }
+
+	    // Table settings
+	    ui.packageTableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
+	    ui.packageTableWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
+	    ui.tableWidget->verticalHeader()->setVisible(false);
+	    ui.packageTableWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+	    ui.packageTableWidget->horizontalHeader()->setResizeMode(QHeaderView::Stretch);
+
+	    //ui.tableWidget->setWindowTitle("QTableWidget");
+	    ui.tableWidget->show();
+
+	    // Set number of components
+	    //ui.label_compTotal->setText(QString::number(componentVector.size()));
+	    //ui.label_compLeft->setText(QString::number(componentVector.size()));
 }
 
 
@@ -661,94 +769,126 @@ void MainWindow::on_valveToggle1_clicked(bool check) {
 	if (!valve1Active_) {
 		qnode.sendRelaisTask(5, true);
 		ui.valveToggle1->setText("On");
-		//ui.valveStatus1->setText("On");
 		valve1Active_ = true;
 	} else {
 		qnode.sendRelaisTask(5, false);
 		ui.valveToggle1->setText("Off");
-		//ui.valveStatus1->setText("Off");
 		valve1Active_ = false;
 	}
 }
 
 void MainWindow::on_valveToggle2_clicked(bool check) {
-	if (!valve1Active_) {
+	if (!valve2Active_) {
 		qnode.sendRelaisTask(2, true);
-		ui.valveStatus1->setText("On");
-		valve1Active_ = true;
+		ui.valveToggle2->setText("On");
+		valve2Active_ = true;
 	} else {
 		qnode.sendRelaisTask(2, false);
-		ui.valveStatus1->setText("Off");
-		valve1Active_ = false;
+		ui.valveToggle2->setText("Off");
+		valve2Active_ = false;
 	}
 }
 
 void MainWindow::on_valveToggle3_clicked(bool check) {
-	if (!valve1Active_) {
+	if (!valve3Active_) {
 		qnode.sendRelaisTask(3, true);
-		ui.valveStatus1->setText("On");
-		valve1Active_ = true;
+		ui.valveToggle3->setText("On");
+		valve3Active_ = true;
 	} else {
 		qnode.sendRelaisTask(3, false);
-		ui.valveStatus1->setText("Off");
-		valve1Active_ = false;
+		ui.valveToggle3->setText("Off");
+		valve3Active_ = false;
 	}
 }
 void MainWindow::on_valveToggle4_clicked(bool check) {
-	if (!valve1Active_) {
+	if (!valve4Active_) {
 		qnode.sendRelaisTask(4, true);
-		ui.valveStatus1->setText("On");
-		valve1Active_ = true;
+		ui.valveToggle4->setText("On");
+		valve4Active_ = true;
 	} else {
 		qnode.sendRelaisTask(4, false);
-		ui.valveStatus1->setText("Off");
-		valve1Active_ = false;
+		ui.valveToggle4->setText("Off");
+		valve4Active_ = false;
 	}
 }
 void MainWindow::on_valveToggle5_clicked(bool check) {
-	if (!valve1Active_) {
+	if (!valve5Active_) {
 		qnode.sendRelaisTask(5, true);
-		ui.valveStatus1->setText("On");
-		valve1Active_ = true;
+		ui.valveToggle5->setText("On");
+		valve5Active_ = true;
 	} else {
 		qnode.sendRelaisTask(5, false);
-		ui.valveStatus1->setText("Off");
-		valve1Active_ = false;
+		ui.valveToggle5->setText("Off");
+		valve5Active_ = false;
 	}
 }
 void MainWindow::on_valveToggle6_clicked(bool check) {
-	if (!valve1Active_) {
+	if (!valve6Active_) {
 		qnode.sendRelaisTask(6, true);
-		ui.valveStatus1->setText("On");
-		valve1Active_ = true;
+		ui.valveToggle6->setText("On");
+		valve6Active_ = true;
 	} else {
 		qnode.sendRelaisTask(6, false);
-		ui.valveStatus1->setText("Off");
-		valve1Active_ = false;
+		ui.valveToggle6->setText("Off");
+		valve6Active_ = false;
 	}
 }
 
 void MainWindow::on_valveToggle7_clicked(bool check) {
-	if (!valve1Active_) {
+	if (!valve7Active_) {
 		qnode.sendRelaisTask(7, true);
-		ui.valveStatus1->setText("On");
-		valve1Active_ = true;
+		ui.valveToggle7->setText("On");
+		valve7Active_ = true;
 	} else {
 		qnode.sendRelaisTask(7, false);
-		ui.valveStatus1->setText("Off");
-		valve1Active_ = false;
+		ui.valveToggle7->setText("Off");
+		valve7Active_ = false;
 	}
 }
 
 void MainWindow::on_valveToggle8_clicked(bool check) {
-	if (!valve1Active_) {
+	if (!valve8Active_) {
 		qnode.sendRelaisTask(8, true);
-		ui.valveStatus1->setText("On");
-		valve1Active_ = true;
+		ui.valveToggle8->setText("On");
+		valve8Active_ = true;
 	} else {
 		qnode.sendRelaisTask(8, false);
-		ui.valveStatus1->setText("Off");
-		valve1Active_ = false;
+		ui.valveToggle8->setText("Off");
+		valve8Active_ = false;
+	}
+}
+
+void MainWindow::on_turnLeftTipButton_clicked() {
+	// Get angle from line edit
+	bool ok;
+	int requestedAngle = ui.rotationAngleLeft->text().toInt(&ok, 10);
+	//float requestedAngle = ui.rotationAngleRight->text().toFloat(&ok);
+	if (ok == true) {
+		qnode.sendStepperTask(2, requestedAngle);
+	} else {
+        QMessageBox msgBox;
+        const QString title = "Conversion failed!";
+        msgBox.setWindowTitle(title);
+        msgBox.setText("Only fixed-point angles accepted");
+        msgBox.exec();
+        msgBox.close();
+	}
+}
+
+void MainWindow::on_turnRightTipButton_clicked() {
+	// Get angle from line edit
+	bool ok;
+	int requestedAngle = ui.rotationAngleRight->text().toInt(&ok, 10);
+	//float requestedAngle = ui.rotationAngleRight->text().toFloat(&ok);
+	if (ok == true) {
+		qnode.sendStepperTask(1, requestedAngle);
+	} else {
+        QMessageBox msgBox;
+        const QString title = "Conversion failed!";
+        msgBox.setWindowTitle(title);
+        msgBox.setText("Only fixed-point angles accepted");
+        msgBox.exec();
+        msgBox.close();
 	}
 }
 
