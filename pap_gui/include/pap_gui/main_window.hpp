@@ -87,8 +87,12 @@ public Q_SLOTS:
     void on_clearTableButton_clicked();
     void on_tableWidget_clicked();
     void on_compDeleteButton_clicked();
+    void on_turnLeftTipButton_clicked();
+    void on_turnRightTipButton_clicked();
     void updateComponentTable();
     void updateComponentInformation();
+    void loadDatabaseContent();
+    void updateDatabaseTable();
 
     /******************************************
     ** Manual connections
@@ -101,6 +105,13 @@ private:
 	QPixmap cameraPicture1;
 	QGraphicsScene scene_;
 	bool valve1Active_;
+	bool valve2Active_;
+	bool valve3Active_;
+	bool valve4Active_;
+	bool valve5Active_;
+	bool valve6Active_;
+	bool valve7Active_;
+	bool valve8Active_;
     QTableView tableView;
 };
 

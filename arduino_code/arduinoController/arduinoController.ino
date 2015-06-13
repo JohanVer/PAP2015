@@ -1,7 +1,13 @@
 #include <ros.h>
 #include <pap_common/ArduinoMsg.h>
 #include <pap_common/Status.h>
+#include <Stepper.h>
 
+#define MOTORSTEPS 200
+Stepper stepper1(MOTORSTEPS, 10, 11, 12, 13);
+//Stepper stepper2(MOTORSTEPS, 10, 11, 12, 13);
+int previousSteps1 = 0;
+int previousSteps2 = 0;
 
 void messageCb( const pap_common::ArduinoMsg& arduinoMsg);
 
@@ -12,7 +18,10 @@ ros::Publisher statusPublisher("arduStatus", &arduMsg);
 
 enum ARDUINO_TASK {
   SETRELAIS = 1,
-  RESETRELAIS = 2
+  RESETRELAIS = 2,
+  RUNSTEPPER1 = 3,
+  RUNSTEPPER2 = 4, 
+  RESETSTEPPERS = 5
 };
 
 enum RELAIS {
@@ -98,13 +107,47 @@ void messageCb( const pap_common::ArduinoMsg& arduinoMsg){
       break;
     }
   }
-
+  
+  if(arduinoMsg.command == RUNSTEPPER1 ){
+    
+    int steps = round(arduinoMsg.data/1.8);    // Resolution of 1.8°
+  
+    if((previousSteps1 + steps) > 100) {
+      steps = steps - 200;                     // Rotation = 200 Steps
+    }     
+    if((previousSteps1 + steps) < 100) {
+      steps = 200 - steps;
+    }         
+    previousSteps1 = previousSteps1 + steps;   
+    stepper1.step(steps);
+  }
+ /* 
+  if(arduinoMsg.command == RUNSTEPPER2 ){
+    
+    int steps = round(arduinoMsg.data/1.8);    // Resolution of 1.8°
+  
+    if((previousSteps2 + steps) > 100) {
+      steps = steps - 200;                     // Rotation = 200 Steps
+    }  
+    if((previousSteps2 + steps) < 100) {
+      steps = 200 - steps;
+    }  
+    previousSteps2 = previousSteps2 + steps;   
+    stepper2.step(steps);
+  } 
+  */
+  if(arduinoMsg.command == RESETSTEPPERS ){
+    stepper1.step(-previousSteps1);
+    //stepper2.step(-previousSteps2);
+    previousSteps1 = 0;
+    previousSteps2 = 0;
+  }
+   
 }
 
 void setup()
 {
-  pinMode(2, OUTPUT);
-  
+  pinMode(2, OUTPUT);  
   pinMode(3, OUTPUT);
   pinMode(4, OUTPUT);
   pinMode(5, OUTPUT);
@@ -120,6 +163,8 @@ void setup()
   digitalWrite(7, HIGH);
   digitalWrite(8, HIGH);
   digitalWrite(9, HIGH);
+  stepper1.setSpeed(30); // RPM
+  //stepper2.setSpeed(30);
   nh.initNode();
   nh.advertise(statusPublisher);
   nh.subscribe(arduinoMessageSub);

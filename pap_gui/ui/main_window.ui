@@ -992,20 +992,20 @@
          <rect>
           <x>30</x>
           <y>550</y>
-          <width>111</width>
-          <height>61</height>
+          <width>112</width>
+          <height>62</height>
          </rect>
         </property>
         <layout class="QVBoxLayout" name="verticalLayout_34">
          <item>
-          <widget class="QPushButton" name="pushButton_4">
+          <widget class="QPushButton" name="turnLeftTipButton">
            <property name="text">
             <string>Turn left tip</string>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="pushButton_5">
+          <widget class="QPushButton" name="turnRightTipButton">
            <property name="text">
             <string>Turn right tip</string>
            </property>
@@ -1019,19 +1019,23 @@
           <x>150</x>
           <y>550</y>
           <width>91</width>
-          <height>61</height>
+          <height>62</height>
          </rect>
         </property>
         <layout class="QVBoxLayout" name="verticalLayout_35">
          <item>
-          <widget class="QLineEdit" name="lineEdit">
+          <widget class="QLineEdit" name="rotationAngleLeft">
            <property name="text">
-            <string/>
+            <string>0</string>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QLineEdit" name="lineEdit_2"/>
+          <widget class="QLineEdit" name="rotationAngleRight">
+           <property name="text">
+            <string>0</string>
+           </property>
+          </widget>
          </item>
         </layout>
        </widget>
@@ -1291,6 +1295,16 @@
           <enum>Qt::Horizontal</enum>
          </property>
         </widget>
+       </widget>
+       <widget class="QDial" name="dial">
+        <property name="geometry">
+         <rect>
+          <x>700</x>
+          <y>310</y>
+          <width>50</width>
+          <height>64</height>
+         </rect>
+        </property>
        </widget>
       </widget>
       <widget class="QWidget" name="ComponentPlacement">
@@ -2353,6 +2367,133 @@
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
          </property>
+        </widget>
+       </widget>
+      </widget>
+      <widget class="QWidget" name="tab_4">
+       <attribute name="title">
+        <string>Package Database</string>
+       </attribute>
+       <widget class="QGroupBox" name="groupBox_9">
+        <property name="geometry">
+         <rect>
+          <x>40</x>
+          <y>50</y>
+          <width>481</width>
+          <height>481</height>
+         </rect>
+        </property>
+        <property name="title">
+         <string>Package Database</string>
+        </property>
+        <widget class="QTableWidget" name="packageTableWidget">
+         <property name="geometry">
+          <rect>
+           <x>0</x>
+           <y>30</y>
+           <width>481</width>
+           <height>441</height>
+          </rect>
+         </property>
+        </widget>
+        <widget class="Line" name="line_4">
+         <property name="geometry">
+          <rect>
+           <x>0</x>
+           <y>10</y>
+           <width>481</width>
+           <height>20</height>
+          </rect>
+         </property>
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+        </widget>
+       </widget>
+       <widget class="QGroupBox" name="groupBox_10">
+        <property name="geometry">
+         <rect>
+          <x>560</x>
+          <y>50</y>
+          <width>181</width>
+          <height>481</height>
+         </rect>
+        </property>
+        <property name="title">
+         <string>Edit Database</string>
+        </property>
+        <widget class="Line" name="line_16">
+         <property name="geometry">
+          <rect>
+           <x>0</x>
+           <y>9</y>
+           <width>481</width>
+           <height>21</height>
+          </rect>
+         </property>
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+        </widget>
+        <widget class="QWidget" name="verticalLayoutWidget_17">
+         <property name="geometry">
+          <rect>
+           <x>9</x>
+           <y>30</y>
+           <width>161</width>
+           <height>181</height>
+          </rect>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_32">
+          <item>
+           <widget class="QPushButton" name="pushButton_4">
+            <property name="text">
+             <string>Add new package</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <spacer name="verticalSpacer_4">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>40</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pushButton_5">
+            <property name="text">
+             <string>Set length</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pushButton_6">
+            <property name="text">
+             <string>Set width</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pushButton_3">
+            <property name="text">
+             <string>Set Height</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pushButton_8">
+            <property name="text">
+             <string>Set # of Pins  </string>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </widget>
        </widget>
       </widget>
