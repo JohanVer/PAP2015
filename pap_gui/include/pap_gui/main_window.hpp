@@ -93,6 +93,13 @@ public Q_SLOTS:
     void updateComponentInformation();
     void loadDatabaseContent();
     void updateDatabaseTable();
+    void on_placeSingleComponentButton_clicked();
+    void on_compPackageButton_clicked();
+    void updateSingleComponentInformation();
+    void on_scanPCBButton_clicked();
+    void on_setCompBoxNrButton_2_clicked();
+
+    //QWizardPage *createIntroPage();
 
     /******************************************
     ** Manual connections
