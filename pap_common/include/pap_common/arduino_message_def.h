@@ -19,7 +19,9 @@ enum RELAIS {
   RELAIS5 = 5,
   RELAIS6 = 6,
   RELAIS7 = 7,
-  RELAIS8 = 8
+  RELAIS8 = 8,
+  RELAIS9 = 9,
+  RELAIS = 10
 };
 
 } // end namespace 'common'

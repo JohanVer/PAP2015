@@ -1013,11 +1013,11 @@ void MainWindow::on_valveToggle1_clicked(bool check) {
 
 void MainWindow::on_valveToggle2_clicked(bool check) {
 	if (!valve2Active_) {
-		qnode.sendRelaisTask(2, true);
+		qnode.sendRelaisTask(4, true);
 		ui.valveToggle2->setText("On");
 		valve2Active_ = true;
 	} else {
-		qnode.sendRelaisTask(2, false);
+		qnode.sendRelaisTask(4, false);
 		ui.valveToggle2->setText("Off");
 		valve2Active_ = false;
 	}
@@ -1025,44 +1025,48 @@ void MainWindow::on_valveToggle2_clicked(bool check) {
 
 void MainWindow::on_valveToggle3_clicked(bool check) {
 	if (!valve3Active_) {
-		qnode.sendRelaisTask(3, true);
+		qnode.sendRelaisTask(8, true);
 		ui.valveToggle3->setText("On");
 		valve3Active_ = true;
 	} else {
-		qnode.sendRelaisTask(3, false);
+		qnode.sendRelaisTask(8, false);
 		ui.valveToggle3->setText("Off");
 		valve3Active_ = false;
 	}
 }
 void MainWindow::on_valveToggle4_clicked(bool check) {
 	if (!valve4Active_) {
-		qnode.sendRelaisTask(4, true);
+		qnode.sendRelaisTask(3, false);
+		qnode.sendRelaisTask(6, true);
 		ui.valveToggle4->setText("On");
 		valve4Active_ = true;
 	} else {
-		qnode.sendRelaisTask(4, false);
+		qnode.sendRelaisTask(6, false);
+		qnode.sendRelaisTask(3, true);
 		ui.valveToggle4->setText("Off");
 		valve4Active_ = false;
 	}
 }
 void MainWindow::on_valveToggle5_clicked(bool check) {
 	if (!valve5Active_) {
-		qnode.sendRelaisTask(5, true);
+		qnode.sendRelaisTask(7, true);
 		ui.valveToggle5->setText("On");
 		valve5Active_ = true;
 	} else {
-		qnode.sendRelaisTask(5, false);
+		qnode.sendRelaisTask(7, false);
 		ui.valveToggle5->setText("Off");
 		valve5Active_ = false;
 	}
 }
 void MainWindow::on_valveToggle6_clicked(bool check) {
 	if (!valve6Active_) {
-		qnode.sendRelaisTask(6, true);
+		qnode.sendRelaisTask(1, false);
+		qnode.sendRelaisTask(2, true);
 		ui.valveToggle6->setText("On");
 		valve6Active_ = true;
 	} else {
-		qnode.sendRelaisTask(6, false);
+		qnode.sendRelaisTask(2, false);
+		qnode.sendRelaisTask(1, true);
 		ui.valveToggle6->setText("Off");
 		valve6Active_ = false;
 	}
@@ -1070,11 +1074,11 @@ void MainWindow::on_valveToggle6_clicked(bool check) {
 
 void MainWindow::on_valveToggle7_clicked(bool check) {
 	if (!valve7Active_) {
-		qnode.sendRelaisTask(7, true);
+		qnode.sendRelaisTask(9, true);
 		ui.valveToggle7->setText("On");
 		valve7Active_ = true;
 	} else {
-		qnode.sendRelaisTask(7, false);
+		qnode.sendRelaisTask(9, false);
 		ui.valveToggle7->setText("Off");
 		valve7Active_ = false;
 	}
@@ -1082,11 +1086,11 @@ void MainWindow::on_valveToggle7_clicked(bool check) {
 
 void MainWindow::on_valveToggle8_clicked(bool check) {
 	if (!valve8Active_) {
-		qnode.sendRelaisTask(8, true);
+		qnode.sendRelaisTask(10, true);
 		ui.valveToggle8->setText("On");
 		valve8Active_ = true;
 	} else {
-		qnode.sendRelaisTask(8, false);
+		qnode.sendRelaisTask(10, false);
 		ui.valveToggle8->setText("Off");
 		valve8Active_ = false;
 	}

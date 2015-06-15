@@ -32,7 +32,9 @@ enum RELAIS {
   RELAIS5 = 5,
   RELAIS6 = 6,
   RELAIS7 = 7,
-  RELAIS8 = 8
+  RELAIS8 = 8,
+  RELAIS9 = 9,
+  RELAIS10 = 10,
 };
 
 void messageCb( const pap_common::ArduinoMsg& arduinoMsg){
@@ -69,6 +71,12 @@ void messageCb( const pap_common::ArduinoMsg& arduinoMsg){
     case 8:
       digitalWrite(9, HIGH);
       break;
+    case 9:
+      digitalWrite(10, HIGH);
+      break;
+    case 10:
+      digitalWrite(11, HIGH);
+      break;      
     }
   }
 
@@ -105,10 +113,16 @@ void messageCb( const pap_common::ArduinoMsg& arduinoMsg){
     case 8:
       digitalWrite(9, LOW);
       break;
+    case 9:
+      digitalWrite(10, LOW);
+      break;
+    case 10:
+      digitalWrite(11, LOW);
+      break;
     }
   }
   
-  if(arduinoMsg.command == RUNSTEPPER1 ){
+  if(arduinoMsg.command == RUNSTEPPER1) {
     
     int steps = round(arduinoMsg.data/1.8);    // Resolution of 1.8°
   
@@ -121,6 +135,7 @@ void messageCb( const pap_common::ArduinoMsg& arduinoMsg){
     previousSteps1 = previousSteps1 + steps;   
     stepper1.step(steps);
   }
+  
  /* 
   if(arduinoMsg.command == RUNSTEPPER2 ){
     
@@ -155,6 +170,8 @@ void setup()
   pinMode(7, OUTPUT);
   pinMode(8, OUTPUT);
   pinMode(9, OUTPUT);
+  pinMode(10, OUTPUT);
+  pinMode(11, OUTPUT);
   digitalWrite(2, HIGH);
   digitalWrite(3, HIGH);
   digitalWrite(4, HIGH);
@@ -163,6 +180,8 @@ void setup()
   digitalWrite(7, HIGH);
   digitalWrite(8, HIGH);
   digitalWrite(9, HIGH);
+  digitalWrite(10, HIGH);
+  digitalWrite(11, HIGH);
   stepper1.setSpeed(30); // RPM
   //stepper2.setSpeed(30);
   nh.initNode();

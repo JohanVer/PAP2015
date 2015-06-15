@@ -40,7 +40,7 @@
        <locale language="English" country="Australia"/>
       </property>
       <property name="currentIndex">
-       <number>4</number>
+       <number>2</number>
       </property>
       <widget class="QWidget" name="tab_status">
        <attribute name="title">
@@ -1114,7 +1114,7 @@
                </sizepolicy>
               </property>
               <property name="text">
-               <string>Tip Left A</string>
+               <string>Tip Left</string>
               </property>
              </widget>
             </item>
@@ -1127,33 +1127,7 @@
                </sizepolicy>
               </property>
               <property name="text">
-               <string>Tip Left B</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLabel" name="valveStatus6">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="text">
-               <string>Tip Right A+B</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLabel" name="valveStatus7">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="text">
-               <string>VacuumEjector A</string>
+               <string>Tip Right</string>
               </property>
              </widget>
             </item>
@@ -1166,7 +1140,27 @@
                </sizepolicy>
               </property>
               <property name="text">
-               <string>VacuumEjector B</string>
+               <string>Ejector - vacuum</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="valveStatus7">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text">
+               <string>Ejector- pressure</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="label_61">
+              <property name="text">
+               <string>TextLabel</string>
               </property>
              </widget>
             </item>
@@ -2153,13 +2147,6 @@
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="pushButton_9">
-            <property name="text">
-             <string>Package from database</string>
-            </property>
-           </widget>
-          </item>
-          <item>
            <widget class="QPushButton" name="pushButton_16">
             <property name="text">
              <string>Start placement</string>
@@ -2461,7 +2448,7 @@
           <item>
            <widget class="QPushButton" name="placeSingleComponentButton_2">
             <property name="text">
-             <string>Place single comp.</string>
+             <string>Delete component</string>
             </property>
            </widget>
           </item>

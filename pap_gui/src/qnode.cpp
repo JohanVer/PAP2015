@@ -79,10 +79,10 @@ bool QNode::init(const std::string &master_url, const std::string &host_url) {
 }
 
 void QNode::cameraCallback(const sensor_msgs::ImageConstPtr& camera_msg) {
-	std::stringstream ss;
-	ss << "Got camera picture, " << camera_msg->header.frame_id.c_str();
-	std::string s = ss.str();
-	this->log(Info, s);
+	//std::stringstream ss;
+	//ss << "Got camera picture, " << camera_msg->header.frame_id.c_str();
+	//std::string s = ss.str();
+	//this->log(Info, s);
 
 	try {
 		cv_ptr = cv_bridge::toCvCopy(camera_msg,
