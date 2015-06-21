@@ -1,11 +1,43 @@
 #include "ros/ros.h"
 #include <tf/transform_broadcaster.h>
+#include "math.h"
 #include "../../motor_controller/include/motorController/controllerClass.hpp"
 
+/*****************************************************************************
+ * Parameter
+ *****************************************************************************/
+double accX = 10;
+double maxVelocity = 50;
+double delay = 0;
+double epsilonDistance = 5;
+double ts = 0.1;
+
 bool energized = false;
+double distXTotal = 0;
+double distX = 0;
+double desX = 0;
+bool controllerStatusSet = false;
+controllerStatus status;
+
+struct state {
+	double x, y, z;
+	double vx, vy, vz;
+} currentState;
+
+double matrix[6][6]=
+	{
+		{ts, 0.0, 0.0, 0.5*pow(ts, 2.0), 0.0, 0.0},
+		{0.0, ts, 0.0, 0.0, 0.5*pow(ts, 2.0), 0.0},
+		{0.0, 0.0, ts, 0.0, 0.0, 0.5*pow(ts, 2.0)},
+		{1.0, 0.0, 0.0, ts, 0.0, 0.0},
+		{0.0, 1.0, 0.0, 0.0, ts, 0.0},
+		{0.0, 0.0, 1.0, 0.0, 0.0, ts}
+	};
+
 controllerStatus controllerState1, controllerState2, controllerState3;
 static tf::TransformBroadcaster br;
 ros::Publisher statusPublisher;
+
 
 void checkStatusController(int numberOfController,
 		controllerStatus* controllerStatusAct) {
@@ -58,6 +90,8 @@ void parseTask(const pap_common::TaskConstPtr& taskMsg) {
 		case pap_common::COORD:
 			//coordError = controller.gotoCoord(taskMsg->data1, taskMsg->data2,
 			//		taskMsg->data3);
+			//desX = taskMsg->data1;
+			// distXTotal = desX - currentState.x;		// Distance we still have to go
 			break;
 
 		case pap_common::MANUAL:
@@ -110,6 +144,50 @@ void parseTask(const pap_common::TaskConstPtr& taskMsg) {
 	}
 }
 
+double vectors_dot_prod(const double *x, const double *y, int n)
+{
+    double res = 0.0;
+    int i;
+    for (i = 0; i < n; i++)
+    {
+        res += x[i] * y[i];
+    }
+    return res;
+}
+
+void matrix_vector_mult(const double **mat, const double *vec, double *result, int rows, int cols)
+{ // in matrix form: result = mat * vec;
+    int i;
+    for (i = 0; i < rows; i++)
+    {
+        result[i] = vectors_dot_prod(mat[i], vec, cols);
+    }
+}
+
+void simulate_next_step(double accX, double accY, double accZ, double ts) {
+
+	const double result[6] = {0,0,0,0,0,0};
+	const double input[6] = {currentState.vx, currentState.vy, currentState.vz, accX, accY, accZ};
+	//matrix_vector_mult(matrix[][], input, result, 6, 6);
+
+	// Update current state
+	currentState.x = result[0] + currentState.x;
+	currentState.y = result[1] + currentState.y;
+	currentState.z = result[2] + currentState.z;
+	currentState.vx = result[3];
+	currentState.vy = result[4];
+	currentState.vz = result[5];
+}
+
+void simulate_next_step_x(double accX, double ts) {
+
+	// Update current state
+	currentState.x = ts * currentState.vx + 0.5 * pow(ts, 2) * accX + currentState.x;
+	currentState.vx = currentState.vx + accX * ts;
+}
+
+
+
 int main(int argc, char **argv) {
 	ros::init(argc, argv, "tf_sender");
 	ros::NodeHandle n;
@@ -117,6 +195,54 @@ int main(int argc, char **argv) {
 	ros::Subscriber taskSubscriber_ = n.subscribe("task", 1, &parseTask);
 
 	while (ros::ok()) {
+
+		// If there is a distance to go
+		if(distXTotal != 0) {
+
+			// Update controller status
+			if(!controllerStatusSet) {
+				status.positionReached = false;
+				checkStatusController(1, &status);
+				controllerStatusSet = true;
+			}
+
+			// update distance x, brake_path @ current velocity
+			distX = desX - currentState.x;
+			double brakeTime = currentState.vx/accX;
+			double brakePath = 0.5 * accX * pow(brakeTime, 2.0);
+
+			// More than half of total distance left -> accelerate or keep max velocity
+			if (distX > (0.5*distXTotal)) {
+				if(currentState.vx < maxVelocity) {
+					simulate_next_step_x(accX, ts);				// Accelerate until Vmax
+				} else {
+					simulate_next_step_x(0, ts);				// stay at Vmax
+				}
+
+			// Half distance done, keep v or slow down depending on distance left
+			} else if (distX > epsilonDistance) {
+
+				if(distX > brakePath ) {
+					simulate_next_step(0, 0, 0, ts);			// stay at Vmax
+				} else {
+					simulate_next_step_x(-accX, ts);			// Slow down
+				}
+
+			// Distance left is now smaller than epsilonDistance
+			} else {
+				currentState.x = desX;
+				currentState.vx = 0;
+				distXTotal = 0;
+				distX = 0;
+				controllerStatusSet = false;
+
+				status.positionReached = true;
+				checkStatusController(1, &status);
+			}
+		}
+
+		//sendTransforms(currentState.x, currentState.y, currentState.z, 0.0, 0.0);
+
 
 		// Put in simulation here! (Current update rate 100Hz)
 		// The commands are processed in the function "parseTask".There the simulator must be sensitive to.

@@ -4,7 +4,8 @@
 #include <Stepper.h>
 
 #define MOTORSTEPS 200
-Stepper stepper1(MOTORSTEPS, 10, 11, 12, 13);
+
+Stepper stepper1(MOTORSTEPS, A0, A1, A2 ,A3);
 //Stepper stepper2(MOTORSTEPS, 10, 11, 12, 13);
 int previousSteps1 = 0;
 int previousSteps2 = 0;
@@ -129,7 +130,7 @@ void messageCb( const pap_common::ArduinoMsg& arduinoMsg){
     if((previousSteps1 + steps) > 100) {
       steps = steps - 200;                     // Rotation = 200 Steps
     }     
-    if((previousSteps1 + steps) < 100) {
+    else if((previousSteps1 + steps) < -100) {
       steps = 200 - steps;
     }         
     previousSteps1 = previousSteps1 + steps;   
@@ -192,6 +193,8 @@ void setup()
 void loop()
 {
   nh.spinOnce();
+  
+  //stepper1.step(100);
   delay(1);
 }
 
