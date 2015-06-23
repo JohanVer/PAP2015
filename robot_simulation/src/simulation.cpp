@@ -41,7 +41,7 @@ double matrix[6][6]=
 	};
 
 controllerStatus controllerState1, controllerState2, controllerState3;
-static tf::TransformBroadcaster br;
+
 ros::Publisher statusPublisher;
 
 
@@ -285,6 +285,7 @@ int main(int argc, char **argv) {
 
 void sendTransforms(double x_des, double y_des, double z_des, double nozzle_1,
 		double nozzle_2) {
+	static tf::TransformBroadcaster br;
 	tf::Transform transform;
 	tf::Transform transformReference;
 	tf::Transform transformX;
