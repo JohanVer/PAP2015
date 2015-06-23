@@ -6,25 +6,41 @@
 /*****************************************************************************
  * Parameter
  *****************************************************************************/
-double maxVelocity = 120;		// mm/s
-double accX = 300;				// mm/s²
-double accXDelay = 300;			// mm/s²
-double epsilonDistance = 0.5;	// mm
+double maxVelocity = 150;		// mm/s
+double epsilonDistance = 1;		// mm
 double ts = 0.01;				// s
 
-double xHome = 0.0;
+double accX = 300;				// mm/s²
+double accY = 300;
+double accZ = 300;
+
+double accXDelay = 300;			// mm/s²
+double accYDelay = 300;
+double accZDelay = 300;
+
+double xHome = 0.0;				// mm
 double yHome = 0.0;
 double zHome = 0.0;
 
 bool energized = false;
+bool controllerEnergized = false;
+bool controllerConnected = false;
+
 bool controller1StatusSet = false;
+bool controller2StatusSet = false;
+bool controller3StatusSet = false;
 
 double distXTotal, distYTotal, distZTotal = 0;
 double distX, distY, distZ = 0;
 double desX, desY, desZ = 0;
 
-void sendTransforms(double x_des, double y_des, double z_des, double nozzle_1,
-		double nozzle_2);
+controllerStatus controllerState1, controllerState2, controllerState3;
+ros::Publisher statusPublisher;
+
+void sendTransforms(double x_des, double y_des, double z_des, double nozzle_1,double nozzle_2);
+void simulateXAxisMovement(void);
+void simulateYAxisMovement(void);
+void simulateZAxisMovement(void);
 
 struct state {
 	double x, y, z;
@@ -36,9 +52,7 @@ double matrix[6][6] = { { ts, 0.0, 0.0, 0.5 * pow(ts, 2.0), 0.0, 0.0 }, { 0.0,
 		* pow(ts, 2.0) }, { 1.0, 0.0, 0.0, ts, 0.0, 0.0 }, { 0.0, 1.0, 0.0, 0.0,
 		ts, 0.0 }, { 0.0, 0.0, 1.0, 0.0, 0.0, ts } };
 
-controllerStatus controllerState1, controllerState2, controllerState3;
 
-ros::Publisher statusPublisher;
 
 void checkStatusController(int numberOfController,
 		controllerStatus* controllerStatusAct) {
@@ -73,9 +87,16 @@ void parseTask(const pap_common::TaskConstPtr& taskMsg) {
 	case pap_common::CONTROLLER:
 		switch (taskMsg->task) {
 		case pap_common::HOMING:
-			//if (!controller.sendHoming()) {
-			//	ROS_ERROR("Error while sending homing command");
-			//}
+			if (controllerConnected && controllerEnergized) {
+				desX = xHome;							// Desired position
+				distXTotal = desX - currentState.x;		// Distance we have to go
+
+				desY = yHome;							// Desired position
+				distYTotal = desY - currentState.y;		// Distance we have to go
+
+				desZ = zHome;							// Desired position
+				distZTotal = desZ - currentState.z;		// Distance we have to go
+			}
 
 			break;
 		case pap_common::CURRENT:
@@ -83,22 +104,25 @@ void parseTask(const pap_common::TaskConstPtr& taskMsg) {
 				controllerState1.energized = true;
 				controllerState2.energized = true;
 				controllerState3.energized = true;
+				controllerEnergized = true;
 			} else {
 				controllerState1.energized = false;
 				controllerState2.energized = false;
 				controllerState3.energized = false;
+				controllerEnergized = false;
 			}
 			break;
 		case pap_common::COORD:
+			if (controllerConnected && controllerEnergized) {
+				desX = taskMsg->data1;					// Desired position
+				distXTotal = desX - currentState.x;		// Distance we have to go
 
-			desX = taskMsg->data1;					// Desired position
-			distXTotal = desX - currentState.x;	// Distance we still have to go
+				desY = taskMsg->data2;					// Desired position
+				distYTotal = desY - currentState.y;		// Distance we have to go
 
-			desY = taskMsg->data2;					// Desired position
-			distYTotal = desY - currentState.y;	// Distance we still have to go
-
-			desZ = taskMsg->data3;					// Desired position
-			distZTotal = desZ - currentState.z;	// Distance we still have to go
+				desZ = taskMsg->data3;					// Desired position
+				distZTotal = desZ - currentState.z;		// Distance we have to go
+			}
 			break;
 
 		case pap_common::MANUAL:
@@ -135,6 +159,13 @@ void parseTask(const pap_common::TaskConstPtr& taskMsg) {
 			controllerState1.error = false;
 			controllerState2.error = false;
 			controllerState3.error = false;
+
+			if(!controllerConnected) {
+				controllerConnected = true;
+			} else {
+				controllerConnected = false;
+			}
+
 			break;
 
 		case pap_common::STOP:
@@ -192,12 +223,30 @@ void simulate_next_step_x(double accX, double ts) {
 	currentState.vx = currentState.vx + accX * ts;
 }
 
+void simulate_next_step_y(double accY, double ts) {
+
+	// Update current state
+	currentState.y = ts * currentState.vy + 0.5 * pow(ts, 2) * accY
+			+ currentState.y;
+	currentState.vy = currentState.vy + accY * ts;
+}
+
+void simulate_next_step_z(double accZ, double ts) {
+
+	// Update current state
+	currentState.z = ts * currentState.vz + 0.5 * pow(ts, 2) * accZ
+			+ currentState.z;
+	currentState.vz = currentState.vz + accZ * ts;
+}
+
+
 int main(int argc, char **argv) {
 	ros::init(argc, argv, "tf_sender");
 	ros::NodeHandle n;
 	ros::Rate loop_rate(100);
 	ros::Subscriber taskSubscriber_ = n.subscribe("task", 1, &parseTask);
 	statusPublisher = n.advertise<pap_common::Status>("status", 1000);
+
 	// Initialize positions
 	currentState.x = xHome;
 	currentState.y = yHome;
@@ -207,52 +256,10 @@ int main(int argc, char **argv) {
 
 	while (ros::ok()) {
 
-		// If there is a distance to go
-		if (distXTotal != 0) {
-
-			std::cout << "Simulation running" << std::endl;
-
-			// Update controller status
-			if (!controller1StatusSet) {
-				//controllerState1.positionReached = false;
-				//checkStatusController(1, &controllerState1);
-				controller1StatusSet = true;
-			}
-
-			// update distance x, brake_path @ current velocity
-			distX = desX - currentState.x;
-			double brakeTime = currentState.vx / accX;
-			double brakePath = 0.5 * accX * pow(brakeTime, 2.0);
-
-			// More than half of total distance left -> accelerate or keep max velocity
-			if (distX > (0.5 * distXTotal)) {
-				if (currentState.vx < maxVelocity) {
-					simulate_next_step_x(accX, ts);		// Accelerate until Vmax
-				} else {
-					simulate_next_step_x(0, ts);				// stay at Vmax
-				}
-
-				// Half distance done, keep v or slow down depending on distance left
-			} else if (distX > epsilonDistance) {
-
-				if (distX > brakePath) {
-					simulate_next_step(0, 0, 0, ts);			// stay at Vmax
-				} else {
-					simulate_next_step_x(-accXDelay, ts);		// Slow down
-				}
-
-				// Distance left is now smaller than epsilonDistance
-			} else {
-				currentState.x = desX;
-				currentState.vx = 0;
-				distXTotal = 0;
-				distX = 0;
-				controller1StatusSet = false;
-				//controllerState1.positionReached = true;
-				//checkStatusController(1, &controllerState1);
-			}
-
-			std::cout << "currrent x: " << currentState.x << "current vx: " << currentState.vx << std::endl;
+		if (controllerConnected && controllerEnergized) {
+			if (distXTotal != 0) simulateXAxisMovement();
+			if (distYTotal != 0) simulateYAxisMovement();
+			if (distZTotal != 0) simulateZAxisMovement();
 		}
 
 		sendTransforms((currentState.x/1000), (currentState.y/1000), (currentState.z/1000), 0.0, 0.0);
@@ -261,6 +268,297 @@ int main(int argc, char **argv) {
 		loop_rate.sleep();
 	}
 	return 0;
+}
+
+void simulateXAxisMovement() {
+
+	// If there is a positive distance to go
+	if (distXTotal > 0) {
+
+		// Update controller status
+		if (!controller1StatusSet) {
+			controllerState1.positionReached = false;
+			checkStatusController(1, &controllerState1);
+			controller1StatusSet = true;
+		}
+
+		// update distance x, brake_path @ current velocity
+		distX = desX - currentState.x;
+		double brakeTime = currentState.vx / accXDelay;
+		double brakePath = 0.5 * accXDelay * pow(brakeTime, 2.0);
+
+		// More than half of total distance left -> accelerate or keep max velocity
+		if (distX > (0.5 * distXTotal)) {
+			if (currentState.vx < maxVelocity) {
+				simulate_next_step_x(accX, ts);				// Accelerate until Vmax
+			} else {
+				currentState.vx = maxVelocity;
+				simulate_next_step_x(0, ts);				// stay at Vmax
+			}
+
+		// Half distance done, keep v or slow down depending on distance left
+		} else if (distX > epsilonDistance && currentState.vx > 0) {
+
+			if (distX > brakePath) {
+				simulate_next_step_x(0, ts);				// stay at Vmax
+			} else {
+				simulate_next_step_x(-accXDelay, ts);		// Slow down
+			}
+
+		// Distance left is now smaller than epsilonDistance
+		} else {
+			currentState.x = desX;
+			currentState.vx = 0;
+			distXTotal = 0;
+			distX = 0;
+			controller1StatusSet = false;
+			controllerState1.positionReached = true;
+			checkStatusController(1, &controllerState1);
+		}
+
+		//std::cout << "currrent x: " << currentState.x << "  current vx: " << currentState.vx << std::endl;
+	}
+
+	// If there is a negative distance to go
+	if (distXTotal < 0) {
+
+		// Update controller status
+		if (!controller1StatusSet) {
+			controllerState1.positionReached = false;
+			checkStatusController(1, &controllerState1);
+			controller1StatusSet = true;
+		}
+
+		// update distance x, brake_path @ current velocity
+		distX = abs(desX - currentState.x);
+		double brakeTime = abs(currentState.vx) / accXDelay;
+		double brakePath = 0.5 * accXDelay * pow(brakeTime, 2.0);
+
+		// More than half of total distance left -> accelerate or keep max velocity
+		if (distX > (0.5 * abs(distXTotal))) {
+			if (abs(currentState.vx) < maxVelocity) {
+				simulate_next_step_x(-accX, ts);			// Accelerate until Vmax
+			} else {
+				currentState.vx = -maxVelocity;
+				simulate_next_step_x(0, ts);				// stay at Vmax
+			}
+
+		// Half distance done, keep v or slow down depending on distance left
+		} else if (distX > epsilonDistance && abs(currentState.vx) > 0) {
+
+			if (distX > brakePath) {
+				simulate_next_step_x(0, ts);				// stay at Vmax
+			} else {
+				simulate_next_step_x(+accXDelay, ts);		// Slow down
+			}
+
+		// Distance left is now smaller than epsilonDistance
+		} else {
+			currentState.x = desX;
+			currentState.vx = 0;
+			distXTotal = 0;
+			distX = 0;
+			controller1StatusSet = false;
+			controllerState1.positionReached = true;
+			checkStatusController(1, &controllerState1);
+		}
+
+		//std::cout << "currrent x: " << currentState.x << "  current vx: " << currentState.vx << std::endl;
+	}
+}
+
+void simulateYAxisMovement() {
+
+	// If there is a positive distance to go
+	if (distYTotal > 0) {
+
+		// Update controller status
+		if (!controller2StatusSet) {
+			controllerState2.positionReached = false;
+			checkStatusController(2, &controllerState2);
+			controller2StatusSet = true;
+		}
+
+		// update distance x, brake_path @ current velocity
+		distY = desY - currentState.y;
+		double brakeTime = currentState.vy / accYDelay;
+		double brakePath = 0.5 * accYDelay * pow(brakeTime, 2.0);
+
+		// More than half of total distance left -> accelerate or keep max velocity
+		if (distY > (0.5 * distYTotal)) {
+			if (currentState.vy < maxVelocity) {
+				simulate_next_step_y(accY, ts);				// Accelerate until Vmax
+			} else {
+				currentState.vy = maxVelocity;
+				simulate_next_step_y(0, ts);				// stay at Vmax
+			}
+
+		// Half distance done, keep v or slow down depending on distance left
+		} else if (distY > epsilonDistance && currentState.vy > 0) {
+
+			if (distY > brakePath) {
+				simulate_next_step_y(0, ts);				// stay at Vmax
+			} else {
+				simulate_next_step_y(-accYDelay, ts);		// Slow down
+			}
+
+		// Distance left is now smaller than epsilonDistance
+		} else {
+			currentState.y = desY;
+			currentState.vy = 0;
+			distYTotal = 0;
+			distY = 0;
+			controller2StatusSet = false;
+			controllerState2.positionReached = true;
+			checkStatusController(2, &controllerState2);
+		}
+
+		//std::cout << "currrent x: " << currentState.x << "  current vx: " << currentState.vx << std::endl;
+	}
+
+	// If there is a negative distance to go
+	if (distYTotal < 0) {
+
+		// Update controller status
+		if (!controller2StatusSet) {
+			controllerState2.positionReached = false;
+			checkStatusController(2, &controllerState2);
+			controller2StatusSet = true;
+		}
+
+		// update distance x, brake_path @ current velocity
+		distY = abs(desY - currentState.y);
+		double brakeTime = abs(currentState.vy) / accYDelay;
+		double brakePath = 0.5 * accYDelay * pow(brakeTime, 2.0);
+
+		// More than half of total distance left -> accelerate or keep max velocity
+		if (distY > (0.5 * abs(distYTotal))) {
+			if (abs(currentState.vy) < maxVelocity) {
+				simulate_next_step_y(-accY, ts);			// Accelerate until Vmax
+			} else {
+				currentState.y = -maxVelocity;
+				simulate_next_step_y(0, ts);				// stay at Vmax
+			}
+
+		// Half distance done, keep v or slow down depending on distance left
+		} else if (distY > epsilonDistance && abs(currentState.vy) > 0) {
+
+			if (distY > brakePath) {
+				simulate_next_step_y(0, ts);				// stay at Vmax
+			} else {
+				simulate_next_step_y(+accYDelay, ts);		// Slow down
+			}
+
+		// Distance left is now smaller than epsilonDistance
+		} else {
+			currentState.y = desY;
+			currentState.vy = 0;
+			distYTotal = 0;
+			distY = 0;
+			controller2StatusSet = false;
+			controllerState2.positionReached = true;
+			checkStatusController(2, &controllerState2);
+		}
+
+		//std::cout << "currrent x: " << currentState.x << "  current vx: " << currentState.vx << std::endl;
+	}
+}
+
+void simulateZAxisMovement() {
+
+	// If there is a positive distance to go
+	if (distZTotal > 0) {
+
+		// Update controller status
+		if (!controller3StatusSet) {
+			controllerState3.positionReached = false;
+			checkStatusController(3, &controllerState3);
+			controller3StatusSet = true;
+		}
+
+		// update distance x, brake_path @ current velocity
+		distZ = desZ - currentState.z;
+		double brakeTime = currentState.vz / accZDelay;
+		double brakePath = 0.5 * accZDelay * pow(brakeTime, 2.0);
+
+		// More than half of total distance left -> accelerate or keep max velocity
+		if (distZ > (0.5 * distZTotal)) {
+			if (currentState.vz < maxVelocity) {
+				simulate_next_step_z(accZ, ts);				// Accelerate until Vmax
+			} else {
+				currentState.vz = maxVelocity;
+				simulate_next_step_z(0, ts);				// stay at Vmax
+			}
+
+		// Half distance done, keep v or slow down depending on distance left
+		} else if (distZ > epsilonDistance && currentState.vz > 0) {
+
+			if (distZ > brakePath) {
+				simulate_next_step_z(0, ts);				// stay at Vmax
+			} else {
+				simulate_next_step_z(-accZDelay, ts);		// Slow down
+			}
+
+		// Distance left is now smaller than epsilonDistance
+		} else {
+			currentState.z = desZ;
+			currentState.vz = 0;
+			distZTotal = 0;
+			distZ = 0;
+			controller3StatusSet = false;
+			controllerState3.positionReached = true;
+			checkStatusController(3, &controllerState3);
+		}
+
+		//std::cout << "currrent x: " << currentState.x << "  current vx: " << currentState.vx << std::endl;
+	}
+
+	// If there is a negative distance to go
+	if (distZTotal < 0) {
+
+		// Update controller status
+		if (!controller3StatusSet) {
+			controllerState3.positionReached = false;
+			checkStatusController(3, &controllerState3);
+			controller3StatusSet = true;
+		}
+
+		// update distance x, brake_path @ current velocity
+		distZ = abs(desZ - currentState.z);
+		double brakeTime = abs(currentState.vz) / accZDelay;
+		double brakePath = 0.5 * accZDelay * pow(brakeTime, 2.0);
+
+		// More than half of total distance left -> accelerate or keep max velocity
+		if (distZ > (0.5 * abs(distZTotal))) {
+			if (abs(currentState.vz) < maxVelocity) {
+				simulate_next_step_z(-accZ, ts);			// Accelerate until Vmax
+			} else {
+				currentState.vz = -maxVelocity;
+				simulate_next_step_z(0, ts);				// stay at Vmax
+			}
+
+		// Half distance done, keep v or slow down depending on distance left
+		} else if (distZ > epsilonDistance && abs(currentState.vz) > 0) {
+
+			if (distZ > brakePath) {
+				simulate_next_step_z(0, ts);				// stay at Vmax
+			} else {
+				simulate_next_step_z(+accZDelay, ts);		// Slow down
+			}
+
+		// Distance left is now smaller than epsilonDistance
+		} else {
+			currentState.z = desZ;
+			currentState.vz = 0;
+			distZTotal = 0;
+			distZ = 0;
+			controller3StatusSet = false;
+			controllerState3.positionReached = true;
+			checkStatusController(3, &controllerState3);
+		}
+
+		//std::cout << "currrent x: " << currentState.x << "  current vx: " << currentState.vx << std::endl;
+	}
 }
 
 void sendTransforms(double x, double y, double z, double nozzle_1,
