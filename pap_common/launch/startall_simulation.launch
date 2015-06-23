@@ -1,0 +1,6 @@
+<launch>
+  <node name="Userinterface" pkg="pap_gui" type="pap_gui" output="screen" />
+  <node name="Simulator" pkg="robot_simulation" type="robot_simulation_node" output="screen" />
+  <node name="Cameras" pkg="pcb_cv" type="displayImage" output="screen" />
+  <node name="Arduino" pkg="rosserial_python" type="serial_node.py" args="_port:=/dev/ttyACM1" output="screen" />
+</launch>

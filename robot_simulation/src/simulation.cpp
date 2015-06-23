@@ -6,18 +6,24 @@
 /*****************************************************************************
  * Parameter
  *****************************************************************************/
-double accX = 10;
-double maxVelocity = 50;
-double delay = 0;
-double epsilonDistance = 5;
-double ts = 0.1;
+double maxVelocity = 50;		// mm/s
+double accX = 10;				// mm/s²
+double accXDelay = 10;			// mm/s²
+double epsilonDistance = 5;		// mm
+double ts = 0.01;				// s
+
+double xHome = 0.0;
+double yHome = 0.0;
+double zHome = 0.0;
 
 bool energized = false;
-double distXTotal = 0;
-double distX = 0;
-double desX = 0;
-bool controllerStatusSet = false;
-controllerStatus status;
+bool controller1StatusSet = false;
+
+double distXTotal, distYTotal, distZTotal = 0;
+double distX, distY, distZ = 0;
+double desX, desY, desZ = 0;
+
+void sendTransforms(double x_des, double y_des, double z_des, double nozzle_1, double nozzle_2);
 
 struct state {
 	double x, y, z;
@@ -75,6 +81,8 @@ void parseTask(const pap_common::TaskConstPtr& taskMsg) {
 			//if (!controller.sendHoming()) {
 			//	ROS_ERROR("Error while sending homing command");
 			//}
+
+
 			break;
 		case pap_common::CURRENT:
 			if (!energized) {
@@ -88,10 +96,15 @@ void parseTask(const pap_common::TaskConstPtr& taskMsg) {
 			}
 			break;
 		case pap_common::COORD:
-			//coordError = controller.gotoCoord(taskMsg->data1, taskMsg->data2,
-			//		taskMsg->data3);
-			//desX = taskMsg->data1;
-			// distXTotal = desX - currentState.x;		// Distance we still have to go
+
+			desX = taskMsg->data1;					// Desired position
+			distXTotal = desX - currentState.x;		// Distance we still have to go
+
+			desY = taskMsg->data2;					// Desired position
+			distYTotal = desY - currentState.y;		// Distance we still have to go
+
+			desZ = taskMsg->data3;					// Desired position
+			distZTotal = desZ - currentState.z;		// Distance we still have to go
 			break;
 
 		case pap_common::MANUAL:
@@ -194,16 +207,23 @@ int main(int argc, char **argv) {
 	ros::Rate loop_rate(100);
 	ros::Subscriber taskSubscriber_ = n.subscribe("task", 1, &parseTask);
 
+	// Initialize positions
+	currentState.x = xHome;
+	currentState.y = yHome;
+	currentState.z = zHome;
+
+	// Send transformBroadcast to initial position?
+
 	while (ros::ok()) {
 
 		// If there is a distance to go
 		if(distXTotal != 0) {
 
 			// Update controller status
-			if(!controllerStatusSet) {
-				status.positionReached = false;
-				checkStatusController(1, &status);
-				controllerStatusSet = true;
+			if(!controller1StatusSet) {
+				controllerState1.positionReached = false;
+				checkStatusController(1, &controllerState1);
+				controller1StatusSet = true;
 			}
 
 			// update distance x, brake_path @ current velocity
@@ -225,7 +245,7 @@ int main(int argc, char **argv) {
 				if(distX > brakePath ) {
 					simulate_next_step(0, 0, 0, ts);			// stay at Vmax
 				} else {
-					simulate_next_step_x(-accX, ts);			// Slow down
+					simulate_next_step_x(-accXDelay, ts);		// Slow down
 				}
 
 			// Distance left is now smaller than epsilonDistance
@@ -234,14 +254,13 @@ int main(int argc, char **argv) {
 				currentState.vx = 0;
 				distXTotal = 0;
 				distX = 0;
-				controllerStatusSet = false;
-
-				status.positionReached = true;
-				checkStatusController(1, &status);
+				controller1StatusSet = false;
+				controllerState1.positionReached = true;
+				checkStatusController(1, &controllerState1);
 			}
 		}
 
-		//sendTransforms(currentState.x, currentState.y, currentState.z, 0.0, 0.0);
+		sendTransforms(currentState.x, currentState.y, currentState.z, 0.0, 0.0);
 
 
 		// Put in simulation here! (Current update rate 100Hz)
