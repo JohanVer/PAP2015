@@ -6,10 +6,10 @@
 /*****************************************************************************
  * Parameter
  *****************************************************************************/
-double maxVelocity = 50;		// mm/s
-double accX = 10;				// mm/s²
-double accXDelay = 10;			// mm/s²
-double epsilonDistance = 5;		// mm
+double maxVelocity = 120;		// mm/s
+double accX = 300;				// mm/s²
+double accXDelay = 300;			// mm/s²
+double epsilonDistance = 0.5;	// mm
 double ts = 0.01;				// s
 
 double xHome = 0.0;
@@ -210,10 +210,12 @@ int main(int argc, char **argv) {
 		// If there is a distance to go
 		if (distXTotal != 0) {
 
+			std::cout << "Simulation running" << std::endl;
+
 			// Update controller status
 			if (!controller1StatusSet) {
-				controllerState1.positionReached = false;
-				checkStatusController(1, &controllerState1);
+				//controllerState1.positionReached = false;
+				//checkStatusController(1, &controllerState1);
 				controller1StatusSet = true;
 			}
 
@@ -246,29 +248,14 @@ int main(int argc, char **argv) {
 				distXTotal = 0;
 				distX = 0;
 				controller1StatusSet = false;
-				controllerState1.positionReached = true;
-				checkStatusController(1, &controllerState1);
+				//controllerState1.positionReached = true;
+				//checkStatusController(1, &controllerState1);
 			}
+
+			std::cout << "currrent x: " << currentState.x << "current vx: " << currentState.vx << std::endl;
 		}
 
-		//sendTransforms(currentState.x, currentState.y, currentState.z, 0.0,
-		//		0.0);
-		sendTransforms(0.0, 0.0, 0.0, 0.0,
-				0.0);
-
-		// Put in simulation here! (Current update rate 100Hz)
-		// The commands are processed in the function "parseTask".There the simulator must be sensitive to.
-
-		// When a simulation iteration is calculated you can send the positions of each link
-		// with the function "sendTransforms" to the simulated robot.
-
-		// Keep in mind that everytime the status of one link changes you have to make sure that it is changed
-		// in the controllerState1,controllerState2,controllerState3 too.
-		// To send the status the function "checkStatusController" must be called in the loop with the right number of joint
-		// and status-struct.
-
-		// When a new coordinate should be applied the status of the corresponding link should change to reachedPosition=false,
-		// when the goal is reached it's the other way around.
+		sendTransforms((currentState.x/1000), (currentState.y/1000), (currentState.z/1000), 0.0, 0.0);
 
 		ros::spinOnce();
 		loop_rate.sleep();

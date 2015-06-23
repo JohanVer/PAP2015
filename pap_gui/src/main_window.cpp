@@ -1130,6 +1130,60 @@ void MainWindow::on_turnRightTipButton_clicked() {
 	}
 }
 
+void MainWindow::on_setLEDButton_clicked() {
+	// Get LED number from line edit
+	bool ok;
+	int requestedLED = ui.LEDnumber->text().toInt(&ok, 10);
+
+	if (ok == true) {
+		//qnode.sendStepperTask(1, requestedAngle);
+		if(requestedLED <= 59 && requestedLED > 0) {
+
+		} else {
+	        QMessageBox msgBox;
+	        const QString title = "Wrong LED number";
+	        msgBox.setWindowTitle(title);
+	        msgBox.setText("Led numbers are in the range of 0 to 59.");
+	        msgBox.exec();
+	        msgBox.close();
+		}
+	} else {
+        QMessageBox msgBox;
+        const QString title = "Conversion failed!";
+        msgBox.setWindowTitle(title);
+        msgBox.setText("Only numbers accepted.");
+        msgBox.exec();
+        msgBox.close();
+	}
+}
+
+void MainWindow::on_resetLEDButton_clicked() {
+	// Get LED number from line edit
+	bool ok;
+	int requestedLED = ui.LEDnumber->text().toInt(&ok, 10);
+
+	if (ok == true) {
+		//qnode.sendStepperTask(1, requestedAngle);
+		if(requestedLED <= 59 && requestedLED > 0) {
+
+		} else {
+	        QMessageBox msgBox;
+	        const QString title = "Wrong LED number";
+	        msgBox.setWindowTitle(title);
+	        msgBox.setText("Led numbers are in the range of 0 to 59.");
+	        msgBox.exec();
+	        msgBox.close();
+		}
+	} else {
+        QMessageBox msgBox;
+        const QString title = "Conversion failed!";
+        msgBox.setWindowTitle(title);
+        msgBox.setText("Only numbers accepted.");
+        msgBox.exec();
+        msgBox.close();
+	}
+}
+
 }
 // namespace pap_gui
 

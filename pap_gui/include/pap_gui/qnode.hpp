@@ -98,6 +98,8 @@ public:
 	void sendRelaisTask(int relaisNumber,bool value);
 	void sendStepperTask(int StepperNumber, int rotationAngle);
 	void resetStepper();
+	void setLEDTask(int LEDnumber);
+	void resetLEDTask(int LEDnumber);
 
 Q_SIGNALS:
 	void loggingUpdated();

@@ -98,6 +98,8 @@ public Q_SLOTS:
     void updateSingleComponentInformation();
     void on_scanPCBButton_clicked();
     void on_setCompBoxNrButton_2_clicked();
+    void on_setLEDButton_clicked();
+    void on_resetLEDButton_clicked();
 
     //QWizardPage *createIntroPage();
 

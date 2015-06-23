@@ -225,4 +225,18 @@ void QNode::resetStepper() {
 	arduino_publisher_.publish(arduinoMsg);
 }
 
+void QNode::setLEDTask(int LEDnumber) {
+	pap_common::ArduinoMsg arduinoMsg;
+	arduinoMsg.command = pap_common::SETLED;
+	arduinoMsg.data = LEDnumber;
+	arduino_publisher_.publish(arduinoMsg);
+}
+
+void QNode::resetLEDTask(int LEDnumber) {
+	pap_common::ArduinoMsg arduinoMsg;
+	arduinoMsg.command = pap_common::RESETLED;
+	arduinoMsg.data = LEDnumber;
+	arduino_publisher_.publish(arduinoMsg);
+}
+
 }  // namespace pap_gui
