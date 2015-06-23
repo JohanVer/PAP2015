@@ -197,7 +197,7 @@ int main(int argc, char **argv) {
 	ros::NodeHandle n;
 	ros::Rate loop_rate(100);
 	ros::Subscriber taskSubscriber_ = n.subscribe("task", 1, &parseTask);
-
+	statusPublisher = n.advertise<pap_common::Status>("status", 1000);
 	// Initialize positions
 	currentState.x = xHome;
 	currentState.y = yHome;
