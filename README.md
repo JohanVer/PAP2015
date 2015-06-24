@@ -40,3 +40,9 @@ Then:
 START ARDUINO SERVER:
 rosrun rosserial_python serial_node.py _port:=/dev/ttyACM0
 
+FastLED library Arduino:
+Source: https://github.com/FastLED/FastLED/archive/3.0.3
+Extract into sketchbook/libraries and give it a propper name like "FastLED"
+
+
+

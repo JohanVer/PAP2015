@@ -5,7 +5,12 @@ namespace pap_common {
 
 enum ARDUINO_TASK {
   SETRELAIS = 1,
-  RESETRELAIS = 2
+  RESETRELAIS = 2,
+  RUNSTEPPER1 = 3,
+  RUNSTEPPER2 = 4,
+  RESETSTEPPERS = 5,
+  SETLED = 6,
+  RESETLED = 7
 };
 
 enum RELAIS {
@@ -16,7 +21,9 @@ enum RELAIS {
   RELAIS5 = 5,
   RELAIS6 = 6,
   RELAIS7 = 7,
-  RELAIS8 = 8
+  RELAIS8 = 8,
+  RELAIS9 = 9,
+  RELAIS = 10
 };
 
 } // end namespace 'common'

@@ -96,7 +96,10 @@ public:
 	void sendTask(pap_common::DESTINATION destination,pap_common::TASK task, float x, float y, float z );
 	void statusCallback(const pap_common::StatusConstPtr&  statusMsg);
 	void sendRelaisTask(int relaisNumber,bool value);
-
+	void sendStepperTask(int StepperNumber, int rotationAngle);
+	void resetStepper();
+	void setLEDTask(int LEDnumber);
+	void resetLEDTask(int LEDnumber);
 
 Q_SIGNALS:
 	void loggingUpdated();

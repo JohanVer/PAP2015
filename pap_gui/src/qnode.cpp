@@ -79,10 +79,10 @@ bool QNode::init(const std::string &master_url, const std::string &host_url) {
 }
 
 void QNode::cameraCallback(const sensor_msgs::ImageConstPtr& camera_msg) {
-	std::stringstream ss;
-	ss << "Got camera picture, " << camera_msg->header.frame_id.c_str();
-	std::string s = ss.str();
-	this->log(Info, s);
+	//std::stringstream ss;
+	//ss << "Got camera picture, " << camera_msg->header.frame_id.c_str();
+	//std::string s = ss.str();
+	//this->log(Info, s);
 
 	try {
 		cv_ptr = cv_bridge::toCvCopy(camera_msg,
@@ -202,6 +202,40 @@ void QNode::sendRelaisTask(int relaisNumber, bool value) {
 		arduinoMsg.command = pap_common::RESETRELAIS;
 		arduinoMsg.data = relaisNumber;
 	}
+	arduino_publisher_.publish(arduinoMsg);
+}
+
+void QNode::sendStepperTask(int StepperNumber, int rotationAngle) {
+	pap_common::ArduinoMsg arduinoMsg;
+	if(StepperNumber == 1) {
+		arduinoMsg.command = pap_common::RUNSTEPPER1;
+		arduinoMsg.data = rotationAngle;
+		arduino_publisher_.publish(arduinoMsg);
+	}
+	if(StepperNumber == 2) {
+		arduinoMsg.command = pap_common::RUNSTEPPER2;
+		arduinoMsg.data = rotationAngle;
+		arduino_publisher_.publish(arduinoMsg);
+	}
+}
+
+void QNode::resetStepper() {
+	pap_common::ArduinoMsg arduinoMsg;
+	arduinoMsg.command = pap_common::RESETSTEPPERS;
+	arduino_publisher_.publish(arduinoMsg);
+}
+
+void QNode::setLEDTask(int LEDnumber) {
+	pap_common::ArduinoMsg arduinoMsg;
+	arduinoMsg.command = pap_common::SETLED;
+	arduinoMsg.data = LEDnumber;
+	arduino_publisher_.publish(arduinoMsg);
+}
+
+void QNode::resetLEDTask(int LEDnumber) {
+	pap_common::ArduinoMsg arduinoMsg;
+	arduinoMsg.command = pap_common::RESETLED;
+	arduinoMsg.data = LEDnumber;
 	arduino_publisher_.publish(arduinoMsg);
 }
 

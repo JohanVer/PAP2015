@@ -4,12 +4,16 @@
 
 #include <sstream>
 
+#define TIMEOUT 10
+
 void parseTask(const pap_common::TaskConstPtr& taskMsg);
 
 motorController controller;
 controllerStatus controllerState1, controllerState2, controllerState3,
 		oldControllerState1, oldControllerState2, oldControllerState3;
 ros::Publisher statusPublisher;
+
+int xTimeOutTimer, yTimeOutTimer, zTimeOutTimer = 0;
 
 enum STATE {
 	IDLE, POSITION, STATUS
@@ -22,39 +26,87 @@ void checkStatusController(int numberOfController,
 	pap_common::Status stateMessage;
 	stateMessage.data1 = numberOfController;
 
+	if (xTimeOutTimer > TIMEOUT) {
+		ROS_ERROR("X-Axis reconnect timeout, not connected anymore");
+		controller.controllerConnected_1_ = false;
+		stateMessage.status = pap_common::DISCONNECTED;
+		stateMessage.data1 = pap_common::XMOTOR;
+		statusPublisher.publish(stateMessage);
+		xTimeOutTimer = 0;
+		return;
+	}
+
+	if (yTimeOutTimer > TIMEOUT) {
+		ROS_ERROR("Y-Axis reconnect timeout, not connected anymore");
+		controller.controllerConnected_2_ = false;
+		stateMessage.status = pap_common::DISCONNECTED;
+		stateMessage.data1 = pap_common::YMOTOR;
+		statusPublisher.publish(stateMessage);
+		yTimeOutTimer = 0;
+		return;
+	}
+
+	if (zTimeOutTimer > TIMEOUT) {
+		ROS_ERROR("Z-Axis reconnect timeout, not connected anymore");
+		controller.controllerConnected_3_ = false;
+		stateMessage.status = pap_common::DISCONNECTED;
+		stateMessage.data1 = pap_common::ZMOTOR;
+		statusPublisher.publish(stateMessage);
+		zTimeOutTimer = 0;
+		return;
+	}
+
+	if (controllerStatusAct->failed) {
+		ROS_ERROR("Get status of %d axis failed, trying again...",
+				numberOfController);
+
+		switch (numberOfController) {
+		case pap_common::XMOTOR:
+			xTimeOutTimer++;
+			break;
+		case pap_common::YMOTOR:
+			yTimeOutTimer++;
+			break;
+		case pap_common::ZMOTOR:
+			zTimeOutTimer++;
+			break;
+		}
+		return;
+	}
+
 //	if (controllerStatusAct->energized != controllerStatusOld->energized) {
 
-		if (controllerStatusAct->energized) {
-			stateMessage.status = pap_common::ENERGIZED;
-		} else {
-			stateMessage.status = pap_common::NOENERGY;
-		}
-		statusPublisher.publish(stateMessage);
-		controllerStatusOld->energized = controllerStatusAct->energized;
+	if (controllerStatusAct->energized) {
+		stateMessage.status = pap_common::ENERGIZED;
+	} else {
+		stateMessage.status = pap_common::NOENERGY;
+	}
+	statusPublisher.publish(stateMessage);
+	controllerStatusOld->energized = controllerStatusAct->energized;
 //	}
 
 //	if (controllerStatusAct->error != controllerStatusOld->error) {
 
-		if (controllerStatusAct->error) {
-			stateMessage.status = pap_common::ERROR;
-		} else {
-			stateMessage.status = pap_common::NOERROR;
-		}
-		statusPublisher.publish(stateMessage);
-		controllerStatusOld->error = controllerStatusAct->error;
+	if (controllerStatusAct->error) {
+		stateMessage.status = pap_common::ERROR;
+	} else {
+		stateMessage.status = pap_common::NOERROR;
+	}
+	statusPublisher.publish(stateMessage);
+	controllerStatusOld->error = controllerStatusAct->error;
 //	}
 
 //	if (controllerStatusAct->positionReached
 //			!= controllerStatusOld->positionReached) {
 
-		if (controllerStatusAct->positionReached) {
-			stateMessage.status = pap_common::POSITIONREACHED;
-		} else {
-			stateMessage.status = pap_common::POSITIONNOTREACHED;
-		}
-		statusPublisher.publish(stateMessage);
-		controllerStatusOld->positionReached =
-				controllerStatusAct->positionReached;
+	if (controllerStatusAct->positionReached) {
+		stateMessage.status = pap_common::POSITIONREACHED;
+	} else {
+		stateMessage.status = pap_common::POSITIONNOTREACHED;
+	}
+	statusPublisher.publish(stateMessage);
+
+	controllerStatusOld->positionReached = controllerStatusAct->positionReached;
 //	}
 }
 
@@ -101,40 +153,45 @@ int main(int argc, char **argv) {
 	return 0;
 }
 void parseTask(const pap_common::TaskConstPtr& taskMsg) {
-
-	ROS_INFO("Got msg");
 	int coordError = 0;
-
+	bool cmdExecuted = true;
 	switch (taskMsg->destination) {
 	case pap_common::CONTROLLER:
 		switch (taskMsg->task) {
 		case pap_common::HOMING:
 			if (!controller.sendHoming()) {
 				ROS_ERROR("Error while sending homing command");
+				cmdExecuted = false;
 			}
 			break;
 		case pap_common::CURRENT:
 			if (!controllerState1.energized) {
 				if (!controller.energizeAxis(1, true)) {
 					ROS_ERROR("Error while switching current on x-axis");
+					cmdExecuted = false;
 				}
 
 				if (!controller.energizeAxis(2, true)) {
 					ROS_ERROR("Error while switching current on y-axis");
+					cmdExecuted = false;
 				}
 
 				if (!controller.energizeAxis(3, true)) {
 					ROS_ERROR("Error while switching current on z-axis");
+					cmdExecuted = false;
 				}
 			} else {
 				if (!controller.energizeAxis(1, false)) {
 					ROS_ERROR("Error while switching current on x-axis");
+					cmdExecuted = false;
 				}
 				if (!controller.energizeAxis(2, false)) {
 					ROS_ERROR("Error while switching current on y-axis");
+					cmdExecuted = false;
 				}
 				if (!controller.energizeAxis(3, false)) {
 					ROS_ERROR("Error while switching current on z-axis");
+					cmdExecuted = false;
 				}
 			}
 			break;
@@ -144,10 +201,13 @@ void parseTask(const pap_common::TaskConstPtr& taskMsg) {
 			if (coordError != error_codes::NO_ERROR) {
 				if (coordError == error_codes::X_ERROR) {
 					ROS_ERROR("Error while setting x-axis");
+					cmdExecuted = false;
 				} else if (coordError == error_codes::Y_ERROR) {
 					ROS_ERROR("Error while setting y-axis");
+					cmdExecuted = false;
 				} else if (coordError == error_codes::Z_ERROR) {
 					ROS_ERROR("Error while setting z-axis");
+					cmdExecuted = false;
 				}
 			}
 
@@ -191,5 +251,11 @@ void parseTask(const pap_common::TaskConstPtr& taskMsg) {
 			break;
 		}
 		break;
+	}
+
+	if (!cmdExecuted) {
+		pap_common::Status stateMessage;
+		stateMessage.status = pap_common::LAST_CMD_FAILED;
+		statusPublisher.publish(stateMessage);
 	}
 }

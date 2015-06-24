@@ -17,6 +17,8 @@
 #include "qnode.hpp"
 #include "pap_common/Task.h"
 
+#include <QStandardItemModel>
+
 
 /*****************************************************************************
 ** Namespace
@@ -77,6 +79,30 @@ public Q_SLOTS:
     void releaseyManNeg();
     void releasezManNeg();
 
+    void on_loadGerberFileButton_clicked();
+    void on_startPlacementButton_clicked();
+    void on_pausePlacementButton_clicked();
+    void on_setCompBoxNrButton_clicked();
+    void on_compOrientButton_clicked();
+    void on_clearTableButton_clicked();
+    void on_tableWidget_clicked();
+    void on_compDeleteButton_clicked();
+    void on_turnLeftTipButton_clicked();
+    void on_turnRightTipButton_clicked();
+    void updateComponentTable();
+    void updateComponentInformation();
+    void loadDatabaseContent();
+    void updateDatabaseTable();
+    void on_placeSingleComponentButton_clicked();
+    void on_compPackageButton_clicked();
+    void updateSingleComponentInformation();
+    void on_scanPCBButton_clicked();
+    void on_setCompBoxNrButton_2_clicked();
+    void on_setLEDButton_clicked();
+    void on_resetLEDButton_clicked();
+
+    //QWizardPage *createIntroPage();
+
     /******************************************
     ** Manual connections
     *******************************************/
@@ -88,6 +114,14 @@ private:
 	QPixmap cameraPicture1;
 	QGraphicsScene scene_;
 	bool valve1Active_;
+	bool valve2Active_;
+	bool valve3Active_;
+	bool valve4Active_;
+	bool valve5Active_;
+	bool valve6Active_;
+	bool valve7Active_;
+	bool valve8Active_;
+    QTableView tableView;
 };
 
 }  // namespace pap_gui

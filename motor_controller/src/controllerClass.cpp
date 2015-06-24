@@ -4,7 +4,7 @@ using namespace std;
 using namespace error_codes;
 
 serial::Serial serialPort("/dev/ttyUSB0", 38400,
-		serial::Timeout::simpleTimeout(100));
+		serial::Timeout::simpleTimeout(50));
 
 const unsigned int CRC16_table[256] = { 0x0000, 0x1021, 0x2042, 0x3063, 0x4084,
 		0x50a5, 0x60c6, 0x70e7, 0x8108, 0x9129, 0xa14a, 0xb16b, 0xc18c, 0xd1ad,
@@ -61,7 +61,6 @@ void motorController::ReqParker(unsigned char rw, unsigned char* data,
 
 	int totalLength = 5 + length;
 
-
 	unsigned char dataComplete[totalLength];
 	dataComplete[0] = rw;
 	dataComplete[1] = adress;
@@ -104,7 +103,7 @@ unsigned int motorController::readInt16AddressParker(
 	int readBytes = serialPort.read(readBuffer, numToRead);
 
 	if (readBytes != numToRead) {
-		ROS_ERROR("Unexpected end of serial data %d",readBytes);
+		ROS_ERROR("Unexpected end of serial data %d", readBytes);
 		return 0;
 	}
 	// Calc CRC
@@ -194,7 +193,7 @@ bool motorController::checkForACK() {
 	int readBytes = serialPort.read(readBuffer, totalLength);
 
 	if (readBytes != totalLength) {
-		ROS_ERROR("Unexpected end of serial data %d",readBytes);
+		ROS_ERROR("Unexpected end of serial data %d", readBytes);
 		return false;
 	}
 
@@ -320,22 +319,22 @@ controllerStatus motorController::getStatusController(
 }
 
 bool motorController::energizeAxis(unsigned char adressDevice, bool trigger) {
-	if(adressDevice == 1){
+	if (adressDevice == 1) {
 		if (!controllerConnected_1_) {
-		ROS_ERROR("Controller 1 not connected");
-		return false;
+			ROS_ERROR("Controller 1 not connected");
+			return false;
 		}
 	}
-	if(adressDevice == 2){
+	if (adressDevice == 2) {
 		if (!controllerConnected_2_) {
-		ROS_ERROR("Controller 2 not connected");
-		return false;
+			ROS_ERROR("Controller 2 not connected");
+			return false;
 		}
 	}
-	if(adressDevice == 3){
+	if (adressDevice == 3) {
 		if (!controllerConnected_3_) {
-		ROS_ERROR("Controller 3 not connected");
-		return false;
+			ROS_ERROR("Controller 3 not connected");
+			return false;
 		}
 	}
 	unsigned int control = 0x00;
@@ -411,8 +410,8 @@ bool motorController::setSetting(unsigned char addressDevice, unsigned int line,
 
 	if (!writeInt16AddressParker(addressDevice, 1904, line, 0x0032)) {
 		return false;
-	}else
-	return true;
+	} else
+		return true;
 }
 
 bool motorController::manual(unsigned char deviceAddress,
@@ -441,7 +440,8 @@ bool motorController::stop(unsigned char deviceAddress) {
 }
 
 bool motorController::sendHoming() {
-	bool error = true;;
+	bool error = true;
+	;
 	// Start setting with address zero
 	if (controllerConnected_1_) {
 		if (!startSetting(1, 0)) {
@@ -478,7 +478,7 @@ int motorController::gotoCoord(float x, float y, float z) {
 
 	if (controllerConnected_1_) {
 		// Setting lines and collumns in the postion-set
-		if (!setSetting(1, 1, x, 100.0, 600, 800)) {
+		if (!setSetting(1, 1, x, 50.0, 600, 800)) {
 			error = X_ERROR;
 		}
 	} else {
@@ -486,7 +486,7 @@ int motorController::gotoCoord(float x, float y, float z) {
 	}
 
 	if (controllerConnected_2_) {
-		if (!setSetting(2, 1, y, 200, 600, 800)) {
+		if (!setSetting(2, 1, y, 300, 600, 800)) {
 			error = Y_ERROR;
 		}
 	} else {
@@ -502,29 +502,38 @@ int motorController::gotoCoord(float x, float y, float z) {
 	}
 
 	// Starting the positon-set
+
+	if (controllerConnected_3_ && error != Z_ERROR) {
+		if (!startSetting(3, 1)) {
+			error = Z_ERROR;
+			return error;
+		}
+	} else {
+		ROS_INFO("Move start: Controller 3 not connected");
+		error = Z_ERROR;
+		return error;
+	}
+
 	if (controllerConnected_1_ && error != X_ERROR) {
 		if (!startSetting(1, 1)) {
 			error = X_ERROR;
+			return error;
 		}
 	} else {
 		ROS_INFO("Move start: Controller 1 not connected");
+		error = X_ERROR;
+		return error;
 	}
 
 	if (controllerConnected_2_ && error != Y_ERROR) {
 		if (!startSetting(2, 1)) {
 			error = Y_ERROR;
+			return error;
 		}
 	} else {
 		ROS_INFO("Move start: Controller 2 not connected");
+		error = Y_ERROR;
+		return error;
 	}
-
-	if (controllerConnected_3_ && error != Z_ERROR) {
-		if (!startSetting(3, 1)) {
-			error = Z_ERROR;
-		}
-	} else {
-		ROS_INFO("Move start: Controller 3 not connected");
-	}
-
 	return error;
 }
