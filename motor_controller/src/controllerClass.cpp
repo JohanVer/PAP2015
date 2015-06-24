@@ -478,7 +478,7 @@ int motorController::gotoCoord(float x, float y, float z) {
 
 	if (controllerConnected_1_) {
 		// Setting lines and collumns in the postion-set
-		if (!setSetting(1, 1, x, 300.0, 600, 800)) {
+		if (!setSetting(1, 1, x, 100.0, 600, 800)) {
 			error = X_ERROR;
 		}
 	} else {
