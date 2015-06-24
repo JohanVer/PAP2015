@@ -1136,14 +1136,14 @@ void MainWindow::on_setLEDButton_clicked() {
 	int requestedLED = ui.LEDnumber->text().toInt(&ok, 10);
 
 	if (ok == true) {
-		//qnode.sendStepperTask(1, requestedAngle);
-		if(requestedLED <= 59 && requestedLED > 0) {
 
+		if(requestedLED <= 59) {
+			qnode.setLEDTask(requestedLED);
 		} else {
 	        QMessageBox msgBox;
 	        const QString title = "Wrong LED number";
 	        msgBox.setWindowTitle(title);
-	        msgBox.setText("Led numbers are in the range of 0 to 59.");
+	        msgBox.setText("Led numbers are in the range of 0 to 58.");
 	        msgBox.exec();
 	        msgBox.close();
 		}
@@ -1163,14 +1163,14 @@ void MainWindow::on_resetLEDButton_clicked() {
 	int requestedLED = ui.LEDnumber->text().toInt(&ok, 10);
 
 	if (ok == true) {
-		//qnode.sendStepperTask(1, requestedAngle);
-		if(requestedLED <= 59 && requestedLED > 0) {
 
+		if(requestedLED <= 59) {
+			qnode.resetLEDTask(requestedLED);
 		} else {
 	        QMessageBox msgBox;
 	        const QString title = "Wrong LED number";
 	        msgBox.setWindowTitle(title);
-	        msgBox.setText("Led numbers are in the range of 0 to 59.");
+	        msgBox.setText("Led numbers are in the range of 0 to 58.");
 	        msgBox.exec();
 	        msgBox.close();
 		}

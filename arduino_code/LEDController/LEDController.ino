@@ -23,21 +23,27 @@ enum ARDUINO_TASK {
   RUNSTEPPER2 = 4, 
   RESETSTEPPERS = 5,
   SETLED = 6,
-  RESETLED = 7
+  RESETLED = 7,
+  INITLEDS = 8
 };
 
 
 void messageCb( const pap_common::ArduinoMsg& arduinoMsg){
   
   if(arduinoMsg.command == SETLED ){  
-    leds[arduinoMsg.data] = CRGB::White;
+    leds[arduinoMsg.data] = CRGB::Green;
     FastLED.show(); 
   }
 
   if(arduinoMsg.command == RESETLED ){
     leds[arduinoMsg.data] = CRGB::Black;
     FastLED.show(); 
-  }  
+  } 
+  
+//  if(arduinoMsg.command == INITLEDS ){
+//    leds[arduinoMsg.data] = CRGB::Black;
+//    FastLED.show(); 
+//  }  
 }
 
 void setup()
@@ -50,13 +56,47 @@ void setup()
   nh.initNode();
   nh.advertise(statusPublisher);
   nh.subscribe(arduinoMessageSub);
+  
+  resetAllLEDs();
+  //LEDtest();
 }
 
 void loop()
-{
+{  
+//  while(initialize) {
+//    LEDtest();    
+//  }
+
+  //LEDtest(); 
   nh.spinOnce();
   delay(1);
 }
 
+void LEDtest() {
+    for (int i = 0; i < NUM_LEDS; i++) {
+      leds[i] = CRGB::Red;
+      FastLED.show();
+      delay(200);    
+    } 
+    for (int i = 0; i < NUM_LEDS; i++) {
+      leds[i] = CRGB::Black;
+      FastLED.show();
+    } 
+    for (int i = 0; i < NUM_LEDS; i++) {
+      leds[i] = CRGB::Blue;
+      FastLED.show();
+      delay(200);
+    } 
+    for (int i = 0; i < NUM_LEDS; i++) {
+      leds[i] = CRGB::Black;
+      FastLED.show();
+    } 
+}
 
+void resetAllLEDs() {
+    for (int i = 0; i < NUM_LEDS; i++) {
+      leds[i] = CRGB::Black;
+      FastLED.show();
+    }   
+}
 
