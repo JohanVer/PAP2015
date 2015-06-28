@@ -40,7 +40,7 @@
        <locale language="English" country="Australia"/>
       </property>
       <property name="currentIndex">
-       <number>2</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="tab_status">
        <attribute name="title">
@@ -71,89 +71,13 @@
        <attribute name="title">
         <string>Cameras</string>
        </attribute>
-       <widget class="QLabel" name="label_6">
-        <property name="geometry">
-         <rect>
-          <x>30</x>
-          <y>280</y>
-          <width>67</width>
-          <height>17</height>
-         </rect>
-        </property>
-        <property name="font">
-         <font>
-          <underline>false</underline>
-         </font>
-        </property>
-        <property name="text">
-         <string>Part:</string>
-        </property>
-       </widget>
-       <widget class="QWidget" name="verticalLayoutWidget_2">
-        <property name="geometry">
-         <rect>
-          <x>90</x>
-          <y>280</y>
-          <width>160</width>
-          <height>88</height>
-         </rect>
-        </property>
-        <layout class="QVBoxLayout" name="verticalLayout_5">
-         <item>
-          <widget class="QLabel" name="label_11">
-           <property name="text">
-            <string>X:</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLabel" name="label_12">
-           <property name="text">
-            <string>Y:</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLabel" name="label_13">
-           <property name="text">
-            <string>Z:</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLabel" name="label_14">
-           <property name="text">
-            <string>Rot:</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </widget>
-       <widget class="QLabel" name="label_7">
-        <property name="geometry">
-         <rect>
-          <x>400</x>
-          <y>280</y>
-          <width>67</width>
-          <height>17</height>
-         </rect>
-        </property>
-        <property name="font">
-         <font>
-          <underline>false</underline>
-         </font>
-        </property>
-        <property name="text">
-         <string>Part:</string>
-        </property>
-       </widget>
        <widget class="QWidget" name="horizontalLayoutWidget">
         <property name="geometry">
          <rect>
           <x>0</x>
           <y>10</y>
-          <width>661</width>
-          <height>261</height>
+          <width>801</width>
+          <height>371</height>
          </rect>
         </property>
         <layout class="QHBoxLayout" name="horizontalLayout">
@@ -187,41 +111,377 @@
          </item>
         </layout>
        </widget>
-       <widget class="QWidget" name="verticalLayoutWidget_11">
+       <widget class="QGroupBox" name="groupBox_15">
         <property name="geometry">
          <rect>
-          <x>470</x>
-          <y>280</y>
-          <width>160</width>
-          <height>88</height>
+          <x>0</x>
+          <y>390</y>
+          <width>131</width>
+          <height>141</height>
          </rect>
         </property>
-        <layout class="QVBoxLayout" name="verticalLayout_16">
+        <property name="title">
+         <string>Part</string>
+        </property>
+        <widget class="QWidget" name="verticalLayoutWidget_2">
+         <property name="geometry">
+          <rect>
+           <x>0</x>
+           <y>30</y>
+           <width>121</width>
+           <height>91</height>
+          </rect>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_5">
+          <item>
+           <widget class="QLabel" name="smdXTop_Label">
+            <property name="text">
+             <string>X:</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="smdYTop_Label">
+            <property name="text">
+             <string>Y:</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="smdRotTop_Label">
+            <property name="text">
+             <string>Rot:</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+        <zorder>verticalLayoutWidget_2</zorder>
+        <zorder>horizontalLayoutWidget_8</zorder>
+       </widget>
+       <widget class="QGroupBox" name="groupBox_16">
+        <property name="geometry">
+         <rect>
+          <x>400</x>
+          <y>390</y>
+          <width>181</width>
+          <height>121</height>
+         </rect>
+        </property>
+        <property name="title">
+         <string>Part</string>
+        </property>
+        <widget class="QWidget" name="verticalLayoutWidget_11">
+         <property name="geometry">
+          <rect>
+           <x>0</x>
+           <y>30</y>
+           <width>121</width>
+           <height>91</height>
+          </rect>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_16">
+          <item>
+           <widget class="QLabel" name="label_23">
+            <property name="text">
+             <string>X:</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_24">
+            <property name="text">
+             <string>Y:</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_25">
+            <property name="text">
+             <string>Z:</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_26">
+            <property name="text">
+             <string>Rot:</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </widget>
+       <widget class="QToolBox" name="toolBox">
+        <property name="geometry">
+         <rect>
+          <x>820</x>
+          <y>20</y>
+          <width>281</width>
+          <height>361</height>
+         </rect>
+        </property>
+        <property name="currentIndex">
+         <number>3</number>
+        </property>
+        <widget class="QWidget" name="page">
+         <property name="geometry">
+          <rect>
+           <x>0</x>
+           <y>0</y>
+           <width>281</width>
+           <height>237</height>
+          </rect>
+         </property>
+         <attribute name="label">
+          <string>Chip Finder</string>
+         </attribute>
+         <widget class="QPushButton" name="startChipFinder_Button">
+          <property name="geometry">
+           <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>199</width>
+            <height>27</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>Start Chip Finder</string>
+          </property>
+         </widget>
+         <widget class="QWidget" name="horizontalLayoutWidget_5">
+          <property name="geometry">
+           <rect>
+            <x>0</x>
+            <y>40</y>
+            <width>201</width>
+            <height>80</height>
+           </rect>
+          </property>
+          <layout class="QHBoxLayout" name="horizontalLayout_8">
+           <item>
+            <layout class="QVBoxLayout" name="verticalLayout_41">
+             <item alignment="Qt::AlignHCenter">
+              <widget class="QLabel" name="label_69">
+               <property name="text">
+                <string>Width:</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLineEdit" name="widthChipFinder_LineEdit"/>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <layout class="QVBoxLayout" name="verticalLayout_42">
+             <item alignment="Qt::AlignHCenter">
+              <widget class="QLabel" name="label_71">
+               <property name="text">
+                <string>Height:</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLineEdit" name="heightChipFinder_LineEdit"/>
+             </item>
+            </layout>
+           </item>
+          </layout>
+         </widget>
+        </widget>
+        <widget class="QWidget" name="page_2">
+         <property name="geometry">
+          <rect>
+           <x>0</x>
+           <y>0</y>
+           <width>281</width>
+           <height>237</height>
+          </rect>
+         </property>
+         <attribute name="label">
+          <string>Small SMD Finder</string>
+         </attribute>
+         <widget class="QPushButton" name="startSmallSMDFinder_Button">
+          <property name="geometry">
+           <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>199</width>
+            <height>27</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>Start Small SMD Finder</string>
+          </property>
+         </widget>
+         <widget class="QWidget" name="horizontalLayoutWidget_4">
+          <property name="geometry">
+           <rect>
+            <x>0</x>
+            <y>40</y>
+            <width>131</width>
+            <height>61</height>
+           </rect>
+          </property>
+          <layout class="QHBoxLayout" name="horizontalLayout_7">
+           <item>
+            <widget class="QLabel" name="label_70">
+             <property name="text">
+              <string>Type:</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QComboBox" name="SmallSMD_Combo">
+             <item>
+              <property name="text">
+               <string>0805</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>0603</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>0402</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>0201</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+         <widget class="QWidget" name="horizontalLayoutWidget_6">
+          <property name="geometry">
+           <rect>
+            <x>0</x>
+            <y>110</y>
+            <width>111</width>
+            <height>80</height>
+           </rect>
+          </property>
+          <layout class="QHBoxLayout" name="horizontalLayout_9">
+           <item>
+            <widget class="QLabel" name="label_6">
+             <property name="text">
+              <string>Slot:</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLineEdit" name="SmallSMD_Slot"/>
+           </item>
+          </layout>
+         </widget>
+        </widget>
+        <widget class="QWidget" name="page_3">
+         <attribute name="label">
+          <string>Tape Finder</string>
+         </attribute>
+         <widget class="QWidget" name="horizontalLayoutWidget_7">
+          <property name="geometry">
+           <rect>
+            <x>0</x>
+            <y>30</y>
+            <width>131</width>
+            <height>61</height>
+           </rect>
+          </property>
+          <layout class="QHBoxLayout" name="horizontalLayout_11">
+           <item>
+            <widget class="QLabel" name="label_73">
+             <property name="text">
+              <string>Type:</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QComboBox" name="tapeFinder_Combo">
+             <item>
+              <property name="text">
+               <string>0805</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>0603</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>0402</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>0201</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+         <widget class="QPushButton" name="startTapeFinder_Button">
+          <property name="geometry">
+           <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>199</width>
+            <height>27</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>Start Tape Finder</string>
+          </property>
+         </widget>
+        </widget>
+        <widget class="QWidget" name="page_4">
+         <attribute name="label">
+          <string>Pad Finder</string>
+         </attribute>
+         <widget class="QPushButton" name="startPadFinder_Button">
+          <property name="geometry">
+           <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>199</width>
+            <height>27</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>Start Pad Finder</string>
+          </property>
+         </widget>
+        </widget>
+       </widget>
+       <widget class="QWidget" name="horizontalLayoutWidget_8">
+        <property name="geometry">
+         <rect>
+          <x>820</x>
+          <y>410</y>
+          <width>160</width>
+          <height>80</height>
+         </rect>
+        </property>
+        <layout class="QHBoxLayout" name="horizontalLayout_12">
          <item>
-          <widget class="QLabel" name="label_23">
+          <widget class="QPushButton" name="StartStopVision_Button">
            <property name="text">
-            <string>X:</string>
+            <string>On/Off</string>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QLabel" name="label_24">
+          <widget class="QLabel" name="visionStatus_Label">
            <property name="text">
-            <string>Y:</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLabel" name="label_25">
-           <property name="text">
-            <string>Z:</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLabel" name="label_26">
-           <property name="text">
-            <string>Rot:</string>
+            <string>Off</string>
            </property>
           </widget>
          </item>
@@ -1267,7 +1527,7 @@
           <rect>
            <x>130</x>
            <y>30</y>
-           <width>81</width>
+           <width>87</width>
            <height>62</height>
           </rect>
          </property>
@@ -1319,7 +1579,7 @@
           <rect>
            <x>80</x>
            <y>30</y>
-           <width>51</width>
+           <width>61</width>
            <height>62</height>
           </rect>
          </property>
@@ -1340,12 +1600,6 @@
           </item>
          </layout>
         </widget>
-        <zorder>line_18</zorder>
-        <zorder>verticalLayoutWidget_10</zorder>
-        <zorder>verticalLayoutWidget_18</zorder>
-        <zorder>verticalLayoutWidget_10</zorder>
-        <zorder>verticalLayoutWidget_3</zorder>
-        <zorder>verticalLayoutWidget_18</zorder>
        </widget>
        <widget class="QGroupBox" name="groupBox_14">
         <property name="geometry">
@@ -1396,7 +1650,7 @@
           <rect>
            <x>80</x>
            <y>30</y>
-           <width>60</width>
+           <width>61</width>
            <height>62</height>
           </rect>
          </property>
@@ -1459,7 +1713,7 @@
           <rect>
            <x>10</x>
            <y>30</y>
-           <width>91</width>
+           <width>92</width>
            <height>271</height>
           </rect>
          </property>
@@ -1529,7 +1783,7 @@
              <string>Length:</string>
             </property>
             <property name="textFormat">
-             <enum>Qt::LogText</enum>
+             <enum>Qt::PlainText</enum>
             </property>
             <property name="alignment">
              <set>Qt::AlignCenter</set>
@@ -2333,7 +2587,7 @@
           <rect>
            <x>10</x>
            <y>30</y>
-           <width>91</width>
+           <width>92</width>
            <height>271</height>
           </rect>
          </property>
@@ -2403,7 +2657,7 @@
              <string>Length:</string>
             </property>
             <property name="textFormat">
-             <enum>Qt::LogText</enum>
+             <enum>Qt::PlainText</enum>
             </property>
             <property name="alignment">
              <set>Qt::AlignCenter</set>

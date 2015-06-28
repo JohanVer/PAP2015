@@ -16,6 +16,7 @@
 #include "ui_main_window.h"
 #include "qnode.hpp"
 #include "pap_common/Task.h"
+#include "../../../pap_common/include/pap_common/vision_message_def.h"
 
 #include <QStandardItemModel>
 
@@ -101,6 +102,16 @@ public Q_SLOTS:
     void on_setLEDButton_clicked();
     void on_resetLEDButton_clicked();
 
+    // Vision
+    // Buttons
+    void on_startChipFinder_Button_clicked();
+    void on_startSmallSMDFinder_Button_clicked();
+    void on_startTapeFinder_Button_clicked();
+    void on_startPadFinder_Button_clicked();
+    void on_StartStopVision_Button_clicked();
+    // Display Functions
+    void displaySMDCoords(float x,float y,float rot);
+
     //QWizardPage *createIntroPage();
 
     /******************************************
@@ -121,6 +132,7 @@ private:
 	bool valve6Active_;
 	bool valve7Active_;
 	bool valve8Active_;
+	bool visionStarted_;
     QTableView tableView;
 };
 

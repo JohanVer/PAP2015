@@ -16,15 +16,35 @@
 #include "../include/pcb_cv/padFinder.h"
 #include <cmath>
 #include <image_transport/image_transport.h>
+#include "pap_common/Task.h"
+#include "pap_common/VisionStatus.h"
+#include "../../pap_common/include/pap_common/vision_message_def.h"
+#include "../../pap_common/include/pap_common/task_message_def.h"
+
 char key;
 using namespace std;
 using namespace cv;
+
+void parseTask(const pap_common::TaskConstPtr& taskMsg);
+
+enum VISION_PROCESS {
+	CHIP, SMALL_SMD, TAPE, PAD, IDLE
+};
+
+VISION_PROCESS visionState = IDLE;
+bool visionEnabled = false;
+ros::Publisher statusPublisher;
 
 int main(int argc, char **argv) {
 	ros::init(argc, argv, "add_two_ints_server");
 	ros::NodeHandle n;
 	image_transport::ImageTransport it_(n);
 	image_transport::Publisher image_pub_;
+
+	ros::Subscriber taskSubscriber_ = n.subscribe("task", 1, &parseTask);
+	statusPublisher = n.advertise<pap_common::VisionStatus>("visionStatus",
+			1000);
+
 	ros::Rate loop_rate(25);
 	padFinder finder;
 	image_pub_ = it_.advertise("camera1", 1);
@@ -35,36 +55,69 @@ int main(int argc, char **argv) {
 
 	while (ros::ok()) {
 		//IplImage* frame = cvQueryFrame(capture); //Create image frames from capture
+		//cv::Mat input(frame);
+		cv::Mat input;
 		id_counter++;
 		cv_bridge::CvImage out_msg;
-		//cv::Mat input(frame);
-
-		// Pads
-		//cv::Mat input = cv::imread("/home/johan/Desktop/Webcam_Pictures/Webcam-1435326531.png");
-		//finder.findPads(&input);
-
-		// Chip
-		//cv::Mat input = cv::imread("/home/johan/Desktop/Webcam_Pictures/Webcam-1435311766.png");
-		//finder.findChip(&input);
-
-		// SMD Chip
-		//cv::Mat input = cv::imread("/home/johan/Desktop/Webcam_Pictures/Webcam-1435326204.png");
-		//cv::Mat input = cv::imread("/home/johan/Desktop/Webcam_Pictures/Webcam-1435326387.png");
-		//finder.findSmallSMD(&input);
-
-		// SMD Tape
-		cv::Mat input = cv::imread("/home/johan/Desktop/Webcam_Pictures/Webcam-1435327178.png");
-		finder.findSMDTape(&input);
+		smdPart smd;
+		pap_common::VisionStatus visionMsg;
+		if (visionEnabled) {
+			switch (visionState) {
+			case IDLE:
+				input =
+						cv::imread(
+								"/home/johan/Desktop/Webcam_Pictures/Webcam-1435326531.png");
+				break;
+			case CHIP:
+				// Chip
+				input =
+						cv::imread(
+								"/home/johan/Desktop/Webcam_Pictures/Webcam-1435311766.png");
+				finder.findChip(&input);
+				break;
+			case SMALL_SMD:
+				// SMD Chip
+				input =
+						cv::imread(
+								"/home/johan/Desktop/Webcam_Pictures/Webcam-1435326387.png");
+				finder.findSmallSMD(&input);
+				break;
+			case TAPE:
+				// SMD Tape
+				input =
+						cv::imread(
+								"/home/johan/Desktop/Webcam_Pictures/Webcam-1435327178.png");
+				smd = finder.findSMDTape(&input);
+				visionMsg.task = pap_vision::START_TAPE_FINDER;
+				visionMsg.data1 = smd.x;
+				visionMsg.data2 = smd.y;
+				visionMsg.data3 = smd.rot;
+				statusPublisher.publish(visionMsg);
+				break;
+			case PAD:
+				// Pads
+				input =
+						cv::imread(
+								"/home/johan/Desktop/Webcam_Pictures/Webcam-1435326531.png");
+				finder.findPads(&input);
+				break;
+			}
+		} else {
+			input =
+					cv::imread(
+							"/home/johan/Desktop/Webcam_Pictures/Webcam-1435326531.png");
+		}
 
 		// Fadenkreuz
 		Point2f vertices[4];
-		vertices[0] = Point2f(input.cols/2-1,0);
-		vertices[1] = Point2f(input.cols/2-1,input.rows-1);
-		vertices[2] = Point2f(input.cols-1,input.rows/2-1);
-		vertices[3] = Point2f(0,input.rows/2-1);
-		line(input, vertices[1], vertices[0],Scalar(0, 0, 255),3);
-		line(input, vertices[3], vertices[2],Scalar(0, 0, 255),3);
-		circle(input,Point2f(input.cols/2-1,input.rows/2-1),20,CV_RGB(255,0,0),3);
+		vertices[0] = Point2f(input.cols / 2 - 1, 0);
+		vertices[1] = Point2f(input.cols / 2 - 1, input.rows - 1);
+		vertices[2] = Point2f(input.cols - 1, input.rows / 2 - 1);
+		vertices[3] = Point2f(0, input.rows / 2 - 1);
+		line(input, vertices[1], vertices[0], Scalar(0, 0, 255), 3);
+		line(input, vertices[3], vertices[2], Scalar(0, 0, 255), 3);
+		circle(input, Point2f(input.cols / 2 - 1, input.rows / 2 - 1), 20,
+				CV_RGB(255, 0, 0), 3);
 
 		// Convert image to standard msgs format
 		cv::Mat outputRGB;
@@ -84,5 +137,41 @@ int main(int argc, char **argv) {
 		//cvDestroyWindow("Camera_Output"); //Destroy Window
 		ros::spinOnce();
 		loop_rate.sleep();
+	}
+}
+
+void parseTask(const pap_common::TaskConstPtr& taskMsg) {
+	switch (taskMsg->destination) {
+	case pap_common::VISION:
+
+		switch (taskMsg->task) {
+		case pap_vision::START_VISION:
+			visionEnabled = true;
+			visionState = IDLE;
+			break;
+
+		case pap_vision::STOP_VISION:
+			visionEnabled = false;
+			visionState = IDLE;
+			break;
+
+		case pap_vision::START_CHIP_FINDER:
+			visionState = CHIP;
+			break;
+
+		case pap_vision::START_SMALL_FINDER:
+			visionState = SMALL_SMD;
+			break;
+
+		case pap_vision::START_TAPE_FINDER:
+			visionState = TAPE;
+			break;
+
+		case pap_vision::START_PAD_FINDER:
+			visionState = PAD;
+			break;
+		}
+
+		break;
 	}
 }

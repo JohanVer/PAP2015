@@ -15,7 +15,8 @@ enum TASK {
 };
 
 enum DESTINATION {
-  CONTROLLER = 1
+  CONTROLLER = 1,
+  VISION = 2
 };
 
 enum DIRECTION {

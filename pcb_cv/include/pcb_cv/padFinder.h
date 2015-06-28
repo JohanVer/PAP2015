@@ -15,6 +15,13 @@
 #include <vector>
 #include <cmath>
 
+class smdPart{
+public:
+	float x;
+	float y;
+	float rot;
+};
+
 class padFinder
 {
   public:                              // öffentlich
@@ -25,7 +32,7 @@ class padFinder
     void findPads(cv::Mat* input);
     void findChip(cv::Mat* input);
     void findSmallSMD(cv::Mat* input);
-    void findSMDTape(cv::Mat* input);
+    smdPart findSMDTape(cv::Mat* input);
 
      double angle(cv::Point pt1, cv::Point pt2, cv::Point pt0);
     void setLabel(cv::Mat& im, const std::string label,std::vector<cv::Point>& contour);

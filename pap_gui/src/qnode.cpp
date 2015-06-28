@@ -53,6 +53,7 @@ bool QNode::init() {
 			1000);
 	image_sub_ = it_.subscribe("camera1", 1, &QNode::cameraCallback, this);
 	statusSubsriber_ = n_.subscribe("status", 100, &QNode::statusCallback, this);
+	visionStatusSubsriber_ = n_.subscribe("visionStatus",100,&QNode::visionStatusCallback,this);
 	start();
 	return true;
 }
@@ -74,6 +75,7 @@ bool QNode::init(const std::string &master_url, const std::string &host_url) {
 			1000);
 	image_sub_ = it_.subscribe("/camera1", 1, &QNode::cameraCallback, this);
 	statusSubsriber_ = n_.subscribe("status", 100, &QNode::statusCallback, this);
+	visionStatusSubsriber_ = n_.subscribe("visionStatus",100,&QNode::visionStatusCallback,this);
 	start();
 	return true;
 }
@@ -151,6 +153,12 @@ void QNode::sendTask(pap_common::DESTINATION destination,
 	taskMsg.destination = destination;
 	taskMsg.task = task;
 	task_publisher.publish(taskMsg);
+}
+void QNode::sendTask(pap_common::DESTINATION destination,pap_vision::VISION task){
+		pap_common::Task taskMsg;
+		taskMsg.destination = destination;
+		taskMsg.task = task;
+		task_publisher.publish(taskMsg);
 }
 
 void QNode::sendTask(pap_common::DESTINATION destination, pap_common::TASK task,
@@ -237,6 +245,10 @@ void QNode::resetLEDTask(int LEDnumber) {
 	arduinoMsg.command = pap_common::RESETLED;
 	arduinoMsg.data = LEDnumber;
 	arduino_publisher_.publish(arduinoMsg);
+}
+
+void QNode::visionStatusCallback(const pap_common::VisionStatusConstPtr&  statusMsg){
+	Q_EMIT smdCoordinates(statusMsg->data1,statusMsg->data2,statusMsg->data3);
 }
 
 }  // namespace pap_gui

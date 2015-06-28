@@ -34,10 +34,12 @@
 #include <image_transport/image_transport.h>
 #include "pap_common/Task.h"
 #include "pap_common/Status.h"
+#include "pap_common/VisionStatus.h"
 #include "pap_common/ArduinoMsg.h"
 #include "../../../pap_common/include/pap_common/task_message_def.h"
 #include "../../../pap_common/include/pap_common/status_message_def.h"
 #include "../../../pap_common/include/pap_common/arduino_message_def.h"
+#include "../../../pap_common/include/pap_common/vision_message_def.h"
 
 #include <vector>
 
@@ -93,8 +95,10 @@ public:
 	void log( const LogLevel &level, const std::string &msg);
 	void cameraCallback(const sensor_msgs::Image::ConstPtr& camera_msg);
 	void sendTask(pap_common::DESTINATION,pap_common::TASK);
+	void sendTask(pap_common::DESTINATION,pap_vision::VISION);
 	void sendTask(pap_common::DESTINATION destination,pap_common::TASK task, float x, float y, float z );
 	void statusCallback(const pap_common::StatusConstPtr&  statusMsg);
+	void visionStatusCallback(const pap_common::VisionStatusConstPtr&  statusMsg);
 	void sendRelaisTask(int relaisNumber,bool value);
 	void sendStepperTask(int StepperNumber, int rotationAngle);
 	void resetStepper();
@@ -106,6 +110,7 @@ Q_SIGNALS:
 	void statusUpdated(int index);
 	void cameraUpdated(int index);
     void rosShutdown();
+    void smdCoordinates(float x,float y,float rot);
 
 
 
@@ -114,6 +119,7 @@ private:
 	char** init_argv;
 	ros::Publisher task_publisher, arduino_publisher_;
 	ros::Subscriber statusSubsriber_;
+	ros::Subscriber visionStatusSubsriber_;
     QStringListModel logging_model;
     image_transport::Subscriber image_sub_;
     cv_bridge::CvImagePtr cv_ptr;

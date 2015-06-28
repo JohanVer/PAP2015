@@ -123,11 +123,11 @@ void padFinder::findChip(cv::Mat* input) {
 	}
 
 	/*
-	cv::imshow("grey", gray);
-	cv::imshow("input", *input);
-	cv::imshow("final", final);
-	cv::waitKey(0);
-	*/
+	 cv::imshow("grey", gray);
+	 cv::imshow("input", *input);
+	 cv::imshow("final", final);
+	 cv::waitKey(0);
+	 */
 	*input = final.clone();
 }
 
@@ -167,7 +167,8 @@ void padFinder::findSmallSMD(cv::Mat* input) {
 	*input = final.clone();
 }
 
-void padFinder::findSMDTape(cv::Mat* input) {
+smdPart padFinder::findSMDTape(cv::Mat* input) {
+	std::vector<smdPart> smdObjects;
 	cv::Mat gray;
 	cv::Mat final = input->clone();
 	cv::cvtColor(*input, gray, CV_BGR2GRAY);
@@ -205,7 +206,6 @@ void padFinder::findSMDTape(cv::Mat* input) {
 							<= 0.3) {
 				setLabel(final, "HOLE", contours[i]);
 				circlesIndex.push_back(i);
-				//cv::drawContours(final, contours, i, CV_RGB(0, 0, 255), 2);
 			}
 		}
 	}
@@ -218,19 +218,55 @@ void padFinder::findSMDTape(cv::Mat* input) {
 			}
 		}
 		if (!found) {
+			cv::RotatedRect rect = minAreaRect(contours[i]);
 			if (!isBorderTouched(
-					minAreaRect(
-							contours[i])) && std::fabs(cv::contourArea(contours[i])) > MIN_AREA_TAPE_FINDER)
+					rect) && std::fabs(cv::contourArea(contours[i])) > MIN_AREA_TAPE_FINDER) {
+				smdPart smd;
+				smd.x = rect.center.x;
+				smd.y = rect.center.y;
+				smd.rot = rect.angle;
+				//ROS_INFO("Rotation %f",rect.angle);
+				smdObjects.push_back(smd);
 				cv::drawContours(final, contours, i, CV_RGB(0, 255, 0), 2);
+			}
 		}
 	}
+
+	int smdId = -1;
+	float centerX, centerY,shortestDistance;
+	centerX = input->cols / 2 - 1;
+	centerY = input->rows / 2 - 1;
+	shortestDistance = std::numeric_limits<float>::infinity();
+
+	for (int i = 0; i < smdObjects.size(); i++) {
+		float distance = sqrt(
+				std::pow(std::fabs(centerX - smdObjects[i].x), 2)
+						+ std::pow(std::fabs(centerY - smdObjects[i].y), 2));
+		if(distance < shortestDistance){
+			shortestDistance = distance;
+			smdId = i;
+		}
+	}
+
+	smdPart smdFinal;
+	if(smdId != -1){
+		circle(final, Point2f(smdObjects[smdId].x, smdObjects[smdId].y), 5,
+								CV_RGB(0, 0, 255), 3);
+		smdObjects[smdId].x = smdObjects[smdId].x-centerX;
+		smdObjects[smdId].y = smdObjects[smdId].y-centerX;
+		smdFinal = smdObjects[smdId];
+
+	}
+
 	/*
-	cv::imshow("grey", gray);
-	cv::imshow("input", *input);
-	cv::imshow("final", final);
-	cv::waitKey(0);
-	*/
+	 * input.cols / 2 - 1, input.rows - 1
+	 cv::imshow("grey", gray);
+	 cv::imshow("input", *input);
+	 cv::imshow("final", final);
+	 cv::waitKey(0);
+	 */
 	*input = final.clone();
+	return smdFinal;
 }
 
 //std::vector<cv::Point2f >
