@@ -226,13 +226,18 @@ smdPart padFinder::findSmallSMD(cv::Mat* input) {
 						smd.x = rect.center.x;
 						smd.y = rect.center.y;
 						smd.rot = rect.angle;
+						//ROS_INFO("Angle : %f Width: %f Height: %f",rect.angle,rect.size.width,rect.size.height);
+						if (rect.size.height < rect.size.width) {
+							smd.rot = std::fabs(smd.rot);
+						} else {
+							smd.rot = -(90.0 + smd.rot);
+						}
 						smdObjects.push_back(smd);
 					}
 				}
 			}
 		}
 	}
-
 	smdPart smdFinal;
 
 	if (nearestPart(&smdObjects, &smdFinal, input->cols, input->rows)) {
@@ -304,7 +309,6 @@ smdPart padFinder::findSMDTape(cv::Mat* input) {
 			cv::RotatedRect rect = minAreaRect(contours[i]);
 			float rectConvertedArea = rect.size.width / PIXEL_TO_MM
 					* rect.size.height / PIXEL_TO_MM;
-
 			//ROS_INFO("Tape size : %f Des size: %f",rectConvertedArea,(partWidth_ * partHeight_));
 			if (!isBorderTouched(rect)
 					&& rectConvertedArea
@@ -317,7 +321,12 @@ smdPart padFinder::findSMDTape(cv::Mat* input) {
 				smd.x = rect.center.x;
 				smd.y = rect.center.y;
 				smd.rot = rect.angle;
-				//ROS_INFO("Rotation %f",rect.angle);
+				if (rect.size.height < rect.size.width) {
+					smd.rot = std::fabs(smd.rot);
+				} else {
+					smd.rot = -(90.0 + smd.rot);
+				}
+				//ROS_INFO("Angle : %f Width: %f Height: %f",rect.angle,rect.size.width,rect.size.height);
 				smdObjects.push_back(smd);
 				cv::drawContours(final, contours, i, CV_RGB(0, 255, 0), 2);
 			}
