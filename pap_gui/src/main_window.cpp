@@ -1235,21 +1235,38 @@ void MainWindow::on_resetLEDButton_clicked() {
 
 void MainWindow::on_startChipFinder_Button_clicked() {
 	qnode.sendTask(pap_common::VISION,pap_vision::START_CHIP_FINDER);
+	displaySMDCoords(0.0,0.0,0.0);
 }
 
 void MainWindow::on_startSmallSMDFinder_Button_clicked() {
-	qnode.sendTask(pap_common::VISION,pap_vision::START_SMALL_FINDER);
+	if(ui.SmallSMD_Combo->currentText() == "0805"){
+		qnode.sendTask(pap_common::VISION,pap_vision::START_SMALL_FINDER,1.25,2.0,0.0);
+	}else if(ui.SmallSMD_Combo->currentText() == "0603"){
+		qnode.sendTask(pap_common::VISION,pap_vision::START_SMALL_FINDER,0.8,1.6,0.0);
+	}else if(ui.SmallSMD_Combo->currentText() == "0402"){
+		qnode.sendTask(pap_common::VISION,pap_vision::START_SMALL_FINDER,0.5,1.0,0.0);
+	}
+	displaySMDCoords(0.0,0.0,0.0);
 }
 
 void MainWindow::on_startTapeFinder_Button_clicked() {
-	qnode.sendTask(pap_common::VISION,pap_vision::START_TAPE_FINDER);
+	if(ui.tapeFinder_Combo->currentText() == "0805"){
+			qnode.sendTask(pap_common::VISION,pap_vision::START_TAPE_FINDER,1.25,2.0,0.0);
+		}else if(ui.tapeFinder_Combo->currentText() == "0603"){
+			qnode.sendTask(pap_common::VISION,pap_vision::START_TAPE_FINDER,0.8,1.6,0.0);
+		}else if(ui.tapeFinder_Combo->currentText() == "0402"){
+			qnode.sendTask(pap_common::VISION,pap_vision::START_TAPE_FINDER,0.5,1.0,0.0);
+		}
+	displaySMDCoords(0.0,0.0,0.0);
 }
 
 void MainWindow::on_startPadFinder_Button_clicked() {
+	displaySMDCoords(0.0,0.0,0.0);
 	qnode.sendTask(pap_common::VISION,pap_vision::START_PAD_FINDER);
 }
 
 void MainWindow::on_StartStopVision_Button_clicked() {
+
 	if(!visionStarted_){
 		qnode.sendTask(pap_common::VISION,pap_vision::START_VISION);
 		ui.visionStatus_Label->setText("On");
@@ -1259,6 +1276,7 @@ void MainWindow::on_StartStopVision_Button_clicked() {
 		ui.visionStatus_Label->setText("Off");
 		visionStarted_ = false;
 	}
+	displaySMDCoords(0.0,0.0,0.0);
 }
 
 void MainWindow::displaySMDCoords(float x,float y,float rot){

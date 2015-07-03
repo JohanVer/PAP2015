@@ -16,20 +16,59 @@ using namespace cv;
 // Chip Finder
 #define ERODE_ITERATIONS_CHIP_FINDER 3
 #define MIN_CONTOUR_AREA_CHIP 300
+#define ERROR_PERCENT_CHIP 20.0
 
 // SMD Finder
 #define ERODE_ITERATIONS_SMD_FINDER 1
 #define MIN_AREA_SMD_FINDER 300
+#define ERROR_PERCENT_SMALLSMD 20.0
 
 // SMD Tape
 #define ERODE_ITERATIONS_TAPE_FINDER 1
 #define MIN_AREA_TAPE_FINDER 300
+#define ERROR_PERCENT_SMDTAPE 20.0
 
 padFinder::padFinder() {
 	foundVia = false;
+	partWidth_ = 0.0;
+	partHeight_ = 0.0;
 }
 
 padFinder::~padFinder() {
+
+}
+
+void padFinder::setSize(float width, float height) {
+	partWidth_ = width;
+	partHeight_ = height;
+}
+
+bool padFinder::nearestPart(std::vector<smdPart>* list, smdPart* partDst,
+		int width, int height) {
+	int smdId = -1;
+	float centerX, centerY, shortestDistance;
+	centerX = width / 2 - 1;
+	centerY = height / 2 - 1;
+	shortestDistance = std::numeric_limits<float>::infinity();
+
+	for (int i = 0; i < list->size(); i++) {
+		float distance = sqrt(
+				std::pow(std::fabs(centerX - (*list)[i].x), 2)
+						+ std::pow(std::fabs(centerY - (*list)[i].y), 2));
+		if (distance < shortestDistance) {
+			shortestDistance = distance;
+			smdId = i;
+		}
+	}
+
+	if (smdId != -1) {
+		partDst->x = (*list)[smdId].x;
+		partDst->y = (*list)[smdId].y;
+		partDst->rot = (*list)[smdId].rot;
+		return true;
+	} else {
+		return false;
+	}
 
 }
 
@@ -53,7 +92,6 @@ bool padFinder::isBorderTouched(cv::RotatedRect pad) {
 				|| vertices[i].y < 5) {
 			return true;
 		}
-		//ROS_INFO("Vertices %d  Y: %d ", vertices[i].x, vertices[i].y);
 	}
 	return false;
 
@@ -93,9 +131,10 @@ void padFinder::setLabel(cv::Mat& im, const std::string label,
 	cv::putText(im, label, pt, fontface, scale, CV_RGB(0, 0, 0), thickness, 8);
 }
 
-void padFinder::findChip(cv::Mat* input) {
+smdPart padFinder::findChip(cv::Mat* input) {
 	cv::Mat gray;
 	cv::Mat final = input->clone();
+	std::vector<smdPart> smdObjects;
 	cv::cvtColor(*input, gray, CV_BGR2GRAY);
 	cv::threshold(gray, gray, 255, 255, CV_THRESH_BINARY_INV | CV_THRESH_OTSU);
 	cv::erode(gray, gray, cv::Mat(), cv::Point(-1, -1),
@@ -106,9 +145,24 @@ void padFinder::findChip(cv::Mat* input) {
 			CV_CHAIN_APPROX_NONE);
 
 	for (int i = 0; i < contours.size(); i++) {
-		if (std::fabs(cv::contourArea(contours[i])) > MIN_CONTOUR_AREA_CHIP) {
+		cv::RotatedRect rect = minAreaRect(contours[i]);
+		float rectConvertedArea = rect.size.width / PIXEL_TO_MM
+				* rect.size.height / PIXEL_TO_MM;
+
+		if (rectConvertedArea
+				> ((partWidth_ * partHeight_) / 100.0)
+						* (100.0 - ERROR_PERCENT_CHIP)
+				&& rectConvertedArea
+						< ((partWidth_ * partHeight_) / 100.0)
+								* (100.0 + ERROR_PERCENT_CHIP)) {
 			contoursSorted.push_back(contours[i]);
-			//cv::drawContours(final, contours, i, CV_RGB(0, 0, 255), 5);
+
+			smdPart smd;
+			smd.x = rect.center.x;
+			smd.y = rect.center.y;
+			smd.rot = rect.angle;
+			smdObjects.push_back(smd);
+			cv::drawContours(final, contours, i, CV_RGB(0, 255, 0), 2);
 		} else
 			break;
 	}
@@ -117,9 +171,12 @@ void padFinder::findChip(cv::Mat* input) {
 		ROS_INFO("More than one chip found!");
 	}
 
-	if (contoursSorted.size() > 0) {
-		RotatedRect pad = minAreaRect(contoursSorted[0]);
-		drawRotatedRect(final, pad, CV_RGB(255, 0, 0));
+	smdPart smdFinal;
+
+	if (nearestPart(&smdObjects, &smdFinal, input->cols, input->rows)) {
+		circle(final, Point2f(smdFinal.x, smdFinal.y), 5, CV_RGB(0, 0, 255), 3);
+		smdFinal.x = smdFinal.x - (input->cols / 2 - 1);
+		smdFinal.y = (input->rows / 2 - 1) - smdFinal.y;
 	}
 
 	/*
@@ -129,10 +186,12 @@ void padFinder::findChip(cv::Mat* input) {
 	 cv::waitKey(0);
 	 */
 	*input = final.clone();
+	return smdFinal;
 }
 
-void padFinder::findSmallSMD(cv::Mat* input) {
+smdPart padFinder::findSmallSMD(cv::Mat* input) {
 	cv::Mat gray;
+	std::vector<smdPart> smdObjects;
 	cv::Mat final = input->clone();
 	cv::cvtColor(*input, gray, CV_BGR2GRAY);
 	cv::threshold(gray, gray, 255, 255, CV_THRESH_BINARY | CV_THRESH_OTSU);
@@ -151,20 +210,42 @@ void padFinder::findSmallSMD(cv::Mat* input) {
 			for (int i = 0; i < contours.size(); i++) {
 				//ROS_INFO("Parent %d",hierarchy[i][3]);
 				if (hierarchy[i][3] == closedContour - 1) {
-					//ROS_INFO("Size %f",cv::contourArea(contours[i]));
-					if (cv::contourArea(contours[i]) > MIN_AREA_SMD_FINDER) {
+					cv::RotatedRect rect = minAreaRect(contours[i]);
+					float rectConvertedArea = rect.size.width / PIXEL_TO_MM
+							* rect.size.height / PIXEL_TO_MM;
+
+					if (rectConvertedArea
+							> ((partWidth_ * partHeight_) / 100.0)
+									* (100.0 - ERROR_PERCENT_SMALLSMD)
+							&& rectConvertedArea
+									< ((partWidth_ * partHeight_) / 100.0)
+											* (100.0 + ERROR_PERCENT_SMALLSMD)) {
 						cv::drawContours(final, contours, i, CV_RGB(0, 255, 0),
 								2);
+						smdPart smd;
+						smd.x = rect.center.x;
+						smd.y = rect.center.y;
+						smd.rot = rect.angle;
+						smdObjects.push_back(smd);
 					}
 				}
 			}
 		}
+	}
+
+	smdPart smdFinal;
+
+	if (nearestPart(&smdObjects, &smdFinal, input->cols, input->rows)) {
+		circle(final, Point2f(smdFinal.x, smdFinal.y), 5, CV_RGB(0, 0, 255), 3);
+		smdFinal.x = smdFinal.x - (input->cols / 2 - 1);
+		smdFinal.y = (input->rows / 2 - 1) - smdFinal.y;
 	}
 	//cv::imshow("grey", gray);
 	//cv::imshow("input", *input);
 	//cv::imshow("final", final);
 	//cv::waitKey(0);
 	*input = final.clone();
+	return smdFinal;
 }
 
 smdPart padFinder::findSMDTape(cv::Mat* input) {
@@ -211,16 +292,27 @@ smdPart padFinder::findSMDTape(cv::Mat* input) {
 	}
 
 	for (int i = 0; i < contours.size(); i++) {
+		// Sort out circles
 		bool found = false;
 		for (int j = 0; j <= circlesIndex.size(); j++) {
 			if (circlesIndex[j] == i) {
 				found = true;
 			}
 		}
+
 		if (!found) {
 			cv::RotatedRect rect = minAreaRect(contours[i]);
-			if (!isBorderTouched(
-					rect) && std::fabs(cv::contourArea(contours[i])) > MIN_AREA_TAPE_FINDER) {
+			float rectConvertedArea = rect.size.width / PIXEL_TO_MM
+					* rect.size.height / PIXEL_TO_MM;
+
+			//ROS_INFO("Tape size : %f Des size: %f",rectConvertedArea,(partWidth_ * partHeight_));
+			if (!isBorderTouched(rect)
+					&& rectConvertedArea
+							> ((partWidth_ * partHeight_) / 100.0)
+									* (100.0 - ERROR_PERCENT_SMDTAPE)
+					&& rectConvertedArea
+							< ((partWidth_ * partHeight_) / 100.0)
+									* (100.0 + ERROR_PERCENT_SMDTAPE)) {
 				smdPart smd;
 				smd.x = rect.center.x;
 				smd.y = rect.center.y;
@@ -232,34 +324,15 @@ smdPart padFinder::findSMDTape(cv::Mat* input) {
 		}
 	}
 
-	int smdId = -1;
-	float centerX, centerY,shortestDistance;
-	centerX = input->cols / 2 - 1;
-	centerY = input->rows / 2 - 1;
-	shortestDistance = std::numeric_limits<float>::infinity();
-
-	for (int i = 0; i < smdObjects.size(); i++) {
-		float distance = sqrt(
-				std::pow(std::fabs(centerX - smdObjects[i].x), 2)
-						+ std::pow(std::fabs(centerY - smdObjects[i].y), 2));
-		if(distance < shortestDistance){
-			shortestDistance = distance;
-			smdId = i;
-		}
-	}
-
 	smdPart smdFinal;
-	if(smdId != -1){
-		circle(final, Point2f(smdObjects[smdId].x, smdObjects[smdId].y), 5,
-								CV_RGB(0, 0, 255), 3);
-		smdObjects[smdId].x = smdObjects[smdId].x-centerX;
-		smdObjects[smdId].y = smdObjects[smdId].y-centerX;
-		smdFinal = smdObjects[smdId];
 
+	if (nearestPart(&smdObjects, &smdFinal, input->cols, input->rows)) {
+		circle(final, Point2f(smdFinal.x, smdFinal.y), 5, CV_RGB(0, 0, 255), 3);
+		smdFinal.x = smdFinal.x - (input->cols / 2 - 1);
+		smdFinal.y = (input->rows / 2 - 1) - smdFinal.y;
 	}
 
 	/*
-	 * input.cols / 2 - 1, input.rows - 1
 	 cv::imshow("grey", gray);
 	 cv::imshow("input", *input);
 	 cv::imshow("final", final);
