@@ -56,6 +56,8 @@ offset tip1Offset, tip2Offset, dispenserTipOffset;
 // These offsets are relative to homing position
 offset pcbFenceOffset, pickUpAreaOffset;
 
+QVector<offset> boxPositionVector;
+
 struct databaseEntry {
 	QString package;
 	float length, width, height;
@@ -133,6 +135,11 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent) :
 	loadDatabaseContent();
 	updateDatabaseTable();
 
+	/* Init Checkboxes*/
+	//ui.checkBox_pcbPlaced->setEnabled(false);
+	//ui.checkBox_position->setEnabled(false);
+	//ui.checkBox_orientation->setDisabled(true);
+	//ui.checkBox_box->setDisabled(true);
 }
 
 MainWindow::~MainWindow() {
@@ -494,11 +501,11 @@ void MainWindow::loadDatabaseContent() {
 						componentString.section(sep, 3, 3).toFloat(&ok);
 				newDatabaseEntry.pins =
 						componentString.section(sep, 4, 4).toInt(&ok);
-				qDebug() << newDatabaseEntry.package << " "
+				/*qDebug() << newDatabaseEntry.package << " "
 						<< newDatabaseEntry.length << " "
 						<< newDatabaseEntry.width << " "
 						<< newDatabaseEntry.height << " "
-						<< newDatabaseEntry.pins;
+						<< newDatabaseEntry.pins;*/
 				databaseVector.append(newDatabaseEntry);
 			}
 		}
@@ -708,6 +715,41 @@ void MainWindow::updateDatabaseTable() {
 	ui.tableWidget->show();
 }
 
+void MainWindow::initializeBoxPositionVector() {
+
+	offset newBox = pickUpAreaOffset;
+	boxPositionVector.append(newBox);
+
+	for(int i = 1; i <= 12; i++) {
+		offset newBox;
+		//newBox.x = boxPositionVector.at(i-1) + 5.00;
+		//newBox.y = boxPositionVector.at(i-1);
+	}
+}
+
+void MainWindow::on_startSinglePlacementButton_clicked() {
+
+	// Check all prerequesits
+	if (ui.checkBox_pcbPlaced->isChecked()) {
+		if (ui.checkBox_position->isChecked() && ui.checkBox_orientation->isChecked() && ui.checkBox_box->isChecked()) {
+
+
+
+		} else {
+			QMessageBox msgBox;
+			msgBox.setText("Component information not complete.");
+			msgBox.exec();
+			msgBox.close();
+		}
+	} else {
+		QMessageBox msgBox;
+		msgBox.setText("Please place a circuit board.");
+		msgBox.exec();
+		msgBox.close();
+	}
+
+}
+
 void MainWindow::on_placeSingleComponentButton_clicked() {
 
 	int currentComp = ui.tableWidget->currentRow();
@@ -723,6 +765,13 @@ void MainWindow::on_placeSingleComponentButton_clicked() {
 		singleComponent = componentVector.at(currentComp);
 		updateSingleComponentInformation();
 		singleComponentSelected = true;
+
+		ui.checkBox_position->setChecked(true);
+		ui.checkBox_orientation->setChecked(true);
+		if (singleComponent.box != -1) {
+			ui.checkBox_box->setChecked(true);
+		}
+
 		ui.tab_manager->setCurrentIndex(4);
 
 		/*QWizard wizard;

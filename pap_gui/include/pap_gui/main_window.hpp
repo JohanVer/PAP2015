@@ -102,6 +102,8 @@ public Q_SLOTS:
     void on_setLEDButton_clicked();
     void on_resetLEDButton_clicked();
 
+    void on_startSinglePlacementButton_clicked();
+    void initializeBoxPositionVector();
     // Vision
     // Buttons
     void on_startChipFinder_Button_clicked();

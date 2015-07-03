@@ -40,7 +40,7 @@
        <locale language="English" country="Australia"/>
       </property>
       <property name="currentIndex">
-       <number>1</number>
+       <number>5</number>
       </property>
       <widget class="QWidget" name="tab_status">
        <attribute name="title">
@@ -156,8 +156,6 @@
           </item>
          </layout>
         </widget>
-        <zorder>verticalLayoutWidget_2</zorder>
-        <zorder>horizontalLayoutWidget_8</zorder>
        </widget>
        <widget class="QGroupBox" name="groupBox_16">
         <property name="geometry">
@@ -229,8 +227,8 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>281</width>
-           <height>237</height>
+           <width>100</width>
+           <height>30</height>
           </rect>
          </property>
          <attribute name="label">
@@ -295,8 +293,8 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>281</width>
-           <height>237</height>
+           <width>100</width>
+           <height>30</height>
           </rect>
          </property>
          <attribute name="label">
@@ -382,6 +380,14 @@
          </widget>
         </widget>
         <widget class="QWidget" name="page_3">
+         <property name="geometry">
+          <rect>
+           <x>0</x>
+           <y>0</y>
+           <width>100</width>
+           <height>30</height>
+          </rect>
+         </property>
          <attribute name="label">
           <string>Tape Finder</string>
          </attribute>
@@ -443,6 +449,14 @@
          </widget>
         </widget>
         <widget class="QWidget" name="page_4">
+         <property name="geometry">
+          <rect>
+           <x>0</x>
+           <y>0</y>
+           <width>281</width>
+           <height>237</height>
+          </rect>
+         </property>
          <attribute name="label">
           <string>Pad Finder</string>
          </attribute>
@@ -2425,7 +2439,7 @@
           <rect>
            <x>0</x>
            <y>30</y>
-           <width>144</width>
+           <width>146</width>
            <height>141</height>
           </rect>
          </property>
@@ -2433,35 +2447,28 @@
           <item>
            <widget class="QLabel" name="label_47">
             <property name="text">
-             <string>1. Place PCB</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLabel" name="label_48">
-            <property name="text">
-             <string>2. Scan PCB</string>
+             <string>1. PCB placed</string>
             </property>
            </widget>
           </item>
           <item>
            <widget class="QLabel" name="label_63">
             <property name="text">
-             <string>3. Set comp. pos.</string>
+             <string>3. Position set</string>
             </property>
            </widget>
           </item>
           <item>
            <widget class="QLabel" name="label_27">
             <property name="text">
-             <string>4. Check orientation</string>
+             <string>4. Orientation set</string>
             </property>
            </widget>
           </item>
           <item>
            <widget class="QLabel" name="label_64">
             <property name="text">
-             <string>5. Start placement</string>
+             <string>5. Box number set</string>
             </property>
            </widget>
           </item>
@@ -2478,14 +2485,14 @@
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_20">
           <item>
-           <widget class="QCheckBox" name="checkBox_2">
+           <widget class="QCheckBox" name="checkBox_pcbPlaced">
             <property name="text">
              <string/>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QCheckBox" name="checkBox_3">
+           <widget class="QCheckBox" name="checkBox_position">
             <property name="cursor">
              <cursorShape>SizeVerCursor</cursorShape>
             </property>
@@ -2501,21 +2508,14 @@
            </widget>
           </item>
           <item>
-           <widget class="QCheckBox" name="checkBox_4">
+           <widget class="QCheckBox" name="checkBox_orientation">
             <property name="text">
              <string/>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QCheckBox" name="checkBox">
-            <property name="text">
-             <string/>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QCheckBox" name="checkBox_5">
+           <widget class="QCheckBox" name="checkBox_box">
             <property name="text">
              <string/>
             </property>
@@ -2544,13 +2544,6 @@
            <widget class="QPushButton" name="pushButton_15">
             <property name="text">
              <string>Set comp. position</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="pushButton_16">
-            <property name="text">
-             <string>Start placement</string>
             </property>
            </widget>
           </item>
@@ -2991,6 +2984,19 @@
          </property>
         </widget>
        </widget>
+       <widget class="QPushButton" name="startSinglePlacementButton">
+        <property name="geometry">
+         <rect>
+          <x>530</x>
+          <y>320</y>
+          <width>141</width>
+          <height>51</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Start placement</string>
+        </property>
+       </widget>
       </widget>
       <widget class="QWidget" name="tab_4">
        <attribute name="title">
@@ -3117,6 +3123,45 @@
           </item>
          </layout>
         </widget>
+       </widget>
+       <widget class="QPushButton" name="pushButton">
+        <property name="geometry">
+         <rect>
+          <x>820</x>
+          <y>70</y>
+          <width>71</width>
+          <height>51</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>0</string>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="pushButton_2">
+        <property name="geometry">
+         <rect>
+          <x>890</x>
+          <y>70</y>
+          <width>71</width>
+          <height>51</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>1</string>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="pushButton_7">
+        <property name="geometry">
+         <rect>
+          <x>960</x>
+          <y>70</y>
+          <width>71</width>
+          <height>51</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>PushButton</string>
+        </property>
        </widget>
       </widget>
      </widget>
