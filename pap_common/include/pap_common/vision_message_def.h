@@ -9,7 +9,8 @@ enum VISION {
   START_CHIP_FINDER 	= 3,
   START_SMALL_FINDER    = 4,
   START_TAPE_FINDER     = 5,
-  START_PAD_FINDER      = 6 
+  START_PAD_FINDER      = 6,
+  SELECT_PAD			= 7
 };
 
 

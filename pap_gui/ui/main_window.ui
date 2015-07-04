@@ -81,31 +81,66 @@
          </rect>
         </property>
         <layout class="QHBoxLayout" name="horizontalLayout">
+         <property name="sizeConstraint">
+          <enum>QLayout::SetNoConstraint</enum>
+         </property>
          <item>
           <layout class="QVBoxLayout" name="verticalLayout_4">
+           <property name="sizeConstraint">
+            <enum>QLayout::SetDefaultConstraint</enum>
+           </property>
            <item>
             <widget class="QLabel" name="label_5">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
              <property name="text">
               <string>Head-Camera</string>
              </property>
             </widget>
            </item>
            <item>
-            <widget class="QGraphicsView" name="camera1"/>
+            <widget class="ClickGraphicsView" name="camera1">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+            </widget>
            </item>
           </layout>
          </item>
          <item>
           <layout class="QVBoxLayout" name="verticalLayout_6">
+           <property name="sizeConstraint">
+            <enum>QLayout::SetDefaultConstraint</enum>
+           </property>
            <item>
             <widget class="QLabel" name="label_4">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
              <property name="text">
               <string>Bottom-Camera</string>
              </property>
             </widget>
            </item>
            <item>
-            <widget class="QGraphicsView" name="camera2"/>
+            <widget class="QGraphicsView" name="camera2">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+            </widget>
            </item>
           </layout>
          </item>
@@ -156,8 +191,6 @@
           </item>
          </layout>
         </widget>
-        <zorder>verticalLayoutWidget_2</zorder>
-        <zorder>horizontalLayoutWidget_8</zorder>
        </widget>
        <widget class="QGroupBox" name="groupBox_16">
         <property name="geometry">
@@ -218,11 +251,11 @@
           <x>820</x>
           <y>20</y>
           <width>281</width>
-          <height>361</height>
+          <height>451</height>
          </rect>
         </property>
         <property name="currentIndex">
-         <number>3</number>
+         <number>4</number>
         </property>
         <widget class="QWidget" name="page">
          <property name="geometry">
@@ -230,7 +263,7 @@
            <x>0</x>
            <y>0</y>
            <width>281</width>
-           <height>237</height>
+           <height>296</height>
           </rect>
          </property>
          <attribute name="label">
@@ -296,7 +329,7 @@
            <x>0</x>
            <y>0</y>
            <width>281</width>
-           <height>237</height>
+           <height>296</height>
           </rect>
          </property>
          <attribute name="label">
@@ -382,6 +415,14 @@
          </widget>
         </widget>
         <widget class="QWidget" name="page_3">
+         <property name="geometry">
+          <rect>
+           <x>0</x>
+           <y>0</y>
+           <width>281</width>
+           <height>296</height>
+          </rect>
+         </property>
          <attribute name="label">
           <string>Tape Finder</string>
          </attribute>
@@ -443,6 +484,14 @@
          </widget>
         </widget>
         <widget class="QWidget" name="page_4">
+         <property name="geometry">
+          <rect>
+           <x>0</x>
+           <y>0</y>
+           <width>281</width>
+           <height>296</height>
+          </rect>
+         </property>
          <attribute name="label">
           <string>Pad Finder</string>
          </attribute>
@@ -459,13 +508,43 @@
            <string>Start Pad Finder</string>
           </property>
          </widget>
+         <zorder>startPadFinder_Button</zorder>
+         <zorder></zorder>
+        </widget>
+        <widget class="QWidget" name="page_5">
+         <attribute name="label">
+          <string>Fiducial</string>
+         </attribute>
+         <widget class="QTableWidget" name="fiducialTable">
+          <property name="geometry">
+           <rect>
+            <x>10</x>
+            <y>40</y>
+            <width>251</width>
+            <height>101</height>
+           </rect>
+          </property>
+         </widget>
+         <widget class="QPushButton" name="calcOrientation_Button">
+          <property name="geometry">
+           <rect>
+            <x>50</x>
+            <y>150</y>
+            <width>161</width>
+            <height>27</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>Calculate Orientation</string>
+          </property>
+         </widget>
         </widget>
        </widget>
        <widget class="QWidget" name="horizontalLayoutWidget_8">
         <property name="geometry">
          <rect>
-          <x>820</x>
-          <y>410</y>
+          <x>810</x>
+          <y>500</y>
           <width>160</width>
           <height>80</height>
          </rect>
@@ -487,6 +566,12 @@
          </item>
         </layout>
        </widget>
+       <zorder>horizontalLayoutWidget</zorder>
+       <zorder>groupBox_15</zorder>
+       <zorder>groupBox_16</zorder>
+       <zorder>toolBox</zorder>
+       <zorder>horizontalLayoutWidget_8</zorder>
+       <zorder></zorder>
       </widget>
       <widget class="QWidget" name="tab_2">
        <attribute name="title">
@@ -3371,6 +3456,13 @@
    </property>
   </action>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>ClickGraphicsView</class>
+   <extends>QGraphicsView</extends>
+   <header>ClickGraphicsView.hpp</header>
+  </customwidget>
+ </customwidgets>
  <resources>
   <include location="../resources/images.qrc"/>
  </resources>

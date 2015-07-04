@@ -17,6 +17,10 @@
 #include "qnode.hpp"
 #include "pap_common/Task.h"
 #include "../../../pap_common/include/pap_common/vision_message_def.h"
+#include "ClickGraphicsView.hpp"
+#include <string>
+#include <sstream>
+#include <iostream>
 
 #include <QStandardItemModel>
 
@@ -111,6 +115,11 @@ public Q_SLOTS:
     void on_StartStopVision_Button_clicked();
     // Display Functions
     void displaySMDCoords(float x,float y,float rot);
+    void setMousePoint (QPointF point);
+    void setFiducial(QPointF point);
+    void setFiducialTable(int number, float x, float y);
+    void initFiducialTable(void);
+    //void FiducialTableMenu(QContextMenuEvent *event);
 
     //QWizardPage *createIntroPage();
 
@@ -134,6 +143,7 @@ private:
 	bool valve8Active_;
 	bool visionStarted_;
     QTableView tableView;
+    int fiducialSize_;
 };
 
 }  // namespace pap_gui

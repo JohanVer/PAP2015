@@ -20,12 +20,15 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   pap_common
 )
-include_directories(${catkin_INCLUDE_DIRS})
+
+set(SOURCE_BUILD "/home/johan/Documents/catkin_ws/src/pap_gui/include/pap_gui/")
+include_directories(${catkin_INCLUDE_DIRS} ${SOURCE_BUILD})
+
 # Use this to define what the package will export (e.g. libs, headers).
 # Since the default here is to produce only a binary, we don't worry about
 # exporting anything. 
 catkin_package()
-
+#catkin_package(INCLUDE_DIRS include)
 ##############################################################################
 # Qt Environment
 ##############################################################################

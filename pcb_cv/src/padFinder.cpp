@@ -511,6 +511,7 @@ void padFinder::findPads(cv::Mat* input) {
 	// Draw pads rectangles
 
 	vector<Point2f> padPoints;
+	vector<RotatedRect> padRects;
 
 	unsigned int padCounter = 0;
 	for (int i = 0; i < contours.size(); i++) {
@@ -527,6 +528,8 @@ void padFinder::findPads(cv::Mat* input) {
 				Point2f mc;
 				mc = Point2f(mu.m10 / mu.m00, mu.m01 / mu.m00);
 				padPoints.push_back(mc);
+				padRects.push_back(pad);
+				//cv::Rect::contains
 
 				drawRotatedRect(final, pad, CV_RGB(255, 0, 0));
 				padCounter++;
@@ -547,3 +550,5 @@ void padFinder::findPads(cv::Mat* input) {
 	//cv::waitKey(0);
 	ROS_INFO("Found %d pads..", padCounter);
 }
+
+//void checkFit
