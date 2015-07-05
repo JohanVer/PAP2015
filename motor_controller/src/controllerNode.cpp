@@ -250,6 +250,7 @@ void parseTask(const pap_common::TaskConstPtr& taskMsg) {
 			}
 			break;
 		case pap_common::GETPOSITION:
+
 			if(controller.controllerConnected_1_ && controller.controllerConnected_2_ && controller.controllerConnected_3_){
 				float xPosition = controller.getPosition(1);
 				float yPosition = controller.getPosition(2);
@@ -259,8 +260,9 @@ void parseTask(const pap_common::TaskConstPtr& taskMsg) {
 				positionMessage.posX = xPosition;
 				positionMessage.posY = yPosition;
 				positionMessage.posZ = zPosition;
-				statusPublisher.publish(&positionMessage);
+				statusPublisher.publish(positionMessage);
 			}
+
 			break;
 		}
 		break;

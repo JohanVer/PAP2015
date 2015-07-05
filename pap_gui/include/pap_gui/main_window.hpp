@@ -20,6 +20,7 @@
 #include "../../../pap_common/include/pap_common/vision_message_def.h"
 #include "ClickGraphicsView.hpp"
 #include "MyContextMenuTable.hpp"
+//#include "GerberPadParser.hpp"
 #include <string>
 #include <sstream>
 #include <iostream>
