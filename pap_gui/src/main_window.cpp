@@ -107,7 +107,11 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent) :
 	QWidget::connect(ui.camera1, SIGNAL(setFiducial(QPointF)), this,
 			SLOT(setFiducial(QPointF)));
 
-	fiducialSize_ = 0;
+	QWidget::connect(&qnode, SIGNAL(signalPosition(float,float)), this,
+			SLOT(signalPosition(float,float)));
+
+	QWidget::connect(ui.fiducialTable, SIGNAL(sendGotoFiducial(int)), this,
+			SLOT(sendGotoFiducial(int)));
 
 	//QWidget::connect(ui.fiducialTable, SIGNAL(contextMenuEvent(QContextMenuEvent*)), this,
 	//			SLOT(FiducialTableMenu(QContextMenuEvent*)));
@@ -1311,22 +1315,47 @@ void MainWindow::setMousePoint(QPointF point) {
 void MainWindow::setFiducial(QPointF point) {
 	float percentageX = (100.0 / (float) ui.camera1->width()) * point.x();
 	float percentageY = (100.0 / (float) ui.camera1->height()) * point.y();
-	//qnode.sendTask(pap_common::VISION, pap_vision::STOP_VISION);
+
+	float indexXFull = (640.0 / 100.0) * percentageX;
+	float indexYFull = (480.0 / 100.0) * percentageY;
+
+	qnode.sendTask(pap_common::VISION, pap_vision::START_PAD_FINDER, 1.0,
+			indexXFull, indexYFull);
+
+	QEventLoop loop;
+	QTimer *timer = new QTimer(this);
+	connect(&qnode, SIGNAL(signalPosition(float,float)), &loop, SLOT(quit()));
+	connect(timer, SIGNAL(timeout()), &loop, SLOT(quit()));
+	timer->setSingleShot(true);
+	timer->start(1000);
+
+	loop.exec(); //blocks untill either signalPosition or timeout was fired
+	if (!timer->isActive()) {
+		qnode.sendTask(pap_common::VISION, pap_vision::START_PAD_FINDER);
+		QMessageBox msgBox;
+		const QString title = "Nothing received";
+		msgBox.setWindowTitle(title);
+		msgBox.setText("No pad found on given position");
+		msgBox.exec();
+		msgBox.close();
+		return;
+	}
 
 	double xCoord = QInputDialog::getDouble(this, "Fiducial X", "X-Coordinate:",
 			0.0);
 	double yCoord = QInputDialog::getDouble(this, "Fiducial Y", "Y-Coordinate:",
 			0.0);
-	if(fiducialSize_ == 0){
-	setFiducialTable(0,xCoord,yCoord);
-	}
-	else if(fiducialSize_ == 1){
-	setFiducialTable(1,xCoord,yCoord);
-	}
-	else{
-	ui.fiducialTable->clear();
-	initFiducialTable();
-	setFiducialTable(0,xCoord,yCoord);
+
+	qnode.sendTask(pap_common::VISION, pap_vision::START_PAD_FINDER);
+	if (ui.fiducialTable->fiducialSize_ == 0) {
+		setFiducialTable(0, xCoord, yCoord, padPosition_.x(), padPosition_.y());
+	} else if (ui.fiducialTable->fiducialSize_ == 1) {
+		setFiducialTable(1, xCoord, yCoord, padPosition_.x(), padPosition_.y());
+	} else {
+		ui.fiducialTable->clear();
+		ui.fiducialTable->fiducialSize_ = 0;
+		initFiducialTable();
+		setFiducialTable(0, xCoord, yCoord, padPosition_.x(), padPosition_.y());
 	}
 
 }
@@ -1334,11 +1363,11 @@ void MainWindow::setFiducial(QPointF point) {
 void MainWindow::initFiducialTable(void) {
 	// Set size of table
 	ui.fiducialTable->setRowCount(2);
-	ui.fiducialTable->setColumnCount(2);
+	ui.fiducialTable->setColumnCount(4);
 
 	// Set labels
 	QStringList hLabels, vLabels;
-	hLabels << "X-Coord" << "Y-Coord";
+	hLabels << "X-PCB" << "Y-PCB" << "X-Global" << "Y-Global";
 	for (int i = 1; i <= 2; i++) {
 		vLabels << QString::number(i);
 	}
@@ -1346,10 +1375,39 @@ void MainWindow::initFiducialTable(void) {
 	ui.fiducialTable->setVerticalHeaderLabels(vLabels);
 }
 
-void MainWindow::setFiducialTable(int number, float x, float y){
-	ui.fiducialTable->setItem(number,0,new QTableWidgetItem(QString::number(x)));
-	ui.fiducialTable->setItem(number,1,new QTableWidgetItem(QString::number(y)));
-	fiducialSize_++;
+void MainWindow::setFiducialTable(int number, float x, float y, float xGlobal,
+		float yGlobal) {
+	ui.fiducialTable->setItem(number, 0,
+			new QTableWidgetItem(QString::number(x)));
+	ui.fiducialTable->setItem(number, 1,
+			new QTableWidgetItem(QString::number(y)));
+	ui.fiducialTable->setItem(number, 2,
+			new QTableWidgetItem(QString::number(xGlobal)));
+	ui.fiducialTable->setItem(number, 3,
+			new QTableWidgetItem(QString::number(yGlobal)));
+	ui.fiducialTable->fiducialSize_++;
+}
+
+void MainWindow::signalPosition(float x, float y) {
+	padPosition_.setX(x);
+	padPosition_.setY(y);
+}
+
+void MainWindow::sendGotoFiducial(int indexOfFiducial) {
+	if (qnode.getStatus()[0].positionReached
+			&& qnode.getStatus()[1].positionReached
+			&& qnode.getStatus()[2].positionReached) {
+		if (indexOfFiducial == 0 && ui.fiducialTable->fiducialSize_ < 1) {
+			return;
+		} else if (indexOfFiducial == 1
+				&& ui.fiducialTable->fiducialSize_ < 2) {
+			return;
+		}
+		float x = ui.fiducialTable->item(indexOfFiducial, 2)->text().toFloat();
+		float y = ui.fiducialTable->item(indexOfFiducial, 3)->text().toFloat();
+		ROS_INFO("Goto position x: %f y: %f", x, y);
+		qnode.sendTask(pap_common::CONTROLLER, pap_common::COORD, x, y, 50.0);
+	}
 }
 
 }

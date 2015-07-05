@@ -266,7 +266,12 @@ void QNode::resetLEDTask(int LEDnumber) {
 
 void QNode::visionStatusCallback(
 		const pap_common::VisionStatusConstPtr& statusMsg) {
+	if(statusMsg->task != pap_vision::START_PAD_FINDER){
 	Q_EMIT smdCoordinates(statusMsg->data1, statusMsg->data2, statusMsg->data3);
+	}
+	else{
+	Q_EMIT signalPosition(statusMsg->data1,statusMsg->data2);
+	}
 }
 
 }  // namespace pap_gui

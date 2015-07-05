@@ -112,6 +112,7 @@ Q_SIGNALS:
 	void cameraUpdated(int index);
     void rosShutdown();
     void smdCoordinates(float x,float y,float rot);
+    void signalPosition(float x,float y);
 
 
 

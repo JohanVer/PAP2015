@@ -262,8 +262,8 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>281</width>
-           <height>296</height>
+           <width>98</width>
+           <height>28</height>
           </rect>
          </property>
          <attribute name="label">
@@ -328,8 +328,8 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>281</width>
-           <height>296</height>
+           <width>98</width>
+           <height>28</height>
           </rect>
          </property>
          <attribute name="label">
@@ -419,8 +419,8 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>281</width>
-           <height>296</height>
+           <width>98</width>
+           <height>28</height>
           </rect>
          </property>
          <attribute name="label">
@@ -488,8 +488,8 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>281</width>
-           <height>296</height>
+           <width>98</width>
+           <height>28</height>
           </rect>
          </property>
          <attribute name="label">
@@ -508,14 +508,20 @@
            <string>Start Pad Finder</string>
           </property>
          </widget>
-         <zorder>startPadFinder_Button</zorder>
-         <zorder></zorder>
         </widget>
         <widget class="QWidget" name="page_5">
+         <property name="geometry">
+          <rect>
+           <x>0</x>
+           <y>0</y>
+           <width>281</width>
+           <height>296</height>
+          </rect>
+         </property>
          <attribute name="label">
           <string>Fiducial</string>
          </attribute>
-         <widget class="QTableWidget" name="fiducialTable">
+         <widget class="MyContextMenuTable" name="fiducialTable">
           <property name="geometry">
            <rect>
             <x>10</x>
@@ -566,12 +572,11 @@
          </item>
         </layout>
        </widget>
-       <zorder>horizontalLayoutWidget</zorder>
        <zorder>groupBox_15</zorder>
        <zorder>groupBox_16</zorder>
        <zorder>toolBox</zorder>
        <zorder>horizontalLayoutWidget_8</zorder>
-       <zorder></zorder>
+       <zorder>horizontalLayoutWidget</zorder>
       </widget>
       <widget class="QWidget" name="tab_2">
        <attribute name="title">
@@ -3461,6 +3466,11 @@
    <class>ClickGraphicsView</class>
    <extends>QGraphicsView</extends>
    <header>ClickGraphicsView.hpp</header>
+  </customwidget>
+  <customwidget>
+   <class>MyContextMenuTable</class>
+   <extends>QTableWidget</extends>
+   <header>MyContextMenuTable.hpp</header>
   </customwidget>
  </customwidgets>
  <resources>

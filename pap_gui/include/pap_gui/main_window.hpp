@@ -12,15 +12,18 @@
 ** Includes
 *****************************************************************************/
 
+#include <MyContextMenuTable.hpp>
 #include <QtGui/QMainWindow>
 #include "ui_main_window.h"
 #include "qnode.hpp"
 #include "pap_common/Task.h"
 #include "../../../pap_common/include/pap_common/vision_message_def.h"
 #include "ClickGraphicsView.hpp"
+#include "MyContextMenuTable.hpp"
 #include <string>
 #include <sstream>
 #include <iostream>
+#include <QPoint>
 
 #include <QStandardItemModel>
 
@@ -117,9 +120,10 @@ public Q_SLOTS:
     void displaySMDCoords(float x,float y,float rot);
     void setMousePoint (QPointF point);
     void setFiducial(QPointF point);
-    void setFiducialTable(int number, float x, float y);
+    void setFiducialTable(int number, float x, float y,float xGlobal, float yGlobal);
     void initFiducialTable(void);
-    //void FiducialTableMenu(QContextMenuEvent *event);
+    void signalPosition(float x,float y);
+    void sendGotoFiducial(int indexOfFiducial);
 
     //QWizardPage *createIntroPage();
 
@@ -144,6 +148,7 @@ private:
 	bool visionStarted_;
     QTableView tableView;
     int fiducialSize_;
+    QPointF padPosition_;
 };
 
 }  // namespace pap_gui

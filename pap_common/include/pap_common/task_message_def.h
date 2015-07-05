@@ -11,7 +11,8 @@ enum TASK {
   // MANUAL : Set DIRECTION in data 1 and MOTOR in data 2
   MANUAL = 4,
   CONNECT = 5,
-  STOP = 6
+  STOP = 6,
+  GETPOSITION = 7
 };
 
 enum DESTINATION {

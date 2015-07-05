@@ -32,9 +32,10 @@ enum VISION_PROCESS {
 };
 
 VISION_PROCESS visionState = IDLE;
-bool visionEnabled = false;
+bool visionEnabled, selectPad = false;
 ros::Publisher statusPublisher;
 padFinder finder;
+cv::Point2f selectPoint;
 
 int main(int argc, char **argv) {
 	ros::init(argc, argv, "add_two_ints_server");
@@ -115,8 +116,18 @@ int main(int argc, char **argv) {
 				input =
 						cv::imread(
 								"/home/johan/Desktop/Webcam_Pictures/Webcam-1435326531.png");
-				finder.findPads(&input);
+				cv::Point2f position = finder.findPads(&input, selectPad,
+						selectPoint);
+				ROS_INFO("X %f Y  %f",position.x,position.y);
+				if (selectPad && position.x != 0.0 && position.y != 0.0) {
+					visionMsg.task = pap_vision::START_PAD_FINDER;
+					visionMsg.data1 = position.x;
+					visionMsg.data2 = position.y;
+					visionMsg.data3 = 0.0;
+					statusPublisher.publish(visionMsg);
+				}
 				break;
+
 			}
 		} else {
 			input =
@@ -189,6 +200,17 @@ void parseTask(const pap_common::TaskConstPtr& taskMsg) {
 
 		case pap_vision::START_PAD_FINDER:
 			visionState = PAD;
+			if (taskMsg->data1 == 1.0) {
+				selectPad = true;
+				selectPoint.x = taskMsg->data2;
+				selectPoint.y = taskMsg->data3;
+				ROS_INFO("Pixel %f %f", selectPoint.x, selectPoint.y);
+			} else {
+				selectPad = false;
+				selectPoint.x = 0.0;
+				selectPoint.y = 0.0;
+			}
+
 			break;
 		}
 
