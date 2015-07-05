@@ -20,7 +20,7 @@
 #include "../../../pap_common/include/pap_common/vision_message_def.h"
 #include "ClickGraphicsView.hpp"
 #include "MyContextMenuTable.hpp"
-//#include "GerberPadParser.hpp"
+#include "GerberPadParser.hpp"
 #include <string>
 #include <sstream>
 #include <iostream>
@@ -125,6 +125,7 @@ public Q_SLOTS:
     void initFiducialTable(void);
     void signalPosition(float x,float y);
     void sendGotoFiducial(int indexOfFiducial);
+    void on_inputPad_Button_clicked();
 
     //QWizardPage *createIntroPage();
 
@@ -150,6 +151,7 @@ private:
     QTableView tableView;
     int fiducialSize_;
     QPointF padPosition_;
+    GerberPadParser padParser;
 };
 
 }  // namespace pap_gui

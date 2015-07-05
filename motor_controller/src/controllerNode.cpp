@@ -25,7 +25,6 @@ void checkStatusController(int numberOfController,
 	*controllerStatusAct = controller.getStatusController(numberOfController);
 	pap_common::Status stateMessage;
 	stateMessage.data1 = numberOfController;
-
 	if (xTimeOutTimer > TIMEOUT) {
 		ROS_ERROR("X-Axis reconnect timeout, not connected anymore");
 		controller.controllerConnected_1_ = false;

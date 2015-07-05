@@ -13,7 +13,7 @@
 #include <QMessageBox>
 #include <iostream>
 #include "../include/pap_gui/main_window.hpp"
-
+#include "../include/pap_gui/GerberPadParser.hpp"
 #include <string>
 #include <vector>
 #include <iostream>
@@ -1408,6 +1408,20 @@ void MainWindow::sendGotoFiducial(int indexOfFiducial) {
 		ROS_INFO("Goto position x: %f y: %f", x, y);
 		qnode.sendTask(pap_common::CONTROLLER, pap_common::COORD, x, y, 50.0);
 	}
+}
+
+void MainWindow::on_inputPad_Button_clicked() {
+	//get a filename to open
+	QString gerberFile = QFileDialog::getOpenFileName(this,
+			tr("Open PasteBot file"), "/home",
+			tr("Text Files (*.txt *.PasteBot)"));
+	std::cout << "Got filename: " << gerberFile.toStdString() << std::endl;
+
+	/* Load gerber file and add new components to vector */
+	std::fstream datafile;
+	const char *filename = gerberFile.toLatin1().data();
+
+	padParser.loadFile(filename);
 }
 
 }
