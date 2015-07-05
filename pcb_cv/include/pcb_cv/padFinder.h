@@ -15,31 +15,45 @@
 #include <vector>
 #include <cmath>
 
-class smdPart{
+#define PIXEL_TO_MM 37.37
+
+class smdPart {
 public:
 	float x;
 	float y;
 	float rot;
+	smdPart(){
+		x = 0.0;
+		y = 0.0;
+		rot = 0.0;
+	}
 };
 
-class padFinder
-{
-  public:                              // öffentlich
-    padFinder();                      // der Default-Konstruktor
-    ~padFinder();                     // der Destruktor
- 
-    //std::vector<cv::Point2f > findPads(cv::Mat* input);        // eine Funktion mit einem (Default-) Parameter
-    void findPads(cv::Mat* input);
-    void findChip(cv::Mat* input);
-    void findSmallSMD(cv::Mat* input);
-    smdPart findSMDTape(cv::Mat* input);
+class padFinder {
+public:
+	// öffentlich
+	padFinder();                      // der Default-Konstruktor
+	~padFinder();                     // der Destruktor
 
-     double angle(cv::Point pt1, cv::Point pt2, cv::Point pt0);
-    void setLabel(cv::Mat& im, const std::string label,std::vector<cv::Point>& contour);
-    void drawRotatedRect(cv::Mat& image, cv::RotatedRect rRect,cv::Scalar color);
-    bool isBorderTouched(cv::RotatedRect pad);
-  private:                             // privat
-    int m_eineVariable;
-    bool foundVia;
-    bool repeat;
+	//std::vector<cv::Point2f > findPads(cv::Mat* input);        // eine Funktion mit einem (Default-) Parameter
+	void findPads(cv::Mat* input);
+	smdPart findChip(cv::Mat* input);
+	smdPart findSmallSMD(cv::Mat* input);
+	smdPart findSMDTape(cv::Mat* input);
+
+	double angle(cv::Point pt1, cv::Point pt2, cv::Point pt0);
+	void setLabel(cv::Mat& im, const std::string label,
+			std::vector<cv::Point>& contour);
+	void drawRotatedRect(cv::Mat& image, cv::RotatedRect rRect,
+			cv::Scalar color);
+	bool isBorderTouched(cv::RotatedRect pad);
+	bool nearestPart(std::vector<smdPart>* list, smdPart* partDst, int width,
+			int height);
+	void setSize(float width, float height);
+private:
+	// privat
+	int m_eineVariable;
+	bool foundVia;
+	bool repeat;
+	float partWidth_,partHeight_;
 };

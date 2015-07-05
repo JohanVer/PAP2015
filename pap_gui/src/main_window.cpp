@@ -64,11 +64,15 @@ struct databaseEntry {
 	int pins;
 };
 
+ComponentPlacerData placementData;
+
 struct componentEntry {
 	string name, package, side, value;
 	float posX, posY, length, width, height;
 	int box, rotation, pins;
 };
+
+
 
 QVector<componentEntry> componentVector;
 QVector<databaseEntry> databaseVector;
@@ -177,6 +181,7 @@ void MainWindow::on_setCompBoxNrButton_2_clicked() {
 
 		if (boxNumber <= boxNumberMax && boxNumber >= boxNumberMin) {
 			singleComponent.box = boxNumber;
+			updatePlacementData();
 			ui.label_compBox_2->setText(QString::number(boxNumber));
 
 		} else {
@@ -193,6 +198,29 @@ void MainWindow::on_setCompBoxNrButton_2_clicked() {
 		msgBox.close();
 	}
 }
+
+
+void MainWindow::on_pickupComponentButton_clicked() {
+
+	// Check box number, length, width and height
+
+	// If all within limits, no component is currently picked-up, not within process -> go to box and pick it up.
+	qnode.sendTask(pap_common::PLACER, pap_common::PICKUPCOMPONENT, placementData);
+}
+
+void MainWindow::on_goToComponentButton_clicked() {
+	qnode.sendTask(pap_common::PLACER, pap_common::GOTOBOX, placementData);
+}
+
+void MainWindow::on_goToPCBButton_clicked() {
+	qnode.sendTask(pap_common::PLACER, pap_common::GOTOPCB, placementData);
+}
+
+void MainWindow::on_placeComponentButton_clicked() {
+	qnode.sendTask(pap_common::PLACER, pap_common::PLACEMENT, placementData);
+}
+
+
 
 void MainWindow::on_setCompBoxNrButton_clicked() {
 
@@ -256,6 +284,7 @@ void MainWindow::updateSingleComponentInformation() {
 	ui.label_compValue_2->setText(singleComponent.value.c_str());
 	ui.label_compPackage_2->setText(singleComponent.package.c_str());
 
+	// Check if package exsists in database
 	int packageID = -1;
 	for (int i = 0; i < databaseVector.size(); i++) {
 		string currentPackage = singleComponent.package;
@@ -750,6 +779,17 @@ void MainWindow::on_startSinglePlacementButton_clicked() {
 
 }
 
+// Package that is going to be sent to placeController
+void MainWindow::updatePlacementData() {
+	placementData.destX = singleComponent.posX;
+	placementData.destY = singleComponent.posY;
+	placementData.box = singleComponent.box;
+	placementData.height= singleComponent.height;
+	placementData.length = singleComponent.length;
+	placementData.width = singleComponent.width;
+	placementData.rotation = singleComponent.rotation;
+}
+
 void MainWindow::on_placeSingleComponentButton_clicked() {
 
 	int currentComp = ui.tableWidget->currentRow();
@@ -773,6 +813,8 @@ void MainWindow::on_placeSingleComponentButton_clicked() {
 		}
 
 		ui.tab_manager->setCurrentIndex(4);
+
+		updatePlacementData();
 
 		/*QWizard wizard;
 		 wizard.addPage(createIntroPage());
@@ -1284,21 +1326,38 @@ void MainWindow::on_resetLEDButton_clicked() {
 
 void MainWindow::on_startChipFinder_Button_clicked() {
 	qnode.sendTask(pap_common::VISION,pap_vision::START_CHIP_FINDER);
+	displaySMDCoords(0.0,0.0,0.0);
 }
 
 void MainWindow::on_startSmallSMDFinder_Button_clicked() {
-	qnode.sendTask(pap_common::VISION,pap_vision::START_SMALL_FINDER);
+	if(ui.SmallSMD_Combo->currentText() == "0805"){
+		qnode.sendTask(pap_common::VISION,pap_vision::START_SMALL_FINDER,1.25,2.0,0.0);
+	}else if(ui.SmallSMD_Combo->currentText() == "0603"){
+		qnode.sendTask(pap_common::VISION,pap_vision::START_SMALL_FINDER,0.8,1.6,0.0);
+	}else if(ui.SmallSMD_Combo->currentText() == "0402"){
+		qnode.sendTask(pap_common::VISION,pap_vision::START_SMALL_FINDER,0.5,1.0,0.0);
+	}
+	displaySMDCoords(0.0,0.0,0.0);
 }
 
 void MainWindow::on_startTapeFinder_Button_clicked() {
-	qnode.sendTask(pap_common::VISION,pap_vision::START_TAPE_FINDER);
+	if(ui.tapeFinder_Combo->currentText() == "0805"){
+			qnode.sendTask(pap_common::VISION,pap_vision::START_TAPE_FINDER,1.25,2.0,0.0);
+		}else if(ui.tapeFinder_Combo->currentText() == "0603"){
+			qnode.sendTask(pap_common::VISION,pap_vision::START_TAPE_FINDER,0.8,1.6,0.0);
+		}else if(ui.tapeFinder_Combo->currentText() == "0402"){
+			qnode.sendTask(pap_common::VISION,pap_vision::START_TAPE_FINDER,0.5,1.0,0.0);
+		}
+	displaySMDCoords(0.0,0.0,0.0);
 }
 
 void MainWindow::on_startPadFinder_Button_clicked() {
+	displaySMDCoords(0.0,0.0,0.0);
 	qnode.sendTask(pap_common::VISION,pap_vision::START_PAD_FINDER);
 }
 
 void MainWindow::on_StartStopVision_Button_clicked() {
+
 	if(!visionStarted_){
 		qnode.sendTask(pap_common::VISION,pap_vision::START_VISION);
 		ui.visionStatus_Label->setText("On");
@@ -1308,6 +1367,7 @@ void MainWindow::on_StartStopVision_Button_clicked() {
 		ui.visionStatus_Label->setText("Off");
 		visionStarted_ = false;
 	}
+	displaySMDCoords(0.0,0.0,0.0);
 }
 
 void MainWindow::displaySMDCoords(float x,float y,float rot){

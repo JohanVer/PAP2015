@@ -40,7 +40,7 @@
 #include "../../../pap_common/include/pap_common/status_message_def.h"
 #include "../../../pap_common/include/pap_common/arduino_message_def.h"
 #include "../../../pap_common/include/pap_common/vision_message_def.h"
-
+#include "../../../pap_placer/include/pap_placer/placerClass.hpp"
 #include <vector>
 
 //#include <cv_bridge/cv_bridge.h>
@@ -97,6 +97,7 @@ public:
 	void sendTask(pap_common::DESTINATION,pap_common::TASK);
 	void sendTask(pap_common::DESTINATION,pap_vision::VISION);
 	void sendTask(pap_common::DESTINATION destination,pap_common::TASK task, float x, float y, float z );
+	void sendTask(pap_common::DESTINATION destination,pap_vision::VISION task,float x, float y, float z);
 	void statusCallback(const pap_common::StatusConstPtr&  statusMsg);
 	void visionStatusCallback(const pap_common::VisionStatusConstPtr&  statusMsg);
 	void sendRelaisTask(int relaisNumber,bool value);
@@ -104,6 +105,8 @@ public:
 	void resetStepper();
 	void setLEDTask(int LEDnumber);
 	void resetLEDTask(int LEDnumber);
+
+	void sendTask(pap_common::DESTINATION destination, pap_common::TASK task,ComponentPlacerData componentData);
 
 Q_SIGNALS:
 	void loggingUpdated();

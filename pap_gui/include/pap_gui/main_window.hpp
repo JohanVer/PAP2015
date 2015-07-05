@@ -17,8 +17,9 @@
 #include "qnode.hpp"
 #include "pap_common/Task.h"
 #include "../../../pap_common/include/pap_common/vision_message_def.h"
-
 #include <QStandardItemModel>
+
+#include "../../../pap_placer/include/pap_placer/placerNode.hpp"
 
 
 /*****************************************************************************
@@ -114,6 +115,11 @@ public Q_SLOTS:
     // Display Functions
     void displaySMDCoords(float x,float y,float rot);
 
+    void on_pickupComponentButton_clicked();
+    void on_goToComponentButton_clicked();
+    void on_goToPCBButton_clicked();
+    void on_placeComponentButton_clicked();
+    void updatePlacementData();
     //QWizardPage *createIntroPage();
 
     /******************************************
@@ -136,6 +142,7 @@ private:
 	bool valve8Active_;
 	bool visionStarted_;
     QTableView tableView;
+
 };
 
 }  // namespace pap_gui

@@ -11,12 +11,27 @@ enum TASK {
   // MANUAL : Set DIRECTION in data 1 and MOTOR in data 2
   MANUAL = 4,
   CONNECT = 5,
-  STOP = 6
+  STOP = 6,
+  PLACECOMPONENT = 7,
+  PICKUPCOMPONENT = 8,
+  GOTOBOX = 9,
+  GOTOPCB = 10,
+  PLACEMENT = 11
 };
+
+/*
+enum PLACERTASK { 
+  // data1=x, data2=y, data3=rot,...
+  PLACECOMPONENT = 1,
+  PICKUPCOMPONENT = 2,
+  MOVECOMPONENT = 3,
+  RELEASECOMPONENT = 4
+};*/
 
 enum DESTINATION {
   CONTROLLER = 1,
-  VISION = 2
+  VISION = 2,
+  PLACER = 3
 };
 
 enum DIRECTION {

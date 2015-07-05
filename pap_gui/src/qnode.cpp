@@ -52,8 +52,10 @@ bool QNode::init() {
 	arduino_publisher_ = n_.advertise<pap_common::ArduinoMsg>("arduinoTx",
 			1000);
 	image_sub_ = it_.subscribe("camera1", 1, &QNode::cameraCallback, this);
-	statusSubsriber_ = n_.subscribe("status", 100, &QNode::statusCallback, this);
-	visionStatusSubsriber_ = n_.subscribe("visionStatus",100,&QNode::visionStatusCallback,this);
+	statusSubsriber_ = n_.subscribe("status", 100, &QNode::statusCallback,
+			this);
+	visionStatusSubsriber_ = n_.subscribe("visionStatus", 100,
+			&QNode::visionStatusCallback, this);
 	start();
 	return true;
 }
@@ -74,8 +76,10 @@ bool QNode::init(const std::string &master_url, const std::string &host_url) {
 	arduino_publisher_ = n_.advertise<pap_common::ArduinoMsg>("arduinoTx",
 			1000);
 	image_sub_ = it_.subscribe("/camera1", 1, &QNode::cameraCallback, this);
-	statusSubsriber_ = n_.subscribe("status", 100, &QNode::statusCallback, this);
-	visionStatusSubsriber_ = n_.subscribe("visionStatus",100,&QNode::visionStatusCallback,this);
+	statusSubsriber_ = n_.subscribe("status", 100, &QNode::statusCallback,
+			this);
+	visionStatusSubsriber_ = n_.subscribe("visionStatus", 100,
+			&QNode::visionStatusCallback, this);
 	start();
 	return true;
 }
@@ -154,11 +158,24 @@ void QNode::sendTask(pap_common::DESTINATION destination,
 	taskMsg.task = task;
 	task_publisher.publish(taskMsg);
 }
-void QNode::sendTask(pap_common::DESTINATION destination,pap_vision::VISION task){
-		pap_common::Task taskMsg;
-		taskMsg.destination = destination;
-		taskMsg.task = task;
-		task_publisher.publish(taskMsg);
+void QNode::sendTask(pap_common::DESTINATION destination,
+		pap_vision::VISION task) {
+	pap_common::Task taskMsg;
+	taskMsg.destination = destination;
+	taskMsg.task = task;
+	task_publisher.publish(taskMsg);
+}
+
+void QNode::sendTask(pap_common::DESTINATION destination,
+		pap_vision::VISION task, float x, float y, float z) {
+	pap_common::Task taskMsg;
+	taskMsg.destination = destination;
+	taskMsg.task = task;
+	taskMsg.data1 = x;
+	taskMsg.data2 = y;
+	taskMsg.data3 = z;
+	task_publisher.publish(taskMsg);
+
 }
 
 void QNode::sendTask(pap_common::DESTINATION destination, pap_common::TASK task,
@@ -215,12 +232,12 @@ void QNode::sendRelaisTask(int relaisNumber, bool value) {
 
 void QNode::sendStepperTask(int StepperNumber, int rotationAngle) {
 	pap_common::ArduinoMsg arduinoMsg;
-	if(StepperNumber == 1) {
+	if (StepperNumber == 1) {
 		arduinoMsg.command = pap_common::RUNSTEPPER1;
 		arduinoMsg.data = rotationAngle;
 		arduino_publisher_.publish(arduinoMsg);
 	}
-	if(StepperNumber == 2) {
+	if (StepperNumber == 2) {
 		arduinoMsg.command = pap_common::RUNSTEPPER2;
 		arduinoMsg.data = rotationAngle;
 		arduino_publisher_.publish(arduinoMsg);
@@ -247,8 +264,23 @@ void QNode::resetLEDTask(int LEDnumber) {
 	arduino_publisher_.publish(arduinoMsg);
 }
 
-void QNode::visionStatusCallback(const pap_common::VisionStatusConstPtr&  statusMsg){
-	Q_EMIT smdCoordinates(statusMsg->data1,statusMsg->data2,statusMsg->data3);
+void QNode::sendTask(pap_common::DESTINATION destination, pap_common::TASK task, ComponentPlacerData componentData) {
+	pap_common::Task taskMsg;
+	taskMsg.destination = destination;
+	taskMsg.task = task;
+	taskMsg.data1 = componentData.destX;
+	taskMsg.data2 = componentData.destY;
+	taskMsg.data3 = componentData.rotation;
+	taskMsg.box = componentData.box;
+	taskMsg.length = componentData.length;
+	taskMsg.width = componentData.width;
+	taskMsg.height = componentData.height;
+	task_publisher.publish(taskMsg);
+}
+
+void QNode::visionStatusCallback(
+		const pap_common::VisionStatusConstPtr& statusMsg) {
+	Q_EMIT smdCoordinates(statusMsg->data1, statusMsg->data2, statusMsg->data3);
 }
 
 }  // namespace pap_gui

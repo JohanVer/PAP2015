@@ -1,5 +1,10 @@
 int32 destination
 int32 task
+int32 placerTask
 float32 data1
 float32 data2
 float32 data3
+int32 box
+float32 width
+float32 length
+float32 height

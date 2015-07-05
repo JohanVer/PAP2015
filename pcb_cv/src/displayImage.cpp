@@ -34,6 +34,7 @@ enum VISION_PROCESS {
 VISION_PROCESS visionState = IDLE;
 bool visionEnabled = false;
 ros::Publisher statusPublisher;
+padFinder finder;
 
 int main(int argc, char **argv) {
 	ros::init(argc, argv, "add_two_ints_server");
@@ -46,7 +47,6 @@ int main(int argc, char **argv) {
 			1000);
 
 	ros::Rate loop_rate(25);
-	padFinder finder;
 	image_pub_ = it_.advertise("camera1", 1);
 
 	//CvCapture* capture = cvCaptureFromCAM(CV_CAP_ANY);
@@ -73,14 +73,28 @@ int main(int argc, char **argv) {
 				input =
 						cv::imread(
 								"/home/nikolas/Desktop/Webcam_Pictures/Webcam-1435311766.png");
-				finder.findChip(&input);
+				smd = finder.findChip(&input);
+				if (smd.x != 0.0 && smd.y != 0.0) {
+					visionMsg.task = pap_vision::START_CHIP_FINDER;
+					visionMsg.data1 = smd.x;
+					visionMsg.data2 = smd.y;
+					visionMsg.data3 = smd.rot;
+					statusPublisher.publish(visionMsg);
+				}
 				break;
 			case SMALL_SMD:
 				// SMD Chip
 				input =
 						cv::imread(
 								"/home/nikolas/Desktop/Webcam_Pictures/Webcam-1435326387.png");
-				finder.findSmallSMD(&input);
+				smd = finder.findSmallSMD(&input);
+				if (smd.x != 0.0 && smd.y != 0.0) {
+					visionMsg.task = pap_vision::START_SMALL_FINDER;
+					visionMsg.data1 = smd.x;
+					visionMsg.data2 = smd.y;
+					visionMsg.data3 = smd.rot;
+					statusPublisher.publish(visionMsg);
+				}
 				break;
 			case TAPE:
 				// SMD Tape
@@ -88,11 +102,13 @@ int main(int argc, char **argv) {
 						cv::imread(
 								"/home/nikolas/Desktop/Webcam_Pictures/Webcam-1435327178.png");
 				smd = finder.findSMDTape(&input);
-				visionMsg.task = pap_vision::START_TAPE_FINDER;
-				visionMsg.data1 = smd.x;
-				visionMsg.data2 = smd.y;
-				visionMsg.data3 = smd.rot;
-				statusPublisher.publish(visionMsg);
+				if (smd.x != 0.0 && smd.y != 0.0) {
+					visionMsg.task = pap_vision::START_TAPE_FINDER;
+					visionMsg.data1 = smd.x;
+					visionMsg.data2 = smd.y;
+					visionMsg.data3 = smd.rot;
+					statusPublisher.publish(visionMsg);
+				}
 				break;
 			case PAD:
 				// Pads
@@ -156,14 +172,18 @@ void parseTask(const pap_common::TaskConstPtr& taskMsg) {
 			break;
 
 		case pap_vision::START_CHIP_FINDER:
+			finder.setSize(taskMsg->data1, taskMsg->data2);
 			visionState = CHIP;
 			break;
 
 		case pap_vision::START_SMALL_FINDER:
+			finder.setSize(taskMsg->data1, taskMsg->data2);
 			visionState = SMALL_SMD;
 			break;
 
 		case pap_vision::START_TAPE_FINDER:
+			finder.setSize(taskMsg->data1, taskMsg->data2);
+			ROS_INFO("Setting size....");
 			visionState = TAPE;
 			break;
 
