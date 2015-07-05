@@ -25,7 +25,6 @@ void checkStatusController(int numberOfController,
 	*controllerStatusAct = controller.getStatusController(numberOfController);
 	pap_common::Status stateMessage;
 	stateMessage.data1 = numberOfController;
-
 	if (xTimeOutTimer > TIMEOUT) {
 		ROS_ERROR("X-Axis reconnect timeout, not connected anymore");
 		controller.controllerConnected_1_ = false;
@@ -248,6 +247,21 @@ void parseTask(const pap_common::TaskConstPtr& taskMsg) {
 			} else if (taskMsg->data1 == (float) (pap_common::ZMOTOR)) {
 				controller.stop(3);
 			}
+			break;
+		case pap_common::GETPOSITION:
+
+			if(controller.controllerConnected_1_ && controller.controllerConnected_2_ && controller.controllerConnected_3_){
+				float xPosition = controller.getPosition(1);
+				float yPosition = controller.getPosition(2);
+				float zPosition = controller.getPosition(3);
+				pap_common::Status positionMessage;
+				positionMessage.status = pap_common::POSITION;
+				positionMessage.posX = xPosition;
+				positionMessage.posY = yPosition;
+				positionMessage.posZ = zPosition;
+				statusPublisher.publish(positionMessage);
+			}
+
 			break;
 		}
 		break;

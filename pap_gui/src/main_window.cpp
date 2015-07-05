@@ -13,7 +13,7 @@
 #include <QMessageBox>
 #include <iostream>
 #include "../include/pap_gui/main_window.hpp"
-
+#include "../include/pap_gui/GerberPadParser.hpp"
 #include <string>
 #include <vector>
 #include <iostream>
@@ -81,6 +81,7 @@ componentEntry singleComponent;
 MainWindow::MainWindow(int argc, char** argv, QWidget *parent) :
 		QMainWindow(parent), qnode(argc, argv) {
 	ui.setupUi(this); // Calling this incidentally connects all ui's triggers to on_...() callbacks in this class.
+	ui.centralwidget->setMouseTracking(true);
 	QObject::connect(ui.actionAbout_Qt, SIGNAL(triggered(bool)), qApp,
 			SLOT(aboutQt())); // qApp is a global variable for the application
 
@@ -106,8 +107,20 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent) :
 
 	//Vision
 	QObject::connect(&qnode, SIGNAL(smdCoordinates(float ,float ,float )), this,
-				SLOT(displaySMDCoords(float ,float ,float )));
+			SLOT(displaySMDCoords(float ,float ,float )));
+	QWidget::connect(ui.camera1, SIGNAL(sendMousePoint(QPointF)), this,
+			SLOT(setMousePoint(QPointF)));
+	QWidget::connect(ui.camera1, SIGNAL(setFiducial(QPointF)), this,
+			SLOT(setFiducial(QPointF)));
 
+	QWidget::connect(&qnode, SIGNAL(signalPosition(float,float)), this,
+			SLOT(signalPosition(float,float)));
+
+	QWidget::connect(ui.fiducialTable, SIGNAL(sendGotoFiducial(int)), this,
+			SLOT(sendGotoFiducial(int)));
+
+	//QWidget::connect(ui.fiducialTable, SIGNAL(contextMenuEvent(QContextMenuEvent*)), this,
+	//			SLOT(FiducialTableMenu(QContextMenuEvent*)));
 	// Cameras
 	QObject::connect(&qnode, SIGNAL(cameraUpdated(int )), this,
 			SLOT(cameraUpdated(int )));
@@ -138,7 +151,7 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent) :
 	/* Load database */
 	loadDatabaseContent();
 	updateDatabaseTable();
-
+	initFiducialTable();
 	/* Init Checkboxes*/
 	//ui.checkBox_pcbPlaced->setEnabled(false);
 	//ui.checkBox_position->setEnabled(false);
@@ -985,6 +998,7 @@ void MainWindow::closeEvent(QCloseEvent *event) {
 
 void MainWindow::cameraUpdated(int index) {
 	int width = ui.camera1->width();
+	//ROS_INFO("Width : %d , Height %d Image-Width %d: Image-Height: %d",ui.camera1->width(),ui.camera1->height(),qnode.getCamera1()->size().width(),qnode.getCamera1()->size().height());
 	int height = ui.camera1->height() - 2;
 	QImage camera1Scaled = qnode.getCamera1()->scaled(width, height,
 			Qt::KeepAspectRatio);
@@ -1325,55 +1339,180 @@ void MainWindow::on_resetLEDButton_clicked() {
 }
 
 void MainWindow::on_startChipFinder_Button_clicked() {
-	qnode.sendTask(pap_common::VISION,pap_vision::START_CHIP_FINDER);
-	displaySMDCoords(0.0,0.0,0.0);
+	qnode.sendTask(pap_common::VISION, pap_vision::START_CHIP_FINDER);
+	displaySMDCoords(0.0, 0.0, 0.0);
 }
 
 void MainWindow::on_startSmallSMDFinder_Button_clicked() {
-	if(ui.SmallSMD_Combo->currentText() == "0805"){
-		qnode.sendTask(pap_common::VISION,pap_vision::START_SMALL_FINDER,1.25,2.0,0.0);
-	}else if(ui.SmallSMD_Combo->currentText() == "0603"){
-		qnode.sendTask(pap_common::VISION,pap_vision::START_SMALL_FINDER,0.8,1.6,0.0);
-	}else if(ui.SmallSMD_Combo->currentText() == "0402"){
-		qnode.sendTask(pap_common::VISION,pap_vision::START_SMALL_FINDER,0.5,1.0,0.0);
+	if (ui.SmallSMD_Combo->currentText() == "0805") {
+		qnode.sendTask(pap_common::VISION, pap_vision::START_SMALL_FINDER, 1.25,
+				2.0, 0.0);
+	} else if (ui.SmallSMD_Combo->currentText() == "0603") {
+		qnode.sendTask(pap_common::VISION, pap_vision::START_SMALL_FINDER, 0.8,
+				1.6, 0.0);
+	} else if (ui.SmallSMD_Combo->currentText() == "0402") {
+		qnode.sendTask(pap_common::VISION, pap_vision::START_SMALL_FINDER, 0.5,
+				1.0, 0.0);
 	}
-	displaySMDCoords(0.0,0.0,0.0);
+	displaySMDCoords(0.0, 0.0, 0.0);
 }
 
 void MainWindow::on_startTapeFinder_Button_clicked() {
-	if(ui.tapeFinder_Combo->currentText() == "0805"){
-			qnode.sendTask(pap_common::VISION,pap_vision::START_TAPE_FINDER,1.25,2.0,0.0);
-		}else if(ui.tapeFinder_Combo->currentText() == "0603"){
-			qnode.sendTask(pap_common::VISION,pap_vision::START_TAPE_FINDER,0.8,1.6,0.0);
-		}else if(ui.tapeFinder_Combo->currentText() == "0402"){
-			qnode.sendTask(pap_common::VISION,pap_vision::START_TAPE_FINDER,0.5,1.0,0.0);
-		}
-	displaySMDCoords(0.0,0.0,0.0);
+	if (ui.tapeFinder_Combo->currentText() == "0805") {
+		qnode.sendTask(pap_common::VISION, pap_vision::START_TAPE_FINDER, 1.25,
+				2.0, 0.0);
+	} else if (ui.tapeFinder_Combo->currentText() == "0603") {
+		qnode.sendTask(pap_common::VISION, pap_vision::START_TAPE_FINDER, 0.8,
+				1.6, 0.0);
+	} else if (ui.tapeFinder_Combo->currentText() == "0402") {
+		qnode.sendTask(pap_common::VISION, pap_vision::START_TAPE_FINDER, 0.5,
+				1.0, 0.0);
+	}
+	displaySMDCoords(0.0, 0.0, 0.0);
 }
 
 void MainWindow::on_startPadFinder_Button_clicked() {
-	displaySMDCoords(0.0,0.0,0.0);
-	qnode.sendTask(pap_common::VISION,pap_vision::START_PAD_FINDER);
+	displaySMDCoords(0.0, 0.0, 0.0);
+	qnode.sendTask(pap_common::VISION, pap_vision::START_PAD_FINDER);
 }
 
 void MainWindow::on_StartStopVision_Button_clicked() {
 
-	if(!visionStarted_){
-		qnode.sendTask(pap_common::VISION,pap_vision::START_VISION);
+	if (!visionStarted_) {
+		qnode.sendTask(pap_common::VISION, pap_vision::START_VISION);
 		ui.visionStatus_Label->setText("On");
 		visionStarted_ = true;
-	}else{
-		qnode.sendTask(pap_common::VISION,pap_vision::STOP_VISION);
+	} else {
+		qnode.sendTask(pap_common::VISION, pap_vision::STOP_VISION);
 		ui.visionStatus_Label->setText("Off");
 		visionStarted_ = false;
 	}
-	displaySMDCoords(0.0,0.0,0.0);
+	displaySMDCoords(0.0, 0.0, 0.0);
 }
 
-void MainWindow::displaySMDCoords(float x,float y,float rot){
-	ui.smdXTop_Label->setText(QString("X: ")+QString::number(x));
-	ui.smdYTop_Label->setText(QString("Y: ")+QString::number(y));
-	ui.smdRotTop_Label->setText(QString("Rot: ")+QString::number(rot));
+void MainWindow::displaySMDCoords(float x, float y, float rot) {
+	ui.smdXTop_Label->setText(QString("X: ") + QString::number(x));
+	ui.smdYTop_Label->setText(QString("Y: ") + QString::number(y));
+	ui.smdRotTop_Label->setText(QString("Rot: ") + QString::number(rot));
+}
+
+void MainWindow::setMousePoint(QPointF point) {
+	float percentageX = (100.0 / (float) ui.camera1->width()) * point.x();
+	float percentageY = (100.0 / (float) ui.camera1->height()) * point.y();
+	//qnode.sendTask(pap_common::VISION, pap_vision::STOP_VISION);
+	//ROS_INFO("Received coord %f %f", percentageX, percentageY);
+}
+
+void MainWindow::setFiducial(QPointF point) {
+	float percentageX = (100.0 / (float) ui.camera1->width()) * point.x();
+	float percentageY = (100.0 / (float) ui.camera1->height()) * point.y();
+
+	float indexXFull = (640.0 / 100.0) * percentageX;
+	float indexYFull = (480.0 / 100.0) * percentageY;
+
+	qnode.sendTask(pap_common::VISION, pap_vision::START_PAD_FINDER, 1.0,
+			indexXFull, indexYFull);
+
+	QEventLoop loop;
+	QTimer *timer = new QTimer(this);
+	connect(&qnode, SIGNAL(signalPosition(float,float)), &loop, SLOT(quit()));
+	connect(timer, SIGNAL(timeout()), &loop, SLOT(quit()));
+	timer->setSingleShot(true);
+	timer->start(1000);
+
+	loop.exec(); //blocks untill either signalPosition or timeout was fired
+	if (!timer->isActive()) {
+		qnode.sendTask(pap_common::VISION, pap_vision::START_PAD_FINDER);
+		QMessageBox msgBox;
+		const QString title = "Nothing received";
+		msgBox.setWindowTitle(title);
+		msgBox.setText("No pad found on given position");
+		msgBox.exec();
+		msgBox.close();
+		return;
+	}
+
+	double xCoord = QInputDialog::getDouble(this, "Fiducial X", "X-Coordinate:",
+			0.0);
+	double yCoord = QInputDialog::getDouble(this, "Fiducial Y", "Y-Coordinate:",
+			0.0);
+
+	qnode.sendTask(pap_common::VISION, pap_vision::START_PAD_FINDER);
+	if (ui.fiducialTable->fiducialSize_ == 0) {
+		setFiducialTable(0, xCoord, yCoord, padPosition_.x(), padPosition_.y());
+	} else if (ui.fiducialTable->fiducialSize_ == 1) {
+		setFiducialTable(1, xCoord, yCoord, padPosition_.x(), padPosition_.y());
+	} else {
+		ui.fiducialTable->clear();
+		ui.fiducialTable->fiducialSize_ = 0;
+		initFiducialTable();
+		setFiducialTable(0, xCoord, yCoord, padPosition_.x(), padPosition_.y());
+	}
+
+}
+
+void MainWindow::initFiducialTable(void) {
+	// Set size of table
+	ui.fiducialTable->setRowCount(2);
+	ui.fiducialTable->setColumnCount(4);
+
+	// Set labels
+	QStringList hLabels, vLabels;
+	hLabels << "X-PCB" << "Y-PCB" << "X-Global" << "Y-Global";
+	for (int i = 1; i <= 2; i++) {
+		vLabels << QString::number(i);
+	}
+	ui.fiducialTable->setHorizontalHeaderLabels(hLabels);
+	ui.fiducialTable->setVerticalHeaderLabels(vLabels);
+}
+
+void MainWindow::setFiducialTable(int number, float x, float y, float xGlobal,
+		float yGlobal) {
+	ui.fiducialTable->setItem(number, 0,
+			new QTableWidgetItem(QString::number(x)));
+	ui.fiducialTable->setItem(number, 1,
+			new QTableWidgetItem(QString::number(y)));
+	ui.fiducialTable->setItem(number, 2,
+			new QTableWidgetItem(QString::number(xGlobal)));
+	ui.fiducialTable->setItem(number, 3,
+			new QTableWidgetItem(QString::number(yGlobal)));
+	ui.fiducialTable->fiducialSize_++;
+}
+
+void MainWindow::signalPosition(float x, float y) {
+	padPosition_.setX(x);
+	padPosition_.setY(y);
+}
+
+void MainWindow::sendGotoFiducial(int indexOfFiducial) {
+	if (qnode.getStatus()[0].positionReached
+			&& qnode.getStatus()[1].positionReached
+			&& qnode.getStatus()[2].positionReached) {
+		if (indexOfFiducial == 0 && ui.fiducialTable->fiducialSize_ < 1) {
+			return;
+		} else if (indexOfFiducial == 1
+				&& ui.fiducialTable->fiducialSize_ < 2) {
+			return;
+		}
+		float x = ui.fiducialTable->item(indexOfFiducial, 2)->text().toFloat();
+		float y = ui.fiducialTable->item(indexOfFiducial, 3)->text().toFloat();
+		ROS_INFO("Goto position x: %f y: %f", x, y);
+		qnode.sendTask(pap_common::CONTROLLER, pap_common::COORD, x, y, 50.0);
+	}
+}
+
+void MainWindow::on_inputPad_Button_clicked() {
+	//get a filename to open
+	QString gerberFile = QFileDialog::getOpenFileName(this,
+			tr("Open PasteBot file"), "/home",
+			tr("Text Files (*.txt *.PasteBot)"));
+	std::cout << "Got filename: " << gerberFile.toStdString() << std::endl;
+
+	/* Load gerber file and add new components to vector */
+	std::fstream datafile;
+	const char *filename = gerberFile.toLatin1().data();
+
+	padParser.loadFile(filename);
 }
 
 }

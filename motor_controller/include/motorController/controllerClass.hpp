@@ -49,6 +49,8 @@ public:
 			unsigned char adress);
 	unsigned int readInt16AddressParker(unsigned char addressDevice,
 			unsigned int adressReg, unsigned char subadress);
+	float readFloat32AddressParker(unsigned char addressDevice,
+				unsigned int adressReg, unsigned char subadress);
 	bool writeInt16AddressParker(unsigned char addressDevice,
 			unsigned int adressReg, unsigned char subadress, unsigned int data);
 	bool writeInt32AddressParker(unsigned char addressDevice,
@@ -63,6 +65,7 @@ public:
 	bool checkError(unsigned char adressDevice);
 	controllerStatus getStatusController(unsigned char adressDevice);
 	bool positionReached(unsigned char adressDevice);
+	float getPosition(unsigned char adressDevice);
 	bool axisEnergized(unsigned char adressDevice);
 	bool energizeAxis(unsigned char adressDevice, bool trigger);
 	bool setSetting(unsigned char addressDevice, unsigned int line, float goal,

@@ -36,7 +36,7 @@ public:
 	~padFinder();                     // der Destruktor
 
 	//std::vector<cv::Point2f > findPads(cv::Mat* input);        // eine Funktion mit einem (Default-) Parameter
-	void findPads(cv::Mat* input);
+	cv::Point2f findPads(cv::Mat* input,bool startSelect,cv::Point2f selectPad);
 	smdPart findChip(cv::Mat* input);
 	smdPart findSmallSMD(cv::Mat* input);
 	smdPart findSMDTape(cv::Mat* input);
@@ -50,6 +50,7 @@ public:
 	bool nearestPart(std::vector<smdPart>* list, smdPart* partDst, int width,
 			int height);
 	void setSize(float width, float height);
+
 private:
 	// privat
 	int m_eineVariable;

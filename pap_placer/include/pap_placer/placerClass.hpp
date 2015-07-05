@@ -9,7 +9,10 @@
 #include <stdio.h>
 #include <cstdio>
 
-
+/*****************************************************************************
+** Namespace
+*****************************************************************************/
+using namespace std;
 /*****************************************************************************
 ** Class implementation
 *****************************************************************************/
@@ -48,6 +51,19 @@ public:
 	PlaceController();
 	~PlaceController();
 
+	Offset getBoxOffset(int boxNumber);
+
+
 private:
+
+	// These offsets are relative to central head position
+	Offset cameraTopOffset;
+	Offset tip1Offset, tip2Offset, dispenserTipOffset;
+
+	// These offsets are relative to homing position
+	Offset pcbFenceOffset, pickUpAreaOffset;
+	Offset cameraBottomOffset;
+
+	vector<Offset> boxOffsetVector;
 
 };

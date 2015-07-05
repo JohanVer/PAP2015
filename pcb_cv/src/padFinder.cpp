@@ -226,13 +226,18 @@ smdPart padFinder::findSmallSMD(cv::Mat* input) {
 						smd.x = rect.center.x;
 						smd.y = rect.center.y;
 						smd.rot = rect.angle;
+						//ROS_INFO("Angle : %f Width: %f Height: %f",rect.angle,rect.size.width,rect.size.height);
+						if (rect.size.height < rect.size.width) {
+							smd.rot = std::fabs(smd.rot);
+						} else {
+							smd.rot = -(90.0 + smd.rot);
+						}
 						smdObjects.push_back(smd);
 					}
 				}
 			}
 		}
 	}
-
 	smdPart smdFinal;
 
 	if (nearestPart(&smdObjects, &smdFinal, input->cols, input->rows)) {
@@ -304,7 +309,6 @@ smdPart padFinder::findSMDTape(cv::Mat* input) {
 			cv::RotatedRect rect = minAreaRect(contours[i]);
 			float rectConvertedArea = rect.size.width / PIXEL_TO_MM
 					* rect.size.height / PIXEL_TO_MM;
-
 			//ROS_INFO("Tape size : %f Des size: %f",rectConvertedArea,(partWidth_ * partHeight_));
 			if (!isBorderTouched(rect)
 					&& rectConvertedArea
@@ -317,7 +321,12 @@ smdPart padFinder::findSMDTape(cv::Mat* input) {
 				smd.x = rect.center.x;
 				smd.y = rect.center.y;
 				smd.rot = rect.angle;
-				//ROS_INFO("Rotation %f",rect.angle);
+				if (rect.size.height < rect.size.width) {
+					smd.rot = std::fabs(smd.rot);
+				} else {
+					smd.rot = -(90.0 + smd.rot);
+				}
+				//ROS_INFO("Angle : %f Width: %f Height: %f",rect.angle,rect.size.width,rect.size.height);
 				smdObjects.push_back(smd);
 				cv::drawContours(final, contours, i, CV_RGB(0, 255, 0), 2);
 			}
@@ -343,9 +352,13 @@ smdPart padFinder::findSMDTape(cv::Mat* input) {
 }
 
 //std::vector<cv::Point2f >
-void padFinder::findPads(cv::Mat* input) {
+cv::Point2f padFinder::findPads(cv::Mat* input, bool startSelect,
+		cv::Point2f selectPad) {
 	foundVia = false;
 	cv::Mat gray;
+	cv::Point2f outputPosition;
+	outputPosition.x = 0.0;
+	outputPosition.y = 0.0;
 	cv::cvtColor(*input, gray, CV_BGR2GRAY);
 
 	cv::threshold(gray, gray, 255, 255, CV_THRESH_BINARY_INV | CV_THRESH_OTSU);
@@ -502,6 +515,7 @@ void padFinder::findPads(cv::Mat* input) {
 	// Draw pads rectangles
 
 	vector<Point2f> padPoints;
+	vector<RotatedRect> padRects;
 
 	unsigned int padCounter = 0;
 	for (int i = 0; i < contours.size(); i++) {
@@ -518,8 +532,19 @@ void padFinder::findPads(cv::Mat* input) {
 				Point2f mc;
 				mc = Point2f(mu.m10 / mu.m00, mu.m01 / mu.m00);
 				padPoints.push_back(mc);
+				padRects.push_back(pad);
+				//cv::Rect::contains
 
-				drawRotatedRect(final, pad, CV_RGB(255, 0, 0));
+				if (startSelect
+						&& cv::pointPolygonTest(contours[i], selectPad,
+								false)==1.0) {
+					drawRotatedRect(final, pad, CV_RGB(0, 0, 255));
+
+					outputPosition.x = mc.x;
+					outputPosition.y = mc.y;
+				} else {
+					drawRotatedRect(final, pad, CV_RGB(255, 0, 0));
+				}
 				padCounter++;
 				//cv::circle(final,mc,3,CV_RGB(0,0,255),3);
 			}
@@ -530,11 +555,14 @@ void padFinder::findPads(cv::Mat* input) {
 	cv::cvtColor(bw, out, CV_GRAY2BGR);
 
 	*input = final.clone();
+	return outputPosition;
 	//cv::imshow("src", input);
 	//cv::imshow("bw", bw);
 	//cv::imshow("final", final);
 	//cv::imshow("grey", gray);
 	//return final;
 	//cv::waitKey(0);
-	ROS_INFO("Found %d pads..", padCounter);
+	//ROS_INFO("Found %d pads..", padCounter);
 }
+
+//void checkFit

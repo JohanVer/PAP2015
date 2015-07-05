@@ -12,11 +12,19 @@
 ** Includes
 *****************************************************************************/
 
+#include <MyContextMenuTable.hpp>
 #include <QtGui/QMainWindow>
 #include "ui_main_window.h"
 #include "qnode.hpp"
 #include "pap_common/Task.h"
 #include "../../../pap_common/include/pap_common/vision_message_def.h"
+#include "ClickGraphicsView.hpp"
+#include "MyContextMenuTable.hpp"
+#include "GerberPadParser.hpp"
+#include <string>
+#include <sstream>
+#include <iostream>
+#include <QPoint>
 #include <QStandardItemModel>
 
 #include "../../../pap_placer/include/pap_placer/placerNode.hpp"
@@ -114,6 +122,13 @@ public Q_SLOTS:
     void on_StartStopVision_Button_clicked();
     // Display Functions
     void displaySMDCoords(float x,float y,float rot);
+    void setMousePoint (QPointF point);
+    void setFiducial(QPointF point);
+    void setFiducialTable(int number, float x, float y,float xGlobal, float yGlobal);
+    void initFiducialTable(void);
+    void signalPosition(float x,float y);
+    void sendGotoFiducial(int indexOfFiducial);
+    void on_inputPad_Button_clicked();
 
     void on_pickupComponentButton_clicked();
     void on_goToComponentButton_clicked();
@@ -142,7 +157,9 @@ private:
 	bool valve8Active_;
 	bool visionStarted_;
     QTableView tableView;
-
+    int fiducialSize_;
+    QPointF padPosition_;
+    GerberPadParser padParser;
 };
 
 }  // namespace pap_gui

@@ -22,3 +22,9 @@ PlaceController::PlaceController() {
 PlaceController::~PlaceController(){
 
 };
+
+
+
+Offset PlaceController::getBoxOffset(int boxNumber) {
+	return boxOffsetVector.at(boxNumber);
+};

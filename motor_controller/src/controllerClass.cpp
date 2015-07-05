@@ -125,6 +125,46 @@ unsigned int motorController::readInt16AddressParker(
 	}
 }
 
+
+float motorController::readFloat32AddressParker(unsigned char addressDevice,
+				unsigned int adressReg, unsigned char subadress){
+		buffer[0] = (adressReg >> 8) & 0xff;
+		buffer[1] = (adressReg & 0xff);
+		buffer[2] = subadress;
+
+		ReqParker(0xAD, buffer, 3, addressDevice);
+
+		unsigned char readBuffer[10];
+
+		// Read data
+		unsigned char numToRead = 8;
+		int readBytes = serialPort.read(readBuffer, numToRead);
+
+		if (readBytes != numToRead) {
+			ROS_ERROR("Unexpected end of serial data %d", readBytes);
+			return 0;
+		}
+		// Calc CRC
+		unsigned int crc = 0;
+		for (int j = 0; j < numToRead - 2; j++) {
+			crc = UpdateCRC16(crc, readBuffer[j]);
+		}
+
+		unsigned char crc_h = (crc >> 8) & 0xff;
+		unsigned char crc_l = crc & 0xff;
+
+		// Check crc and start sequence
+		if ((crc_h == readBuffer[numToRead - 2])
+				&& (crc_l == readBuffer[numToRead - 1]) && (readBuffer[0] = 0x05)) {
+			float f;
+			unsigned char b[] = {readBuffer[2], readBuffer[3], readBuffer[4], readBuffer[5]};
+			memcpy(&f, &b, sizeof(f));
+			return f;
+		} else {
+			ROS_ERROR("CRC or start-sequence failed");
+			return -1.0;
+		}
+}
 // Write a 16-Bit-Integer to parker device
 bool motorController::writeInt16AddressParker(unsigned char addressDevice,
 		unsigned int adressReg, unsigned char subadress, unsigned int data) {
@@ -369,6 +409,16 @@ bool motorController::startSetting(unsigned char adressDevice,
 		return true;
 	} else {
 		return false;
+	}
+}
+
+float motorController::getPosition(unsigned char adressDevice){
+	float position = readFloat32AddressParker(adressDevice, 680, 5);
+	if(position != -1.0){
+		return position;
+	}else{
+		return -1.0;
+		ROS_ERROR("Error while requesting position from address %d",adressDevice);
 	}
 }
 
