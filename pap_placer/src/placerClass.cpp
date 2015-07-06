@@ -19,9 +19,9 @@
 PlaceController::PlaceController() {
 	calibrationStatus = true;
 
-	pcbOriginOffset.x = 0;
-	pcbOriginOffset.y = 0;
-	pcbOriginOffset.z = 0;
+	pcbOriginOffset.x = 100;
+	pcbOriginOffset.y = 160;
+	pcbOriginOffset.z = 50;
 	pickUpAreaOffset.x = 15;
 	pickUpAreaOffset.y = 350;
 	pickUpAreaOffset.z = 60;
@@ -53,6 +53,18 @@ void PlaceController::systemCalibration() {
 
 };
 
+float PlaceController::getComponentLenth() {
+	return currentComponent.length;
+}
+
+float PlaceController::getComponentWidth() {
+	return currentComponent.width;
+}
+
+int PlaceController::getSelectedFinder() {
+	return 3;	// Chipfinder = 3, smallFinder = 4, tapeFinder = 5
+};
+
 bool PlaceController::getSelcetedTip() {
 	return true;	// Left tip
 };
@@ -68,11 +80,17 @@ bool PlaceController::getCalibrationStatus() {
 
 Offset PlaceController::getBoxCoordinates() {
 	Offset temp;
-	temp.x = pickUpAreaOffset.x + SmallBoxOffsetTable[currentComponent.box].x;
-	temp.y = pickUpAreaOffset.y + SmallBoxOffsetTable[currentComponent.box].y;
+	temp.x = pickUpAreaOffset.x + componentOffset.x + SmallBoxOffsetTable[currentComponent.box].x;
+	temp.y = pickUpAreaOffset.y + componentOffset.y + SmallBoxOffsetTable[currentComponent.box].y;
 	temp.z = pickUpAreaOffset.z;	// Add offset of corresponding tip, cylinder offset
 	return temp;
 };
+
+void PlaceController::setCompOffset(float xDiff, float yDiff, float rotDiff) {
+	componentOffset.x = xDiff;
+	componentOffset.y = yDiff;
+	componentRotDiff = rotDiff;
+}
 
 Offset PlaceController::getPCBCoordinates() {
 	Offset temp;

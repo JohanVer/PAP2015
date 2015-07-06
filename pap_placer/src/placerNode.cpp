@@ -14,13 +14,14 @@
 #include "../include/pap_placer/placerClass.hpp"
 //#include "../../motor_controller/include/motorController/controllerClass.hpp"
 
-#define TIMEOUT 1
 #define PICKUPDELAY1 5
 #define PICKUPDELAY2 5
 #define PLACEMENTDELAY1 5
 #define PLACEMENTDELAY2 5
+#define COMPFINDERTIMEOUT 10
 
 int pickupwait_counter, placementwait_counter = 0;
+int componentFinder_counter = 0;
 
 PlaceController placeController;
 ComponentPlacerData currentComponent;
@@ -44,24 +45,28 @@ void resetStepper();
 void setLEDTask(int LEDnumber);
 void resetLEDTask(int LEDnumber);
 
+void resetProcessVariables();
+
 ros::Publisher task_publisher, arduino_publisher_;
 ros::Subscriber statusSubsriber_;
 ros::Subscriber visionStatusSubsriber_;
 ros::Subscriber placerTaskSubscriber_;
 
 bool visionEnabled = false;
-bool placerNodeBusy = false;
-
 bool manualOperation = true;
-//bool componentPickUpFinished = false;
+
+bool placerNodeBusy = false;
 bool boxCoordinatesSent = false;
 bool componentPickUpStarted = false;
 bool pcbCoordinatesSent = false;
 bool componentPlacementStarted = false;
-//bool componentPlacementFinished = false;
+bool componentFinderStarted = false;
+bool componentFound = false;
+
+bool IDLE_called = true;
 
 enum ERROR_CODE {
-	MOTORFAILED_BOX, MOTORERROR_BOX, MOTORFAILED_PCB, MOTORERROR_PCB
+	MOTORFAILED_BOX, MOTORERROR_BOX, MOTORFAILED_PCB, MOTORERROR_PCB, NOCOMPONENTFOUND, MOTORERROR_HOMING, MOTORFAILED_HOMING
 } error_code;
 
 enum STATE {
@@ -86,18 +91,24 @@ int main(int argc, char **argv) {
 	visionStatusSubsriber_ = n_.subscribe("visionStatus", 100, &visionStatusCallback);
 	placerTaskSubscriber_ = n_.subscribe("task", 10, &placerCallback);
 
-	ros::Rate loop_rate(20);
-	state = HOMING;
+	ros::Rate loop_rate(5);
+	state = IDLE;
 
 	while (ros::ok()) {
 		switch (state) {
 		case IDLE:
+			if (IDLE_called) {
+				ROS_INFO("PlacerState: IDLE");
+				IDLE_called = false;
+			}
 			break;
 
 		case CALIBRATE:
+			ROS_INFO("PlacerState: CALIBRATE");
 			break;
 
 		case GOTOBOX:			// Send coordinates to motor controller and wait until position reached
+			ROS_INFO("PlacerState: GOTOBOX");
 
 			if (!placerNodeBusy && !boxCoordinatesSent && placeController.getCalibrationStatus()) {
 				Offset destination = placeController.getBoxCoordinates();
@@ -110,9 +121,22 @@ int main(int argc, char **argv) {
 			if (motorcontrollerStatus[1].positionReached && motorcontrollerStatus[2].positionReached && motorcontrollerStatus[3].positionReached && boxCoordinatesSent) {
 				placerNodeBusy = false;
 				if (manualOperation) {
-					state = IDLE;
+					if (visionEnabled && !componentFound) {
+						state = FINDCOMPONENT;
+					} else if (visionEnabled && componentFound) {
+						state = STARTPICKUP;
+					} else {
+						IDLE_called = true;
+						state = IDLE;
+					}
 				} else {
-					state = STARTPICKUP;
+					if (visionEnabled && !componentFound) {
+						state = FINDCOMPONENT;
+					} else if (visionEnabled && componentFound) {
+						state = STARTPICKUP;
+					} else {
+						state = STARTPICKUP;
+					}
 				}
 				break;
 			}
@@ -128,7 +152,38 @@ int main(int argc, char **argv) {
 			}
 			break;
 
+		case FINDCOMPONENT:
+			ROS_INFO("PlacerState: FINDCOMPONENT");
+
+			if (!componentFinderStarted) {
+				sendTask(pap_common::VISION, pap_vision::START_VISION);
+				float length = placeController.getComponentLenth();
+				float width = placeController.getComponentWidth();
+				if(placeController.getSelectedFinder() == 3) {
+					sendTask(pap_common::VISION, pap_vision::START_CHIP_FINDER);
+				} else if (placeController.getSelectedFinder() == 4) {
+					sendTask(pap_common::VISION, pap_vision::START_SMALL_FINDER, width, length, 0.0);
+				} else if (placeController.getSelectedFinder() == 5) {
+					sendTask(pap_common::VISION, pap_vision::START_TAPE_FINDER, width, length, 0.0);
+				}
+				componentFinderStarted = true;
+			}
+
+			if (componentFound) {
+				sendTask(pap_common::VISION, pap_vision::STOP_VISION);
+				state = GOTOBOX;		// Component position has been update in vision callback function
+			} else if (componentFinder_counter == COMPFINDERTIMEOUT) {
+				sendTask(pap_common::VISION, pap_vision::STOP_VISION);
+				error_code = NOCOMPONENTFOUND;
+				state = ERROR;
+			} else {
+				componentFinder_counter++;
+			}
+
+			break;
+
 		case STARTPICKUP:	// Start pick-up process by activating vacuum
+			ROS_INFO("PlacerState: STARTPICKUP");
 
 			// Make sure that box position of component has been reached before trying to pick up
 			if (boxCoordinatesSent && !placerNodeBusy && !componentPickUpStarted) {
@@ -146,6 +201,7 @@ int main(int argc, char **argv) {
 			break;
 
 		case PICKUPWAIT:
+
 			if (pickupwait_counter == PICKUPDELAY1) {
 				pickupwait_counter++;
 				state = PICKUP1;
@@ -158,6 +214,7 @@ int main(int argc, char **argv) {
 			break;
 
 		case PICKUP1:								// Activate cylinder to pick-up component
+			ROS_INFO("PlacerState: PICKUP1");
 			if (placeController.getSelcetedTip()) {
 				sendRelaisTask(3, false);			// Activate left cylinder
 				sendRelaisTask(6, true);
@@ -168,6 +225,7 @@ int main(int argc, char **argv) {
 			break;
 
 		case PICKUP2:								// Release tip
+			ROS_INFO("PlacerState: PICKUP2");
 			if (placeController.getSelcetedTip()) {
 				sendRelaisTask(6, false);
 				sendRelaisTask(3, true);			// Release left tip
@@ -176,29 +234,31 @@ int main(int argc, char **argv) {
 				sendRelaisTask(7, false);			// Release right tip
 			}
 
+			placerNodeBusy = false;
 			if (manualOperation) {
 				if (visionEnabled) {
-					placerNodeBusy = false;
 					state = CHECKCOMPONENTPICKUP;
 				}
 				else {
-					placerNodeBusy = false;
+					IDLE_called = true;
 					state = IDLE;
 				}
 			} else {
 				if (visionEnabled) {
-					state = CHECKCOMPONENTPICKUP;	// INFO: Reset placerNodeBusy in next state
+					state = CHECKCOMPONENTPICKUP;
 				}
 				else {
-					placerNodeBusy = false;
 					state = GOTOPCB;
 				}
 			}
 			break;
 
 		case CHECKCOMPONENTPICKUP:
+			ROS_INFO("PlacerState: CHECKCOMPONENTPICKUP");
+			break;
 
 		case GOTOPCB:
+			ROS_INFO("PlacerState: GOTOPCB");
 
 			if (!placerNodeBusy && !pcbCoordinatesSent && placeController.getCalibrationStatus()) {
 				Offset destination = placeController.getPCBCoordinates();
@@ -211,6 +271,7 @@ int main(int argc, char **argv) {
 			if (motorcontrollerStatus[1].positionReached && motorcontrollerStatus[2].positionReached && motorcontrollerStatus[3].positionReached && pcbCoordinatesSent) {
 				placerNodeBusy = false;
 				if (manualOperation) {
+					IDLE_called = true;
 					state = IDLE;
 				} else {
 					state = STARTPLACEMENT;
@@ -230,6 +291,7 @@ int main(int argc, char **argv) {
 			break;
 
 		case STARTPLACEMENT:
+			ROS_INFO("PlacerState: STARTPLACEMENT");
 
 			// Make sure that pcb position of component has been reached before trying to place
 			if (pcbCoordinatesSent && !placerNodeBusy && !componentPlacementStarted) {
@@ -247,6 +309,8 @@ int main(int argc, char **argv) {
 			break;
 
 		case PLACEMENT1:							//
+			ROS_INFO("PlacerState: PLACEMENT1");
+
 			sendRelaisTask(2, false);				// Turn off vacuum
 			sendRelaisTask(1, true);
 			if (placeController.getSelcetedTip()) {
@@ -258,10 +322,11 @@ int main(int argc, char **argv) {
 			break;
 
 		case PLACEMENT2:							// Release tip to end placement process
+			ROS_INFO("PlacerState: PLACEMENT2");
+
 			if (placeController.getSelcetedTip()) {
 				sendRelaisTask(6, false);
 				sendRelaisTask(3, true);			// Release left tip
-
 			} else {
 				sendRelaisTask(7, false);			// Release right tip
 			}
@@ -271,6 +336,7 @@ int main(int argc, char **argv) {
 				if (visionEnabled) {
 					state = CHECKCOMPONENTPLACEMENT;
 				} else {
+					IDLE_called = true;
 					state = IDLE;
 				break;
 				}
@@ -285,6 +351,8 @@ int main(int argc, char **argv) {
 			break;
 
 		case PLACEMENTWAIT:
+			ROS_INFO("PlacerState: PLACEMENTWAIT");
+
 			if (placementwait_counter == PLACEMENTDELAY1) {
 				placementwait_counter++;
 				state = PLACEMENT1;
@@ -297,10 +365,26 @@ int main(int argc, char **argv) {
 			break;
 
 		case HOMING:
+			ROS_INFO("PlacerState: HOMING");
+			sendTask(pap_common::CONTROLLER, pap_common::HOMING);
 
+			if (motorcontrollerStatus[1].positionReached && motorcontrollerStatus[2].positionReached && motorcontrollerStatus[3].positionReached && pcbCoordinatesSent) {
+				resetProcessVariables();
+				IDLE_called = true;
+				state = IDLE;
+			}
+			else if (motorcontrollerStatus[1].error || motorcontrollerStatus[2].error || motorcontrollerStatus[3].error) {
+				error_code = MOTORERROR_HOMING;
+				state = ERROR;
+			}
+			else if (motorcontrollerStatus[1].failed || motorcontrollerStatus[2].failed || motorcontrollerStatus[3].failed) {
+				error_code = MOTORFAILED_HOMING;
+				state = ERROR;
+			}
 			break;
-		case ERROR:				// Stop and publish error code
 
+		case ERROR:				// Stop and publish error code
+			ROS_INFO("PlacerState: ERROR");
 			break;
 		}
 		ros::spinOnce();
@@ -341,7 +425,12 @@ void statusCallback(const pap_common::StatusConstPtr& statusMsg) {
 }
 
 void visionStatusCallback(const pap_common::VisionStatusConstPtr& statusMsg) {
-	//Q_EMIT smdCoordinates(statusMsg->data1, statusMsg->data2, statusMsg->data3);
+	if (statusMsg->task != pap_vision::START_PAD_FINDER) {
+		float xDiff = statusMsg->data1;
+		float yDiff = statusMsg->data2;
+		float rotDiff = statusMsg->data3;
+		placeController.setCompOffset(xDiff, yDiff, rotDiff);
+	}
 }
 
 void placerCallback(const pap_common::TaskConstPtr& taskMsg) {
@@ -489,5 +578,18 @@ void resetLEDTask(int LEDnumber) {
 	arduinoMsg.command = pap_common::RESETLED;
 	arduinoMsg.data = LEDnumber;
 	arduino_publisher_.publish(arduinoMsg);
+}
+
+void resetProcessVariables() {
+	boxCoordinatesSent = false;
+	componentPickUpStarted = false;
+	pcbCoordinatesSent = false;
+	componentPlacementStarted = false;
+	componentFinderStarted = false;
+	componentFound = false;
+	placerNodeBusy = false;
+	pickupwait_counter = 0;
+	placementwait_counter = 0;
+	componentFinder_counter = 0;
 }
 

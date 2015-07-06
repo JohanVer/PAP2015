@@ -41,22 +41,9 @@ bool componentTableEmpty = true;
 bool singleComponentSelected = false;
 bool placementProcessRunning = false;
 int componentCount = 0;
-int boxNumberMax = 50;
-int boxNumberMin = 1;
+int boxNumberMax = 59;
+int boxNumberMin = 0;
 int boxNumberSug = 1;
-
-struct offset {
-	float x, y;
-};
-
-// These offsets are relative to central head position
-offset camera1Offset, camera2Offset;
-offset tip1Offset, tip2Offset, dispenserTipOffset;
-
-// These offsets are relative to homing position
-offset pcbFenceOffset, pickUpAreaOffset;
-
-QVector<offset> boxPositionVector;
 
 struct databaseEntry {
 	QString package;
@@ -71,8 +58,6 @@ struct componentEntry {
 	float posX, posY, length, width, height;
 	int box, rotation, pins;
 };
-
-
 
 QVector<componentEntry> componentVector;
 QVector<databaseEntry> databaseVector;
@@ -194,12 +179,13 @@ void MainWindow::on_setCompBoxNrButton_2_clicked() {
 
 		if (boxNumber <= boxNumberMax && boxNumber >= boxNumberMin) {
 			singleComponent.box = boxNumber;
+			ui.checkBox_box->setChecked(true);
 			updatePlacementData();
 			ui.label_compBox_2->setText(QString::number(boxNumber));
 
 		} else {
 			QMessageBox msgBox;
-			msgBox.setText("BoxNumberMin = 1, BoxNumberMax = 50");
+			msgBox.setText("BoxNumberMin = 0, BoxNumberMax = 59");
 			msgBox.exec();
 			msgBox.close();
 
@@ -222,7 +208,14 @@ void MainWindow::on_pickupComponentButton_clicked() {
 }
 
 void MainWindow::on_goToComponentButton_clicked() {
-	qnode.sendTask(pap_common::PLACER, pap_common::GOTOBOX, placementData);
+	if (singleComponent.box == -1) {
+		QMessageBox msgBox;
+		msgBox.setText("Please set box number first.");
+		msgBox.exec();
+		msgBox.close();
+	} else {
+		qnode.sendTask(pap_common::PLACER, pap_common::GOTOBOX, placementData);
+	}
 }
 
 void MainWindow::on_goToPCBButton_clicked() {
@@ -317,10 +310,13 @@ void MainWindow::updateSingleComponentInformation() {
 	} else {					// Package found
 		ui.label_compLength_2->setText(
 				QString::number(databaseVector.at(packageID).length, 'f', 2));
+		singleComponent.length = databaseVector.at(packageID).length;
 		ui.label_compWidth_2->setText(
 				QString::number(databaseVector.at(packageID).width, 'f', 2));
+		singleComponent.width = databaseVector.at(packageID).width;
 		ui.label_compHeight_2->setText(
 				QString::number(databaseVector.at(packageID).height, 'f', 2));
+		singleComponent.height = databaseVector.at(packageID).height;
 		ui.label_compPins_2->setText(
 				QString::number(databaseVector.at(packageID).pins));
 	}
@@ -757,17 +753,6 @@ void MainWindow::updateDatabaseTable() {
 	ui.tableWidget->show();
 }
 
-void MainWindow::initializeBoxPositionVector() {
-
-	offset newBox = pickUpAreaOffset;
-	boxPositionVector.append(newBox);
-
-	for(int i = 1; i <= 12; i++) {
-		offset newBox;
-		//newBox.x = boxPositionVector.at(i-1) + 5.00;
-		//newBox.y = boxPositionVector.at(i-1);
-	}
-}
 
 void MainWindow::on_startSinglePlacementButton_clicked() {
 
