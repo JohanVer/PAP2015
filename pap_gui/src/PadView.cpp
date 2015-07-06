@@ -17,29 +17,37 @@ graphicsScene::graphicsScene(QWidget *parent) :
 		QGraphicsScene(parent) {
 
 }
-/*
+
 void graphicsScene::contextMenuEvent(QGraphicsSceneContextMenuEvent *event) {
 	QMenu menu;
-	QAction *fiducial = new QAction("Mark", this);
-	menu.addAction(fiducial);
+	QPointF pt = event->scenePos();
+	QAction *fiducial1 = new QAction("Mark as 1. fiducial", this);
+	QAction *fiducial2 = new QAction("Mark as 2. fiducial", this);
+	menu.addAction(fiducial1);
+	menu.addAction(fiducial2);
 	QAction* selectedItem = menu.exec(event->screenPos());
 	if (selectedItem) {
-		if (selectedItem->text().toStdString() == "Mark") {
-			ROS_INFO("Pos: %f %f",event->scenePos().x(),event->scenePos().y());
+		if (selectedItem->text().toStdString() == "Mark as 1. fiducial") {
+			//ROS_INFO("Pos: %f %f",event->scenePos().x(),event->scenePos().y());
 			//Q_EMIT setFiducial(event->pos());
+			Q_EMIT sendMousePoint(0,pt);
+		}
+		else if(selectedItem->text().toStdString() == "Mark as 2. fiducial"){
+			Q_EMIT sendMousePoint(1,pt);
 		}
 	}
 }
-*/
+
 /*
 void graphicsScene::mousePressEvent(QGraphicsSceneMouseEvent * e) {
 	QPointF pt = e->scenePos();
-	ROS_INFO("Pos X : %f Y: %f",pt.x(),pt.y());
-	//Q_EMIT sendMousePoint(pt);
+	//ROS_INFO("Pos X : %f Y: %f",pt.x(),pt.y());
+	Q_EMIT sendMousePoint(pt);
 //delete (&pt);
 
 }
 */
+
 PadView::PadView() {
 	// TODO Auto-generated constructor stub
 

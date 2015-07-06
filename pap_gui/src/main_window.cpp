@@ -113,8 +113,11 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent) :
 	QWidget::connect(ui.fiducialTable, SIGNAL(sendGotoFiducial(int)), this,
 			SLOT(sendGotoFiducial(int)));
 
-	//QWidget::connect(ui.fiducialTable, SIGNAL(contextMenuEvent(QContextMenuEvent*)), this,
-	//			SLOT(FiducialTableMenu(QContextMenuEvent*)));
+	//QWidget::connect(ui.fiducialTable, SIGNAL(sendGotoFiducial(int)), this,
+	//			SLOT(sendGotoFiducial(int)));
+
+	QWidget::connect(&scenePads_, SIGNAL(sendMousePoint(int ,QPointF)), this,
+			SLOT(padPressed(int,QPointF)));
 	// Cameras
 	QObject::connect(&qnode, SIGNAL(cameraUpdated(int )), this,
 			SLOT(cameraUpdated(int )));
@@ -147,6 +150,9 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent) :
 	updateDatabaseTable();
 	initFiducialTable();
 	initPadTable(1);
+	id_ = 0;
+	sizeDefined_ = false;
+	padFileLoaded_ = false;
 }
 
 MainWindow::~MainWindow() {
@@ -246,7 +252,6 @@ void MainWindow::on_setCompBoxNrButton_clicked() {
 
 			}
 		}
-
 		/* If table empty */
 	} else {
 		QMessageBox msgBox;
@@ -1342,21 +1347,23 @@ void MainWindow::setFiducial(QPointF point) {
 		return;
 	}
 
-	double xCoord = QInputDialog::getDouble(this, "Fiducial X", "X-Coordinate:",
-			0.0);
-	double yCoord = QInputDialog::getDouble(this, "Fiducial Y", "Y-Coordinate:",
-			0.0);
+	/*
+	 double xCoord = QInputDialog::getDouble(this, "Fiducial X", "X-Coordinate:",
+	 0.0);
+	 double yCoord = QInputDialog::getDouble(this, "Fiducial Y", "Y-Coordinate:",
+	 0.0);
+	 */
 
 	qnode.sendTask(pap_common::VISION, pap_vision::START_PAD_FINDER);
 	if (ui.fiducialTable->fiducialSize_ == 0) {
-		setFiducialTable(0, xCoord, yCoord, padPosition_.x(), padPosition_.y());
+		setFiducialTable(0, padPosition_.x(), padPosition_.y());
 	} else if (ui.fiducialTable->fiducialSize_ == 1) {
-		setFiducialTable(1, xCoord, yCoord, padPosition_.x(), padPosition_.y());
+		setFiducialTable(1, padPosition_.x(), padPosition_.y());
 	} else {
 		ui.fiducialTable->clear();
 		ui.fiducialTable->fiducialSize_ = 0;
 		initFiducialTable();
-		setFiducialTable(0, xCoord, yCoord, padPosition_.x(), padPosition_.y());
+		setFiducialTable(0, padPosition_.x(), padPosition_.y());
 	}
 
 }
@@ -1391,17 +1398,19 @@ void MainWindow::initPadTable(int rows) {
 	ui.padTable->setVerticalHeaderLabels(vLabels);
 }
 
-void MainWindow::setFiducialTable(int number, float x, float y, float xGlobal,
-		float yGlobal) {
-	ui.fiducialTable->setItem(number, 0,
-			new QTableWidgetItem(QString::number(x)));
-	ui.fiducialTable->setItem(number, 1,
-			new QTableWidgetItem(QString::number(y)));
+void MainWindow::setFiducialTable(int number, float xGlobal, float yGlobal) {
 	ui.fiducialTable->setItem(number, 2,
 			new QTableWidgetItem(QString::number(xGlobal)));
 	ui.fiducialTable->setItem(number, 3,
 			new QTableWidgetItem(QString::number(yGlobal)));
 	ui.fiducialTable->fiducialSize_++;
+}
+
+void MainWindow::setFiducialPads(int number, float x, float y) {
+	ui.fiducialTable->setItem(number, 0,
+			new QTableWidgetItem(QString::number(x)));
+	ui.fiducialTable->setItem(number, 1,
+			new QTableWidgetItem(QString::number(y)));
 }
 
 void MainWindow::signalPosition(float x, float y) {
@@ -1445,27 +1454,40 @@ void MainWindow::on_inputPad_Button_clicked() {
 
 	padParser.loadFile(filenamePaste);
 	padParser.setTable(ui.padTable);
+	padFileLoaded_ = true;
 }
 
 void MainWindow::on_padViewSetSize_button_clicked() {
 	padParser.setSize(ui.padViewHeight_text->text().toFloat(),
 			ui.padViewWidth_text->text().toFloat());
+	sizeDefined_ = true;
 }
 
 void MainWindow::on_padViewGenerate_button_clicked() {
-	cv::Mat image(ui.padView_Image->height() - 20,
-			ui.padView_Image->width() - 20,
-			CV_8UC3, cv::Scalar(255, 255, 255));
-	padParser.renderImage(&scenePads_,ui.padView_Image->width() - 20,ui.padView_Image->height() - 20);
 
-	//QImage renderedPadsImage = QImage((uchar*) image.data, image.cols,
-	//		image.rows, image.step, QImage::Format_RGB888);
-	//renderedPadsPixmap = QPixmap::fromImage(renderedPadsImage);
-	//scenePads_.clear();
-	//scenePads_.addPixmap(renderedPadsPixmap);
+	if (!sizeDefined_ | !padFileLoaded_) {
+		QMessageBox msgBox;
+		const QString title = "Not initialized";
+		msgBox.setWindowTitle(title);
+		msgBox.setText(
+				"Make sure that size is set and the pad file is loaded!");
+		msgBox.exec();
+		msgBox.close();
+		return;
+	}
+
+	padParser.renderImage(&scenePads_, ui.padView_Image->width() - 20,
+			ui.padView_Image->height() - 20);
+
 	ui.padView_Image->setScene(&scenePads_);
 	ui.padView_Image->show();
+}
 
+void MainWindow::padPressed(int numberOfFiducial, QPointF padPos) {
+	id_ = padParser.searchId(padPos, ui.padView_Image->width() - 20);
+	setFiducialPads(numberOfFiducial,
+			padParser.padInformationArray_[id_].rect.x(),
+			padParser.padInformationArray_[id_].rect.y());
 }
 }
 // namespace pap_gui

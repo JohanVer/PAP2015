@@ -130,7 +130,8 @@ public Q_SLOTS:
     void displaySMDCoords(float x,float y,float rot);
     void setMousePoint (QPointF point);
     void setFiducial(QPointF point);
-    void setFiducialTable(int number, float x, float y,float xGlobal, float yGlobal);
+    void setFiducialTable(int number,float xGlobal, float yGlobal);
+    void setFiducialPads(int number, float x, float y);
     void initFiducialTable(void);
     void signalPosition(float x,float y);
     void sendGotoFiducial(int indexOfFiducial);
@@ -138,6 +139,7 @@ public Q_SLOTS:
     void on_padViewSetSize_button_clicked();
     void on_padViewGenerate_button_clicked();
     void initPadTable(int rows);
+    void padPressed(int numberOfFiducial,QPointF padPos);
 
     //QWizardPage *createIntroPage();
 
@@ -163,11 +165,12 @@ private:
 	bool valve6Active_;
 	bool valve7Active_;
 	bool valve8Active_;
-	bool visionStarted_;
+	bool visionStarted_, sizeDefined_,padFileLoaded_;
     QTableView tableView;
     int fiducialSize_;
     QPointF padPosition_;
     GerberPadParser padParser;
+    int id_;
 };
 
 }  // namespace pap_gui

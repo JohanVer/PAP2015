@@ -28,15 +28,17 @@
 #include <cmath>
 #include "PadView.hpp"
 #include <QGraphicsRectItem>
-
+#include <QGraphicsObject>
+#include <QRectF>
 class PadInformation{
 	public:
 	PadInformation(){
 		rotation = 0.0;
 	}
 
-	QPointF padPosition;
-	QPointF padSize;
+	//QPointF padPosition;
+	//QPointF padSize;
+	QRectF rect;
 	std::string shapeStr;
 	float rotation;
 };
@@ -65,12 +67,17 @@ public:
 	void setSize(float height, float width);
 	void renderImage(QGraphicsScene* scene,int width, int height);
 	void setTable(QTableWidget* table);
+	int searchId(QPointF position,int height);
+
+
+	std::vector<PadInformation> padInformationArray_;
 
 private:
-	std::vector<PadInformation> padInformationArray_;
+
 	std::vector<ShapeInformation> shapeInformationArray_;
-
-
+	std::vector<QRectF> printedRects;
+	double pixelConversionFactor;
+	cv::Rect pcbSize;
 	float height_,width_;
 };
 

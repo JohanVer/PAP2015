@@ -540,8 +540,8 @@ cv::Point2f padFinder::findPads(cv::Mat* input, bool startSelect,
 								false)==1.0) {
 					drawRotatedRect(final, pad, CV_RGB(0, 0, 255));
 
-					outputPosition.x = mc.x;
-					outputPosition.y = mc.y;
+					outputPosition.x = mc.x/PIXEL_TO_MM;
+					outputPosition.y = mc.y/PIXEL_TO_MM;
 				} else {
 					drawRotatedRect(final, pad, CV_RGB(255, 0, 0));
 				}

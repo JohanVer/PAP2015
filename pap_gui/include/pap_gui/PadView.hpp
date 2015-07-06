@@ -15,6 +15,7 @@
 #include <QGraphicsSceneMouseEvent>
 #include <ros/ros.h>
 #include <QGraphicsRectItem>
+#include <QGraphicsObject>
 
 class graphicsScene: public QGraphicsScene {
 Q_OBJECT
@@ -22,35 +23,36 @@ public:
 	explicit graphicsScene(QWidget *parent = 0);
 
 Q_SIGNALS:
-	void sendMousePoint(QPointF point);
+	void sendMousePoint(int indexOfFiducial,QPointF point);
 
 public Q_SLOTS:
 	//void mousePressEvent(QMouseEvent * e);
-//void mousePressEvent(QGraphicsSceneMouseEvent *e) {
-	//ROS_INFO("Hallo1");
-//}
-//void contextMenuEvent(QGraphicsSceneContextMenuEvent *event);
+//void mousePressEvent(QGraphicsSceneMouseEvent *e);
+void contextMenuEvent(QGraphicsSceneContextMenuEvent *event);
 	//void contextMenuEvent(QContextMenuEvent *event);
 private:
 };
-
-class rectObject : public QGraphicsRectItem
-{
+/*
+class rectObject: public QObject, public QGraphicsRectItem{
+Q_OBJECT
 public:
-	explicit rectObject(qreal x, qreal y, qreal width, qreal height, QGraphicsItem * parent = 0):
-	QGraphicsRectItem( x,  y,  width,  height, parent){
+	int id_;
+	explicit rectObject(qreal x, qreal y, qreal width, qreal height,
+			QGraphicsItem * parent = 0) :
+			QGraphicsRectItem(x, y, width, height, parent) {
 		id_ = 0;
 	}
 
-	int id_;
+Q_SIGNALS:
+	void sendPadId(int id);
 
-protected:
-    void mousePressEvent(QGraphicsSceneMouseEvent *event)
-    {
-        ROS_INFO("My id : %d",id_);
-    }
+public Q_SLOTS:
+	void mousePressEvent(QGraphicsSceneMouseEvent *event) {
+		ROS_INFO("My id : %d", id_);
+		Q_EMIT sendPadId (id_);
+	}
 };
-
+*/
 class PadView: public QGraphicsView {
 Q_OBJECT
 public:

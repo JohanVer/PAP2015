@@ -170,8 +170,8 @@ float GerberPadParser::parseFloat(std::string line, std::size_t start,
 bool GerberPadParser::searchShape(int shapeIndex, PadInformation* pad) {
 	for (int i = 0; i < shapeInformationArray_.size(); i++) {
 		if (shapeInformationArray_[i].shapeIndex == shapeIndex) {
-			pad->padSize.setX(shapeInformationArray_[i].padDimensions.x());
-			pad->padSize.setY(shapeInformationArray_[i].padDimensions.y());
+			pad->rect.setWidth(shapeInformationArray_[i].padDimensions.x());
+			pad->rect.setHeight(shapeInformationArray_[i].padDimensions.y());
 			pad->rotation = shapeInformationArray_[i].rotation;
 			pad->shapeStr = shapeInformationArray_[i].shapeStr;
 			return true;
@@ -193,16 +193,16 @@ void GerberPadParser::setTable(QTableWidget* table) {
 		PadInformation pad;
 		pad = padInformationArray_[i];
 		table->setItem(i, 0,
-				new QTableWidgetItem(QString::number(pad.padPosition.x())));
+				new QTableWidgetItem(QString::number(pad.rect.x())));
 
 		table->setItem(i, 1,
-				new QTableWidgetItem(QString::number(pad.padPosition.y())));
+				new QTableWidgetItem(QString::number(pad.rect.y())));
 
 		table->setItem(i, 2,
-				new QTableWidgetItem(QString::number(pad.padSize.x())));
+				new QTableWidgetItem(QString::number(pad.rect.width())));
 
 		table->setItem(i, 3,
-				new QTableWidgetItem(QString::number(pad.padSize.y())));
+				new QTableWidgetItem(QString::number(pad.rect.height())));
 
 		table->setItem(i, 4,
 						new QTableWidgetItem(QString::number(pad.rotation)));
@@ -269,16 +269,16 @@ void GerberPadParser::loadFile(std::string fileName) {
 			if (dFound != std::string::npos) {
 				yParsed = parseFloat(line, yFound, dFound);
 				PadInformation newPad;
-				newPad.padPosition.setX(xParsed * 25.4);
-				newPad.padPosition.setY(yParsed * 25.4);
+				newPad.rect.setX(xParsed * 25.4);
+				newPad.rect.setY(yParsed * 25.4);
 				// Convert d-code using tabular out of whl file
 				searchShape(dCodeShape, &newPad);
 				padInformationArray_.push_back(newPad);
 				ROS_INFO(
 						"Shape: %d , X-pos: %f , Y-pos: %f, X-Size: %f, Y-Size: %f, Rotation %f, Type: %s  ",
-						dCodeShape, newPad.padPosition.x(),
-						newPad.padPosition.y(), newPad.padSize.x(),
-						newPad.padSize.y(), newPad.rotation,
+						dCodeShape, newPad.rect.x(),
+						newPad.rect.y(), newPad.rect.width(),
+						newPad.rect.height(), newPad.rotation,
 						newPad.shapeStr.c_str());
 			}
 		}
@@ -293,11 +293,11 @@ void GerberPadParser::setSize(float height, float width) {
 }
 
 void GerberPadParser::renderImage(QGraphicsScene* scene, int width, int height) {
-	cv::Rect pcbSize;
+
 
 	pcbSize.x = 0;
 	pcbSize.y = 0;
-	double pixelConversionFactor = 0.0;
+	 pixelConversionFactor = 0.0;
 	double pixelWidth = (double) width / (double) width_;
 	double pixelHeight = (double) height / (double) height_;
 	//ROS_INFO("PixW %f PixH %f Cols %d Rows %d", pixelWidth, pixelHeight,
@@ -325,32 +325,42 @@ void GerberPadParser::renderImage(QGraphicsScene* scene, int width, int height) 
 		// Draw Pads
 
 	for (std::size_t i = 0; i < padInformationArray_.size(); i++) {
-		cv::Rect pad;
+		QRectF pad;
 		PadInformation padInfo;
 		padInfo = padInformationArray_[i];
 
-		double upperCornerPadX = ((padInfo.padPosition.x()
-				- padInfo.padSize.x() / 2.0) * pixelConversionFactor);
+		double upperCornerPadX = ((padInfo.rect.x()
+				- padInfo.rect.width() / 2.0) * pixelConversionFactor);
 		double upperCornerPadY = (double) height
-				- ((padInfo.padPosition.y() + padInfo.padSize.y() / 2.0)
+				- ((padInfo.rect.y() + padInfo.rect.height() / 2.0)
 						* pixelConversionFactor);
-		pad.x = upperCornerPadX;
-		pad.y = upperCornerPadY + pcbSize.y;
+
+		pad.setX(upperCornerPadX);
+		pad.setY(upperCornerPadY + pcbSize.y);
 		//cv::circle(*dst,cv::Point2f(padInfo.padPosition.x()*pixelConversionFactor,(double)dst->rows-padInfo.padPosition.y()*pixelConversionFactor),4,cv::Scalar(255,0,0));
-		pad.width =
-				(unsigned int) (padInfo.padSize.x() * pixelConversionFactor);
-		pad.height =
-				(unsigned int) (padInfo.padSize.y() * pixelConversionFactor);
+		pad.setWidth((unsigned int) (padInfo.rect.width() * pixelConversionFactor));
+		pad.setHeight((unsigned int) (padInfo.rect.height() * pixelConversionFactor));
 		//ROS_INFO("X: %d Y: %d W: %d H: %d", pad.x, pad.y, pad.width,
 		//		pad.height);
 		//cv::rectangle(*dst, pad, cv::Scalar(0, 0, 255), CV_FILLED);
 
-		rectObject *rect = new rectObject(pad.x,pad.y,pad.width,pad.height);
+		printedRects.push_back(pad);
+		QGraphicsRectItem *rect = new QGraphicsRectItem(pad.x(),pad.y(),pad.width(),pad.height());
 		rect->setPen( QPen( Qt::red, 1, Qt::SolidLine ) );
 		rect->setBrush( Qt::red );
-		rect->id_ = i;
 		scene->addItem(rect);
-
 	}
+}
 
+int GerberPadParser::searchId(QPointF position,int height){
+	QPointF convPoint;
+	convPoint.setX(position.x());
+	convPoint.setY(position.y());
+
+	for (std::size_t i = 0; i < printedRects.size(); i++) {
+		if(printedRects[i].contains(convPoint)){
+			return i;
+		}
+	}
+	return -1;
 }
