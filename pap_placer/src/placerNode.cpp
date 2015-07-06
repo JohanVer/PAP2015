@@ -12,12 +12,14 @@
 #include "../../pap_placer/include/pap_placer/placerNode.hpp"
 //#include "../include/pap_placer/placerNode.hpp"
 #include "../include/pap_placer/placerClass.hpp"
+#include "../include/motorController/controllerClass.hpp"
 
 #define TIMEOUT 10
 int xTimeOutTimer, yTimeOutTimer, zTimeOutTimer = 0;
 
 PlaceController placeController;
 ComponentPlacerData currentComponent;
+controllerStatus motorcontrollerStatus[3];
 
 /* Call back functions */
 void statusCallback(const pap_common::StatusConstPtr&  statusMsg);
@@ -30,6 +32,13 @@ ros::Subscriber visionStatusSubsriber_;
 ros::Subscriber placerTaskSubscriber_;
 
 bool visionEnabled = false;
+bool placerNodeBusy = false;
+bool boxCoordinatesSent = false;
+bool manualOperation = false;
+
+enum ERROR_CODE {
+	MOTORFAILED, MOTORERROR
+} error_code;
 
 enum STATE {
 	IDLE, CALIBRATE, GOTOBOX, PICKUP, GOTOPCB, PLACEMENT, HOMING, ERROR
@@ -53,7 +62,7 @@ int main(int argc, char **argv) {
 	visionStatusSubsriber_ = n_.subscribe("visionStatus", 100, &visionStatusCallback);
 	placerTaskSubscriber_ = n_.subscribe("task", 10, &placerCallback);
 
-	ros::Rate loop_rate(5);
+	ros::Rate loop_rate(20);
 	state = HOMING;
 
 	while (ros::ok()) {
@@ -62,12 +71,33 @@ int main(int argc, char **argv) {
 			break;
 		case CALIBRATE:
 
-		case GOTOBOX:
-/*
-			if (controller.controllerConnected_1_) {
-				checkStatusController(1, &controllerState1,
-						&oldControllerState1);
-			}*/
+		case GOTOBOX:			// Send coordinates to motor controller;
+
+			if (!placerNodeBusy && !boxCoordinatesSent) {
+				// Send coordinates with sending task to motor controller
+				//sendTask(pap_common::DESTINATION destination, pap_common::TASK task, float x, float y, float z)
+				//setLEDTask();
+				boxCoordinatesSent = true;
+				placerNodeBusy = true;
+			}
+
+			if (motorcontrollerStatus[1].positionReached && motorcontrollerStatus[2].positionReached && motorcontrollerStatus[3].positionReached) {
+				placerNodeBusy = false;
+				if (!manualOperation) {
+					state = PICKUP;
+				}
+				break;
+			}
+			else if (motorcontrollerStatus[1].error || motorcontrollerStatus[2].error || motorcontrollerStatus[3].error) {
+				error_code = MOTORERROR;
+				state = ERROR;
+				break;
+			}
+			else if (motorcontrollerStatus[1].failed || motorcontrollerStatus[2].failed || motorcontrollerStatus[3].failed) {
+				error_code = MOTORFAILED;
+				state = ERROR;
+				break;
+			}
 			break;
 
 		case PICKUP:
@@ -78,7 +108,8 @@ int main(int argc, char **argv) {
 			break;
 		case HOMING:
 			break;
-		case ERROR:
+		case ERROR:				// Stop and publish error code
+
 			break;
 		}
 		ros::spinOnce();
@@ -92,7 +123,7 @@ int main(int argc, char **argv) {
  ** Callback functions for motor status, vision status and placer tasks
  *****************************************************************************/
 void statusCallback(const pap_common::StatusConstPtr& statusMsg) {
-/*
+
 	int index = statusMsg->data1;
 	if (statusMsg->status == pap_common::ENERGIZED) {
 		motorcontrollerStatus[index].energized = true;
@@ -115,7 +146,7 @@ void statusCallback(const pap_common::StatusConstPtr& statusMsg) {
 
 	if (statusMsg->status == pap_common::NOERROR) {
 		motorcontrollerStatus[index].error = false;
-	}*/
+	}
 }
 
 void visionStatusCallback(const pap_common::VisionStatusConstPtr& statusMsg) {

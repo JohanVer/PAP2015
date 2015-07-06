@@ -64,6 +64,6 @@ private:
 	Offset pcbFenceOffset, pickUpAreaOffset;
 	Offset cameraBottomOffset;
 
-	vector<Offset> boxOffsetVector;
+	vector<Offset> boxOffsetVector[60];
 
 };
