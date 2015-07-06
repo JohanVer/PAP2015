@@ -21,11 +21,20 @@
 #include "ClickGraphicsView.hpp"
 #include "MyContextMenuTable.hpp"
 #include "GerberPadParser.hpp"
+#include "PadView.hpp"
 #include <string>
 #include <sstream>
 #include <iostream>
 #include <QPoint>
 
+#include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include "opencv2/core/core.hpp"
+#include "opencv2/features2d/features2d.hpp"
+#include "opencv2/highgui/highgui.hpp"
+#include "opencv2/nonfree/features2d.hpp"
+#include "cv.h"
+#include "highgui.h"
 #include <QStandardItemModel>
 
 
@@ -126,6 +135,9 @@ public Q_SLOTS:
     void signalPosition(float x,float y);
     void sendGotoFiducial(int indexOfFiducial);
     void on_inputPad_Button_clicked();
+    void on_padViewSetSize_button_clicked();
+    void on_padViewGenerate_button_clicked();
+    void initPadTable(int rows);
 
     //QWizardPage *createIntroPage();
 
@@ -139,6 +151,10 @@ private:
 	QNode qnode;
 	QPixmap cameraPicture1;
 	QGraphicsScene scene_;
+
+	QPixmap renderedPadsPixmap;
+	graphicsScene scenePads_;
+
 	bool valve1Active_;
 	bool valve2Active_;
 	bool valve3Active_;

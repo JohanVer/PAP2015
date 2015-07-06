@@ -146,6 +146,7 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent) :
 	loadDatabaseContent();
 	updateDatabaseTable();
 	initFiducialTable();
+	initPadTable(1);
 }
 
 MainWindow::~MainWindow() {
@@ -1375,6 +1376,21 @@ void MainWindow::initFiducialTable(void) {
 	ui.fiducialTable->setVerticalHeaderLabels(vLabels);
 }
 
+void MainWindow::initPadTable(int rows) {
+	// Set size of table
+	ui.padTable->setRowCount(rows);
+	ui.padTable->setColumnCount(6);
+
+	// Set labels
+	QStringList hLabels, vLabels;
+	hLabels << "X" << "Y" << "Width" << "Height" << "Rotation" << "Type";
+	for (int i = 1; i <= rows; i++) {
+		vLabels << QString::number(i);
+	}
+	ui.padTable->setHorizontalHeaderLabels(hLabels);
+	ui.padTable->setVerticalHeaderLabels(vLabels);
+}
+
 void MainWindow::setFiducialTable(int number, float x, float y, float xGlobal,
 		float yGlobal) {
 	ui.fiducialTable->setItem(number, 0,
@@ -1412,18 +1428,45 @@ void MainWindow::sendGotoFiducial(int indexOfFiducial) {
 
 void MainWindow::on_inputPad_Button_clicked() {
 	//get a filename to open
-	QString gerberFile = QFileDialog::getOpenFileName(this,
-			tr("Open PasteBot file"), "/home",
-			tr("Text Files (*.txt *.PasteBot)"));
-	std::cout << "Got filename: " << gerberFile.toStdString() << std::endl;
+	QString gerberFile = QFileDialog::getOpenFileName(this, tr("Open Whl file"),
+			"/home", tr("Text Files (*.txt  *.Whl)"));
+	//std::cout << "Got filename: " << gerberFile.toStdString() << std::endl;
 
-	/* Load gerber file and add new components to vector */
-	std::fstream datafile;
-	const char *filename = gerberFile.toLatin1().data();
+	const char *filenameWhl = gerberFile.toLatin1().data();
 
-	padParser.loadFile(filename);
+	padParser.parseShapes(filenameWhl);
+
+	//get a filename to open
+	gerberFile = QFileDialog::getOpenFileName(this, tr("Open PasteBot file"),
+			"/home", tr("Text Files (*.txt  *.PasteBot)"));
+	//std::cout << "Got filename: " << gerberFile.toStdString() << std::endl;
+
+	const char *filenamePaste = gerberFile.toLatin1().data();
+
+	padParser.loadFile(filenamePaste);
+	padParser.setTable(ui.padTable);
 }
 
+void MainWindow::on_padViewSetSize_button_clicked() {
+	padParser.setSize(ui.padViewHeight_text->text().toFloat(),
+			ui.padViewWidth_text->text().toFloat());
+}
+
+void MainWindow::on_padViewGenerate_button_clicked() {
+	cv::Mat image(ui.padView_Image->height() - 20,
+			ui.padView_Image->width() - 20,
+			CV_8UC3, cv::Scalar(255, 255, 255));
+	padParser.renderImage(&scenePads_,ui.padView_Image->width() - 20,ui.padView_Image->height() - 20);
+
+	//QImage renderedPadsImage = QImage((uchar*) image.data, image.cols,
+	//		image.rows, image.step, QImage::Format_RGB888);
+	//renderedPadsPixmap = QPixmap::fromImage(renderedPadsImage);
+	//scenePads_.clear();
+	//scenePads_.addPixmap(renderedPadsPixmap);
+	ui.padView_Image->setScene(&scenePads_);
+	ui.padView_Image->show();
+
+}
 }
 // namespace pap_gui
 
