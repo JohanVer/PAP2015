@@ -17,6 +17,17 @@
  ** Implementation
  *****************************************************************************/
 PlaceController::PlaceController() {
+	calibrationStatus = true;
+
+	pcbOriginOffset.x = 0;
+	pcbOriginOffset.y = 0;
+	pcbOriginOffset.z = 0;
+	pickUpAreaOffset.x = 15;
+	pickUpAreaOffset.y = 350;
+	pickUpAreaOffset.z = 60;
+	cameraBottomOffset.x = 0;
+	cameraBottomOffset.y = 0;
+	cameraBottomOffset.z = 0;
 
 };
 PlaceController::~PlaceController(){
@@ -38,7 +49,46 @@ const Offset SmallBoxOffsetTable[59] = 	{	{0.0, 0.0}, {16.66, 0.0}, {33.32, 0.0}
 //const Offset TapeOffsetTable[15];
 
 
+void PlaceController::systemCalibration() {
 
-Offset PlaceController::getBoxOffset(int boxNumber) {
-	return SmallBoxOffsetTable[boxNumber];
+};
+
+bool PlaceController::getSelcetedTip() {
+	return true;	// Left tip
+};
+
+int PlaceController::getBoxNumber() {
+	return currentComponent.box;
+};
+
+
+bool PlaceController::getCalibrationStatus() {
+	return calibrationStatus;
+};
+
+Offset PlaceController::getBoxCoordinates() {
+	Offset temp;
+	temp.x = pickUpAreaOffset.x + SmallBoxOffsetTable[currentComponent.box].x;
+	temp.y = pickUpAreaOffset.y + SmallBoxOffsetTable[currentComponent.box].y;
+	temp.z = pickUpAreaOffset.z;	// Add offset of corresponding tip, cylinder offset
+	return temp;
+};
+
+Offset PlaceController::getPCBCoordinates() {
+	Offset temp;
+	temp.x = pcbOriginOffset.x + currentComponent.destX;
+	temp.y = pcbOriginOffset.y + currentComponent.destY;
+	temp.z = pcbOriginOffset.z;		// Add offset of corresponding tip, cylinder offset
+	return temp;
+};
+
+void PlaceController::updatePlacementData(ComponentPlacerData * data) {
+	currentComponent.box = data->box;
+	//currentComponent.box = 12;
+	currentComponent.destX = data->destX;
+	currentComponent.destY = data->destY;
+	currentComponent.height = data->height;
+	currentComponent.length = data->length;
+	currentComponent.width = data->width;
+	currentComponent.rotation = data->rotation;
 };

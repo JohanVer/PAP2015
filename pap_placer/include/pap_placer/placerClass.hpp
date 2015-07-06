@@ -35,13 +35,29 @@ public:
 		box = 0;
 	}
 private:
+};
 
+class controllerStatus {
+public:
+	controllerStatus() {
+		error = false;
+		energized = false;
+		positionReached = false;
+		failed = false;
+	}
+
+	bool error;
+	bool energized;
+	bool positionReached;
+	bool failed;
+private:
 };
 
 class Offset {
 public:
 	float x;
 	float y;
+	float z;
 private:
 };
 
@@ -51,19 +67,26 @@ public:
 	PlaceController();
 	~PlaceController();
 
-	Offset getBoxOffset(int boxNumber);
+	Offset getBoxCoordinates();
+	Offset getPCBCoordinates();
 
+	void systemCalibration();
+
+	void updatePlacementData(ComponentPlacerData *data);
+	bool getCalibrationStatus();
+	int getBoxNumber();
+	bool getSelcetedTip();
 
 private:
+	ComponentPlacerData currentComponent;
+	bool calibrationStatus;
 
 	// These offsets are relative to central head position
 	Offset cameraTopOffset;
 	Offset tip1Offset, tip2Offset, dispenserTipOffset;
 
 	// These offsets are relative to homing position
-	Offset pcbFenceOffset, pickUpAreaOffset;
+	Offset pcbOriginOffset, pickUpAreaOffset;
 	Offset cameraBottomOffset;
-
-	vector<Offset> boxOffsetVector[60];
 
 };
