@@ -12,12 +12,27 @@ enum TASK {
   MANUAL = 4,
   CONNECT = 5,
   STOP = 6,
-  GETPOSITION = 7
+  GETPOSITION = 7,
+  PLACECOMPONENT = 8,
+  PICKUPCOMPONENT = 9,
+  GOTOBOX = 10,
+  GOTOPCB = 11,
+  PLACEMENT = 12
 };
+
+/*
+enum PLACERTASK { 
+  // data1=x, data2=y, data3=rot,...
+  PLACECOMPONENT = 1,
+  PICKUPCOMPONENT = 2,
+  MOVECOMPONENT = 3,
+  RELEASECOMPONENT = 4
+};*/
 
 enum DESTINATION {
   CONTROLLER = 1,
-  VISION = 2
+  VISION = 2,
+  PLACER = 3
 };
 
 enum DIRECTION {

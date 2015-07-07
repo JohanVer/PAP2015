@@ -67,13 +67,13 @@ int main(int argc, char **argv) {
 			case IDLE:
 				input =
 						cv::imread(
-								"/home/johan/Desktop/Webcam_Pictures/Webcam-1435326531.png");
+								"/home/nikolas/Desktop/Webcam_Pictures/Webcam-1435326531.png");
 				break;
 			case CHIP:
 				// Chip
 				input =
 						cv::imread(
-								"/home/johan/Desktop/Webcam_Pictures/Webcam-1435311766.png");
+								"/home/nikolas/Desktop/Webcam_Pictures/Webcam-1435311766.png");
 				smd = finder.findChip(&input);
 				if (smd.x != 0.0 && smd.y != 0.0) {
 					visionMsg.task = pap_vision::START_CHIP_FINDER;
@@ -87,7 +87,7 @@ int main(int argc, char **argv) {
 				// SMD Chip
 				input =
 						cv::imread(
-								"/home/johan/Desktop/Webcam_Pictures/Webcam-1435326387.png");
+								"/home/nikolas/Desktop/Webcam_Pictures/Webcam-1435326387.png");
 				smd = finder.findSmallSMD(&input);
 				if (smd.x != 0.0 && smd.y != 0.0) {
 					visionMsg.task = pap_vision::START_SMALL_FINDER;
@@ -101,7 +101,7 @@ int main(int argc, char **argv) {
 				// SMD Tape
 				input =
 						cv::imread(
-								"/home/johan/Desktop/Webcam_Pictures/Webcam-1435327178.png");
+								"/home/nikolas/Desktop/Webcam_Pictures/Webcam-1435327178.png");
 				smd = finder.findSMDTape(&input);
 				if (smd.x != 0.0 && smd.y != 0.0) {
 					visionMsg.task = pap_vision::START_TAPE_FINDER;
@@ -115,7 +115,7 @@ int main(int argc, char **argv) {
 				// Pads
 				input =
 						cv::imread(
-								"/home/johan/Desktop/Webcam_Pictures/Webcam-1435326531.png");
+								"/home/nikolas/Desktop/Webcam_Pictures/Webcam-1435326531.png");
 				cv::Point2f position = finder.findPads(&input, selectPad,
 						selectPoint);
 				ROS_INFO("X %f Y  %f",position.x,position.y);
@@ -132,7 +132,7 @@ int main(int argc, char **argv) {
 		} else {
 			input =
 					cv::imread(
-							"/home/johan/Desktop/Webcam_Pictures/Webcam-1435326531.png");
+							"/home/nikolas/Desktop/Webcam_Pictures/Webcam-1435326531.png");
 		}
 
 		// Fadenkreuz

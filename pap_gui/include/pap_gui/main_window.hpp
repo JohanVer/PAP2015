@@ -26,7 +26,6 @@
 #include <sstream>
 #include <iostream>
 #include <QPoint>
-
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include "opencv2/core/core.hpp"
@@ -36,6 +35,8 @@
 #include "cv.h"
 #include "highgui.h"
 #include <QStandardItemModel>
+
+#include "../../../pap_placer/include/pap_placer/placerNode.hpp"
 
 
 /*****************************************************************************
@@ -119,6 +120,8 @@ public Q_SLOTS:
     void on_setLEDButton_clicked();
     void on_resetLEDButton_clicked();
 
+    void on_startSinglePlacementButton_clicked();
+    //void initializeBoxPositionVector();
     // Vision
     // Buttons
     void on_startChipFinder_Button_clicked();
@@ -141,6 +144,11 @@ public Q_SLOTS:
     void initPadTable(int rows);
     void padPressed(int numberOfFiducial,QPointF padPos);
 
+    void on_pickupComponentButton_clicked();
+    void on_goToComponentButton_clicked();
+    void on_goToPCBButton_clicked();
+    void on_placeComponentButton_clicked();
+    void updatePlacementData();
     //QWizardPage *createIntroPage();
 
     /******************************************

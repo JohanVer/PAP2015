@@ -41,26 +41,17 @@ bool componentTableEmpty = true;
 bool singleComponentSelected = false;
 bool placementProcessRunning = false;
 int componentCount = 0;
-int boxNumberMax = 50;
-int boxNumberMin = 1;
+int boxNumberMax = 59;
+int boxNumberMin = 0;
 int boxNumberSug = 1;
-
-struct offset {
-	float x, y;
-};
-
-// These offsets are relative to central head position
-offset camera1Offset, camera2Offset;
-offset tip1Offset, tip2Offset, dispenserTipOffset;
-
-// These offsets are relative to homing position
-offset pcbFenceOffset, pickUpAreaOffset;
 
 struct databaseEntry {
 	QString package;
 	float length, width, height;
 	int pins;
 };
+
+ComponentPlacerData placementData;
 
 struct componentEntry {
 	string name, package, side, value;
@@ -153,6 +144,7 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent) :
 	id_ = 0;
 	sizeDefined_ = false;
 	padFileLoaded_ = false;
+	//ui.checkBox_box->setDisabled(true);
 }
 
 MainWindow::~MainWindow() {
@@ -190,11 +182,13 @@ void MainWindow::on_setCompBoxNrButton_2_clicked() {
 
 		if (boxNumber <= boxNumberMax && boxNumber >= boxNumberMin) {
 			singleComponent.box = boxNumber;
+			ui.checkBox_box->setChecked(true);
+			updatePlacementData();
 			ui.label_compBox_2->setText(QString::number(boxNumber));
 
 		} else {
 			QMessageBox msgBox;
-			msgBox.setText("BoxNumberMin = 1, BoxNumberMax = 50");
+			msgBox.setText("BoxNumberMin = 0, BoxNumberMax = 59");
 			msgBox.exec();
 			msgBox.close();
 
@@ -206,6 +200,36 @@ void MainWindow::on_setCompBoxNrButton_2_clicked() {
 		msgBox.close();
 	}
 }
+
+
+void MainWindow::on_pickupComponentButton_clicked() {
+
+	// Check box number, length, width and height
+
+	// If all within limits, no component is currently picked-up, not within process -> go to box and pick it up.
+	qnode.sendTask(pap_common::PLACER, pap_common::PICKUPCOMPONENT, placementData);
+}
+
+void MainWindow::on_goToComponentButton_clicked() {
+	if (singleComponent.box == -1) {
+		QMessageBox msgBox;
+		msgBox.setText("Please set box number first.");
+		msgBox.exec();
+		msgBox.close();
+	} else {
+		qnode.sendTask(pap_common::PLACER, pap_common::GOTOBOX, placementData);
+	}
+}
+
+void MainWindow::on_goToPCBButton_clicked() {
+	qnode.sendTask(pap_common::PLACER, pap_common::GOTOPCB, placementData);
+}
+
+void MainWindow::on_placeComponentButton_clicked() {
+	qnode.sendTask(pap_common::PLACER, pap_common::PLACEMENT, placementData);
+}
+
+
 
 void MainWindow::on_setCompBoxNrButton_clicked() {
 
@@ -268,6 +292,7 @@ void MainWindow::updateSingleComponentInformation() {
 	ui.label_compValue_2->setText(singleComponent.value.c_str());
 	ui.label_compPackage_2->setText(singleComponent.package.c_str());
 
+	// Check if package exsists in database
 	int packageID = -1;
 	for (int i = 0; i < databaseVector.size(); i++) {
 		string currentPackage = singleComponent.package;
@@ -287,10 +312,13 @@ void MainWindow::updateSingleComponentInformation() {
 	} else {					// Package found
 		ui.label_compLength_2->setText(
 				QString::number(databaseVector.at(packageID).length, 'f', 2));
+		singleComponent.length = databaseVector.at(packageID).length;
 		ui.label_compWidth_2->setText(
 				QString::number(databaseVector.at(packageID).width, 'f', 2));
+		singleComponent.width = databaseVector.at(packageID).width;
 		ui.label_compHeight_2->setText(
 				QString::number(databaseVector.at(packageID).height, 'f', 2));
+		singleComponent.height = databaseVector.at(packageID).height;
 		ui.label_compPins_2->setText(
 				QString::number(databaseVector.at(packageID).pins));
 	}
@@ -513,11 +541,11 @@ void MainWindow::loadDatabaseContent() {
 						componentString.section(sep, 3, 3).toFloat(&ok);
 				newDatabaseEntry.pins =
 						componentString.section(sep, 4, 4).toInt(&ok);
-				qDebug() << newDatabaseEntry.package << " "
+				/*qDebug() << newDatabaseEntry.package << " "
 						<< newDatabaseEntry.length << " "
 						<< newDatabaseEntry.width << " "
 						<< newDatabaseEntry.height << " "
-						<< newDatabaseEntry.pins;
+						<< newDatabaseEntry.pins;*/
 				databaseVector.append(newDatabaseEntry);
 			}
 		}
@@ -727,6 +755,41 @@ void MainWindow::updateDatabaseTable() {
 	ui.tableWidget->show();
 }
 
+
+void MainWindow::on_startSinglePlacementButton_clicked() {
+
+	// Check all prerequesits
+	if (ui.checkBox_pcbPlaced->isChecked()) {
+		if (ui.checkBox_position->isChecked() && ui.checkBox_orientation->isChecked() && ui.checkBox_box->isChecked()) {
+
+
+
+		} else {
+			QMessageBox msgBox;
+			msgBox.setText("Component information not complete.");
+			msgBox.exec();
+			msgBox.close();
+		}
+	} else {
+		QMessageBox msgBox;
+		msgBox.setText("Please place a circuit board.");
+		msgBox.exec();
+		msgBox.close();
+	}
+
+}
+
+// Package that is going to be sent to placeController
+void MainWindow::updatePlacementData() {
+	placementData.destX = singleComponent.posX;
+	placementData.destY = singleComponent.posY;
+	placementData.box = singleComponent.box;
+	placementData.height= singleComponent.height;
+	placementData.length = singleComponent.length;
+	placementData.width = singleComponent.width;
+	placementData.rotation = singleComponent.rotation;
+}
+
 void MainWindow::on_placeSingleComponentButton_clicked() {
 
 	int currentComp = ui.tableWidget->currentRow();
@@ -742,7 +805,16 @@ void MainWindow::on_placeSingleComponentButton_clicked() {
 		singleComponent = componentVector.at(currentComp);
 		updateSingleComponentInformation();
 		singleComponentSelected = true;
+
+		ui.checkBox_position->setChecked(true);
+		ui.checkBox_orientation->setChecked(true);
+		if (singleComponent.box != -1) {
+			ui.checkBox_box->setChecked(true);
+		}
+
 		ui.tab_manager->setCurrentIndex(4);
+
+		updatePlacementData();
 
 		/*QWizard wizard;
 		 wizard.addPage(createIntroPage());

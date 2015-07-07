@@ -264,6 +264,20 @@ void QNode::resetLEDTask(int LEDnumber) {
 	arduino_publisher_.publish(arduinoMsg);
 }
 
+void QNode::sendTask(pap_common::DESTINATION destination, pap_common::TASK task, ComponentPlacerData componentData) {
+	pap_common::Task taskMsg;
+	taskMsg.destination = destination;
+	taskMsg.task = task;
+	taskMsg.data1 = componentData.destX;
+	taskMsg.data2 = componentData.destY;
+	taskMsg.data3 = componentData.rotation;
+	taskMsg.box = componentData.box;
+	taskMsg.length = componentData.length;
+	taskMsg.width = componentData.width;
+	taskMsg.height = componentData.height;
+	task_publisher.publish(taskMsg);
+}
+
 void QNode::visionStatusCallback(
 		const pap_common::VisionStatusConstPtr& statusMsg) {
 	if(statusMsg->task != pap_vision::START_PAD_FINDER){
