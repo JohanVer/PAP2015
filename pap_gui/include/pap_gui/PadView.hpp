@@ -26,33 +26,13 @@ Q_SIGNALS:
 	void sendMousePoint(int indexOfFiducial,QPointF point);
 
 public Q_SLOTS:
-	//void mousePressEvent(QMouseEvent * e);
-//void mousePressEvent(QGraphicsSceneMouseEvent *e);
+
 void contextMenuEvent(QGraphicsSceneContextMenuEvent *event);
-	//void contextMenuEvent(QContextMenuEvent *event);
+
 private:
 };
-/*
-class rectObject: public QObject, public QGraphicsRectItem{
-Q_OBJECT
-public:
-	int id_;
-	explicit rectObject(qreal x, qreal y, qreal width, qreal height,
-			QGraphicsItem * parent = 0) :
-			QGraphicsRectItem(x, y, width, height, parent) {
-		id_ = 0;
-	}
 
-Q_SIGNALS:
-	void sendPadId(int id);
 
-public Q_SLOTS:
-	void mousePressEvent(QGraphicsSceneMouseEvent *event) {
-		ROS_INFO("My id : %d", id_);
-		Q_EMIT sendPadId (id_);
-	}
-};
-*/
 class PadView: public QGraphicsView {
 Q_OBJECT
 public:
@@ -65,8 +45,6 @@ Q_SIGNALS:
 	void setFiducial(QPointF point);
 
 public Q_SLOTS:
-	//void mousePressEvent(QMouseEvent * e);
-	//void mouseMoveEvent(QMouseEvent *move);
 	virtual void wheelEvent(QWheelEvent * event);
 
 private:

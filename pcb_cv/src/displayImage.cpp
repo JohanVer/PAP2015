@@ -135,7 +135,7 @@ int main(int argc, char **argv) {
 							"/home/nikolas/Desktop/Webcam_Pictures/Webcam-1435326531.png");
 		}
 
-		// Fadenkreuz
+		// Crosshairs
 		Point2f vertices[4];
 		vertices[0] = Point2f(input.cols / 2 - 1, 0);
 		vertices[1] = Point2f(input.cols / 2 - 1, input.rows - 1);
@@ -146,7 +146,8 @@ int main(int argc, char **argv) {
 		circle(input, Point2f(input.cols / 2 - 1, input.rows / 2 - 1), 20,
 				CV_RGB(255, 0, 0), 3);
 
-		// Convert image to standard msgs format
+		// Convert image to standard msgs format in order to send the image
+		// over the ros topics
 		cv::Mat outputRGB;
 		cvtColor(input, outputRGB, CV_BGR2RGB);
 		std_msgs::Header header;
@@ -198,6 +199,7 @@ void parseTask(const pap_common::TaskConstPtr& taskMsg) {
 			visionState = TAPE;
 			break;
 
+			// This state is for manually selecting of the fiducials
 		case pap_vision::START_PAD_FINDER:
 			visionState = PAD;
 			if (taskMsg->data1 == 1.0) {

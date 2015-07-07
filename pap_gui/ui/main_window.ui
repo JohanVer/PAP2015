@@ -40,7 +40,7 @@
        <locale language="English" country="Australia"/>
       </property>
       <property name="currentIndex">
-       <number>4</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="tab_status">
        <attribute name="title">
@@ -50,7 +50,7 @@
         <item>
          <widget class="QGroupBox" name="groupBox_12">
           <property name="sizePolicy">
-           <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
+           <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
             <horstretch>0</horstretch>
             <verstretch>0</verstretch>
            </sizepolicy>
@@ -262,8 +262,8 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>98</width>
-           <height>28</height>
+           <width>100</width>
+           <height>30</height>
           </rect>
          </property>
          <attribute name="label">
@@ -328,8 +328,8 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>98</width>
-           <height>28</height>
+           <width>100</width>
+           <height>30</height>
           </rect>
          </property>
          <attribute name="label">
@@ -419,8 +419,8 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>98</width>
-           <height>28</height>
+           <width>100</width>
+           <height>30</height>
           </rect>
          </property>
          <attribute name="label">
@@ -488,8 +488,8 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>98</width>
-           <height>28</height>
+           <width>100</width>
+           <height>30</height>
           </rect>
          </property>
          <attribute name="label">
@@ -530,6 +530,14 @@
             <height>101</height>
            </rect>
           </property>
+          <property name="font">
+           <font>
+            <pointsize>9</pointsize>
+           </font>
+          </property>
+          <attribute name="horizontalHeaderDefaultSectionSize">
+           <number>80</number>
+          </attribute>
          </widget>
          <widget class="QPushButton" name="calcOrientation_Button">
           <property name="geometry">
@@ -549,10 +557,10 @@
        <widget class="QWidget" name="horizontalLayoutWidget_8">
         <property name="geometry">
          <rect>
-          <x>810</x>
-          <y>500</y>
+          <x>0</x>
+          <y>550</y>
           <width>160</width>
-          <height>80</height>
+          <height>31</height>
          </rect>
         </property>
         <layout class="QHBoxLayout" name="horizontalLayout_12">
@@ -3330,30 +3338,17 @@
        <attribute name="title">
         <string>PadView</string>
        </attribute>
-       <widget class="QPushButton" name="inputPad_Button">
-        <property name="geometry">
-         <rect>
-          <x>30</x>
-          <y>20</y>
-          <width>111</width>
-          <height>27</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string>Padparser File</string>
-        </property>
-       </widget>
        <widget class="QGroupBox" name="groupBox_17">
         <property name="geometry">
          <rect>
-          <x>30</x>
-          <y>60</y>
+          <x>40</x>
+          <y>0</y>
           <width>201</width>
-          <height>161</height>
+          <height>221</height>
          </rect>
         </property>
         <property name="title">
-         <string>Size Information</string>
+         <string>Load CAD Data</string>
         </property>
         <widget class="QWidget" name="horizontalLayoutWidget_9">
          <property name="geometry">
@@ -3429,27 +3424,40 @@
           <enum>Qt::Horizontal</enum>
          </property>
         </widget>
-       </widget>
-       <widget class="QPushButton" name="padViewGenerate_button">
-        <property name="geometry">
-         <rect>
-          <x>660</x>
-          <y>30</y>
-          <width>161</width>
-          <height>27</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string>Generate Pad Image</string>
-        </property>
+        <widget class="QPushButton" name="inputPad_Button">
+         <property name="geometry">
+          <rect>
+           <x>50</x>
+           <y>150</y>
+           <width>111</width>
+           <height>27</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Padparser File</string>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="padViewGenerate_button">
+         <property name="geometry">
+          <rect>
+           <x>20</x>
+           <y>180</y>
+           <width>161</width>
+           <height>27</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Generate Pad Image</string>
+         </property>
+        </widget>
        </widget>
        <widget class="PadView" name="padView_Image">
         <property name="geometry">
          <rect>
-          <x>410</x>
-          <y>70</y>
-          <width>660</width>
-          <height>500</height>
+          <x>409</x>
+          <y>9</y>
+          <width>701</width>
+          <height>581</height>
          </rect>
         </property>
        </widget>
@@ -3492,6 +3500,9 @@
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <widget class="QDockWidget" name="dock_status">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
    <property name="sizePolicy">
     <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
      <horstretch>0</horstretch>
@@ -3503,6 +3514,9 @@
      <width>325</width>
      <height>395</height>
     </size>
+   </property>
+   <property name="floating">
+    <bool>true</bool>
    </property>
    <property name="allowedAreas">
     <set>Qt::RightDockWidgetArea</set>

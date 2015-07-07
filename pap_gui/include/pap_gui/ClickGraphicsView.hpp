@@ -27,7 +27,6 @@ public:
 
 	public Q_SLOTS:
 	void mousePressEvent(QMouseEvent * e);
-	void mouseMoveEvent (QMouseEvent *move);
 	void contextMenuEvent(QContextMenuEvent *event);
 
 	private:

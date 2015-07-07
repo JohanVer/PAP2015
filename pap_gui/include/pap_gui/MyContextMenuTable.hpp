@@ -4,11 +4,15 @@
  *  Created on: Jul 5, 2015
  *      Author: johan
  */
+/* Class which inherited QTableWidget.
+ * This is needed to make the table clickable in order
+ * to show a context menu.
+ */
+
 
 #ifndef PAP_GUI_SRC_MYCONTEXTMENUTABLE_HPP_
 #define PAP_GUI_SRC_MYCONTEXTMENUTABLE_HPP_
 
-//#include "main_window.hpp"
 #include <QWidget>
 #include <QPointF>
 #include <QDebug>
@@ -33,8 +37,6 @@ public:
 
 	private:
 	QItemSelectionModel *select;
-
-
 };
 
 #endif /* PAP_GUI_SRC_MYCONTEXTMENUTABLE_HPP_ */

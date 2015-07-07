@@ -30,14 +30,12 @@
 #include <QGraphicsRectItem>
 #include <QGraphicsObject>
 #include <QRectF>
+
 class PadInformation{
 	public:
 	PadInformation(){
 		rotation = 0.0;
 	}
-
-	//QPointF padPosition;
-	//QPointF padSize;
 	QRectF rect;
 	std::string shapeStr;
 	float rotation;
@@ -69,11 +67,10 @@ public:
 	void setTable(QTableWidget* table);
 	int searchId(QPointF position,int height);
 
-
+	// TODO: Make getter/setter for this public variable array
 	std::vector<PadInformation> padInformationArray_;
 
 private:
-
 	std::vector<ShapeInformation> shapeInformationArray_;
 	std::vector<QRectF> printedRects;
 	double pixelConversionFactor;

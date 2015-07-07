@@ -28,8 +28,6 @@ void graphicsScene::contextMenuEvent(QGraphicsSceneContextMenuEvent *event) {
 	QAction* selectedItem = menu.exec(event->screenPos());
 	if (selectedItem) {
 		if (selectedItem->text().toStdString() == "Mark as 1. fiducial") {
-			//ROS_INFO("Pos: %f %f",event->scenePos().x(),event->scenePos().y());
-			//Q_EMIT setFiducial(event->pos());
 			Q_EMIT sendMousePoint(0,pt);
 		}
 		else if(selectedItem->text().toStdString() == "Mark as 2. fiducial"){
@@ -38,15 +36,6 @@ void graphicsScene::contextMenuEvent(QGraphicsSceneContextMenuEvent *event) {
 	}
 }
 
-/*
-void graphicsScene::mousePressEvent(QGraphicsSceneMouseEvent * e) {
-	QPointF pt = e->scenePos();
-	//ROS_INFO("Pos X : %f Y: %f",pt.x(),pt.y());
-	Q_EMIT sendMousePoint(pt);
-//delete (&pt);
-
-}
-*/
 
 PadView::PadView() {
 	// TODO Auto-generated constructor stub
@@ -59,39 +48,9 @@ PadView::~PadView() {
 
 PadView::PadView(QWidget *parent) :
 		QGraphicsView(parent) {
-//scene = new QGraphicsScene();
-//this->setSceneRect(50, 50, 350, 350);
-//this->setScene(scene);
 
 }
-/*
-void PadView::mousePressEvent(QMouseEvent * e) {
-	QPointF pt = mapToScene(e->pos());
-	Q_EMIT sendMousePoint(pt);
-//delete (&pt);
 
-}
-*/
-/*
-void PadView::mouseMoveEvent(QMouseEvent *move) {
-//QPointF movment= mapToScene (move->pos ());
-//delete (&movment);
-
-}
-*/
-/*
- void PadView::contextMenuEvent(QContextMenuEvent *event) {
- QMenu menu(this);
- QAction *fiducial = new QAction("Mark", this);
- menu.addAction(fiducial);
- QAction* selectedItem = menu.exec(event->globalPos());
- if (selectedItem) {
- if (selectedItem->text().toStdString() == "Mark") {
- Q_EMIT setFiducial(event->pos());
- }
- }
- }
- */
 void PadView::wheelEvent(QWheelEvent * event) {
 	//if ctrl pressed, use original functionality
 	if (event->modifiers() & Qt::ControlModifier) {

@@ -94,7 +94,7 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent) :
 	QObject::connect(&qnode, SIGNAL(smdCoordinates(float ,float ,float )), this,
 			SLOT(displaySMDCoords(float ,float ,float )));
 	QWidget::connect(ui.camera1, SIGNAL(sendMousePoint(QPointF)), this,
-			SLOT(setMousePoint(QPointF)));
+			SLOT(setCamera1Point(QPointF)));
 	QWidget::connect(ui.camera1, SIGNAL(setFiducial(QPointF)), this,
 			SLOT(setFiducial(QPointF)));
 
@@ -103,9 +103,6 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent) :
 
 	QWidget::connect(ui.fiducialTable, SIGNAL(sendGotoFiducial(int)), this,
 			SLOT(sendGotoFiducial(int)));
-
-	//QWidget::connect(ui.fiducialTable, SIGNAL(sendGotoFiducial(int)), this,
-	//			SLOT(sendGotoFiducial(int)));
 
 	QWidget::connect(&scenePads_, SIGNAL(sendMousePoint(int ,QPointF)), this,
 			SLOT(padPressed(int,QPointF)));
@@ -201,13 +198,13 @@ void MainWindow::on_setCompBoxNrButton_2_clicked() {
 	}
 }
 
-
 void MainWindow::on_pickupComponentButton_clicked() {
 
 	// Check box number, length, width and height
 
 	// If all within limits, no component is currently picked-up, not within process -> go to box and pick it up.
-	qnode.sendTask(pap_common::PLACER, pap_common::PICKUPCOMPONENT, placementData);
+	qnode.sendTask(pap_common::PLACER, pap_common::PICKUPCOMPONENT,
+			placementData);
 }
 
 void MainWindow::on_goToComponentButton_clicked() {
@@ -228,8 +225,6 @@ void MainWindow::on_goToPCBButton_clicked() {
 void MainWindow::on_placeComponentButton_clicked() {
 	qnode.sendTask(pap_common::PLACER, pap_common::PLACEMENT, placementData);
 }
-
-
 
 void MainWindow::on_setCompBoxNrButton_clicked() {
 
@@ -542,10 +537,10 @@ void MainWindow::loadDatabaseContent() {
 				newDatabaseEntry.pins =
 						componentString.section(sep, 4, 4).toInt(&ok);
 				/*qDebug() << newDatabaseEntry.package << " "
-						<< newDatabaseEntry.length << " "
-						<< newDatabaseEntry.width << " "
-						<< newDatabaseEntry.height << " "
-						<< newDatabaseEntry.pins;*/
+				 << newDatabaseEntry.length << " "
+				 << newDatabaseEntry.width << " "
+				 << newDatabaseEntry.height << " "
+				 << newDatabaseEntry.pins;*/
 				databaseVector.append(newDatabaseEntry);
 			}
 		}
@@ -572,8 +567,7 @@ void MainWindow::on_loadGerberFileButton_clicked() {
 
 	//get a filename to open
 	QString gerberFile = QFileDialog::getOpenFileName(this,
-			tr("Open Gerber file"), "/home/nikolas/Documents",
-			tr("Text Files (*.txt *.csv)"));
+			tr("Open Gerber file"), "/home", tr("Text Files (*.txt *.csv)"));
 	std::cout << "Got filename: " << gerberFile.toStdString() << std::endl;
 
 	/* Load gerber file and add new components to vector */
@@ -755,14 +749,13 @@ void MainWindow::updateDatabaseTable() {
 	ui.tableWidget->show();
 }
 
-
 void MainWindow::on_startSinglePlacementButton_clicked() {
 
 	// Check all prerequesits
 	if (ui.checkBox_pcbPlaced->isChecked()) {
-		if (ui.checkBox_position->isChecked() && ui.checkBox_orientation->isChecked() && ui.checkBox_box->isChecked()) {
-
-
+		if (ui.checkBox_position->isChecked()
+				&& ui.checkBox_orientation->isChecked()
+				&& ui.checkBox_box->isChecked()) {
 
 		} else {
 			QMessageBox msgBox;
@@ -784,7 +777,7 @@ void MainWindow::updatePlacementData() {
 	placementData.destX = singleComponent.posX;
 	placementData.destY = singleComponent.posY;
 	placementData.box = singleComponent.box;
-	placementData.height= singleComponent.height;
+	placementData.height = singleComponent.height;
 	placementData.length = singleComponent.length;
 	placementData.width = singleComponent.width;
 	placementData.rotation = singleComponent.rotation;
@@ -914,32 +907,15 @@ void MainWindow::on_checkbox_use_environment_stateChanged(int state) {
 	//ui.line_edit_topic->setEnabled(enabled);
 }
 
-/*****************************************************************************
- ** Implemenation [Slots][manually connected]
- *****************************************************************************/
-
-/**
- * This function is signalled by the underlying model. When the model changes,
- * this will drop the cursor down to the last line in the QListview to ensure
- * the user can always see the latest log message.
- */
 void MainWindow::updateLoggingView() {
 	ui.view_logging->scrollToBottom();
 }
-
-/*****************************************************************************
- ** Implementation [Menu]
- *****************************************************************************/
 
 void MainWindow::on_actionAbout_triggered() {
 	QMessageBox::about(this, tr("About ..."),
 			tr(
 					"<h2>PACKAGE_NAME Test Program 0.10</h2><p>Copyright Yujin Robot</p><p>This package needs an about description.</p>"));
 }
-
-/*****************************************************************************
- ** Implementation [Configuration]
- *****************************************************************************/
 
 void MainWindow::ReadSettings() {
 	QSettings settings("Qt-Ros Package", "pap_gui");
@@ -985,7 +961,6 @@ void MainWindow::closeEvent(QCloseEvent *event) {
 
 void MainWindow::cameraUpdated(int index) {
 	int width = ui.camera1->width();
-	//ROS_INFO("Width : %d , Height %d Image-Width %d: Image-Height: %d",ui.camera1->width(),ui.camera1->height(),qnode.getCamera1()->size().width(),qnode.getCamera1()->size().height());
 	int height = ui.camera1->height() - 2;
 	QImage camera1Scaled = qnode.getCamera1()->scaled(width, height,
 			Qt::KeepAspectRatio);
@@ -1331,6 +1306,7 @@ void MainWindow::on_startChipFinder_Button_clicked() {
 }
 
 void MainWindow::on_startSmallSMDFinder_Button_clicked() {
+	// TODO: Take size values from the database!
 	if (ui.SmallSMD_Combo->currentText() == "0805") {
 		qnode.sendTask(pap_common::VISION, pap_vision::START_SMALL_FINDER, 1.25,
 				2.0, 0.0);
@@ -1345,6 +1321,7 @@ void MainWindow::on_startSmallSMDFinder_Button_clicked() {
 }
 
 void MainWindow::on_startTapeFinder_Button_clicked() {
+	// TODO: Take size values from the database!
 	if (ui.tapeFinder_Combo->currentText() == "0805") {
 		qnode.sendTask(pap_common::VISION, pap_vision::START_TAPE_FINDER, 1.25,
 				2.0, 0.0);
@@ -1383,11 +1360,9 @@ void MainWindow::displaySMDCoords(float x, float y, float rot) {
 	ui.smdRotTop_Label->setText(QString("Rot: ") + QString::number(rot));
 }
 
-void MainWindow::setMousePoint(QPointF point) {
+void MainWindow::setCamera1Point(QPointF point) {
 	float percentageX = (100.0 / (float) ui.camera1->width()) * point.x();
 	float percentageY = (100.0 / (float) ui.camera1->height()) * point.y();
-	//qnode.sendTask(pap_common::VISION, pap_vision::STOP_VISION);
-	//ROS_INFO("Received coord %f %f", percentageX, percentageY);
 }
 
 void MainWindow::setFiducial(QPointF point) {
@@ -1408,6 +1383,8 @@ void MainWindow::setFiducial(QPointF point) {
 	timer->start(1000);
 
 	loop.exec(); //blocks untill either signalPosition or timeout was fired
+
+	// Is timeout ocurred?
 	if (!timer->isActive()) {
 		qnode.sendTask(pap_common::VISION, pap_vision::START_PAD_FINDER);
 		QMessageBox msgBox;
@@ -1418,13 +1395,6 @@ void MainWindow::setFiducial(QPointF point) {
 		msgBox.close();
 		return;
 	}
-
-	/*
-	 double xCoord = QInputDialog::getDouble(this, "Fiducial X", "X-Coordinate:",
-	 0.0);
-	 double yCoord = QInputDialog::getDouble(this, "Fiducial Y", "Y-Coordinate:",
-	 0.0);
-	 */
 
 	qnode.sendTask(pap_common::VISION, pap_vision::START_PAD_FINDER);
 	if (ui.fiducialTable->fiducialSize_ == 0) {
@@ -1478,6 +1448,7 @@ void MainWindow::setFiducialTable(int number, float xGlobal, float yGlobal) {
 	ui.fiducialTable->fiducialSize_++;
 }
 
+// This function is fired from the PadView Class
 void MainWindow::setFiducialPads(int number, float x, float y) {
 	ui.fiducialTable->setItem(number, 0,
 			new QTableWidgetItem(QString::number(x)));
@@ -1511,7 +1482,6 @@ void MainWindow::on_inputPad_Button_clicked() {
 	//get a filename to open
 	QString gerberFile = QFileDialog::getOpenFileName(this, tr("Open Whl file"),
 			"/home", tr("Text Files (*.txt  *.Whl)"));
-	//std::cout << "Got filename: " << gerberFile.toStdString() << std::endl;
 
 	const char *filenameWhl = gerberFile.toLatin1().data();
 
@@ -1520,11 +1490,12 @@ void MainWindow::on_inputPad_Button_clicked() {
 	//get a filename to open
 	gerberFile = QFileDialog::getOpenFileName(this, tr("Open PasteBot file"),
 			"/home", tr("Text Files (*.txt  *.PasteBot)"));
-	//std::cout << "Got filename: " << gerberFile.toStdString() << std::endl;
 
 	const char *filenamePaste = gerberFile.toLatin1().data();
 
+	// First load shape data from .Whl file
 	padParser.loadFile(filenamePaste);
+	// Then load cad file .PasteBot
 	padParser.setTable(ui.padTable);
 	padFileLoaded_ = true;
 }
@@ -1533,6 +1504,14 @@ void MainWindow::on_padViewSetSize_button_clicked() {
 	padParser.setSize(ui.padViewHeight_text->text().toFloat(),
 			ui.padViewWidth_text->text().toFloat());
 	sizeDefined_ = true;
+
+	QMessageBox msgBox;
+	const QString title = "Size Definition";
+	msgBox.setWindowTitle(title);
+	msgBox.setText("Size saved...");
+	msgBox.exec();
+	msgBox.close();
+	return;
 }
 
 void MainWindow::on_padViewGenerate_button_clicked() {
@@ -1548,6 +1527,7 @@ void MainWindow::on_padViewGenerate_button_clicked() {
 		return;
 	}
 
+	// Build image with QGraphicsItem
 	padParser.renderImage(&scenePads_, ui.padView_Image->width() - 20,
 			ui.padView_Image->height() - 20);
 

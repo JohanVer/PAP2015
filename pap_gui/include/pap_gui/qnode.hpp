@@ -43,8 +43,6 @@
 #include "../../../pap_placer/include/pap_placer/placerClass.hpp"
 #include <vector>
 
-//#include <cv_bridge/cv_bridge.h>
-
 /*****************************************************************************
 ** Namespaces
 *****************************************************************************/
@@ -55,6 +53,7 @@ namespace pap_gui {
 ** Class
 *****************************************************************************/
 
+// TODO: This is redundant
 class controllerStatus {
 public:
 	controllerStatus() {
@@ -94,10 +93,13 @@ public:
 	controllerStatus* getStatus(){ return motorcontrollerStatus;}
 	void log( const LogLevel &level, const std::string &msg);
 	void cameraCallback(const sensor_msgs::Image::ConstPtr& camera_msg);
+
 	void sendTask(pap_common::DESTINATION,pap_common::TASK);
 	void sendTask(pap_common::DESTINATION,pap_vision::VISION);
 	void sendTask(pap_common::DESTINATION destination,pap_common::TASK task, float x, float y, float z );
 	void sendTask(pap_common::DESTINATION destination,pap_vision::VISION task,float x, float y, float z);
+	void sendTask(pap_common::DESTINATION destination, pap_common::TASK task,ComponentPlacerData componentData);
+
 	void statusCallback(const pap_common::StatusConstPtr&  statusMsg);
 	void visionStatusCallback(const pap_common::VisionStatusConstPtr&  statusMsg);
 	void sendRelaisTask(int relaisNumber,bool value);
@@ -106,8 +108,6 @@ public:
 	void setLEDTask(int LEDnumber);
 	void resetLEDTask(int LEDnumber);
 
-	void sendTask(pap_common::DESTINATION destination, pap_common::TASK task,ComponentPlacerData componentData);
-
 Q_SIGNALS:
 	void loggingUpdated();
 	void statusUpdated(int index);
@@ -115,8 +115,6 @@ Q_SIGNALS:
     void rosShutdown();
     void smdCoordinates(float x,float y,float rot);
     void signalPosition(float x,float y);
-
-
 
 private:
 	int init_argc;

@@ -131,7 +131,7 @@ public Q_SLOTS:
     void on_StartStopVision_Button_clicked();
     // Display Functions
     void displaySMDCoords(float x,float y,float rot);
-    void setMousePoint (QPointF point);
+    void setCamera1Point(QPointF point);
     void setFiducial(QPointF point);
     void setFiducialTable(int number,float xGlobal, float yGlobal);
     void setFiducialPads(int number, float x, float y);
@@ -159,12 +159,16 @@ public Q_SLOTS:
 private:
 	Ui::MainWindowDesign ui;
 	QNode qnode;
+
+	// Structures for holding the camera1 image (top camera)
 	QPixmap cameraPicture1;
 	QGraphicsScene scene_;
 
+	// Structures for holding the rendered image of the pcb
 	QPixmap renderedPadsPixmap;
 	graphicsScene scenePads_;
 
+	// Variables of the valves
 	bool valve1Active_;
 	bool valve2Active_;
 	bool valve3Active_;
@@ -174,6 +178,8 @@ private:
 	bool valve7Active_;
 	bool valve8Active_;
 	bool visionStarted_, sizeDefined_,padFileLoaded_;
+
+	// Variables for fiducial marking
     QTableView tableView;
     int fiducialSize_;
     QPointF padPosition_;

@@ -22,9 +22,7 @@ ClickGraphicsView::~ClickGraphicsView() {
 ClickGraphicsView::ClickGraphicsView(QWidget *parent) :
 QGraphicsView(parent)
 {
-//scene = new QGraphicsScene();
-//this->setSceneRect(50, 50, 350, 350);
-//this->setScene(scene);
+
 
 }
 
@@ -33,12 +31,6 @@ void ClickGraphicsView::mousePressEvent(QMouseEvent * e)
 QPointF pt = mapToScene(e->pos());
 Q_EMIT sendMousePoint (pt);
 //delete (&pt);
-
-}
-void ClickGraphicsView::mouseMoveEvent (QMouseEvent *move)
-{
-//QPointF movment= mapToScene (move->pos ());
-//delete (&movment);
 
 }
 
