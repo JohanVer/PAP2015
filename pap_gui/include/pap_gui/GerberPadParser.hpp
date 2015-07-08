@@ -78,7 +78,7 @@ private:
 	std::vector<ShapeInformation> shapeInformationArray_;
 	std::vector<QRectF> printedRects;
 	double pixelConversionFactor;
-	cv::Rect pcbSize;
+	QRectF pcbSize;
 	float height_, width_,outerRectRot_;
 	tf::Transform transformIntoGlobalPoint_, transTransformIntoRobot_,rotation_;
 	float differenceAngle_;
