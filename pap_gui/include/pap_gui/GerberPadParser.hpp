@@ -14,6 +14,7 @@
 #include <vector>
 #include <QPoint>
 #include <ros/ros.h>
+#include <tf/transform_broadcaster.h>
 #include <QString>
 #include <QStandardItemModel>
 #include <QTableWidget>
@@ -31,9 +32,9 @@
 #include <QGraphicsObject>
 #include <QRectF>
 
-class PadInformation{
-	public:
-	PadInformation(){
+class PadInformation {
+public:
+	PadInformation() {
 		rotation = 0.0;
 	}
 	QRectF rect;
@@ -41,9 +42,9 @@ class PadInformation{
 	float rotation;
 };
 
-class ShapeInformation{
+class ShapeInformation {
 public:
-	ShapeInformation(){
+	ShapeInformation() {
 		shapeIndex = 0;
 		shapeStr = "";
 		rotation = 0.0;
@@ -58,14 +59,17 @@ class GerberPadParser {
 public:
 	GerberPadParser();
 	virtual ~GerberPadParser();
-	float parseFloat(std::string line,std::size_t start, std::size_t end);
+	float parseFloat(std::string line, std::size_t start, std::size_t end);
 	void loadFile(std::string fileName);
 	void parseShapes(std::string fileName);
-	bool searchShape(int shapeIndex,PadInformation* pad);
+	bool searchShape(int shapeIndex, PadInformation* pad);
 	void setSize(float height, float width);
-	void renderImage(QGraphicsScene* scene,int width, int height);
+	void renderImage(QGraphicsScene* scene, int width, int height);
 	void setTable(QTableWidget* table);
-	int searchId(QPointF position,int height);
+	int searchId(QPointF position, int height);
+	float calibratePads(QPointF local1, QPointF local2, QPointF global1,
+			QPointF global2);
+	void rotatePads(void);
 
 	// TODO: Make getter/setter for this public variable array
 	std::vector<PadInformation> padInformationArray_;
@@ -75,7 +79,9 @@ private:
 	std::vector<QRectF> printedRects;
 	double pixelConversionFactor;
 	cv::Rect pcbSize;
-	float height_,width_;
+	float height_, width_,outerRectRot_;
+	tf::Transform transformIntoGlobalPoint_, transTransformIntoRobot_,rotation_;
+	float differenceAngle_;
 };
 
 #endif /* PAP_GUI_SRC_GERBERPADPARSER_HPP_ */

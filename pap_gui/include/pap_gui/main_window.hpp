@@ -143,6 +143,7 @@ public Q_SLOTS:
     void on_padViewGenerate_button_clicked();
     void initPadTable(int rows);
     void padPressed(int numberOfFiducial,QPointF padPos);
+    void on_calcOrientation_Button_clicked();
 
     void on_pickupComponentButton_clicked();
     void on_goToComponentButton_clicked();
