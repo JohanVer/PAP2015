@@ -283,6 +283,7 @@ void GerberPadParser::loadFile(std::string fileName) {
 		}
 
 	}
+
 	ROS_INFO("Parsed %d pads...", (int )padInformationArray_.size());
 }
 
@@ -296,10 +297,10 @@ void GerberPadParser::renderImage(QGraphicsScene* scene, int width,
 
 	printedRects.clear();
 	scene->clear();
-/*
-	pcbSize.x = 0;
-	pcbSize.y = 0;
-	*/
+
+	//pcbSize.x = 0;
+	//pcbSize.y = 0;
+
 	pixelConversionFactor = 0.0;
 	double pixelWidth = (double) width / (double) width_;
 	double pixelHeight = (double) height / (double) height_;
@@ -312,8 +313,6 @@ void GerberPadParser::renderImage(QGraphicsScene* scene, int width,
 		pixelConversionFactor = pixelWidth;
 	}
 
-	//ROS_INFO("PixConv %f", pixelConversionFactor);
-
 	pcbSize.setWidth((unsigned int) (width_ * pixelConversionFactor));
 	pcbSize.setHeight((unsigned int) (height_ * pixelConversionFactor));
 
@@ -321,13 +320,14 @@ void GerberPadParser::renderImage(QGraphicsScene* scene, int width,
 	//ROS_INFO("X: %d Y: %d W: %d H: %d", pcbSize.x(), pcbSize.y(), pcbSize.width(),
 	//		pcbSize.height());
 
+
 	QGraphicsRectItem *rect = new QGraphicsRectItem(pcbSize.x(), pcbSizeY,
 			pcbSize.width(), pcbSize.height());
 	rect->setTransformOriginPoint(pcbSize.x(),pcbSizeY);
-	rect->setRotation(outerRectRot_);
-	rect->setPen(QPen(Qt::red, 3, Qt::DashDotLine));
-
+	rect->setRotation(-outerRectRot_);
+	rect->setPen(QPen(Qt::blue, 3, Qt::DashDotLine));
 	scene->addItem(rect);
+
 
 	// Draw Pads
 	for (std::size_t i = 0; i < padInformationArray_.size(); i++) {
@@ -408,7 +408,7 @@ void GerberPadParser::rotatePads(void){
 	// calculated from the local positions
 	// 2. Transform all points of the global pad coordinate system into the local robot
 	// coordinate system
-	//ROS_INFO("Before  %f ",transformIntoGlobalPoint_.getOrigin().getX());
+
 	tf::Transform backTransform = transformIntoGlobalPoint_;
 	for(size_t i = 0; i < padInformationArray_.size(); i++){
 
@@ -431,22 +431,9 @@ void GerberPadParser::rotatePads(void){
 		padInformationArray_[i].rect.setWidth(width);
 		padInformationArray_[i].rect.setHeight(height);
 		padInformationArray_[i].rotation = differenceAngle_*(180.0/M_PI);
+		ROS_INFO("After X: %f Y: %f Width: %f Height %f",padInformationArray_[i].rect.x(),padInformationArray_[i].rect.y(),padInformationArray_[i].rect.width(),padInformationArray_[i].rect.height());
 	}
 
-	tf::Point pointToTransformOuterRect;
-
-	//ROS_INFO("After  %f ",transformIntoGlobalPoint_.getOrigin().getX());
-	pointToTransformOuterRect.setX(pcbSize.x());
-	pointToTransformOuterRect.setY(pcbSize.y());
-	pointToTransformOuterRect = pointToTransformOuterRect - transformIntoGlobalPoint_.getOrigin() ;
-	pointToTransformOuterRect = rotation_*pointToTransformOuterRect;
-	pointToTransformOuterRect = pointToTransformOuterRect + transformIntoGlobalPoint_.getOrigin();
-
-	//ROS_INFO("After X %f Y %f test %f",pointToTransformOuterRect.getX(),pointToTransformOuterRect.getY(),transformIntoGlobalPoint_.getOrigin());
-	//outerRectRot_ = differenceAngle_*(180.0/M_PI);
-	//pcbSize.setX(-pointToTransformOuterRect.getX()*pixelConversionFactor);
-	//pcbSize.setY(pointToTransformOuterRect.getY()*pixelConversionFactor);
-	//ROS_INFO("After X %f Y %f test %f",pcbSize.x(),pcbSize.y(),transformIntoGlobalPoint_.getOrigin());
 
 	ROS_INFO("Calibration: Transformed %d pads...",(int)padInformationArray_.size());
 }
