@@ -2,6 +2,9 @@
 #include <tf/transform_broadcaster.h>
 #include "math.h"
 #include "../../motor_controller/include/motorController/controllerClass.hpp"
+#include "../../pap_common/include/pap_common/arduino_message_def.h"
+#include <pap_common/ArduinoMsg.h>
+#include <pap_common/Status.h>
 
 /*****************************************************************************
  * Parameter
@@ -18,9 +21,8 @@ double accXDelay = 300;			// mm/s²
 double accYDelay = 300;
 double accZDelay = 300;
 
-double xHome = 0.0;				// mm
-double yHome = 0.0;
-double zHome = 0.0;
+double xHome, yHome, zHome = 0.0;	// mm
+double tip1Home, tip2Home = 0.0;
 
 bool energized = false;
 bool controllerEnergized = false;
@@ -45,6 +47,7 @@ void simulateZAxisMovement(void);
 struct state {
 	double x, y, z;
 	double vx, vy, vz;
+	double tip1, tip2;
 } currentState;
 
 double matrix[6][6] = { { ts, 0.0, 0.0, 0.5 * pow(ts, 2.0), 0.0, 0.0 }, { 0.0,
@@ -80,6 +83,21 @@ void checkStatusController(int numberOfController,
 		stateMessage.status = pap_common::POSITIONNOTREACHED;
 	}
 	statusPublisher.publish(stateMessage);
+}
+
+void parseArduinoTask(const pap_common::ArduinoMsg& taskMsg) {
+	if ((taskMsg.command == 2 && taskMsg.data == 3) ||  (taskMsg.command == 1 && taskMsg.data == 6)) {
+		currentState.tip1 = -20.00;
+	} else if ((taskMsg.command == 1 && taskMsg.data == 3) ||  (taskMsg.command == 2 && taskMsg.data == 6)) {
+		currentState.tip1 = 0.00;
+	}
+	if (taskMsg.data == 7) {
+		if(taskMsg.command == 1) {
+			currentState.tip2 = -20.00;
+		} else {
+			currentState.tip2 = 0.00;
+		}
+	}
 }
 
 void parseTask(const pap_common::TaskConstPtr& taskMsg) {
@@ -182,23 +200,6 @@ void parseTask(const pap_common::TaskConstPtr& taskMsg) {
 	}
 }
 
-double vectors_dot_prod(const double *x, const double *y, int n) {
-	double res = 0.0;
-	int i;
-	for (i = 0; i < n; i++) {
-		res += x[i] * y[i];
-	}
-	return res;
-}
-
-void matrix_vector_mult(const double **mat, const double *vec, double *result,
-		int rows, int cols) { // in matrix form: result = mat * vec;
-	int i;
-	for (i = 0; i < rows; i++) {
-		result[i] = vectors_dot_prod(mat[i], vec, cols);
-	}
-}
-
 void simulate_next_step(double accX, double accY, double accZ, double ts) {
 
 	const double result[6] = { 0, 0, 0, 0, 0, 0 };
@@ -240,19 +241,21 @@ void simulate_next_step_z(double accZ, double ts) {
 }
 
 
+
 int main(int argc, char **argv) {
 	ros::init(argc, argv, "tf_sender");
 	ros::NodeHandle n;
 	ros::Rate loop_rate(100);
 	ros::Subscriber taskSubscriber_ = n.subscribe("task", 1, &parseTask);
+	ros::Subscriber ardunioTaskSubscriber_ = n.subscribe("arduinoTx", 1, &parseArduinoTask);
 	statusPublisher = n.advertise<pap_common::Status>("status", 1000);
 
 	// Initialize positions
 	currentState.x = xHome;
 	currentState.y = yHome;
 	currentState.z = zHome;
-
-	// Send transformBroadcast to initial position?
+	currentState.tip1 = tip1Home;
+	currentState.tip2 = tip2Home;
 
 	while (ros::ok()) {
 
@@ -262,7 +265,8 @@ int main(int argc, char **argv) {
 			if (distZTotal != 0) simulateZAxisMovement();
 		}
 
-		sendTransforms((currentState.x/1000), (currentState.y/1000), (currentState.z/1000), 0.0, 0.0);
+		// Init and set tips!
+		sendTransforms((currentState.x/1000), (currentState.y/1000), (currentState.z/1000), (currentState.tip1/1000), (currentState.tip2/1000));
 
 		ros::spinOnce();
 		loop_rate.sleep();
@@ -436,7 +440,7 @@ void simulateYAxisMovement() {
 			if (abs(currentState.vy) < maxVelocity) {
 				simulate_next_step_y(-accY, ts);			// Accelerate until Vmax
 			} else {
-				currentState.y = -maxVelocity;
+				currentState.vy = -maxVelocity;
 				simulate_next_step_y(0, ts);				// stay at Vmax
 			}
 
@@ -624,7 +628,8 @@ void sendTransforms(double x, double y, double z, double nozzle_1,
 	transformZ.setRotation(qZ);
 
 	// Stepper1-Link
-	transformS1.setOrigin(tf::Vector3(-0.044085 + y, 0.2214 + x, 0.10935+z));
+	//transformS1.setOrigin(tf::Vector3(-0.044085 + y, 0.2214 + x, 0.10935+z));
+	transformS1.setOrigin(tf::Vector3(-0.044085 + y, 0.2214 + x, 0.10935 + z + nozzle_1));
 	tf::Quaternion qS1;
 	qS1.setX(0.00737794);
 	qS1.setY(-0.706695);
@@ -633,7 +638,8 @@ void sendTransforms(double x, double y, double z, double nozzle_1,
 	transformS1.setRotation(qS1);
 
 	// Stepper2-Link
-	transformS2.setOrigin(tf::Vector3(-0.11908 + y, 0.22134 + x, 0.10935 +z));
+	//transformS2.setOrigin(tf::Vector3(-0.11908 + y, 0.22134 + x, 0.10935 +z));
+	transformS2.setOrigin(tf::Vector3(-0.11908 + y, 0.22134 + x, 0.10935 + z + nozzle_2));		// Change Niko
 	tf::Quaternion qS2;
 	qS2.setX(0.00737794);
 	qS2.setY(-0.706695);

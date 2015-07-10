@@ -17,18 +17,45 @@
  ** Implementation
  *****************************************************************************/
 PlaceController::PlaceController() {
+
 	calibrationStatus = true;
 
-	pcbOriginOffset.x = 100;
-	pcbOriginOffset.y = 160;
-	pcbOriginOffset.z = 50;
-	pickUpAreaOffset.x = 15;
-	pickUpAreaOffset.y = 350;
-	pickUpAreaOffset.z = 60;
-	cameraBottomOffset.x = 0;
-	cameraBottomOffset.y = 0;
-	cameraBottomOffset.z = 0;
+	// Move:  	z = 30.0;
 
+	// Rough offset values - need to be refined
+	pcbOriginOffset.x = 282;
+	pcbOriginOffset.y = 149;
+	pcbOriginOffset.z = 0.1;
+	pickUpAreaOffset.x = 109;
+	pickUpAreaOffset.y = 261;
+	pickUpAreaOffset.z = 0.1;
+	cameraBottomOffset.x = 236;
+	cameraBottomOffset.y = 197;
+	cameraBottomOffset.z = 0.1;
+
+	// Offsets relative to camera
+	tipRightOffset.x = -50;
+	tipRightOffset.y = 50;
+	tipRightOffset.z = 0;
+	tipLeftOffset.x = -50;
+	tipLeftOffset.y = 5;
+	tipLeftOffset.z = 0;
+	dispenserTipOffset.x = -40;
+	dispenserTipOffset.y = 25;
+	dispenserTipOffset.z = 0;
+
+	// Correction offsets
+	PickUpCorrection.x = 5;
+	PickUpCorrection.y = 5;
+	PickUpCorrection.z = 5;
+	PickUpRotCorrection = 0;
+	PlaceCorrection.x = 0;
+	PlaceCorrection.y = 0;
+	PlaceCorrection.z = 0;
+	PlaceRotCorrection = 0;
+
+	// selceted Tip for placing current component
+	tip = LEFT_TIP;
 };
 PlaceController::~PlaceController(){
 
@@ -49,9 +76,76 @@ const Offset SmallBoxOffsetTable[59] = 	{	{0.0, 0.0}, {16.66, 0.0}, {33.32, 0.0}
 //const Offset TapeOffsetTable[15];
 
 
-void PlaceController::systemCalibration() {
-
+Offset PlaceController::getBoxCoordinates() {
+	Offset temp;
+	temp.x = pickUpAreaOffset.x + SmallBoxOffsetTable[currentComponent.box].x;
+	temp.y = pickUpAreaOffset.y + SmallBoxOffsetTable[currentComponent.box].y;
+	temp.z = pickUpAreaOffset.z;
+	return temp;
 };
+
+Offset PlaceController::getCompPickUpCoordinates() {
+	Offset temp;
+	switch (tip) {
+	case LEFT_TIP:
+		temp.x = pickUpAreaOffset.x + PickUpCorrection.x + SmallBoxOffsetTable[currentComponent.box].x + tipLeftOffset.x;
+		temp.y = pickUpAreaOffset.y + PickUpCorrection.y + SmallBoxOffsetTable[currentComponent.box].y + tipLeftOffset.y;
+		temp.z = pickUpAreaOffset.z + tipLeftOffset.z;
+		temp.rot = PickUpCorrection.rot;
+		break;
+	case RIGHT_TIP:
+		temp.x = pickUpAreaOffset.x + PickUpCorrection.x + SmallBoxOffsetTable[currentComponent.box].x + tipRightOffset.x;
+		temp.y = pickUpAreaOffset.y + PickUpCorrection.y + SmallBoxOffsetTable[currentComponent.box].y + tipRightOffset.y;
+		temp.z = pickUpAreaOffset.z + tipRightOffset.z;
+		temp.rot = PickUpCorrection.rot;
+		break;
+	}
+	return temp;
+};
+
+Offset PlaceController::getPCBCalibCoordinates() {
+	return pcbOriginOffset;
+};
+
+Offset PlaceController::getPCBCompCoordinates() {
+	Offset temp;
+	temp.x = pcbOriginOffset.x + currentComponent.destX;
+	temp.y = pcbOriginOffset.y + currentComponent.destY;
+	temp.z = pcbOriginOffset.z + currentComponent.height;
+	temp.rot = pcbOriginOffset.rot + currentComponent.rotation;
+	return temp;
+}
+
+Offset PlaceController::getCompPlaceCoordinates() {
+	Offset temp;
+	switch (tip) {
+	case LEFT_TIP:
+		temp.x = pcbOriginOffset.x + currentComponent.destX + PlaceCorrection.x + tipLeftOffset.x;
+		temp.y = pcbOriginOffset.y + currentComponent.destY + PlaceCorrection.y + tipLeftOffset.y;
+		temp.z = pcbOriginOffset.z + currentComponent.height + tipLeftOffset.z;
+		temp.rot = currentComponent.rotation + PlaceCorrection.rot;
+		break;
+	case RIGHT_TIP:
+		temp.x = pcbOriginOffset.x + currentComponent.destX + PlaceCorrection.x + tipRightOffset.x;
+		temp.y = pcbOriginOffset.y + currentComponent.destY + PlaceCorrection.y + tipRightOffset.y;
+		temp.z = pcbOriginOffset.z + currentComponent.height + tipRightOffset.z;
+		temp.rot = currentComponent.rotation + PlaceCorrection.rot;
+		break;
+	}
+	return temp;
+};
+
+void PlaceController::setPickUpCorrectionOffset(float xDiff, float yDiff, float rotDiff) {
+	PickUpCorrection.x = xDiff;
+	PickUpCorrection.y = yDiff;
+	PickUpCorrection.rot = rotDiff;
+}
+
+void PlaceController::setPlaceCorrectionOffset(float xDiff, float yDiff, float rotDiff) {
+	PlaceCorrection.x = xDiff;
+	PlaceCorrection.y = yDiff;
+	PlaceCorrection.rot = rotDiff;
+}
 
 float PlaceController::getComponentLenth() {
 	return currentComponent.length;
@@ -61,48 +155,36 @@ float PlaceController::getComponentWidth() {
 	return currentComponent.width;
 }
 
-int PlaceController::getSelectedFinder() {
-	return 3;	// Chipfinder = 3, smallFinder = 4, tapeFinder = 5
-};
-
-bool PlaceController::getSelcetedTip() {
-	return true;	// Left tip
-};
-
 int PlaceController::getBoxNumber() {
 	return currentComponent.box;
 };
 
 
+// TODO: Choose tip according to component type and position!
+int PlaceController::selectFinder() {
+	return 3;	// Chipfinder = 3, smallFinder = 4, tapeFinder = 5
+};
+int PlaceController::selectTip() {
+	return tip;	// Left tip
+};
+
+
+
+
+
+
+
+
+void PlaceController::systemCalibration() {
+
+};
+
 bool PlaceController::getCalibrationStatus() {
 	return calibrationStatus;
 };
 
-Offset PlaceController::getBoxCoordinates() {
-	Offset temp;
-	temp.x = pickUpAreaOffset.x + componentOffset.x + SmallBoxOffsetTable[currentComponent.box].x;
-	temp.y = pickUpAreaOffset.y + componentOffset.y + SmallBoxOffsetTable[currentComponent.box].y;
-	temp.z = pickUpAreaOffset.z;	// Add offset of corresponding tip, cylinder offset
-	return temp;
-};
-
-void PlaceController::setCompOffset(float xDiff, float yDiff, float rotDiff) {
-	componentOffset.x = xDiff;
-	componentOffset.y = yDiff;
-	componentRotDiff = rotDiff;
-}
-
-Offset PlaceController::getPCBCoordinates() {
-	Offset temp;
-	temp.x = pcbOriginOffset.x + currentComponent.destX;
-	temp.y = pcbOriginOffset.y + currentComponent.destY;
-	temp.z = pcbOriginOffset.z;		// Add offset of corresponding tip, cylinder offset
-	return temp;
-};
-
 void PlaceController::updatePlacementData(ComponentPlacerData * data) {
 	currentComponent.box = data->box;
-	//currentComponent.box = 12;
 	currentComponent.destX = data->destX;
 	currentComponent.destY = data->destY;
 	currentComponent.height = data->height;

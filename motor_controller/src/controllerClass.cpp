@@ -157,7 +157,7 @@ float motorController::readFloat32AddressParker(unsigned char addressDevice,
 		if ((crc_h == readBuffer[numToRead - 2])
 				&& (crc_l == readBuffer[numToRead - 1]) && (readBuffer[0] = 0x05)) {
 			float f;
-			unsigned char b[] = {readBuffer[2], readBuffer[3], readBuffer[4], readBuffer[5]};
+			unsigned char b[] = {readBuffer[5], readBuffer[4], readBuffer[3], readBuffer[2]};
 			memcpy(&f, &b, sizeof(f));
 			return f;
 		} else {
@@ -528,7 +528,7 @@ int motorController::gotoCoord(float x, float y, float z) {
 
 	if (controllerConnected_1_) {
 		// Setting lines and collumns in the postion-set
-		if (!setSetting(1, 1, x, 50.0, 600, 800)) {
+		if (!setSetting(1, 1, x, 50.0, 300, 600)) {
 			error = X_ERROR;
 		}
 	} else {

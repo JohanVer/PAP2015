@@ -51,13 +51,13 @@ int main(int argc, char **argv) {
 	image_pub_ = it_.advertise("camera1", 1);
 
 	//CvCapture* capture = cvCaptureFromCAM(CV_CAP_ANY);
-	//CvCapture* capture = cvCaptureFromCAM(1);
+	CvCapture* capture = cvCaptureFromCAM(1);
 	int id_counter = 0;
 
 	while (ros::ok()) {
-		//IplImage* frame = cvQueryFrame(capture); //Create image frames from capture
-		//cv::Mat input(frame);
-		cv::Mat input;
+		IplImage* frame = cvQueryFrame(capture); //Create image frames from capture
+		cv::Mat input(frame);
+		//cv::Mat input;
 		id_counter++;
 		cv_bridge::CvImage out_msg;
 		smdPart smd;
@@ -65,29 +65,30 @@ int main(int argc, char **argv) {
 		if (visionEnabled) {
 			switch (visionState) {
 			case IDLE:
-				input =
+				/*/input =
 						cv::imread(
-								"/home/nikolas/Desktop/Webcam_Pictures/Webcam-1435326531.png");
+								"/home/nikolas/Desktop/Webcam_Pictures/Webcam-1435326531.png");*/
 				break;
 			case CHIP:
 				// Chip
-				input =
+				/*input =
 						cv::imread(
-								"/home/nikolas/Desktop/Webcam_Pictures/Webcam-1435311766.png");
+								"/home/nikolas/Desktop/Webcam_Pictures/Webcam-1435311766.png");*/
 				smd = finder.findChip(&input);
 				if (smd.x != 0.0 && smd.y != 0.0) {
 					visionMsg.task = pap_vision::START_CHIP_FINDER;
 					visionMsg.data1 = smd.x;
 					visionMsg.data2 = smd.y;
 					visionMsg.data3 = smd.rot;
+					ROS_INFO("X %f, Y %f",smd.x,smd.y);
 					statusPublisher.publish(visionMsg);
 				}
 				break;
 			case SMALL_SMD:
 				// SMD Chip
-				input =
+				/*input =
 						cv::imread(
-								"/home/nikolas/Desktop/Webcam_Pictures/Webcam-1435326387.png");
+								"/home/nikolas/Desktop/Webcam_Pictures/Webcam-1435326387.png");*/
 				smd = finder.findSmallSMD(&input);
 				if (smd.x != 0.0 && smd.y != 0.0) {
 					visionMsg.task = pap_vision::START_SMALL_FINDER;
@@ -99,9 +100,9 @@ int main(int argc, char **argv) {
 				break;
 			case TAPE:
 				// SMD Tape
-				input =
+				/*input =
 						cv::imread(
-								"/home/nikolas/Desktop/Webcam_Pictures/Webcam-1435327178.png");
+								"/home/nikolas/Desktop/Webcam_Pictures/Webcam-1435327178.png");*/
 				smd = finder.findSMDTape(&input);
 				if (smd.x != 0.0 && smd.y != 0.0) {
 					visionMsg.task = pap_vision::START_TAPE_FINDER;
@@ -113,9 +114,9 @@ int main(int argc, char **argv) {
 				break;
 			case PAD:
 				// Pads
-				input =
+				/*input =
 						cv::imread(
-								"/home/nikolas/Desktop/Webcam_Pictures/Webcam-1435326531.png");
+								"/home/nikolas/Desktop/Webcam_Pictures/Webcam-1435326531.png");*/
 				cv::Point2f position = finder.findPads(&input, selectPad,
 						selectPoint);
 				ROS_INFO("X %f Y  %f",position.x,position.y);
@@ -130,9 +131,9 @@ int main(int argc, char **argv) {
 
 			}
 		} else {
-			input =
+			/*input =
 					cv::imread(
-							"/home/nikolas/Desktop/Webcam_Pictures/Webcam-1435326531.png");
+							"/home/nikolas/Desktop/Webcam_Pictures/Webcam-1435326531.png");*/
 		}
 
 		// Crosshairs

@@ -149,6 +149,11 @@ public Q_SLOTS:
     void on_goToPCBButton_clicked();
     void on_placeComponentButton_clicked();
     void updatePlacementData();
+
+    void keyPressEvent(QKeyEvent *e);
+    void keyReleaseEvent(QKeyEvent *e);
+
+    void on_calibrationButton_clicked();
     //QWizardPage *createIntroPage();
 
     /******************************************

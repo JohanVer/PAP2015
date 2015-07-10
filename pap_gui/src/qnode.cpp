@@ -215,6 +215,18 @@ void QNode::statusCallback(const pap_common::StatusConstPtr& statusMsg) {
 		motorcontrollerStatus[index].error = false;
 	}
 
+	switch(index) {
+	case pap_common::XMOTOR:
+		motorcontrollerStatus[index].pos = statusMsg->posX;
+		break;
+	case pap_common::YMOTOR:
+		motorcontrollerStatus[index].pos = statusMsg->posY;
+		break;
+	case pap_common::ZMOTOR:
+		motorcontrollerStatus[index].pos = statusMsg->posZ;
+		break;
+	}
+
 	Q_EMIT statusUpdated(index);
 }
 

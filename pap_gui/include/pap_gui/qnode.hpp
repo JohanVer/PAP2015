@@ -60,8 +60,10 @@ public:
 		error = false;
 		energized = false;
 		positionReached = false;
+		pos = 0;
 	}
 
+	float pos;
 	bool error;
 	bool energized;
 	bool positionReached;
@@ -127,6 +129,7 @@ private:
     cv_bridge::CvImagePtr cv_ptr;
     controllerStatus motorcontrollerStatus[3];
     QImage cameraImage_;
+
 };
 
 }  // namespace pap_gui

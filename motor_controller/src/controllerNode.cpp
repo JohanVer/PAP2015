@@ -23,6 +23,8 @@ void checkStatusController(int numberOfController,
 		controllerStatus* controllerStatusAct,
 		controllerStatus* controllerStatusOld) {
 	*controllerStatusAct = controller.getStatusController(numberOfController);
+	float Position = controller.getPosition(numberOfController);
+
 	pap_common::Status stateMessage;
 	stateMessage.data1 = numberOfController;
 	if (xTimeOutTimer > TIMEOUT) {
@@ -73,6 +75,23 @@ void checkStatusController(int numberOfController,
 		return;
 	}
 
+	switch (numberOfController) {
+	case pap_common::XMOTOR:
+		stateMessage.posX = Position;
+		//ROS_INFO("posX: %f", Position);
+		break;
+
+	case pap_common::YMOTOR:
+		stateMessage.posY = Position;
+		//ROS_INFO("posY: %f", Position);
+		break;
+
+	case pap_common::ZMOTOR:
+		stateMessage.posZ = Position;
+		//ROS_INFO("posZ: %f", Position);
+		break;
+	}
+
 //	if (controllerStatusAct->energized != controllerStatusOld->energized) {
 
 	if (controllerStatusAct->energized) {
@@ -113,7 +132,7 @@ int main(int argc, char **argv) {
 	ros::init(argc, argv, "motorController");
 
 	ros::NodeHandle n;
-	ros::Subscriber taskSubscriber_ = n.subscribe("task", 1, &parseTask);
+	ros::Subscriber taskSubscriber_ = n.subscribe("task", 10, &parseTask);
 	statusPublisher = n.advertise<pap_common::Status>("status", 1000);
 
 	ROS_INFO("Motor controller started...");
@@ -164,7 +183,7 @@ void parseTask(const pap_common::TaskConstPtr& taskMsg) {
 			}
 			break;
 		case pap_common::CURRENT:
-			if (!controllerState1.energized) {
+			if (!controllerState3.energized) {
 				if (!controller.energizeAxis(1, true)) {
 					ROS_ERROR("Error while switching current on x-axis");
 					cmdExecuted = false;
@@ -250,7 +269,9 @@ void parseTask(const pap_common::TaskConstPtr& taskMsg) {
 			break;
 		case pap_common::GETPOSITION:
 
-			if(controller.controllerConnected_1_ && controller.controllerConnected_2_ && controller.controllerConnected_3_){
+			if (controller.controllerConnected_1_
+					&& controller.controllerConnected_2_
+					&& controller.controllerConnected_3_) {
 				float xPosition = controller.getPosition(1);
 				float yPosition = controller.getPosition(2);
 				float zPosition = controller.getPosition(3);

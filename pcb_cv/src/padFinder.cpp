@@ -134,19 +134,24 @@ smdPart padFinder::findChip(cv::Mat* input) {
 	cv::Mat final = input->clone();
 	std::vector<smdPart> smdObjects;
 	cv::cvtColor(*input, gray, CV_BGR2GRAY);
-	cv::threshold(gray, gray, 255, 255, CV_THRESH_BINARY_INV | CV_THRESH_OTSU);
+	cv::threshold(gray, gray, 255, 255, CV_THRESH_BINARY | CV_THRESH_OTSU);
 	cv::erode(gray, gray, cv::Mat(), cv::Point(-1, -1),
 	ERODE_ITERATIONS_CHIP_FINDER);
 	std::vector<std::vector<cv::Point> > contours;
 	std::vector<std::vector<cv::Point> > contoursSorted;
-	cv::findContours(gray.clone(), contours, CV_RETR_EXTERNAL,
+	cv::findContours(gray.clone(), contours, CV_RETR_TREE,
 			CV_CHAIN_APPROX_NONE);
 
+	//ROS_INFO("Contour Size %d",(int)contours.size());
 	for (int i = 0; i < contours.size(); i++) {
+
 		cv::RotatedRect rect = minAreaRect(contours[i]);
+		if(isBorderTouched(rect)){
+			continue;
+		}
 		float rectConvertedArea = rect.size.width / PIXEL_TO_MM
 				* rect.size.height / PIXEL_TO_MM;
-
+		ROS_INFO("Converted Area: %f, expected %f",rectConvertedArea,(partWidth_ * partHeight_));
 		if (rectConvertedArea
 				> ((partWidth_ * partHeight_) / 100.0)
 						* (100.0 - ERROR_PERCENT_CHIP)
@@ -161,8 +166,7 @@ smdPart padFinder::findChip(cv::Mat* input) {
 			smd.rot = rect.angle;
 			smdObjects.push_back(smd);
 			cv::drawContours(final, contours, i, CV_RGB(0, 255, 0), 2);
-		} else
-			break;
+		}
 	}
 
 	if (contoursSorted.size() > 1) {
@@ -177,12 +181,12 @@ smdPart padFinder::findChip(cv::Mat* input) {
 		smdFinal.y = (input->rows / 2 - 1) - smdFinal.y;
 	}
 
-	/*
+/*
 	 cv::imshow("grey", gray);
 	 cv::imshow("input", *input);
 	 cv::imshow("final", final);
-	 cv::waitKey(0);
-	 */
+	 cv::waitKey(0);*/
+
 	*input = final.clone();
 	return smdFinal;
 }

@@ -31,7 +31,8 @@ enum ARDUINO_TASK {
 void messageCb( const pap_common::ArduinoMsg& arduinoMsg){
   
   if(arduinoMsg.command == SETLED ){  
-    leds[arduinoMsg.data] = CRGB::Green;
+    //leds[arduinoMsg.data] = CRGB::Green;
+    leds[arduinoMsg.data].setHSV( 96, 255, 255);
     FastLED.show(); 
   }
 
@@ -49,7 +50,7 @@ void messageCb( const pap_common::ArduinoMsg& arduinoMsg){
 void setup()
 {
   // sanity check delay - allows reprogramming if accidently blowing power w/leds
-  delay(2000);
+  delay(200);
   
   FastLED.addLeds<CHIPSET, LED_PIN, RGB>(leds, NUM_LEDS);
 

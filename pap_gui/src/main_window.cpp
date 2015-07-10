@@ -10,6 +10,7 @@
  *****************************************************************************/
 
 #include <QtGui>
+#include <QKeyEvent>
 #include <QMessageBox>
 #include <iostream>
 #include "../include/pap_gui/main_window.hpp"
@@ -67,6 +68,7 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent) :
 		QMainWindow(parent), qnode(argc, argv) {
 	ui.setupUi(this); // Calling this incidentally connects all ui's triggers to on_...() callbacks in this class.
 	ui.centralwidget->setMouseTracking(true);
+
 	QObject::connect(ui.actionAbout_Qt, SIGNAL(triggered(bool)), qApp,
 			SLOT(aboutQt())); // qApp is a global variable for the application
 
@@ -1066,6 +1068,7 @@ void MainWindow::statusUpdated(int index) {
 		} else {
 			ui.posLabel1->setText("busy");
 		}
+		ui.label_posX->setText(QString::number((qnode.getStatus())[index].pos));
 		break;
 
 	case 2:
@@ -1086,6 +1089,7 @@ void MainWindow::statusUpdated(int index) {
 		} else {
 			ui.posLabel2->setText("busy");
 		}
+		ui.label_posY->setText(QString::number((qnode.getStatus())[index].pos));
 		break;
 
 	case 3:
@@ -1106,6 +1110,7 @@ void MainWindow::statusUpdated(int index) {
 		} else {
 			ui.posLabel3->setText("busy");
 		}
+		ui.label_posZ->setText(QString::number((qnode.getStatus())[index].pos));
 		break;
 	}
 }
@@ -1301,7 +1306,9 @@ void MainWindow::on_resetLEDButton_clicked() {
 }
 
 void MainWindow::on_startChipFinder_Button_clicked() {
-	qnode.sendTask(pap_common::VISION, pap_vision::START_CHIP_FINDER);
+	qnode.sendTask(pap_common::VISION, pap_vision::START_CHIP_FINDER,
+			ui.widthChipFinder_LineEdit->text().toFloat(),
+			ui.heightChipFinder_LineEdit->text().toFloat(), 0.0);
 	displaySMDCoords(0.0, 0.0, 0.0);
 }
 
@@ -1541,6 +1548,98 @@ void MainWindow::padPressed(int numberOfFiducial, QPointF padPos) {
 			padParser.padInformationArray_[id_].rect.x(),
 			padParser.padInformationArray_[id_].rect.y());
 }
+
+void MainWindow::on_calibrationButton_clicked() {
+	qnode.sendTask(pap_common::PLACER, pap_common::CALIBRATION);
+}
+
+void MainWindow::keyPressEvent(QKeyEvent *e) {
+
+	if (e->isAutoRepeat()) {
+		return;
+	}
+
+	switch (e->key()) {
+	case Qt::Key_S:
+		qnode.sendTask(pap_common::CONTROLLER, pap_common::MANUAL,
+				(float) pap_common::XMOTOR, (float) pap_common::FORWARD, 0.0);
+		//ROS_INFO("Pressed down xmotor");
+		break;
+	case Qt::Key_W:
+		qnode.sendTask(pap_common::CONTROLLER, pap_common::MANUAL,
+				(float) pap_common::XMOTOR, (float) pap_common::BACKWARD, 0.0);
+		//ROS_INFO("Pressed up xmotor");
+		break;
+	case Qt::Key_A:
+		qnode.sendTask(pap_common::CONTROLLER, pap_common::MANUAL,
+				(float) pap_common::YMOTOR, (float) pap_common::FORWARD, 0.0);
+		break;
+	case Qt::Key_D:
+		qnode.sendTask(pap_common::CONTROLLER, pap_common::MANUAL,
+				(float) pap_common::YMOTOR, (float) pap_common::BACKWARD, 0.0);
+		break;
+	case Qt::Key_PageDown:
+		qnode.sendTask(pap_common::CONTROLLER, pap_common::MANUAL,
+				(float) pap_common::ZMOTOR, (float) pap_common::BACKWARD, 0.0);
+		break;
+	case Qt::Key_PageUp:
+		qnode.sendTask(pap_common::CONTROLLER, pap_common::MANUAL,
+				(float) pap_common::ZMOTOR, (float) pap_common::FORWARD, 0.0);
+		break;
+	}
+}
+
+void MainWindow::keyReleaseEvent(QKeyEvent *e) {
+
+	if (e->isAutoRepeat()) {
+		return;
+	}
+	switch (e->key()) {
+	case Qt::Key_S:
+		qnode.sendTask(pap_common::CONTROLLER, pap_common::STOP,
+				(float) pap_common::XMOTOR, 0.0, 0.0);
+		qnode.sendTask(pap_common::CONTROLLER, pap_common::MANUAL,
+				(float) pap_common::XMOTOR, (float) pap_common::BACKWARD, 0.0);
+		qnode.sendTask(pap_common::CONTROLLER, pap_common::STOP,
+				(float) pap_common::XMOTOR, 0.0, 0.0);
+		ROS_INFO("Released down xmotor %d", (int )e->isAutoRepeat());
+		break;
+	case Qt::Key_W:
+		qnode.sendTask(pap_common::CONTROLLER, pap_common::STOP,
+				(float) pap_common::XMOTOR, 0.0, 0.0);
+		qnode.sendTask(pap_common::CONTROLLER, pap_common::MANUAL,
+				(float) pap_common::XMOTOR, (float) pap_common::FORWARD, 0.0);
+		qnode.sendTask(pap_common::CONTROLLER, pap_common::STOP,
+				(float) pap_common::XMOTOR, 0.0, 0.0);
+		ROS_INFO("Released up xmotor %d", (int )e->isAutoRepeat());
+		break;
+	case Qt::Key_A:
+		qnode.sendTask(pap_common::CONTROLLER, pap_common::STOP,
+				(float) pap_common::YMOTOR, 0.0, 0.0);
+		qnode.sendTask(pap_common::CONTROLLER, pap_common::MANUAL,
+				(float) pap_common::YMOTOR, (float) pap_common::BACKWARD, 0.0);
+		qnode.sendTask(pap_common::CONTROLLER, pap_common::STOP,
+				(float) pap_common::YMOTOR, 0.0, 0.0);
+		break;
+	case Qt::Key_D:
+		qnode.sendTask(pap_common::CONTROLLER, pap_common::STOP,
+				(float) pap_common::YMOTOR, 0.0, 0.0);
+		qnode.sendTask(pap_common::CONTROLLER, pap_common::MANUAL,
+				(float) pap_common::YMOTOR, (float) pap_common::FORWARD, 0.0);
+		qnode.sendTask(pap_common::CONTROLLER, pap_common::STOP,
+				(float) pap_common::YMOTOR, 0.0, 0.0);
+		break;
+	case Qt::Key_PageDown:
+		qnode.sendTask(pap_common::CONTROLLER, pap_common::STOP,
+				(float) pap_common::ZMOTOR, 0.0, 0.0);
+		break;
+	case Qt::Key_PageUp:
+		qnode.sendTask(pap_common::CONTROLLER, pap_common::STOP,
+				(float) pap_common::ZMOTOR, 0.0, 0.0);
+		break;
+	}
+}
+
 }
 // namespace pap_gui
 

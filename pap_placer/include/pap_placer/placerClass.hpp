@@ -58,6 +58,7 @@ public:
 	float x;
 	float y;
 	float z;
+	float rot;
 private:
 };
 
@@ -68,30 +69,44 @@ public:
 	~PlaceController();
 
 	Offset getBoxCoordinates();
-	Offset getPCBCoordinates();
+	Offset getCompPickUpCoordinates();
+	Offset getPCBCalibCoordinates();
+	Offset getPCBCompCoordinates();
+	Offset getCompPlaceCoordinates();
+	float getComponentLenth();
+	float getComponentWidth();
+
+	int selectFinder();
+	int selectTip();
+	void setPickUpCorrectionOffset(float xDiff, float yDiff, float rotDiff);
+	void setPlaceCorrectionOffset(float xDiff, float yDiff, float rotDiff);
+
 
 	void systemCalibration();
 
 	void updatePlacementData(ComponentPlacerData *data);
 	bool getCalibrationStatus();
 	int getBoxNumber();
-	bool getSelcetedTip();
-	int getSelectedFinder();
-	float getComponentLenth();
-	float getComponentWidth();
-	void setCompOffset(float xDiff, float yDiff, float rotDiff);
+
+
+
 
 private:
 	ComponentPlacerData currentComponent;
 	bool calibrationStatus;
-	int componentRotDiff;
 
-	// These offsets are relative to central head position
-	Offset cameraTopOffset;
-	Offset tip1Offset, tip2Offset, dispenserTipOffset;
+	enum TIP {
+		LEFT_TIP, RIGHT_TIP
+	} tip;
+
+	// These offsets are relative to camera
+	Offset tipRightOffset, tipLeftOffset, dispenserTipOffset;
 
 	// These offsets are relative to homing position
-	Offset pcbOriginOffset, pickUpAreaOffset, componentOffset;
+	Offset pcbOriginOffset, pickUpAreaOffset;
 	Offset cameraBottomOffset;
 
+	// Correction feedback from vision for pick-up and place
+	Offset PickUpCorrection, PlaceCorrection;
+	int PickUpRotCorrection, PlaceRotCorrection;
 };

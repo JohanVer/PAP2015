@@ -15,7 +15,7 @@
 #include <vector>
 #include <cmath>
 
-#define PIXEL_TO_MM 37.37
+#define PIXEL_TO_MM 25.394841192
 
 class smdPart {
 public:
