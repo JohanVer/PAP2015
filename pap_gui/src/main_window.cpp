@@ -1553,6 +1553,20 @@ void MainWindow::on_calibrationButton_clicked() {
 	qnode.sendTask(pap_common::PLACER, pap_common::CALIBRATION);
 }
 
+void MainWindow::on_calcOrientation_Button_clicked(){
+	QPointF local1,global1,local2,global2;
+	local1.setX(0.0);
+	local1.setY(0.0);
+	local2.setX(0.0);
+	local2.setY(0.0);
+	global1.setX(ui.fiducialTable->item(0, 0)->text().toFloat());
+	global1.setY(ui.fiducialTable->item(0, 1)->text().toFloat());
+	global2.setX(ui.fiducialTable->item(1, 0)->text().toFloat());
+	global2.setY(ui.fiducialTable->item(1, 1)->text().toFloat());
+	padParser.calibratePads(local1,local2,global1,global2);
+	padParser.rotatePads();
+}
+
 void MainWindow::keyPressEvent(QKeyEvent *e) {
 
 	if (e->isAutoRepeat()) {
