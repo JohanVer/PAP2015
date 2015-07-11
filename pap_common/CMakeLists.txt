@@ -51,6 +51,7 @@ find_package(catkin REQUIRED COMPONENTS
    Status.msg
    ArduinoMsg.msg
    VisionStatus.msg
+   PlacerStatus.msg
  )
 
 ## Generate services in the 'srv' folder

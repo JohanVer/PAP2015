@@ -18,6 +18,8 @@
 #include "qnode.hpp"
 #include "pap_common/Task.h"
 #include "../../../pap_common/include/pap_common/vision_message_def.h"
+#include "pap_common/PlacerStatus.h"
+#include "../../../pap_common/include/pap_common/placer_message_def.h"
 #include "ClickGraphicsView.hpp"
 #include "MyContextMenuTable.hpp"
 #include "GerberPadParser.hpp"
@@ -35,6 +37,9 @@
 #include "cv.h"
 #include "highgui.h"
 #include <QStandardItemModel>
+#include <QPixmap>
+#include <QPainter>
+#include <QSize>
 
 #include "../../../pap_placer/include/pap_placer/placerNode.hpp"
 
@@ -83,6 +88,7 @@ public Q_SLOTS:
 	void on_checkbox_use_environment_stateChanged(int state);
 	void cameraUpdated(int index);
 	void statusUpdated(int index);
+	void placerStatusUpdated(int indicator, int state);
 	void on_valveToggle1_clicked(bool check);
 	void on_valveToggle2_clicked(bool check);
 	void on_valveToggle3_clicked(bool check);
@@ -155,12 +161,14 @@ public Q_SLOTS:
     void keyReleaseEvent(QKeyEvent *e);
 
     void on_calibrationButton_clicked();
+
     //QWizardPage *createIntroPage();
 
     /******************************************
     ** Manual connections
     *******************************************/
     void updateLoggingView(); // no idea why this can't connect automatically
+
 
 private:
 	Ui::MainWindowDesign ui;
@@ -170,9 +178,17 @@ private:
 	QPixmap cameraPicture1;
 	QGraphicsScene scene_;
 
+
+
 	// Structures for holding the rendered image of the pcb
 	QPixmap renderedPadsPixmap;
 	graphicsScene scenePads_;
+
+	// Placement process indiactors
+	/*QPixmap indicatorClearPixmap;
+	QPixmap indicatorActivePixmap;
+	QPixmap indicatorFinishedPixmap;
+	QPixmap indicatorErrorPixmap;*/
 
 	// Variables of the valves
 	bool valve1Active_;
@@ -191,6 +207,7 @@ private:
     QPointF padPosition_;
     GerberPadParser padParser;
     int id_;
+
 };
 
 }  // namespace pap_gui

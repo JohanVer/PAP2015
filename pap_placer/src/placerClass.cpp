@@ -103,6 +103,10 @@ Offset PlaceController::getCompPickUpCoordinates() {
 	return temp;
 };
 
+Offset PlaceController::getBottomCamCoordinates() {
+	return cameraBottomOffset;
+};
+
 Offset PlaceController::getPCBCalibCoordinates() {
 	return pcbOriginOffset;
 };

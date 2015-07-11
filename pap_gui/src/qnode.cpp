@@ -56,6 +56,8 @@ bool QNode::init() {
 			this);
 	visionStatusSubsriber_ = n_.subscribe("visionStatus", 100,
 			&QNode::visionStatusCallback, this);
+	placerStatusSubscriber_ = n_.subscribe("placerStatus", 100,
+			&QNode::placerStatusCallback, this);
 	start();
 	return true;
 }
@@ -187,6 +189,13 @@ void QNode::sendTask(pap_common::DESTINATION destination, pap_common::TASK task,
 	taskMsg.data2 = y;
 	taskMsg.data3 = z;
 	task_publisher.publish(taskMsg);
+}
+
+
+void QNode::placerStatusCallback(const pap_common::PlacerStatusConstPtr& statusMsg) {
+	int indicator = statusMsg->process;
+	int status = statusMsg->status;
+	Q_EMIT placerStatusUpdated(indicator, status);
 }
 
 void QNode::statusCallback(const pap_common::StatusConstPtr& statusMsg) {

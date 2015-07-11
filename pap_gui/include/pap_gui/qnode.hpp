@@ -41,6 +41,10 @@
 #include "../../../pap_common/include/pap_common/arduino_message_def.h"
 #include "../../../pap_common/include/pap_common/vision_message_def.h"
 #include "../../../pap_placer/include/pap_placer/placerClass.hpp"
+
+#include "../../../pap_common/include/pap_common/placer_message_def.h"
+#include "pap_common/PlacerStatus.h"
+
 #include <vector>
 
 /*****************************************************************************
@@ -103,6 +107,7 @@ public:
 	void sendTask(pap_common::DESTINATION destination, pap_common::TASK task,ComponentPlacerData componentData);
 
 	void statusCallback(const pap_common::StatusConstPtr&  statusMsg);
+	void placerStatusCallback(const pap_common::PlacerStatusConstPtr&  statusMsg);
 	void visionStatusCallback(const pap_common::VisionStatusConstPtr&  statusMsg);
 	void sendRelaisTask(int relaisNumber,bool value);
 	void sendStepperTask(int StepperNumber, int rotationAngle);
@@ -113,6 +118,7 @@ public:
 Q_SIGNALS:
 	void loggingUpdated();
 	void statusUpdated(int index);
+	void placerStatusUpdated(int indicator, int status);
 	void cameraUpdated(int index);
     void rosShutdown();
     void smdCoordinates(float x,float y,float rot);
@@ -123,6 +129,7 @@ private:
 	char** init_argv;
 	ros::Publisher task_publisher, arduino_publisher_;
 	ros::Subscriber statusSubsriber_;
+	ros::Subscriber placerStatusSubscriber_;
 	ros::Subscriber visionStatusSubsriber_;
     QStringListModel logging_model;
     image_transport::Subscriber image_sub_;

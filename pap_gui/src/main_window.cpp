@@ -10,6 +10,8 @@
  *****************************************************************************/
 
 #include <QtGui>
+#include <QPixmap>
+#include <QPainter>
 #include <QKeyEvent>
 #include <QMessageBox>
 #include <iostream>
@@ -51,6 +53,8 @@ struct databaseEntry {
 	float length, width, height;
 	int pins;
 };
+
+
 
 ComponentPlacerData placementData;
 
@@ -116,6 +120,10 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent) :
 	QObject::connect(&qnode, SIGNAL(statusUpdated(int)), this,
 			SLOT(statusUpdated(int)));
 
+	// Placer status
+	QObject::connect(&qnode, SIGNAL(placerStatusUpdated(int, int)), this,
+			SLOT(placerStatusUpdated(int, int)));
+
 	connect(ui.xManPos, SIGNAL(released()), this, SLOT(releasexManPos()));
 	connect(ui.xManNeg, SIGNAL(released()), this, SLOT(releasexManNeg()));
 	connect(ui.YManPos, SIGNAL(released()), this, SLOT(releaseyManPos()));
@@ -144,6 +152,53 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent) :
 	sizeDefined_ = false;
 	padFileLoaded_ = false;
 	//ui.checkBox_box->setDisabled(true);
+/*
+	indicatorClearPixmap.fill(Qt::transparent);
+	indicatorActivePixmap.fill(Qt::transparent);
+	indicatorFinishedPixmap.fill(Qt::transparent);
+	indicatorErrorPixmap.fill(Qt::transparent);
+
+	QPainter p1(&indicatorClearPixmap);
+	p1.setRenderHint(QPainter::Antialiasing, true);
+	QPen pen1(Qt::black, 1);
+	p1.setPen(pen1);
+	QBrush brush1(Qt::white);
+	p1.setBrush(brush1);
+	p1.drawEllipse(5, 5, 10, 10);
+
+	QPainter p2(&indicatorActivePixmap);
+	p2.setRenderHint(QPainter::Antialiasing, true);
+	QPen pen2(Qt::black, 1);
+	p2.setPen(pen2);
+	QBrush brush2(Qt::yellow);
+	p2.setBrush(brush2);
+	p2.drawEllipse(5, 5, 10, 10);
+
+	QPainter p3(&indicatorFinishedPixmap);
+	p3.setRenderHint(QPainter::Antialiasing, true);
+	QPen pen3(Qt::black, 1);
+	p3.setPen(pen3);
+	QBrush brush3(Qt::green);
+	p3.setBrush(brush3);
+	p3.drawEllipse(5, 5, 10, 10);
+
+	QPainter p4(&indicatorErrorPixmap);
+	p4.setRenderHint(QPainter::Antialiasing, true);
+	QPen pen4(Qt::black, 1);
+	p4.setPen(pen4);
+	QBrush brush4(Qt::red);
+	p4.setBrush(brush4);
+	p4.drawEllipse(5, 5, 10, 10);*/
+
+	/*ui.label_indicator1->setPixmap(indicatorActivePixmap);
+	ui.label_indicator2->setPixmap(indicatorErrorPixmap);
+	ui.label_indicator3->setPixmap(indicatorFinishedPixmap);
+	ui.label_indicator4->setPixmap(indicatorClearPixmap);*/
+
+	for (int i = 1; i <= 7; i++) {
+		placerStatusUpdated(i, pap_common::PLACER_IDLE);
+	}
+
 }
 
 MainWindow::~MainWindow() {
@@ -1046,6 +1101,110 @@ void MainWindow::on_ZManNeg_pressed() {
 void MainWindow::releasezManNeg() {
 	qnode.sendTask(pap_common::CONTROLLER, pap_common::STOP,
 			(float) pap_common::ZMOTOR, 0.0, 0.0);
+}
+
+void MainWindow::placerStatusUpdated(int indicator, int state) {
+
+	QPixmap indicatorPixmap(QSize(20,20));
+	indicatorPixmap.fill(Qt::transparent);
+	QPainter p(&indicatorPixmap);
+	p.setRenderHint(QPainter::Antialiasing, true);
+	QPen pen(Qt::black, 1);
+	p.setPen(pen);
+	QBrush brushWhite(Qt::white);
+	QBrush brushGreen(Qt::green);
+	QBrush brushYellow(Qt::yellow);
+	QBrush brushRed(Qt::red);
+
+
+	switch (state) {
+	case pap_common::PLACER_IDLE:
+		p.setBrush(brushWhite);
+		break;
+	case pap_common::PLACER_ACTIVE:
+		p.setBrush(brushYellow);
+		break;
+	case pap_common::PLACER_FINISHED:
+		p.setBrush(brushGreen);
+		break;
+	case pap_common::PLACER_ERROR:
+		p.setBrush(brushRed);
+	}
+
+	p.drawEllipse(5, 5, 10, 10);
+
+	switch (indicator) {
+	case 1:
+		ui.label_indicator1->setPixmap(indicatorPixmap);
+		break;
+	case 2:
+		ui.label_indicator2->setPixmap(indicatorPixmap);
+		break;
+	case 3:
+		ui.label_indicator3->setPixmap(indicatorPixmap);
+		break;
+	case 4:
+		ui.label_indicator4->setPixmap(indicatorPixmap);
+		break;
+	case 5:
+		ui.label_indicator5->setPixmap(indicatorPixmap);
+		break;
+	case 6:
+		ui.label_indicator6->setPixmap(indicatorPixmap);
+		break;
+	case 7:
+		ui.label_indicator7->setPixmap(indicatorPixmap);
+		break;
+	case 8:
+		switch(state) {
+		case 1:
+			ui.label_Info->setText("IDLE");
+			break;
+		case 2:
+			ui.label_Info->setText("CALIBRATE");
+			break;
+		case 3:
+			ui.label_Info->setText("GOTOPCBORIGIN");
+			break;
+		case 4:
+			ui.label_Info->setText("FINDPADS");
+			break;
+		case 5:
+			ui.label_Info->setText("GOTOBOX");
+			break;
+		case 6:
+			ui.label_Info->setText("FINDCOMPONENT");
+			break;
+		case 7:
+			ui.label_Info->setText("GOTOPICKUPCOOR");
+			break;
+		case 8:
+			ui.label_Info->setText("STARTPICKUP");
+			break;
+		case 9:
+			ui.label_Info->setText("GOTOBOTTOMCAM");
+			break;
+		case 10:
+			ui.label_Info->setText("CHECKCOMPONENTPICKUP");
+			break;
+		case 11:
+			ui.label_Info->setText("GOTOPCBCOMP");
+			break;
+		case 12:
+			ui.label_Info->setText("CHECKCOMPPOSITON");
+			break;
+		case 13:
+			ui.label_Info->setText("GOTOPLACECOORD");
+			break;
+		case 14:
+			ui.label_Info->setText("CHECKCOMPONENTPOSITION");
+			break;
+		case 15:
+			ui.label_Info->setText("STARTPLACEMENT");
+			break;
+		break;
+		}
+	}
 }
 
 void MainWindow::statusUpdated(int index) {

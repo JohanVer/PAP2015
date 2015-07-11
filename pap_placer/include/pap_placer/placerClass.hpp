@@ -73,6 +73,7 @@ public:
 	Offset getPCBCalibCoordinates();
 	Offset getPCBCompCoordinates();
 	Offset getCompPlaceCoordinates();
+	Offset getBottomCamCoordinates();
 	float getComponentLenth();
 	float getComponentWidth();
 
@@ -87,6 +88,8 @@ public:
 	void updatePlacementData(ComponentPlacerData *data);
 	bool getCalibrationStatus();
 	int getBoxNumber();
+
+
 
 
 
