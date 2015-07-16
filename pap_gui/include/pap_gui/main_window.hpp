@@ -135,8 +135,9 @@ public Q_SLOTS:
     void on_startTapeFinder_Button_clicked();
     void on_startPadFinder_Button_clicked();
     void on_StartStopVision_Button_clicked();
+    void on_startTipFinder_Button_clicked();
     // Display Functions
-    void displaySMDCoords(float x,float y,float rot);
+    void displaySMDCoords(float x,float y,float rot, unsigned int cameraSelect);
     void setCamera1Point(QPointF point);
     void setFiducial(QPointF point);
     void setFiducialTable(int number,float xGlobal, float yGlobal);

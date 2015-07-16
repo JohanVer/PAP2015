@@ -15,7 +15,12 @@
 #include <vector>
 #include <cmath>
 
-#define PIXEL_TO_MM 25.394841192
+#define PIXEL_TO_MM_TOP 25.394841192
+#define PIXEL_TO_MM_BOTTOM 25.0
+
+enum CAMERA_SELECT {
+	CAMERA_TOP, CAMERA_BOTTOM
+};
 
 class smdPart {
 public:
@@ -37,9 +42,10 @@ public:
 
 	//std::vector<cv::Point2f > findPads(cv::Mat* input);        // eine Funktion mit einem (Default-) Parameter
 	cv::Point2f findPads(cv::Mat* input,bool startSelect,cv::Point2f selectPad);
-	smdPart findChip(cv::Mat* input);
+	smdPart findChip(cv::Mat* input, unsigned int camera_select);
 	smdPart findSmallSMD(cv::Mat* input);
 	smdPart findSMDTape(cv::Mat* input);
+	smdPart findTip(cv::Mat* input);
 
 	double angle(cv::Point pt1, cv::Point pt2, cv::Point pt0);
 	void setLabel(cv::Mat& im, const std::string label,
