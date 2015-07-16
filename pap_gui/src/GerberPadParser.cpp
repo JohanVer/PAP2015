@@ -71,6 +71,22 @@ void GerberPadParser::parseShapes(std::string fileName) {
 								shape.padDimensions.setY(firstArg * 25.4);
 								shape.rotation = secondArg;
 								shapeInformationArray_.push_back(shape);
+							} else {
+								// Arguments
+								QString* firstArgStr = new QString(
+										line.substr(emptyFound2,
+												xFound - emptyFound2).c_str());
+								float firstArg = firstArgStr->toFloat();
+
+								ROS_INFO("D-Code: %d Square X: %f, Rotation: 0",
+										dCode, firstArg);
+								ShapeInformation shape;
+								shape.shapeIndex = dCode;
+								shape.shapeStr = shapeStr;
+								shape.padDimensions.setX(firstArg * 25.4);
+								shape.padDimensions.setY(firstArg * 25.4);
+								shape.rotation = 0.0;
+								shapeInformationArray_.push_back(shape);
 							}
 						}
 
@@ -272,13 +288,14 @@ void GerberPadParser::loadFile(std::string fileName) {
 				newPad.rect.setX(xParsed * 25.4);
 				newPad.rect.setY(yParsed * 25.4);
 				// Convert d-code using tabular out of whl file
-				searchShape(dCodeShape, &newPad);
-				padInformationArray_.push_back(newPad);
-				ROS_INFO(
-						"Shape: %d , X-pos: %f , Y-pos: %f, X-Size: %f, Y-Size: %f, Rotation %f, Type: %s  ",
-						dCodeShape, newPad.rect.x(), newPad.rect.y(),
-						newPad.rect.width(), newPad.rect.height(),
-						newPad.rotation, newPad.shapeStr.c_str());
+				if (searchShape(dCodeShape, &newPad)) {
+					padInformationArray_.push_back(newPad);
+					ROS_INFO(
+							"Shape: %d , X-pos: %f , Y-pos: %f, X-Size: %f, Y-Size: %f, Rotation %f, Type: %s  ",
+							dCodeShape, newPad.rect.x(), newPad.rect.y(),
+							newPad.rect.width(), newPad.rect.height(),
+							newPad.rotation, newPad.shapeStr.c_str());
+				}
 			}
 		}
 
@@ -298,14 +315,14 @@ void GerberPadParser::renderImage(QGraphicsScene* scene, int width,
 	printedRects.clear();
 	scene->clear();
 
-	//pcbSize.x = 0;
-	//pcbSize.y = 0;
+//pcbSize.x = 0;
+//pcbSize.y = 0;
 
 	pixelConversionFactor = 0.0;
 	double pixelWidth = (double) width / (double) width_;
 	double pixelHeight = (double) height / (double) height_;
-	//ROS_INFO("PixW %f PixH %f Cols %d Rows %d", pixelWidth, pixelHeight,
-	//		dst->cols, dst->rows);
+//ROS_INFO("PixW %f PixH %f Cols %d Rows %d", pixelWidth, pixelHeight,
+//		dst->cols, dst->rows);
 
 	if (pixelWidth > pixelHeight) {
 		pixelConversionFactor = pixelHeight;
@@ -317,19 +334,17 @@ void GerberPadParser::renderImage(QGraphicsScene* scene, int width,
 	pcbSize.setHeight((unsigned int) (height_ * pixelConversionFactor));
 
 	float pcbSizeY = (pcbSize.y()); //+ (unsigned int) (height - pcbSize.height()) / 2);
-	//ROS_INFO("X: %d Y: %d W: %d H: %d", pcbSize.x(), pcbSize.y(), pcbSize.width(),
-	//		pcbSize.height());
-
+//ROS_INFO("X: %d Y: %d W: %d H: %d", pcbSize.x(), pcbSize.y(), pcbSize.width(),
+//		pcbSize.height());
 
 	QGraphicsRectItem *rect = new QGraphicsRectItem(pcbSize.x(), pcbSizeY,
 			pcbSize.width(), pcbSize.height());
-	rect->setTransformOriginPoint(pcbSize.x(),pcbSizeY);
+	rect->setTransformOriginPoint(pcbSize.x(), pcbSizeY);
 	rect->setRotation(-outerRectRot_);
 	rect->setPen(QPen(Qt::blue, 3, Qt::DashDotLine));
 	scene->addItem(rect);
 
-
-	// Draw Pads
+// Draw Pads
 	for (std::size_t i = 0; i < padInformationArray_.size(); i++) {
 		QRectF pad;
 		PadInformation padInfo;
@@ -343,14 +358,14 @@ void GerberPadParser::renderImage(QGraphicsScene* scene, int width,
 						* pixelConversionFactor);
 
 		pad.setX(upperCornerPadX);
-		pad.setY(upperCornerPadY);// + pcbSizeY);
+		pad.setY(upperCornerPadY);	// + pcbSizeY);
 
 		pad.setWidth(
 				(unsigned int) (padInfo.rect.width() * pixelConversionFactor));
 		pad.setHeight(
 				(unsigned int) (padInfo.rect.height() * pixelConversionFactor));
 
-		//ROS_INFO("X: %f Y: %f W: %f H: %f", pad.x(), pad.y(), pad.width(),pad.height());
+		ROS_INFO("X: %f Y: %f W: %f H: %f", pad.x(), pad.y(), pad.width(),pad.height());
 		printedRects.push_back(pad);
 		QGraphicsRectItem *rect = new QGraphicsRectItem(pad.x(), pad.y(),
 				pad.width(), pad.height());
@@ -358,7 +373,7 @@ void GerberPadParser::renderImage(QGraphicsScene* scene, int width,
 		//			2, 2);
 		rect->setPen(QPen(Qt::red, 1, Qt::SolidLine));
 		rect->setBrush(Qt::red);
-		rect->setTransformOriginPoint(pad.x(),pad.y());
+		rect->setTransformOriginPoint(pad.x(), pad.y());
 		rect->setRotation(-padInfo.rotation);
 		scene->addItem(rect);
 	}
@@ -384,33 +399,36 @@ float GerberPadParser::calibratePads(QPointF local1, QPointF local2,
 			global2.x() - global1.x());
 	float cvAngle = atan2(local2.y() - local1.y(), local2.x() - local1.x());
 
-	differenceAngle_ = M_PI/3.0;//fixedAngle - cvAngle;
+	differenceAngle_ = M_PI / 3.0;		//fixedAngle - cvAngle;
 	ROS_INFO("Calibration : Difference Angle %f", differenceAngle_);
 
-	// This calculates the translation of the pads in the global pad frame
-	transformIntoGlobalPoint_.setOrigin( tf::Vector3(-global1.x(), -global1.y(), 0.0) );
-	transformIntoGlobalPoint_.setRotation( tf::Quaternion(0, 0, 0, 1) );
+// This calculates the translation of the pads in the global pad frame
+	transformIntoGlobalPoint_.setOrigin(
+			tf::Vector3(-global1.x(), -global1.y(), 0.0));
+	transformIntoGlobalPoint_.setRotation(tf::Quaternion(0, 0, 0, 1));
 
-	// This transforms the pads into the robot frame
-	transTransformIntoRobot_.setOrigin(tf::Vector3(local1.x()-global1.x(),local1.y()-global1.y(),0.0));
-	transTransformIntoRobot_.setRotation( tf::Quaternion(0, 0, 0, 1) );
+// This transforms the pads into the robot frame
+	transTransformIntoRobot_.setOrigin(
+			tf::Vector3(local1.x() - global1.x(), local1.y() - global1.y(),
+					0.0));
+	transTransformIntoRobot_.setRotation(tf::Quaternion(0, 0, 0, 1));
 
-	// This rotates the pads in the global pad frame
+// This rotates the pads in the global pad frame
 	tf::Quaternion rotQuat;
-	rotQuat.setEuler(0.0,0.0,differenceAngle_);
-	rotation_.setOrigin(tf::Vector3(0.0,0.0,0.0));
+	rotQuat.setEuler(0.0, 0.0, differenceAngle_);
+	rotation_.setOrigin(tf::Vector3(0.0, 0.0, 0.0));
 	rotation_.setRotation(rotQuat);
 }
 
-void GerberPadParser::rotatePads(void){
-	// The postitions of the pad are stored in it's own reference coordinate system
-	// 1. Rotate the pad positions around the global1 point about the angle which is
-	// calculated from the local positions
-	// 2. Transform all points of the global pad coordinate system into the local robot
-	// coordinate system
+void GerberPadParser::rotatePads(void) {
+// The postitions of the pad are stored in it's own reference coordinate system
+// 1. Rotate the pad positions around the global1 point about the angle which is
+// calculated from the local positions
+// 2. Transform all points of the global pad coordinate system into the local robot
+// coordinate system
 
 	tf::Transform backTransform = transformIntoGlobalPoint_;
-	for(size_t i = 0; i < padInformationArray_.size(); i++){
+	for (size_t i = 0; i < padInformationArray_.size(); i++) {
 
 		tf::Point pointToTransform;
 		// This point should be transformed
@@ -418,22 +436,26 @@ void GerberPadParser::rotatePads(void){
 		pointToTransform.setY(padInformationArray_[i].rect.y());
 		pointToTransform.setZ(0.0);
 
-		float width,height = 0.0;
+		float width, height = 0.0;
 		width = padInformationArray_[i].rect.width();
 		height = padInformationArray_[i].rect.height();
 
-		pointToTransform = transformIntoGlobalPoint_* pointToTransform;
-		pointToTransform = rotation_*pointToTransform;
+		pointToTransform = transformIntoGlobalPoint_ * pointToTransform;
+		pointToTransform = rotation_ * pointToTransform;
 		pointToTransform = backTransform.inverse() * pointToTransform;
 
 		padInformationArray_[i].rect.setX(pointToTransform.x());
 		padInformationArray_[i].rect.setY(pointToTransform.y());
 		padInformationArray_[i].rect.setWidth(width);
 		padInformationArray_[i].rect.setHeight(height);
-		padInformationArray_[i].rotation = differenceAngle_*(180.0/M_PI);
-		ROS_INFO("After X: %f Y: %f Width: %f Height %f",padInformationArray_[i].rect.x(),padInformationArray_[i].rect.y(),padInformationArray_[i].rect.width(),padInformationArray_[i].rect.height());
+		padInformationArray_[i].rotation = differenceAngle_ * (180.0 / M_PI);
+		ROS_INFO("After X: %f Y: %f Width: %f Height %f",
+				padInformationArray_[i].rect.x(),
+				padInformationArray_[i].rect.y(),
+				padInformationArray_[i].rect.width(),
+				padInformationArray_[i].rect.height());
 	}
 
-
-	ROS_INFO("Calibration: Transformed %d pads...",(int)padInformationArray_.size());
+	ROS_INFO("Calibration: Transformed %d pads...",
+			(int )padInformationArray_.size());
 }
