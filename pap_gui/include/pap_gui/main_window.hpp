@@ -161,6 +161,8 @@ public Q_SLOTS:
     void keyReleaseEvent(QKeyEvent *e);
 
     void on_calibrationButton_clicked();
+    void on_ScanQRCodeButton_clicked();
+    void findQRCode();
 
     //QWizardPage *createIntroPage();
 

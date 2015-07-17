@@ -22,6 +22,7 @@
 #define PLACEMENTDELAY1 5
 #define PLACEMENTDELAY2 5
 #define COMPFINDERTIMEOUT 10
+#define MOTORCONTROLLER_TIMEOUT 50
 
 int pickupwait_counter, placementwait_counter = 0;
 int componentFinder_counter = 0;
@@ -75,8 +76,9 @@ bool pcbPlaceCoordinatesSent = false;
 bool homingCoordinatesSent = false;
 
 bool IDLE_called = true;
+int motorcontroller_counter = 0;
 
-enum ERROR_CODE {
+enum ERROR_CODE { MOTOR_TIMEOUT,
 	MOTORFAILED_BOX, MOTORERROR_BOX, MOTORERROR_PICKUPCOOR, MOTORFAILED_PICKUPCOOR, MOTORFAILED_PCB, MOTORERROR_PCB, NOCOMPONENTFOUND,
 	MOTORERROR_HOMING, MOTORFAILED_HOMING, MOTORERROR_BOTTOM, MOTORFAILED_BOTTOM, MOTORERROR_PLACE, MOTORFAILED_PLACE
 } error_code;
@@ -112,9 +114,9 @@ int main(int argc, char **argv) {
 		case IDLE:
 			if (IDLE_called) {
 				ROS_INFO("PlacerState: IDLE");
+				sendPlacerInfo(IDLE);
 				IDLE_called = false;
 			}
-			sendPlacerInfo(IDLE);
 			sendPlacerStatus(pap_common::IDLE_STATE, pap_common::PLACER_FINISHED);
 			break;
 
@@ -123,7 +125,6 @@ int main(int argc, char **argv) {
 			sendPlacerInfo(CALIBRATE);
 			sendPlacerStatus(pap_common::IDLE_STATE, pap_common::PLACER_IDLE);
 			sendPlacerStatus(pap_common::CALIBRATION_STATE, pap_common::PLACER_ACTIVE);
-
 			ros::Duration(5).sleep();
 			sendPlacerStatus(pap_common::CALIBRATION_STATE, pap_common::PLACER_FINISHED);
 			IDLE_called = true;
@@ -174,16 +175,17 @@ int main(int argc, char **argv) {
 			ROS_INFO("PlacerState: GOTOBOX");
 			sendPlacerStatus(pap_common::IDLE_STATE, pap_common::PLACER_IDLE);
 			sendPlacerStatus(pap_common::GOTOBOX_STATE, pap_common::PLACER_ACTIVE);
+			sendPlacerInfo(GOTOBOX);
 
 			if (!placerNodeBusy && !boxCoordinatesSent) {
 				Offset destination = placeController.getBoxCoordinates();
 				sendTask(pap_common::CONTROLLER, pap_common::COORD, destination.x, destination.y, destination.z);
 				setLEDTask(placeController.getBoxNumber());
+				motorcontroller_counter = 0;
 				boxCoordinatesSent = true;
 				placerNodeBusy = true;
 			}
 
-			// TODO: Add a function to decide if vision is needed for this process step
 			if (motorcontrollerStatus[1].positionReached && motorcontrollerStatus[2].positionReached && motorcontrollerStatus[3].positionReached && boxCoordinatesSent) {
 				placerNodeBusy = false;
 				if (manualOperation) {
@@ -192,7 +194,7 @@ int main(int argc, char **argv) {
 					} else {
 						//IDLE_called = true;
 						//state = IDLE;
-						ros::Duration(5).sleep();
+						ros::Duration(2).sleep();
 						state = GOTOPICKUPCOOR;
 					}
 				} else {
@@ -214,6 +216,15 @@ int main(int argc, char **argv) {
 				sendPlacerStatus(pap_common::GOTOBOX_STATE, pap_common::PLACER_ERROR);
 				error_code = MOTORFAILED_BOX;
 				state = ERROR;
+				break;
+			}
+			else if (motorcontroller_counter == MOTORCONTROLLER_TIMEOUT) {
+				sendPlacerStatus(pap_common::GOTOBOX_STATE, pap_common::PLACER_ERROR);
+				error_code = MOTOR_TIMEOUT;
+				state = ERROR;
+				break;
+			} else {
+				motorcontroller_counter++;
 				break;
 			}
 			break;
@@ -257,6 +268,7 @@ int main(int argc, char **argv) {
 			if (!compPickUpCoordinatesSent && !placerNodeBusy) {
 				Offset destination = placeController.getCompPickUpCoordinates();
 				sendTask(pap_common::CONTROLLER, pap_common::COORD, destination.x, destination.y, destination.z);
+				motorcontroller_counter = 0;
 				compPickUpCoordinatesSent = true;
 				placerNodeBusy = true;
 			}
@@ -264,7 +276,6 @@ int main(int argc, char **argv) {
 			if (motorcontrollerStatus[1].positionReached && motorcontrollerStatus[2].positionReached && motorcontrollerStatus[3].positionReached && compPickUpCoordinatesSent) {
 				placerNodeBusy = false;
 				if (manualOperation) {
-					//ros::Duration(1).sleep();
 					sendPlacerStatus(pap_common::GOTOBOX_STATE, pap_common::PLACER_FINISHED);
 					IDLE_called = true;
 					state = IDLE;
@@ -285,8 +296,16 @@ int main(int argc, char **argv) {
 				state = ERROR;
 				break;
 			}
+			else if (motorcontroller_counter == MOTORCONTROLLER_TIMEOUT) {
+				sendPlacerStatus(pap_common::GOTOBOX_STATE, pap_common::PLACER_ERROR);
+				error_code = MOTOR_TIMEOUT;
+				state = ERROR;
+				break;
+			} else {
+				motorcontroller_counter++;
+				break;
+			}
 			break;
-
 
 
 		case STARTPICKUP:			// Start pick-up process by activating vacuum

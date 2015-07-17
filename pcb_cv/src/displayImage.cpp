@@ -28,7 +28,7 @@ using namespace cv;
 void parseTask(const pap_common::TaskConstPtr& taskMsg);
 
 enum VISION_PROCESS {
-	CHIP, SMALL_SMD, TAPE, PAD, IDLE
+	CHIP, SMALL_SMD, TAPE, PAD, IDLE, QRCODE
 };
 
 VISION_PROCESS visionState = IDLE;
@@ -40,12 +40,15 @@ cv::Point2f selectPoint;
 int main(int argc, char **argv) {
 	ros::init(argc, argv, "add_two_ints_server");
 	ros::NodeHandle n;
+
 	image_transport::ImageTransport it_(n);
 	image_transport::Publisher image_pub_;
 
 	ros::Subscriber taskSubscriber_ = n.subscribe("task", 1, &parseTask);
 	statusPublisher = n.advertise<pap_common::VisionStatus>("visionStatus",
 			1000);
+
+	//qrImagePublisher = n.advertise("image", 1000);
 
 	ros::Rate loop_rate(25);
 	image_pub_ = it_.advertise("camera1", 1);
@@ -69,6 +72,12 @@ int main(int argc, char **argv) {
 						cv::imread(
 								"/home/nikolas/Desktop/Webcam_Pictures/Webcam-1435326531.png");*/
 				break;
+
+			case QRCODE:
+				// Publish image
+
+				break;
+
 			case CHIP:
 				// Chip
 				/*input =
@@ -198,6 +207,10 @@ void parseTask(const pap_common::TaskConstPtr& taskMsg) {
 			finder.setSize(taskMsg->data1, taskMsg->data2);
 			ROS_INFO("Setting size....");
 			visionState = TAPE;
+			break;
+
+		case pap_vision::START__QRCODE_FINDER:
+			visionState = QRCODE;
 			break;
 
 			// This state is for manually selecting of the fiducials
