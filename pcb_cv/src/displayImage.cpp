@@ -46,31 +46,37 @@ int main(int argc, char **argv) {
 
 	image_transport::ImageTransport it_(n);
 	image_transport::Publisher image_pub_;
+	image_transport::Publisher qr_image_pub_;
 
 	ros::Subscriber taskSubscriber_ = n.subscribe("task", 1, &parseTask);
 	statusPublisher = n.advertise<pap_common::VisionStatus>("visionStatus",
 			1000);
 
-	//qrImagePublisher = n.advertise("image", 1000);
-
 	ros::Rate loop_rate(25);
 	image_pub_ = it_.advertise("camera1", 1);
+	qr_image_pub_ = it_.advertise("image", 1);
 
 	//CvCapture* capture = cvCaptureFromCAM(CV_CAP_ANY);
 	CvCapture* capture = cvCaptureFromCAM(1);
 	CvCapture* capture2 = cvCaptureFromCAM(2);
+	CvCapture* capture3 = cvCaptureFromCAM(3);
+
 	int id_counter = 0;
 
 	while (ros::ok()) {
 		IplImage* frame = cvQueryFrame(capture); //Create image frames from capture
 		IplImage* frame2 = cvQueryFrame(capture2); //Create image frames from capture2
+		IplImage* frame3 = cvQueryFrame(capture3); //Create image frames from capture2
 
 		cv::Mat input(frame);
 		cv::Mat input2(frame);
+		cv::Mat input3(frame3);
+
 		//cv::Mat input;
 		id_counter++;
 		cv_bridge::CvImage out_msg;
 		cv_bridge::CvImage out_msg2;
+		cv_bridge::CvImage out_msg3;
 		smdPart smd;
 		pap_common::VisionStatus visionMsg;
 		cv::Point2f position;
@@ -84,7 +90,7 @@ int main(int argc, char **argv) {
 
 			case QRCODE:
 				// Publish image
-
+				qr_image_pub_.publish(out_msg3.toImageMsg());
 				break;
 
 			case CHIP:
