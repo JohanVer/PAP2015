@@ -566,6 +566,7 @@ cv::Point2f padFinder::findPads(cv::Mat* input, bool startSelect,
 								== 1.0) {
 					drawRotatedRect(final, pad, CV_RGB(0, 0, 255));
 
+					// TODO: Change into middle coordinate of the camera
 					outputPosition.x = mc.x / PIXEL_TO_MM_TOP;
 					outputPosition.y = mc.y / PIXEL_TO_MM_TOP;
 				} else {

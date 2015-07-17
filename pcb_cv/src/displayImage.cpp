@@ -20,6 +20,10 @@
 #include "pap_common/VisionStatus.h"
 #include "../../pap_common/include/pap_common/vision_message_def.h"
 #include "../../pap_common/include/pap_common/task_message_def.h"
+#include <tf/transform_broadcaster.h>
+
+// Switch for simulation or gathering data from usb camera
+#define SIMULATION
 
 char key;
 using namespace std;
@@ -30,8 +34,6 @@ void parseTask(const pap_common::TaskConstPtr& taskMsg);
 enum VISION_PROCESS {
 	CHIP, SMALL_SMD, TAPE, PAD, IDLE, CIRCLE, QRCODE
 };
-
-
 
 VISION_PROCESS visionState = IDLE;
 bool visionEnabled, selectPad = false;
@@ -51,12 +53,14 @@ int main(int argc, char **argv) {
 	ros::Subscriber taskSubscriber_ = n.subscribe("task", 1, &parseTask);
 	statusPublisher = n.advertise<pap_common::VisionStatus>("visionStatus",
 			1000);
+	tf::TransformBroadcaster transformBr;
 
 	ros::Rate loop_rate(25);
 	image_pub_ = it_.advertise("camera1", 1);
 	qr_image_pub_ = it_.advertise("image", 1);
 
 	//CvCapture* capture = cvCaptureFromCAM(CV_CAP_ANY);
+#ifndef SIMULATION
 	CvCapture* capture = cvCaptureFromCAM(1);
 	CvCapture* capture2 = cvCaptureFromCAM(2);
 	CvCapture* capture3 = cvCaptureFromCAM(3);
@@ -64,15 +68,20 @@ int main(int argc, char **argv) {
 	int id_counter = 0;
 
 	while (ros::ok()) {
+
+#ifndef SIMULATION
 		IplImage* frame = cvQueryFrame(capture); //Create image frames from capture
-		IplImage* frame2 = cvQueryFrame(capture2); //Create image frames from capture2
+		IplImage* frame2 = cvQueryFrame(capture2);//Create image frames from capture2
 		IplImage* frame3 = cvQueryFrame(capture3); //Create image frames from capture2
 
 		cv::Mat input(frame);
 		cv::Mat input2(frame);
 		cv::Mat input3(frame3);
 
-		//cv::Mat input;
+#else
+		cv::Mat input;
+		cv::Mat input2;
+#endif
 		id_counter++;
 		cv_bridge::CvImage out_msg;
 		cv_bridge::CvImage out_msg2;
@@ -83,9 +92,15 @@ int main(int argc, char **argv) {
 		if (visionEnabled) {
 			switch (visionState) {
 			case IDLE:
-				/*/input =
-				 cv::imread(
-				 "/home/nikolas/Desktop/Webcam_Pictures/Webcam-1435326531.png");*/
+#ifdef SIMULATION
+				input =
+						cv::imread(
+								"/home/johan/Schreibtisch/Webcam_Pictures/Webcam-1435326531.png");
+
+				input2 =
+						cv::imread(
+								"/home/johan/Schreibtisch/Webcam_Pictures/Webcam-1435326531.png");
+#endif
 				break;
 
 			case QRCODE:
@@ -95,15 +110,16 @@ int main(int argc, char **argv) {
 
 			case CHIP:
 				// Chip
-				/*input =
-				 cv::imread(
-				 "/home/nikolas/Desktop/Webcam_Pictures/Webcam-1435311766.png");*/
+#ifdef SIMULATION
+				input =
+						cv::imread(
+								"/home/johan/Schreibtisch/Webcam_Pictures/Webcam-1435311766.png");
+#endif
 
-				if(cameraSelect == CAMERA_TOP){
-				smd = finder.findChip(&input,cameraSelect);
-				}
-				else if(cameraSelect == CAMERA_BOTTOM){
-					smd = finder.findChip(&input2,cameraSelect);
+				if (cameraSelect == CAMERA_TOP) {
+					smd = finder.findChip(&input, cameraSelect);
+				} else if (cameraSelect == CAMERA_BOTTOM) {
+					smd = finder.findChip(&input2, cameraSelect);
 				}
 
 				if (smd.x != 0.0 && smd.y != 0.0) {
@@ -119,9 +135,11 @@ int main(int argc, char **argv) {
 				break;
 			case SMALL_SMD:
 				// SMD Chip
-				/*input =
-				 cv::imread(
-				 "/home/nikolas/Desktop/Webcam_Pictures/Webcam-1435326387.png");*/
+#ifdef SIMULATION
+				input =
+						cv::imread(
+								"/home/johan/Schreibtisch/Webcam_Pictures/Webcam-1435326387.png");
+#endif
 				smd = finder.findSmallSMD(&input);
 				if (smd.x != 0.0 && smd.y != 0.0) {
 					visionMsg.task = pap_vision::START_SMALL_FINDER;
@@ -134,9 +152,11 @@ int main(int argc, char **argv) {
 				break;
 			case TAPE:
 				// SMD Tape
-				/*input =
-				 cv::imread(
-				 "/home/nikolas/Desktop/Webcam_Pictures/Webcam-1435327178.png");*/
+#ifdef SIMULATION
+				input =
+						cv::imread(
+								"/home/johan/Schreibtisch/Webcam_Pictures/Webcam-1435327178.png");
+#endif
 				smd = finder.findSMDTape(&input);
 				if (smd.x != 0.0 && smd.y != 0.0) {
 					visionMsg.task = pap_vision::START_TAPE_FINDER;
@@ -149,9 +169,11 @@ int main(int argc, char **argv) {
 				break;
 			case PAD:
 				// Pads
-				/*input =
-				 cv::imread(
-				 "/home/nikolas/Desktop/Webcam_Pictures/Webcam-1435326531.png");*/
+#ifdef SIMULATION
+				input =
+						cv::imread(
+								"/home/johan/Schreibtisch/Webcam_Pictures/Webcam-1435326531.png");
+#endif
 				position = finder.findPads(&input, selectPad, selectPoint);
 				//ROS_INFO("X %f Y  %f", position.x, position.y);
 				if (selectPad && position.x != 0.0 && position.y != 0.0) {
@@ -179,9 +201,17 @@ int main(int argc, char **argv) {
 
 			}
 		} else {
-			/*input =
-			 cv::imread(
-			 "/home/nikolas/Desktop/Webcam_Pictures/Webcam-1435326531.png");*/
+#ifdef SIMULATION
+
+			input =
+					cv::imread(
+							"/home/johan/Schreibtisch/Webcam_Pictures/Webcam-1435326531.png");
+
+			input2 =
+					cv::imread(
+							"/home/johan/Schreibtisch/Webcam_Pictures/Webcam-1435326531.png");
+
+#endif
 		}
 
 		// Crosshairs
@@ -210,6 +240,7 @@ int main(int argc, char **argv) {
 
 		cv::Mat outputRGB;
 		cvtColor(input, outputRGB, CV_BGR2RGB);
+
 		std_msgs::Header header;
 		header.seq = id_counter + 1;
 		header.stamp = ros::Time::now();
@@ -219,6 +250,19 @@ int main(int argc, char **argv) {
 		out_msg.encoding = sensor_msgs::image_encodings::RGB8; // Or whatever
 		out_msg.image = outputRGB;
 		image_pub_.publish(out_msg.toImageMsg());
+
+		tf::Transform transform;
+		transform.setOrigin(tf::Vector3(0.3, 0.1, 0.05));
+		tf::Quaternion rotQuat;
+		rotQuat.setEuler(0.0, 0.0, 0.0);
+		transform.setOrigin(tf::Vector3(0.0, 0.0, 0.0));
+		transform.setRotation(rotQuat);
+
+		transformBr.sendTransform(
+					tf::StampedTransform(transform, ros::Time::now(), "/world",
+							"/camera1"));
+
+		// Camera 2
 
 		cv::Mat outputRGB2;
 		cvtColor(input2, outputRGB2, CV_BGR2RGB);

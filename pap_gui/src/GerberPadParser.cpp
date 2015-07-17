@@ -9,6 +9,7 @@
 #define ENDOFFILE_GERBER 02
 #include "../include/pap_gui/GerberPadParser.hpp"
 
+
 GerberPadParser::GerberPadParser() {
 	height_ = 0.0;
 	width_ = 0.0;
@@ -103,7 +104,8 @@ void GerberPadParser::parseShapes(std::string fileName) {
 							shapeInformationArray_.push_back(shape);
 						}
 
-						else if (shapeStr == "rectangle") {
+						else if (shapeStr == "rectangle"
+								|| shapeStr == "oval") {
 							size_t xFound = line.find("x", emptyFound2 + 1);
 							float secondArg = 0.0;
 							float thirdArg = 0.0;
@@ -188,7 +190,7 @@ bool GerberPadParser::searchShape(int shapeIndex, PadInformation* pad) {
 		if (shapeInformationArray_[i].shapeIndex == shapeIndex) {
 			pad->rect.setWidth(shapeInformationArray_[i].padDimensions.x());
 			pad->rect.setHeight(shapeInformationArray_[i].padDimensions.y());
-			//pad->rotation = shapeInformationArray_[i].rotation;
+			pad->rotation = shapeInformationArray_[i].rotation;
 			pad->shapeStr = shapeInformationArray_[i].shapeStr;
 			return true;
 		}
@@ -285,7 +287,7 @@ void GerberPadParser::loadFile(std::string fileName) {
 			if (dFound != std::string::npos) {
 				yParsed = parseFloat(line, yFound, dFound);
 				PadInformation newPad;
-				newPad.rect.setX(xParsed * 25.4);
+				newPad.rect.setX(width_ - (xParsed * 25.4));
 				newPad.rect.setY(yParsed * 25.4);
 				// Convert d-code using tabular out of whl file
 				if (searchShape(dCodeShape, &newPad)) {
@@ -309,7 +311,7 @@ void GerberPadParser::setSize(float height, float width) {
 	height_ = height;
 }
 
-void GerberPadParser::renderImage(QGraphicsScene* scene, int width,
+QRectF GerberPadParser::renderImage(QGraphicsScene* scene, int width,
 		int height) {
 
 	printedRects.clear();
@@ -336,14 +338,13 @@ void GerberPadParser::renderImage(QGraphicsScene* scene, int width,
 	float pcbSizeY = (pcbSize.y()); //+ (unsigned int) (height - pcbSize.height()) / 2);
 //ROS_INFO("X: %d Y: %d W: %d H: %d", pcbSize.x(), pcbSize.y(), pcbSize.width(),
 //		pcbSize.height());
-
-	QGraphicsRectItem *rect = new QGraphicsRectItem(pcbSize.x(), pcbSizeY,
-			pcbSize.width(), pcbSize.height());
-	rect->setTransformOriginPoint(pcbSize.x(), pcbSizeY);
-	rect->setRotation(-outerRectRot_);
-	rect->setPen(QPen(Qt::blue, 3, Qt::DashDotLine));
-	scene->addItem(rect);
-
+		QGraphicsRectItem *rect = new QGraphicsRectItem(pcbSize.x(),
+				pcbSize.height() / 2, pcbSize.width(), pcbSize.height());
+		//rect->setTransformOriginPoint(pcbSize.x(), pcbSizeY);
+		//rect->setRotation(-outerRectRot_);
+		rect->setBrush(Qt::green);
+		rect->setPen(QPen(Qt::blue, 3, Qt::DashDotLine));
+		scene->addItem(rect);
 // Draw Pads
 	for (std::size_t i = 0; i < padInformationArray_.size(); i++) {
 		QRectF pad;
@@ -365,7 +366,8 @@ void GerberPadParser::renderImage(QGraphicsScene* scene, int width,
 		pad.setHeight(
 				(unsigned int) (padInfo.rect.height() * pixelConversionFactor));
 
-		ROS_INFO("X: %f Y: %f W: %f H: %f", pad.x(), pad.y(), pad.width(),pad.height());
+		ROS_INFO("X: %f Y: %f W: %f H: %f", pad.x(), pad.y(), pad.width(),
+				pad.height());
 		printedRects.push_back(pad);
 		QGraphicsRectItem *rect = new QGraphicsRectItem(pad.x(), pad.y(),
 				pad.width(), pad.height());
@@ -373,10 +375,14 @@ void GerberPadParser::renderImage(QGraphicsScene* scene, int width,
 		//			2, 2);
 		rect->setPen(QPen(Qt::red, 1, Qt::SolidLine));
 		rect->setBrush(Qt::red);
-		rect->setTransformOriginPoint(pad.x(), pad.y());
-		rect->setRotation(-padInfo.rotation);
+		rect->setTransformOriginPoint(padInfo.rect.x() * pixelConversionFactor,
+				(double) height - (padInfo.rect.y() * pixelConversionFactor));
+		rect->setRotation(padInfo.rotation);
+		ROS_INFO("ROTATION: %f", padInfo.rotation);
 		scene->addItem(rect);
 	}
+
+	return pcbSize;
 }
 
 int GerberPadParser::searchId(QPointF position, int height) {
@@ -448,7 +454,8 @@ void GerberPadParser::rotatePads(void) {
 		padInformationArray_[i].rect.setY(pointToTransform.y());
 		padInformationArray_[i].rect.setWidth(width);
 		padInformationArray_[i].rect.setHeight(height);
-		padInformationArray_[i].rotation = differenceAngle_ * (180.0 / M_PI);
+		padInformationArray_[i].rotation = padInformationArray_[i].rotation
+				- (differenceAngle_ * (180.0 / M_PI));
 		ROS_INFO("After X: %f Y: %f Width: %f Height %f",
 				padInformationArray_[i].rect.x(),
 				padInformationArray_[i].rect.y(),

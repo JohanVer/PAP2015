@@ -60,6 +60,9 @@ bool QNode::init() {
 			&QNode::placerStatusCallback, this);
 	qrCodeScannerSubscriber_ = n_.subscribe("barcode", 100,
 			&QNode::qrCodeCallback, this);
+
+	imagePub_ = it_.advertise("renderedPcb", 1);
+
 	start();
 	return true;
 }
@@ -193,8 +196,8 @@ void QNode::sendTask(pap_common::DESTINATION destination, pap_common::TASK task,
 	task_publisher.publish(taskMsg);
 }
 
-
-void QNode::placerStatusCallback(const pap_common::PlacerStatusConstPtr& statusMsg) {
+void QNode::placerStatusCallback(
+		const pap_common::PlacerStatusConstPtr& statusMsg) {
 	int indicator = statusMsg->process;
 	int status = statusMsg->status;
 	Q_EMIT placerStatusUpdated(indicator, status);
@@ -226,7 +229,7 @@ void QNode::statusCallback(const pap_common::StatusConstPtr& statusMsg) {
 		motorcontrollerStatus[index].error = false;
 	}
 
-	switch(index) {
+	switch (index) {
 	case pap_common::XMOTOR:
 		motorcontrollerStatus[index].pos = statusMsg->posX;
 		break;
@@ -287,7 +290,8 @@ void QNode::resetLEDTask(int LEDnumber) {
 	arduino_publisher_.publish(arduinoMsg);
 }
 
-void QNode::sendTask(pap_common::DESTINATION destination, pap_common::TASK task, ComponentPlacerData componentData) {
+void QNode::sendTask(pap_common::DESTINATION destination, pap_common::TASK task,
+		ComponentPlacerData componentData) {
 	pap_common::Task taskMsg;
 	taskMsg.destination = destination;
 	taskMsg.task = task;
@@ -303,11 +307,11 @@ void QNode::sendTask(pap_common::DESTINATION destination, pap_common::TASK task,
 
 void QNode::visionStatusCallback(
 		const pap_common::VisionStatusConstPtr& statusMsg) {
-	if(statusMsg->task != pap_vision::START_PAD_FINDER){
-	Q_EMIT smdCoordinates(statusMsg->data1, statusMsg->data2, statusMsg->data3, statusMsg->camera);
-	}
-	else{
-	Q_EMIT signalPosition(statusMsg->data1,statusMsg->data2);
+	if (statusMsg->task != pap_vision::START_PAD_FINDER) {
+		Q_EMIT smdCoordinates(statusMsg->data1, statusMsg->data2,
+				statusMsg->data3, statusMsg->camera);
+	} else {
+		Q_EMIT signalPosition(statusMsg->data1, statusMsg->data2);
 	}
 }
 
@@ -315,6 +319,38 @@ void QNode::qrCodeCallback(const std_msgs::StringConstPtr& qrMsg) {
 	ROS_INFO("QR Code message received");
 	//QString qrCode = &qrMsg;
 	//Q_EMIT
+}
+
+void QNode::sendPcbImage(QImage* image) {
+	static unsigned int id_counter;
+	std_msgs::Header header;
+	header.seq = id_counter + 1;
+	header.stamp = ros::Time::now();
+	header.frame_id = "renderedPCB";
+
+	sensor_msgs::Image out_msg;
+
+	out_msg.header = header; // Same timestamp and tf frame as input image
+	out_msg.encoding = sensor_msgs::image_encodings::RGB8; // Or whatever
+
+	out_msg.height = image->height();
+	out_msg.width = image->width();
+	std::vector<uint8_t> rawDataHolder;
+
+	for (size_t i = 0; i < (image->byteCount()); i++) {
+		if(i != 0 && i % 2044 != 00){
+		rawDataHolder.push_back((image->bits())[i]);
+		}
+	}
+
+	ROS_INFO(
+			"Image byte size: %d Expected %d Width: %d Height: %d Vector_Size: %d Bytes_Per_Line: %d",
+			image->byteCount(), image->width() * image->height() * 3,
+			image->width(), image->height(),rawDataHolder.size(),image->bytesPerLine());
+	out_msg.step = image->bytesPerLine()-1;
+	out_msg.data = rawDataHolder;
+
+	imagePub_.publish(out_msg);
 }
 
 }  // namespace pap_gui

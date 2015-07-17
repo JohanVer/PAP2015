@@ -1755,11 +1755,21 @@ void MainWindow::on_padViewGenerate_button_clicked() {
 	}
 
 	// Build image with QGraphicsItem
-	padParser.renderImage(&scenePads_, ui.padView_Image->width() - 20,
+	QRectF pcbSize = padParser.renderImage(&scenePads_, ui.padView_Image->width() - 20,
 			ui.padView_Image->height() - 20);
 
 	ui.padView_Image->setScene(&scenePads_);
 	ui.padView_Image->show();
+
+
+	QImage *image = new QImage(pcbSize.width(),pcbSize.height(), QImage::Format_RGB888);
+	QPainter painter(image);
+	painter.setRenderHint(QPainter::Antialiasing);
+	scenePads_.render(&painter);
+	if(!image->save("/home/johan/Schreibtisch/file_name.png")){
+		ROS_ERROR("Error while saving image");
+	}
+	qnode.sendPcbImage(image);
 }
 
 void MainWindow::padPressed(int numberOfFiducial, QPointF padPos) {
