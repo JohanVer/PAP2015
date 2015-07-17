@@ -12,7 +12,8 @@ enum VISION {
   START_PAD_FINDER      = 6,
   SELECT_PAD			= 7,
   SEARCH_CIRCLE			= 8,
-  CHIP_BOTTOM			= 9
+  CHIP_BOTTOM			= 9,
+  START__QRCODE_FINDER	= 10
 };
 
 

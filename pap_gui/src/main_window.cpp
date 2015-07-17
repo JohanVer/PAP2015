@@ -123,6 +123,10 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent) :
 	QObject::connect(&qnode, SIGNAL(placerStatusUpdated(int, int)), this,
 			SLOT(placerStatusUpdated(int, int)));
 
+	// QR code scanner
+		QObject::connect(&qnode, SIGNAL(placerStatusUpdated(int, int)), this,
+				SLOT(placerStatusUpdated(int, int)));
+
 	connect(ui.xManPos, SIGNAL(released()), this, SLOT(releasexManPos()));
 	connect(ui.xManNeg, SIGNAL(released()), this, SLOT(releasexManNeg()));
 	connect(ui.YManPos, SIGNAL(released()), this, SLOT(releaseyManPos()));
@@ -1551,6 +1555,42 @@ void MainWindow::setCamera1Point(QPointF point) {
 	float percentageX = (100.0 / (float) ui.camera1->width()) * point.x();
 	float percentageY = (100.0 / (float) ui.camera1->height()) * point.y();
 }
+
+
+void MainWindow::findQRCode() {
+
+	qnode.sendTask(pap_common::VISION, pap_vision::START__QRCODE_FINDER);
+
+	QEventLoop loop;
+	QTimer *timer = new QTimer(this);
+
+	//connect(&qnode, SIGNAL(signalPosition(float,float)), &loop, SLOT(quit()));
+	connect(timer, SIGNAL(timeout()), &loop, SLOT(quit()));
+	timer->setSingleShot(true);
+	timer->start(1000);
+
+	loop.exec(); //blocks untill either signalPosition or timeout was fired
+
+	// Is timeout ocurred?
+	if (!timer->isActive()) {
+		//qnode.sendTask(pap_common::VISION, pap_vision::START_PAD_FINDER);
+		QMessageBox msgBox;
+		const QString title = "No QR Code detected";
+		msgBox.setWindowTitle(title);
+		msgBox.setText("No QR Code found within the last 5 seconds");
+		msgBox.exec();
+		msgBox.close();
+		return;
+	}
+
+	//qnode.sendTask(pap_common::VISION, pap_vision::START_PAD_FINDER);
+	// Update component info
+}
+
+void MainWindow::on_ScanQRCodeButton_clicked() {
+
+}
+
 
 void MainWindow::setFiducial(QPointF point) {
 	float percentageX = (100.0 / (float) ui.camera1->width()) * point.x();

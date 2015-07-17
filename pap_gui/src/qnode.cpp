@@ -58,6 +58,8 @@ bool QNode::init() {
 			&QNode::visionStatusCallback, this);
 	placerStatusSubscriber_ = n_.subscribe("placerStatus", 100,
 			&QNode::placerStatusCallback, this);
+	qrCodeScannerSubscriber_ = n_.subscribe("barcode", 100,
+			&QNode::qrCodeCallback, this);
 
 	imagePub_ = it_.advertise("renderedPcb", 1);
 
@@ -311,6 +313,12 @@ void QNode::visionStatusCallback(
 	} else {
 		Q_EMIT signalPosition(statusMsg->data1, statusMsg->data2);
 	}
+}
+
+void QNode::qrCodeCallback(const std_msgs::StringConstPtr& qrMsg) {
+	ROS_INFO("QR Code message received");
+	//QString qrCode = &qrMsg;
+	//Q_EMIT
 }
 
 void QNode::sendPcbImage(QImage* image) {
