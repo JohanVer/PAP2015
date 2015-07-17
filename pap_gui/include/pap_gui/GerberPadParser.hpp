@@ -64,7 +64,7 @@ public:
 	void parseShapes(std::string fileName);
 	bool searchShape(int shapeIndex, PadInformation* pad);
 	void setSize(float height, float width);
-	void renderImage(QGraphicsScene* scene, int width, int height);
+	QRectF renderImage(QGraphicsScene* scene, int width, int height);
 	void setTable(QTableWidget* table);
 	int searchId(QPointF position, int height);
 	float calibratePads(QPointF local1, QPointF local2, QPointF global1,

@@ -114,6 +114,7 @@ public:
 	void resetStepper();
 	void setLEDTask(int LEDnumber);
 	void resetLEDTask(int LEDnumber);
+	void sendPcbImage(QImage* image);
 
 Q_SIGNALS:
 	void loggingUpdated();
@@ -136,6 +137,7 @@ private:
     cv_bridge::CvImagePtr cv_ptr;
     controllerStatus motorcontrollerStatus[3];
     QImage cameraImage_;
+    image_transport::Publisher imagePub_;
 
 };
 

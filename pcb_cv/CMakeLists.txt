@@ -11,6 +11,7 @@ find_package(catkin REQUIRED COMPONENTS
   image_transport
   cv_bridge
   sensor_msgs
+  tf
 )
 find_package( OpenCV REQUIRED )
 ## System dependencies are found with CMake's conventions

@@ -15,7 +15,11 @@
 #include <vector>
 #include <cmath>
 
+
+// Conversion factors for pixel to mm
+// Top-Camera:
 #define PIXEL_TO_MM_TOP 25.394841192
+// Bottom-Camera
 #define PIXEL_TO_MM_BOTTOM 25.0
 
 enum CAMERA_SELECT {
