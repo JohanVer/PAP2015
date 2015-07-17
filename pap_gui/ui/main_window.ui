@@ -40,7 +40,7 @@
        <locale language="English" country="Australia"/>
       </property>
       <property name="currentIndex">
-       <number>4</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="tab_status">
        <attribute name="title">
@@ -215,28 +215,21 @@
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_16">
           <item>
-           <widget class="QLabel" name="label_23">
+           <widget class="QLabel" name="smdXBottom_Label">
             <property name="text">
              <string>X:</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QLabel" name="label_24">
+           <widget class="QLabel" name="smdYBottom_Label">
             <property name="text">
              <string>Y:</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QLabel" name="label_25">
-            <property name="text">
-             <string>Z:</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLabel" name="label_26">
+           <widget class="QLabel" name="smdRotBottom_Label">
             <property name="text">
              <string>Rot:</string>
             </property>
@@ -263,7 +256,7 @@
            <x>0</x>
            <y>0</y>
            <width>281</width>
-           <height>296</height>
+           <height>265</height>
           </rect>
          </property>
          <attribute name="label">
@@ -322,14 +315,34 @@
            </item>
           </layout>
          </widget>
+         <widget class="QComboBox" name="cameraSelect_Chip">
+          <property name="geometry">
+           <rect>
+            <x>0</x>
+            <y>130</y>
+            <width>85</width>
+            <height>27</height>
+           </rect>
+          </property>
+          <item>
+           <property name="text">
+            <string>Top</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Bottom</string>
+           </property>
+          </item>
+         </widget>
         </widget>
         <widget class="QWidget" name="page_2">
          <property name="geometry">
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>100</width>
-           <height>30</height>
+           <width>98</width>
+           <height>28</height>
           </rect>
          </property>
          <attribute name="label">
@@ -419,8 +432,8 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>100</width>
-           <height>30</height>
+           <width>98</width>
+           <height>28</height>
           </rect>
          </property>
          <attribute name="label">
@@ -488,8 +501,8 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>100</width>
-           <height>30</height>
+           <width>98</width>
+           <height>28</height>
           </rect>
          </property>
          <attribute name="label">
@@ -509,13 +522,65 @@
           </property>
          </widget>
         </widget>
+        <widget class="QWidget" name="page_6">
+         <property name="geometry">
+          <rect>
+           <x>0</x>
+           <y>0</y>
+           <width>98</width>
+           <height>28</height>
+          </rect>
+         </property>
+         <attribute name="label">
+          <string>Tip Finder</string>
+         </attribute>
+         <widget class="QPushButton" name="startTipFinder_Button">
+          <property name="geometry">
+           <rect>
+            <x>10</x>
+            <y>0</y>
+            <width>181</width>
+            <height>27</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>Start Tip Finder</string>
+          </property>
+         </widget>
+         <widget class="QWidget" name="horizontalLayoutWidget_10">
+          <property name="geometry">
+           <rect>
+            <x>10</x>
+            <y>40</y>
+            <width>160</width>
+            <height>31</height>
+           </rect>
+          </property>
+          <layout class="QHBoxLayout" name="horizontalLayout_14">
+           <item>
+            <widget class="QLabel" name="label_48">
+             <property name="text">
+              <string>Radius:</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLineEdit" name="radius_edit">
+             <property name="text">
+              <string>0.0</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </widget>
         <widget class="QWidget" name="page_5">
          <property name="geometry">
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>100</width>
-           <height>30</height>
+           <width>98</width>
+           <height>28</height>
           </rect>
          </property>
          <attribute name="label">

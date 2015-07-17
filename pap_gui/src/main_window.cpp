@@ -54,8 +54,6 @@ struct databaseEntry {
 	int pins;
 };
 
-
-
 ComponentPlacerData placementData;
 
 struct componentEntry {
@@ -97,8 +95,9 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent) :
 	}
 
 	//Vision
-	QObject::connect(&qnode, SIGNAL(smdCoordinates(float ,float ,float )), this,
-			SLOT(displaySMDCoords(float ,float ,float )));
+	QObject::connect(&qnode,
+			SIGNAL(smdCoordinates(float ,float ,float ,unsigned int)), this,
+			SLOT(displaySMDCoords(float ,float ,float,unsigned int )));
 	QWidget::connect(ui.camera1, SIGNAL(sendMousePoint(QPointF)), this,
 			SLOT(setCamera1Point(QPointF)));
 	QWidget::connect(ui.camera1, SIGNAL(setFiducial(QPointF)), this,
@@ -156,48 +155,48 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent) :
 	sizeDefined_ = false;
 	padFileLoaded_ = false;
 	//ui.checkBox_box->setDisabled(true);
-/*
-	indicatorClearPixmap.fill(Qt::transparent);
-	indicatorActivePixmap.fill(Qt::transparent);
-	indicatorFinishedPixmap.fill(Qt::transparent);
-	indicatorErrorPixmap.fill(Qt::transparent);
+	/*
+	 indicatorClearPixmap.fill(Qt::transparent);
+	 indicatorActivePixmap.fill(Qt::transparent);
+	 indicatorFinishedPixmap.fill(Qt::transparent);
+	 indicatorErrorPixmap.fill(Qt::transparent);
 
-	QPainter p1(&indicatorClearPixmap);
-	p1.setRenderHint(QPainter::Antialiasing, true);
-	QPen pen1(Qt::black, 1);
-	p1.setPen(pen1);
-	QBrush brush1(Qt::white);
-	p1.setBrush(brush1);
-	p1.drawEllipse(5, 5, 10, 10);
+	 QPainter p1(&indicatorClearPixmap);
+	 p1.setRenderHint(QPainter::Antialiasing, true);
+	 QPen pen1(Qt::black, 1);
+	 p1.setPen(pen1);
+	 QBrush brush1(Qt::white);
+	 p1.setBrush(brush1);
+	 p1.drawEllipse(5, 5, 10, 10);
 
-	QPainter p2(&indicatorActivePixmap);
-	p2.setRenderHint(QPainter::Antialiasing, true);
-	QPen pen2(Qt::black, 1);
-	p2.setPen(pen2);
-	QBrush brush2(Qt::yellow);
-	p2.setBrush(brush2);
-	p2.drawEllipse(5, 5, 10, 10);
+	 QPainter p2(&indicatorActivePixmap);
+	 p2.setRenderHint(QPainter::Antialiasing, true);
+	 QPen pen2(Qt::black, 1);
+	 p2.setPen(pen2);
+	 QBrush brush2(Qt::yellow);
+	 p2.setBrush(brush2);
+	 p2.drawEllipse(5, 5, 10, 10);
 
-	QPainter p3(&indicatorFinishedPixmap);
-	p3.setRenderHint(QPainter::Antialiasing, true);
-	QPen pen3(Qt::black, 1);
-	p3.setPen(pen3);
-	QBrush brush3(Qt::green);
-	p3.setBrush(brush3);
-	p3.drawEllipse(5, 5, 10, 10);
+	 QPainter p3(&indicatorFinishedPixmap);
+	 p3.setRenderHint(QPainter::Antialiasing, true);
+	 QPen pen3(Qt::black, 1);
+	 p3.setPen(pen3);
+	 QBrush brush3(Qt::green);
+	 p3.setBrush(brush3);
+	 p3.drawEllipse(5, 5, 10, 10);
 
-	QPainter p4(&indicatorErrorPixmap);
-	p4.setRenderHint(QPainter::Antialiasing, true);
-	QPen pen4(Qt::black, 1);
-	p4.setPen(pen4);
-	QBrush brush4(Qt::red);
-	p4.setBrush(brush4);
-	p4.drawEllipse(5, 5, 10, 10);*/
+	 QPainter p4(&indicatorErrorPixmap);
+	 p4.setRenderHint(QPainter::Antialiasing, true);
+	 QPen pen4(Qt::black, 1);
+	 p4.setPen(pen4);
+	 QBrush brush4(Qt::red);
+	 p4.setBrush(brush4);
+	 p4.drawEllipse(5, 5, 10, 10);*/
 
 	/*ui.label_indicator1->setPixmap(indicatorActivePixmap);
-	ui.label_indicator2->setPixmap(indicatorErrorPixmap);
-	ui.label_indicator3->setPixmap(indicatorFinishedPixmap);
-	ui.label_indicator4->setPixmap(indicatorClearPixmap);*/
+	 ui.label_indicator2->setPixmap(indicatorErrorPixmap);
+	 ui.label_indicator3->setPixmap(indicatorFinishedPixmap);
+	 ui.label_indicator4->setPixmap(indicatorClearPixmap);*/
 
 	for (int i = 1; i <= 7; i++) {
 		placerStatusUpdated(i, pap_common::PLACER_IDLE);
@@ -1109,7 +1108,7 @@ void MainWindow::releasezManNeg() {
 
 void MainWindow::placerStatusUpdated(int indicator, int state) {
 
-	QPixmap indicatorPixmap(QSize(20,20));
+	QPixmap indicatorPixmap(QSize(20, 20));
 	indicatorPixmap.fill(Qt::transparent);
 	QPainter p(&indicatorPixmap);
 	p.setRenderHint(QPainter::Antialiasing, true);
@@ -1119,7 +1118,6 @@ void MainWindow::placerStatusUpdated(int indicator, int state) {
 	QBrush brushGreen(Qt::green);
 	QBrush brushYellow(Qt::yellow);
 	QBrush brushRed(Qt::red);
-
 
 	switch (state) {
 	case pap_common::PLACER_IDLE:
@@ -1160,7 +1158,7 @@ void MainWindow::placerStatusUpdated(int indicator, int state) {
 		ui.label_indicator7->setPixmap(indicatorPixmap);
 		break;
 	case 8:
-		switch(state) {
+		switch (state) {
 		case 1:
 			ui.label_Info->setText("IDLE");
 			break;
@@ -1206,7 +1204,7 @@ void MainWindow::placerStatusUpdated(int indicator, int state) {
 		case 15:
 			ui.label_Info->setText("STARTPLACEMENT");
 			break;
-		break;
+			break;
 		}
 	}
 }
@@ -1469,10 +1467,22 @@ void MainWindow::on_resetLEDButton_clicked() {
 }
 
 void MainWindow::on_startChipFinder_Button_clicked() {
+	unsigned int cameraSelect = 3;
+
+	if (ui.cameraSelect_Chip->currentText() == "Top") {
+		cameraSelect = 0;
+	} else if (ui.cameraSelect_Chip->currentText() == "Bottom") {
+		cameraSelect = 1;
+	} else {
+		return;
+	}
+
 	qnode.sendTask(pap_common::VISION, pap_vision::START_CHIP_FINDER,
 			ui.widthChipFinder_LineEdit->text().toFloat(),
-			ui.heightChipFinder_LineEdit->text().toFloat(), 0.0);
-	displaySMDCoords(0.0, 0.0, 0.0);
+			ui.heightChipFinder_LineEdit->text().toFloat(),
+			(float) cameraSelect);
+	displaySMDCoords(0.0, 0.0, 0.0, 0);
+	displaySMDCoords(0.0, 0.0, 0.0, 1);
 }
 
 void MainWindow::on_startSmallSMDFinder_Button_clicked() {
@@ -1487,7 +1497,8 @@ void MainWindow::on_startSmallSMDFinder_Button_clicked() {
 		qnode.sendTask(pap_common::VISION, pap_vision::START_SMALL_FINDER, 0.5,
 				1.0, 0.0);
 	}
-	displaySMDCoords(0.0, 0.0, 0.0);
+	displaySMDCoords(0.0, 0.0, 0.0, 0);
+	displaySMDCoords(0.0, 0.0, 0.0, 1);
 }
 
 void MainWindow::on_startTapeFinder_Button_clicked() {
@@ -1502,11 +1513,13 @@ void MainWindow::on_startTapeFinder_Button_clicked() {
 		qnode.sendTask(pap_common::VISION, pap_vision::START_TAPE_FINDER, 0.5,
 				1.0, 0.0);
 	}
-	displaySMDCoords(0.0, 0.0, 0.0);
+	displaySMDCoords(0.0, 0.0, 0.0, 0);
+	displaySMDCoords(0.0, 0.0, 0.0, 1);
 }
 
 void MainWindow::on_startPadFinder_Button_clicked() {
-	displaySMDCoords(0.0, 0.0, 0.0);
+	displaySMDCoords(0.0, 0.0, 0.0, 0);
+	displaySMDCoords(0.0, 0.0, 0.0, 1);
 	qnode.sendTask(pap_common::VISION, pap_vision::START_PAD_FINDER);
 }
 
@@ -1521,13 +1534,21 @@ void MainWindow::on_StartStopVision_Button_clicked() {
 		ui.visionStatus_Label->setText("Off");
 		visionStarted_ = false;
 	}
-	displaySMDCoords(0.0, 0.0, 0.0);
+	displaySMDCoords(0.0, 0.0, 0.0, 0);
+	displaySMDCoords(0.0, 0.0, 0.0, 1);
 }
 
-void MainWindow::displaySMDCoords(float x, float y, float rot) {
-	ui.smdXTop_Label->setText(QString("X: ") + QString::number(x));
-	ui.smdYTop_Label->setText(QString("Y: ") + QString::number(y));
-	ui.smdRotTop_Label->setText(QString("Rot: ") + QString::number(rot));
+void MainWindow::displaySMDCoords(float x, float y, float rot,
+		unsigned int cameraSelect) {
+	if (cameraSelect == 0) {
+		ui.smdXTop_Label->setText(QString("X: ") + QString::number(x));
+		ui.smdYTop_Label->setText(QString("Y: ") + QString::number(y));
+		ui.smdRotTop_Label->setText(QString("Rot: ") + QString::number(rot));
+	} else if (cameraSelect == 1) {
+		ui.smdXBottom_Label->setText(QString("X: ") + QString::number(x));
+		ui.smdYBottom_Label->setText(QString("Y: ") + QString::number(y));
+		ui.smdRotBottom_Label->setText(QString("Rot: ") + QString::number(rot));
+	}
 }
 
 void MainWindow::setCamera1Point(QPointF point) {
@@ -1752,8 +1773,8 @@ void MainWindow::on_calibrationButton_clicked() {
 	qnode.sendTask(pap_common::PLACER, pap_common::CALIBRATION);
 }
 
-void MainWindow::on_calcOrientation_Button_clicked(){
-	QPointF local1,global1,local2,global2;
+void MainWindow::on_calcOrientation_Button_clicked() {
+	QPointF local1, global1, local2, global2;
 	local1.setX(0.0);
 	local1.setY(0.0);
 	local2.setX(0.0);
@@ -1762,7 +1783,7 @@ void MainWindow::on_calcOrientation_Button_clicked(){
 	global1.setY(ui.fiducialTable->item(0, 1)->text().toFloat());
 	global2.setX(ui.fiducialTable->item(1, 0)->text().toFloat());
 	global2.setY(ui.fiducialTable->item(1, 1)->text().toFloat());
-	padParser.calibratePads(local1,local2,global1,global2);
+	padParser.calibratePads(local1, local2, global1, global2);
 	padParser.rotatePads();
 }
 
@@ -1851,6 +1872,13 @@ void MainWindow::keyReleaseEvent(QKeyEvent *e) {
 				(float) pap_common::ZMOTOR, 0.0, 0.0);
 		break;
 	}
+}
+
+void MainWindow::on_startTipFinder_Button_clicked() {
+	qnode.sendTask(pap_common::VISION, pap_vision::SEARCH_CIRCLE,
+			ui.radius_edit->text().toFloat(), 0.0, 0.0);
+	displaySMDCoords(0.0, 0.0, 0.0, 0);
+	displaySMDCoords(0.0, 0.0, 0.0, 1);
 }
 
 }

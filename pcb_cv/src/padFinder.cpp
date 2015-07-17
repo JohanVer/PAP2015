@@ -28,6 +28,9 @@ using namespace cv;
 #define MIN_AREA_TAPE_FINDER 300
 #define ERROR_PERCENT_SMDTAPE 20.0
 
+// Tips
+#define ERROR_PERCENT_TIP 20.0
+
 padFinder::padFinder() {
 	foundVia = false;
 	partWidth_ = 0.0;
@@ -96,7 +99,6 @@ bool padFinder::isBorderTouched(cv::RotatedRect pad) {
 	return false;
 }
 
-
 void padFinder::drawRotatedRect(cv::Mat& image, cv::RotatedRect rRect,
 		cv::Scalar color) {
 
@@ -129,7 +131,67 @@ void padFinder::setLabel(cv::Mat& im, const std::string label,
 	cv::putText(im, label, pt, fontface, scale, CV_RGB(0, 0, 0), thickness, 8);
 }
 
-smdPart padFinder::findChip(cv::Mat* input) {
+smdPart padFinder::findTip(cv::Mat* input) {
+	cv::Mat gray;
+	cv::Mat final = input->clone();
+	std::vector<smdPart> tipObjects;
+	cv::cvtColor(*input, gray, CV_BGR2GRAY);
+
+	vector<Vec3f> circles;
+	std::vector<std::vector<cv::Point> > circlesSorted;
+
+	float radiusMin = ((partWidth_) / 100.0)
+			* (100.0 - ERROR_PERCENT_TIP);
+	float radiusMax = ((partWidth_) / 100.0)
+				* (100.0 + ERROR_PERCENT_TIP);
+
+	cv::HoughCircles(gray, circles, CV_HOUGH_GRADIENT, 1, gray.rows / 4, 200,
+			100, radiusMin * PIXEL_TO_MM_TOP,radiusMax * PIXEL_TO_MM_TOP);
+
+	for( size_t i = 0; i < circles.size(); i++ )
+	    {
+	         Point center(cvRound(circles[i][0]), cvRound(circles[i][1]));
+	         int radius = cvRound(circles[i][2]);
+	         // draw the circle center
+	         //cv::circle( final, center, 3, Scalar(255,0,0), -1, 8, 0 );
+	         // draw the circle outline
+	         cv::circle( final, center, radius, Scalar(0,0,255), 3, 8, 0 );
+
+	         smdPart part;
+	         part.x = center.x;
+	         part.y = center.y;
+	         part.rot = radius;
+	         tipObjects.push_back(part);
+	    }
+
+	if (circlesSorted.size() > 1) {
+		ROS_INFO("More than one tip found! Take nearest one ...");
+	}
+
+	smdPart smdFinal;
+
+	// Calculation is done with unit pixel
+	if (nearestPart(&tipObjects, &smdFinal, input->cols, input->rows)) {
+		cv::circle(final, Point2f(smdFinal.x, smdFinal.y), smdFinal.rot, CV_RGB(0, 255, 0), 3);
+		cv::circle( final, Point2f(smdFinal.x, smdFinal.y), 3, Scalar(255,0,0), -1, 8, 0 );
+		smdFinal.x = (smdFinal.x - (input->cols / 2 - 1));
+		smdFinal.y = ((input->rows / 2 - 1) - smdFinal.y);
+	}
+
+	*input = final.clone();
+	return smdFinal;
+}
+
+smdPart padFinder::findChip(cv::Mat* input,unsigned int camera_select) {
+	float pxToMM = 0.0;
+
+	if(camera_select == CAMERA_TOP){
+		pxToMM = PIXEL_TO_MM_TOP;
+	}
+	else if(camera_select == CAMERA_BOTTOM){
+		pxToMM = PIXEL_TO_MM_BOTTOM;
+	}
+
 	cv::Mat gray;
 	cv::Mat final = input->clone();
 	std::vector<smdPart> smdObjects;
@@ -146,12 +208,13 @@ smdPart padFinder::findChip(cv::Mat* input) {
 	for (int i = 0; i < contours.size(); i++) {
 
 		cv::RotatedRect rect = minAreaRect(contours[i]);
-		if(isBorderTouched(rect)){
+		if (isBorderTouched(rect)) {
 			continue;
 		}
-		float rectConvertedArea = rect.size.width / PIXEL_TO_MM
-				* rect.size.height / PIXEL_TO_MM;
-		ROS_INFO("Converted Area: %f, expected %f",rectConvertedArea,(partWidth_ * partHeight_));
+		float rectConvertedArea = rect.size.width / pxToMM
+				* rect.size.height / pxToMM;
+		ROS_INFO("Converted Area: %f, expected %f", rectConvertedArea,
+				(partWidth_ * partHeight_));
 		if (rectConvertedArea
 				> ((partWidth_ * partHeight_) / 100.0)
 						* (100.0 - ERROR_PERCENT_CHIP)
@@ -181,7 +244,7 @@ smdPart padFinder::findChip(cv::Mat* input) {
 		smdFinal.y = (input->rows / 2 - 1) - smdFinal.y;
 	}
 
-/*
+	/*
 	 cv::imshow("grey", gray);
 	 cv::imshow("input", *input);
 	 cv::imshow("final", final);
@@ -213,8 +276,8 @@ smdPart padFinder::findSmallSMD(cv::Mat* input) {
 				//ROS_INFO("Parent %d",hierarchy[i][3]);
 				if (hierarchy[i][3] == closedContour - 1) {
 					cv::RotatedRect rect = minAreaRect(contours[i]);
-					float rectConvertedArea = rect.size.width / PIXEL_TO_MM
-							* rect.size.height / PIXEL_TO_MM;
+					float rectConvertedArea = rect.size.width / PIXEL_TO_MM_TOP
+							* rect.size.height / PIXEL_TO_MM_TOP;
 
 					if (rectConvertedArea
 							> ((partWidth_ * partHeight_) / 100.0)
@@ -309,8 +372,8 @@ smdPart padFinder::findSMDTape(cv::Mat* input) {
 
 		if (!found) {
 			cv::RotatedRect rect = minAreaRect(contours[i]);
-			float rectConvertedArea = rect.size.width / PIXEL_TO_MM
-					* rect.size.height / PIXEL_TO_MM;
+			float rectConvertedArea = rect.size.width / PIXEL_TO_MM_TOP
+					* rect.size.height / PIXEL_TO_MM_TOP;
 			//ROS_INFO("Tape size : %f Des size: %f",rectConvertedArea,(partWidth_ * partHeight_));
 			if (!isBorderTouched(rect)
 					&& rectConvertedArea
@@ -499,12 +562,12 @@ cv::Point2f padFinder::findPads(cv::Mat* input, bool startSelect,
 				padRects.push_back(pad);
 
 				if (startSelect
-						&& cv::pointPolygonTest(contours[i], selectPad,
-								false)==1.0) {
+						&& cv::pointPolygonTest(contours[i], selectPad, false)
+								== 1.0) {
 					drawRotatedRect(final, pad, CV_RGB(0, 0, 255));
 
-					outputPosition.x = mc.x/PIXEL_TO_MM;
-					outputPosition.y = mc.y/PIXEL_TO_MM;
+					outputPosition.x = mc.x / PIXEL_TO_MM_TOP;
+					outputPosition.y = mc.y / PIXEL_TO_MM_TOP;
 				} else {
 					drawRotatedRect(final, pad, CV_RGB(255, 0, 0));
 				}
