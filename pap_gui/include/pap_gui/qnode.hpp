@@ -116,6 +116,8 @@ public:
 	void resetStepper();
 	void setLEDTask(int LEDnumber);
 	void resetLEDTask(int LEDnumber);
+	void setBottomLEDTask();
+	void resetBottomLEDTask();
 	void sendPcbImage(QImage* image);
 
 Q_SIGNALS:

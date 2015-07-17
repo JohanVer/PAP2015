@@ -151,6 +151,47 @@ void PlaceController::setPlaceCorrectionOffset(float xDiff, float yDiff, float r
 	PlaceCorrection.rot = rotDiff;
 }
 
+void PlaceController::setBottomCamCorrectionOffset(float xDiff, float yDiff) {
+	cameraBottomOffset.x = cameraBottomOffset.x + xDiff;
+	cameraBottomOffset.y = cameraBottomOffset.y + yDiff;
+}
+
+Offset PlaceController::getTip1Coordinates() {
+	Offset tip1Coordinate;
+	tip1Coordinate.x = cameraBottomOffset.x + tipLeftOffset.x;
+	tip1Coordinate.y = cameraBottomOffset.y + tipLeftOffset.y;
+	return tip1Coordinate;
+}
+
+Offset PlaceController::getTip2Coordinates() {
+	Offset tip2Coordinate;
+	tip2Coordinate.x = cameraBottomOffset.x + tipRightOffset.x;
+	tip2Coordinate.y = cameraBottomOffset.y + tipRightOffset.y;
+	return tip2Coordinate;
+}
+
+Offset PlaceController::getDispenserCoordinates() {
+	Offset dispenserCoordinate;
+	dispenserCoordinate.x = cameraBottomOffset.x + dispenserTipOffset.x;
+	dispenserCoordinate.y = cameraBottomOffset.y + dispenserTipOffset.y;
+	return dispenserCoordinate;
+}
+
+void PlaceController::setDispenserOffset(float xDiff, float yDiff) {
+	dispenserTipOffset.x = dispenserTipOffset.x + xDiff;
+	dispenserTipOffset.y = dispenserTipOffset.y + yDiff;
+}
+
+void PlaceController::setTip1Offset(float xDiff, float yDiff) {
+	tipLeftOffset.x = tipLeftOffset.x + xDiff;
+	tipLeftOffset.y = tipLeftOffset.y + yDiff;
+}
+
+void PlaceController::setTip2Offset(float xDiff, float yDiff) {
+	tipRightOffset.x = tipRightOffset.x + xDiff;
+	tipRightOffset.y = tipRightOffset.y + yDiff;
+}
+
 float PlaceController::getComponentLenth() {
 	return currentComponent.length;
 }

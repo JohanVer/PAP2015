@@ -43,6 +43,7 @@ using namespace std;
 bool componentTableEmpty = true;
 bool singleComponentSelected = false;
 bool placementProcessRunning = false;
+bool bottomLEDon = false;
 int componentCount = 0;
 int boxNumberMax = 59;
 int boxNumberMin = 0;
@@ -111,6 +112,10 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent) :
 
 	QWidget::connect(&scenePads_, SIGNAL(sendMousePoint(int ,QPointF)), this,
 			SLOT(padPressed(int,QPointF)));
+
+	QWidget::connect(&scenePads_, SIGNAL(gotoPad(QPointF)), this,
+				SLOT(gotoPad(QPointF)));
+
 	// Cameras
 	QObject::connect(&qnode, SIGNAL(cameraUpdated(int )), this,
 			SLOT(cameraUpdated(int )));
@@ -1230,6 +1235,7 @@ void MainWindow::statusUpdated(int index) {
 			ui.posLabel1->setText("busy");
 		}
 		ui.label_posX->setText(QString::number((qnode.getStatus())[index].pos));
+		currentPosition.x = (qnode.getStatus())[index].pos;
 		break;
 
 	case 2:
@@ -1251,6 +1257,7 @@ void MainWindow::statusUpdated(int index) {
 			ui.posLabel2->setText("busy");
 		}
 		ui.label_posY->setText(QString::number((qnode.getStatus())[index].pos));
+		currentPosition.y = (qnode.getStatus())[index].pos;
 		break;
 
 	case 3:
@@ -1272,6 +1279,7 @@ void MainWindow::statusUpdated(int index) {
 			ui.posLabel3->setText("busy");
 		}
 		ui.label_posZ->setText(QString::number((qnode.getStatus())[index].pos));
+		currentPosition.z = (qnode.getStatus())[index].pos;
 		break;
 	}
 }
@@ -1779,16 +1787,32 @@ void MainWindow::padPressed(int numberOfFiducial, QPointF padPos) {
 			padParser.padInformationArray_[id_].rect.y());
 }
 
+void MainWindow::gotoPad(QPointF padPos){
+	ROS_INFO("Goto Pad....");
+	id_ = padParser.searchId(padPos, ui.padView_Image->width() - 20);
+	if (qnode.getStatus()[0].positionReached
+				&& qnode.getStatus()[1].positionReached
+				&& qnode.getStatus()[2].positionReached) {
+
+			float x = padParser.padInformationArray_[id_].rect.x();
+			float y = padParser.padInformationArray_[id_].rect.y();
+			ROS_INFO("Goto position x: %f y: %f", x, y);
+			qnode.sendTask(pap_common::CONTROLLER, pap_common::COORD, x, y, 50.0);
+	}
+}
+
 void MainWindow::on_calibrationButton_clicked() {
 	qnode.sendTask(pap_common::PLACER, pap_common::CALIBRATION);
 }
 
 void MainWindow::on_calcOrientation_Button_clicked() {
 	QPointF local1, global1, local2, global2;
-	local1.setX(0.0);
-	local1.setY(0.0);
-	local2.setX(0.0);
-	local2.setY(0.0);
+
+	local1.setX(ui.fiducialTable->item(2, 0)->text().toFloat() + currentPosition.x);
+	local1.setY(ui.fiducialTable->item(2, 1)->text().toFloat() + currentPosition.y);
+	local2.setX(ui.fiducialTable->item(3, 0)->text().toFloat() + currentPosition.x);
+	local2.setY(ui.fiducialTable->item(3, 1)->text().toFloat() + currentPosition.y);
+
 	global1.setX(ui.fiducialTable->item(0, 0)->text().toFloat());
 	global1.setY(ui.fiducialTable->item(0, 1)->text().toFloat());
 	global2.setX(ui.fiducialTable->item(1, 0)->text().toFloat());
@@ -1889,6 +1913,16 @@ void MainWindow::on_startTipFinder_Button_clicked() {
 			ui.radius_edit->text().toFloat(), 0.0, 0.0);
 	displaySMDCoords(0.0, 0.0, 0.0, 0);
 	displaySMDCoords(0.0, 0.0, 0.0, 1);
+}
+
+void MainWindow::on_bottomLEDButton_clicked(){
+	if(!bottomLEDon) {
+		qnode.setBottomLEDTask();
+		bottomLEDon = true;
+	} else {
+		qnode.resetBottomLEDTask();
+		bottomLEDon = false;
+	}
 }
 
 }

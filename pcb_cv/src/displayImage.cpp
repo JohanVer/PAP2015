@@ -23,7 +23,7 @@
 #include <tf/transform_broadcaster.h>
 
 // Switch for simulation or gathering data from usb camera
-#define SIMULATION
+//#define SIMULATION
 
 char key;
 using namespace std;
@@ -64,6 +64,7 @@ int main(int argc, char **argv) {
 	CvCapture* capture = cvCaptureFromCAM(1);
 	CvCapture* capture2 = cvCaptureFromCAM(2);
 	CvCapture* capture3 = cvCaptureFromCAM(3);
+#endif
 
 	int id_counter = 0;
 
@@ -81,6 +82,7 @@ int main(int argc, char **argv) {
 #else
 		cv::Mat input;
 		cv::Mat input2;
+		cv::Mat input3;
 #endif
 		id_counter++;
 		cv_bridge::CvImage out_msg;

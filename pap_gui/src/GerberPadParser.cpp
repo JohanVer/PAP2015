@@ -9,7 +9,6 @@
 #define ENDOFFILE_GERBER 02
 #include "../include/pap_gui/GerberPadParser.hpp"
 
-
 GerberPadParser::GerberPadParser() {
 	height_ = 0.0;
 	width_ = 0.0;
@@ -338,13 +337,13 @@ QRectF GerberPadParser::renderImage(QGraphicsScene* scene, int width,
 	float pcbSizeY = (pcbSize.y()); //+ (unsigned int) (height - pcbSize.height()) / 2);
 //ROS_INFO("X: %d Y: %d W: %d H: %d", pcbSize.x(), pcbSize.y(), pcbSize.width(),
 //		pcbSize.height());
-		QGraphicsRectItem *rect = new QGraphicsRectItem(pcbSize.x(),
-				pcbSize.height() / 2, pcbSize.width(), pcbSize.height());
-		//rect->setTransformOriginPoint(pcbSize.x(), pcbSizeY);
-		//rect->setRotation(-outerRectRot_);
-		rect->setBrush(Qt::green);
-		rect->setPen(QPen(Qt::blue, 3, Qt::DashDotLine));
-		scene->addItem(rect);
+	QGraphicsRectItem *rect = new QGraphicsRectItem(pcbSize.x(),
+			pcbSize.height() / 2, pcbSize.width(), pcbSize.height());
+	//rect->setTransformOriginPoint(pcbSize.x(), pcbSizeY);
+	//rect->setRotation(-outerRectRot_);
+	rect->setBrush(Qt::green);
+	rect->setPen(QPen(Qt::blue, 3, Qt::DashDotLine));
+	scene->addItem(rect);
 // Draw Pads
 	for (std::size_t i = 0; i < padInformationArray_.size(); i++) {
 		QRectF pad;
@@ -401,11 +400,14 @@ int GerberPadParser::searchId(QPointF position, int height) {
 float GerberPadParser::calibratePads(QPointF local1, QPointF local2,
 		QPointF global1, QPointF global2) {
 
+	// Local = Robot reference coordinate system
+	// Global = PCB coordinate system
+
 	float fixedAngle = atan2(global2.y() - global1.y(),
 			global2.x() - global1.x());
 	float cvAngle = atan2(local2.y() - local1.y(), local2.x() - local1.x());
 
-	differenceAngle_ = M_PI / 3.0;		//fixedAngle - cvAngle;
+	differenceAngle_ = fixedAngle - cvAngle;
 	ROS_INFO("Calibration : Difference Angle %f", differenceAngle_);
 
 // This calculates the translation of the pads in the global pad frame
@@ -413,17 +415,17 @@ float GerberPadParser::calibratePads(QPointF local1, QPointF local2,
 			tf::Vector3(-global1.x(), -global1.y(), 0.0));
 	transformIntoGlobalPoint_.setRotation(tf::Quaternion(0, 0, 0, 1));
 
-// This transforms the pads into the robot frame
-	transTransformIntoRobot_.setOrigin(
-			tf::Vector3(local1.x() - global1.x(), local1.y() - global1.y(),
-					0.0));
-	transTransformIntoRobot_.setRotation(tf::Quaternion(0, 0, 0, 1));
-
 // This rotates the pads in the global pad frame
 	tf::Quaternion rotQuat;
 	rotQuat.setEuler(0.0, 0.0, differenceAngle_);
 	rotation_.setOrigin(tf::Vector3(0.0, 0.0, 0.0));
 	rotation_.setRotation(rotQuat);
+
+	// This transforms the pads into the robot frame
+	transTransformIntoRobot_.setOrigin(
+			tf::Vector3(local1.x() - global1.x(), local1.y() - global1.y(),
+					0.0));
+	transTransformIntoRobot_.setRotation(tf::Quaternion(0, 0, 0, 1));
 }
 
 void GerberPadParser::rotatePads(void) {
@@ -449,6 +451,7 @@ void GerberPadParser::rotatePads(void) {
 		pointToTransform = transformIntoGlobalPoint_ * pointToTransform;
 		pointToTransform = rotation_ * pointToTransform;
 		pointToTransform = backTransform.inverse() * pointToTransform;
+		pointToTransform = transTransformIntoRobot_ * pointToTransform;
 
 		padInformationArray_[i].rect.setX(pointToTransform.x());
 		padInformationArray_[i].rect.setY(pointToTransform.y());

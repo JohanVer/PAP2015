@@ -136,6 +136,8 @@ public Q_SLOTS:
     void on_startPadFinder_Button_clicked();
     void on_StartStopVision_Button_clicked();
     void on_startTipFinder_Button_clicked();
+    void on_bottomLEDButton_clicked();
+    void gotoPad(QPointF padPos);
     // Display Functions
     void displaySMDCoords(float x,float y,float rot, unsigned int cameraSelect);
     void setCamera1Point(QPointF point);
@@ -177,6 +179,8 @@ private:
 	Ui::MainWindowDesign ui;
 	QNode qnode;
 
+	// Current position
+	Offset currentPosition;
 	// Structures for holding the camera1 image (top camera)
 	QPixmap cameraPicture1;
 	QGraphicsScene scene_;
