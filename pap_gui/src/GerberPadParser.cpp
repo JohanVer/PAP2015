@@ -9,10 +9,12 @@
 #define ENDOFFILE_GERBER 02
 #include "../include/pap_gui/GerberPadParser.hpp"
 
-
 GerberPadParser::GerberPadParser() {
 	height_ = 0.0;
 	width_ = 0.0;
+	outerRectRot_ = 0.0;
+	pcbSize.setX(0.0);
+	pcbSize.setY(0.0);
 
 }
 
@@ -234,6 +236,17 @@ void GerberPadParser::loadFile(std::string fileName) {
 
 	std::ifstream infile;
 	infile.open(fileName.c_str(), std::ios::in);
+	padInformationArray_.clear();
+
+	// Outlines are part of the first entry!
+
+	PadInformation outerRect;
+	outerRect.rect.setX(width_ / 2 + pcbSize.x());
+	outerRect.rect.setY(height_ / 2 + pcbSize.y());
+	outerRect.rotation = outerRectRot_;
+	outerRect.rect.setHeight(height_);
+	outerRect.rect.setWidth(width_);
+	padInformationArray_.push_back(outerRect);
 
 	float xParsed, yParsed = 0.0;
 	std::string line;
@@ -335,17 +348,9 @@ QRectF GerberPadParser::renderImage(QGraphicsScene* scene, int width,
 	pcbSize.setWidth((unsigned int) (width_ * pixelConversionFactor));
 	pcbSize.setHeight((unsigned int) (height_ * pixelConversionFactor));
 
-	float pcbSizeY = (pcbSize.y()); //+ (unsigned int) (height - pcbSize.height()) / 2);
-//ROS_INFO("X: %d Y: %d W: %d H: %d", pcbSize.x(), pcbSize.y(), pcbSize.width(),
-//		pcbSize.height());
-		QGraphicsRectItem *rect = new QGraphicsRectItem(pcbSize.x(),
-				pcbSize.height() / 2, pcbSize.width(), pcbSize.height());
-		//rect->setTransformOriginPoint(pcbSize.x(), pcbSizeY);
-		//rect->setRotation(-outerRectRot_);
-		rect->setBrush(Qt::green);
-		rect->setPen(QPen(Qt::blue, 3, Qt::DashDotLine));
-		scene->addItem(rect);
-// Draw Pads
+	float pcbSizeY = (pcbSize.y());
+
+	// Draw Pads
 	for (std::size_t i = 0; i < padInformationArray_.size(); i++) {
 		QRectF pad;
 		PadInformation padInfo;
@@ -371,15 +376,18 @@ QRectF GerberPadParser::renderImage(QGraphicsScene* scene, int width,
 		printedRects.push_back(pad);
 		QGraphicsRectItem *rect = new QGraphicsRectItem(pad.x(), pad.y(),
 				pad.width(), pad.height());
-		//QGraphicsRectItem *rect = new QGraphicsRectItem(pad.x(), pad.y(),
-		//			2, 2);
 		rect->setPen(QPen(Qt::red, 1, Qt::SolidLine));
-		rect->setBrush(Qt::red);
+		if (i != 0) {
+			rect->setBrush(Qt::red);
+		} else {
+			rect->setBrush(Qt::green);
+		}
 		rect->setTransformOriginPoint(padInfo.rect.x() * pixelConversionFactor,
 				(double) height - (padInfo.rect.y() * pixelConversionFactor));
 		rect->setRotation(padInfo.rotation);
 		ROS_INFO("ROTATION: %f", padInfo.rotation);
 		scene->addItem(rect);
+
 	}
 
 	return pcbSize;
@@ -389,13 +397,65 @@ int GerberPadParser::searchId(QPointF position, int height) {
 	QPointF convPoint;
 	convPoint.setX(position.x());
 	convPoint.setY(position.y());
-
-	for (std::size_t i = 0; i < printedRects.size(); i++) {
+	// First rect is outline
+	for (std::size_t i = 1; i < printedRects.size(); i++) {
 		if (printedRects[i].contains(convPoint)) {
 			return i;
 		}
 	}
 	return -1;
+}
+
+visualization_msgs::MarkerArray* GerberPadParser::getMarkerList(void) {
+	markerArray.markers.clear();
+
+	for (std::size_t i = 0; i < padInformationArray_.size(); i++) {
+		PadInformation padInfo;
+		padInfo = padInformationArray_[i];
+		// Create Marker
+
+		visualization_msgs::Marker marker;
+		marker.header.frame_id = "world";
+		marker.header.stamp = ros::Time();
+		marker.id = i + 1;
+		marker.type = visualization_msgs::Marker::CUBE;
+		marker.action = visualization_msgs::Marker::ADD;
+		marker.pose.position.x = (padInfo.rect.x())
+				* 0.001;
+		marker.pose.position.y = (padInfo.rect.y())
+				* 0.001;
+		if (i != 0) {
+			marker.pose.position.z = 0.003;
+		} else {
+			marker.pose.position.z = 0.002;
+		}
+		tf::Quaternion rotQuat;
+		rotQuat.setEuler(0.0, 0.0, -padInfo.rotation * (M_PI / 180.0));
+		marker.pose.orientation.w = rotQuat.getW();
+		marker.pose.orientation.x = rotQuat.getX();
+		marker.pose.orientation.y = rotQuat.getY();
+		marker.pose.orientation.z = rotQuat.getZ();
+
+		marker.scale.x = padInfo.rect.width() * 0.001;
+		marker.scale.y = padInfo.rect.height() * 0.001;
+		marker.scale.z = 1 * 0.001;
+		if (i != 0) {
+			marker.scale.z = 0.01;
+			marker.color.a = 1.0;
+			marker.color.r = 1.0;
+			marker.color.g = 0.0;
+			marker.color.b = 0.0;
+		} else {
+			marker.scale.z = 0.01;
+			marker.color.a = 1.0;
+			marker.color.r = 0.0;
+			marker.color.g = 1.0;
+			marker.color.b = 0.0;
+		}
+		markerArray.markers.push_back(marker);
+
+	}
+	return &markerArray;
 }
 
 float GerberPadParser::calibratePads(QPointF local1, QPointF local2,

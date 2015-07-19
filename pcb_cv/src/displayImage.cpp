@@ -246,7 +246,7 @@ int main(int argc, char **argv) {
 
 		transformBr.sendTransform(
 					tf::StampedTransform(transform, ros::Time::now(), "/world",
-							"/camera1"));
+							"/renderedPCB"));
 
 		// Camera 2
 

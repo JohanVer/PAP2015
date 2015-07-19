@@ -31,6 +31,8 @@
 #include <QGraphicsRectItem>
 #include <QGraphicsObject>
 #include <QRectF>
+#include "visualization_msgs/Marker.h"
+#include "visualization_msgs/MarkerArray.h"
 
 class PadInformation {
 public:
@@ -70,6 +72,7 @@ public:
 	float calibratePads(QPointF local1, QPointF local2, QPointF global1,
 			QPointF global2);
 	void rotatePads(void);
+	visualization_msgs::MarkerArray* getMarkerList(void);
 
 	// TODO: Make getter/setter for this public variable array
 	std::vector<PadInformation> padInformationArray_;
@@ -82,6 +85,7 @@ private:
 	float height_, width_,outerRectRot_;
 	tf::Transform transformIntoGlobalPoint_, transTransformIntoRobot_,rotation_;
 	float differenceAngle_;
+	visualization_msgs::MarkerArray markerArray;
 };
 
 #endif /* PAP_GUI_SRC_GERBERPADPARSER_HPP_ */

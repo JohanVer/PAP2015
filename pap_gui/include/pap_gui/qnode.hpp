@@ -21,6 +21,9 @@
 #include <QThread>
 #include <QStringListModel>
 #include "sensor_msgs/Image.h"
+#include "sensor_msgs/PointCloud2.h"
+#include "visualization_msgs/MarkerArray.h"
+#include <sensor_msgs/point_cloud2_iterator.h>
 #include <cv_bridge/cv_bridge.h>
 #include "std_msgs/Header.h"
 #include "std_msgs/ByteMultiArray.h"
@@ -114,7 +117,7 @@ public:
 	void resetStepper();
 	void setLEDTask(int LEDnumber);
 	void resetLEDTask(int LEDnumber);
-	void sendPcbImage(QImage* image);
+	void sendPcbImage(QImage* image,visualization_msgs::MarkerArray *markerList);
 
 Q_SIGNALS:
 	void loggingUpdated();
@@ -137,7 +140,12 @@ private:
     cv_bridge::CvImagePtr cv_ptr;
     controllerStatus motorcontrollerStatus[3];
     QImage cameraImage_;
-    image_transport::Publisher imagePub_;
+    //image_transport::Publisher imagePub_;
+    ros::Publisher imagePub_;
+    ros::Publisher markerPub_;
+
+public:
+    float pcbWidth_,pcbHeight_;
 
 };
 

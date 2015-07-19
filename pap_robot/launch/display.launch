@@ -22,5 +22,6 @@
     name="rviz"
     pkg="rviz"
     type="rviz"
+    output = "screen"
     args="-d $(find pap_robot)/urdf.rviz" />
 </launch>

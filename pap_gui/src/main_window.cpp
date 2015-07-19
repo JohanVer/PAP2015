@@ -1688,8 +1688,11 @@ void MainWindow::on_inputPad_Button_clicked() {
 }
 
 void MainWindow::on_padViewSetSize_button_clicked() {
-	padParser.setSize(ui.padViewHeight_text->text().toFloat(),
-			ui.padViewWidth_text->text().toFloat());
+	float width = ui.padViewWidth_text->text().toFloat();
+	float height = ui.padViewHeight_text->text().toFloat();
+	padParser.setSize(height,width);
+	qnode.pcbHeight_ = height;
+	qnode.pcbWidth_ = width;
 	sizeDefined_ = true;
 
 	QMessageBox msgBox;
@@ -1729,7 +1732,8 @@ void MainWindow::on_padViewGenerate_button_clicked() {
 	if(!image->save("/home/johan/Schreibtisch/file_name.png")){
 		ROS_ERROR("Error while saving image");
 	}
-	qnode.sendPcbImage(image);
+	qnode.sendPcbImage(image,padParser.getMarkerList());
+
 }
 
 void MainWindow::padPressed(int numberOfFiducial, QPointF padPos) {
