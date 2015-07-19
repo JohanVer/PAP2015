@@ -81,7 +81,14 @@ public:
 	int selectTip();
 	void setPickUpCorrectionOffset(float xDiff, float yDiff, float rotDiff);
 	void setPlaceCorrectionOffset(float xDiff, float yDiff, float rotDiff);
+	void setBottomCamCorrectionOffset(float xDiff, float yDiff);
+	void setTip1Offset(float xDiff, float yDiff);
+	void setTip2Offset(float xDiff, float yDiff);
+	void setDispenserOffset(float xDiff, float yDiff);
 
+	Offset getTip1Coordinates();
+	Offset getTip2Coordinates();
+	Offset getDispenserCoordinates();
 
 	void systemCalibration();
 

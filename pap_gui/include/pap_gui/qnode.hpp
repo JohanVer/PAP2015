@@ -27,6 +27,7 @@
 #include <cv_bridge/cv_bridge.h>
 #include "std_msgs/Header.h"
 #include "std_msgs/ByteMultiArray.h"
+#include "std_msgs/String.h"
 #include <sensor_msgs/image_encodings.h>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
@@ -112,17 +113,21 @@ public:
 	void statusCallback(const pap_common::StatusConstPtr&  statusMsg);
 	void placerStatusCallback(const pap_common::PlacerStatusConstPtr&  statusMsg);
 	void visionStatusCallback(const pap_common::VisionStatusConstPtr&  statusMsg);
+	void qrCodeCallback(const std_msgs::StringConstPtr& qrMsg);
 	void sendRelaisTask(int relaisNumber,bool value);
 	void sendStepperTask(int StepperNumber, int rotationAngle);
 	void resetStepper();
 	void setLEDTask(int LEDnumber);
 	void resetLEDTask(int LEDnumber);
 	void sendPcbImage(QImage* image,visualization_msgs::MarkerArray *markerList);
+	void setBottomLEDTask();
+	void resetBottomLEDTask();
 
 Q_SIGNALS:
 	void loggingUpdated();
 	void statusUpdated(int index);
 	void placerStatusUpdated(int indicator, int status);
+	void qrCodeUpdated();
 	void cameraUpdated(int index);
     void rosShutdown();
     void smdCoordinates(float x,float y,float rot,unsigned int cameraSelect);
@@ -135,6 +140,7 @@ private:
 	ros::Subscriber statusSubsriber_;
 	ros::Subscriber placerStatusSubscriber_;
 	ros::Subscriber visionStatusSubsriber_;
+	ros::Subscriber qrCodeScannerSubscriber_;
     QStringListModel logging_model;
     image_transport::Subscriber image_sub_;
     cv_bridge::CvImagePtr cv_ptr;

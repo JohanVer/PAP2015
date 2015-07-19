@@ -4,10 +4,13 @@
 #include "FastLED.h"
 
 #define LED_PIN   5
+#define BOT_LED_PIN 3
 #define NUM_LEDS  59
+#define NUM_BOT_LEDS 24
 #define CHIPSET   WS2812B
 
 CRGB leds[NUM_LEDS];
+CRGB bottom_leds[NUM_BOT_LEDS];
 
 void messageCb( const pap_common::ArduinoMsg& arduinoMsg);
 
@@ -24,7 +27,8 @@ enum ARDUINO_TASK {
   RESETSTEPPERS = 5,
   SETLED = 6,
   RESETLED = 7,
-  INITLEDS = 8
+  SETBOTTOMLED = 8,
+  RESETBOTTOMLED = 9
 };
 
 
@@ -41,10 +45,19 @@ void messageCb( const pap_common::ArduinoMsg& arduinoMsg){
     FastLED.show(); 
   } 
   
-//  if(arduinoMsg.command == INITLEDS ){
-//    leds[arduinoMsg.data] = CRGB::Black;
-//    FastLED.show(); 
-//  }  
+  if(arduinoMsg.command == SETBOTTOMLED ){
+    for (int i = 0; i < NUM_BOT_LEDS; i++) {
+      bottom_leds[i] = CRGB::Green;
+      FastLED.show();
+    } 
+  }
+  
+  if(arduinoMsg.command == RESETBOTTOMLED ){
+    for (int i = 0; i < NUM_BOT_LEDS; i++) {
+      bottom_leds[i] = CRGB::Black;
+      FastLED.show();
+    } 
+  }
 }
 
 void setup()
@@ -53,6 +66,7 @@ void setup()
   delay(200);
   
   FastLED.addLeds<CHIPSET, LED_PIN, RGB>(leds, NUM_LEDS);
+  FastLED.addLeds<CHIPSET, BOT_LED_PIN,RGB>(bottom_leds, NUM_BOT_LEDS);
 
   nh.initNode();
   nh.advertise(statusPublisher);
@@ -97,6 +111,10 @@ void LEDtest() {
 void resetAllLEDs() {
     for (int i = 0; i < NUM_LEDS; i++) {
       leds[i] = CRGB::Black;
+      FastLED.show();
+    }   
+    for (int i = 0; i < NUM_BOT_LEDS; i++) {
+      bottom_leds[i] = CRGB::Black;
       FastLED.show();
     }   
 }

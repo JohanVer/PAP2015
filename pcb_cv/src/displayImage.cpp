@@ -23,7 +23,7 @@
 #include <tf/transform_broadcaster.h>
 
 // Switch for simulation or gathering data from usb camera
-#define SIMULATION
+//#define SIMULATION
 
 char key;
 using namespace std;
@@ -32,7 +32,7 @@ using namespace cv;
 void parseTask(const pap_common::TaskConstPtr& taskMsg);
 
 enum VISION_PROCESS {
-	CHIP, SMALL_SMD, TAPE, PAD, IDLE, CIRCLE
+	CHIP, SMALL_SMD, TAPE, PAD, IDLE, CIRCLE, QRCODE
 };
 
 VISION_PROCESS visionState = IDLE;
@@ -45,8 +45,10 @@ cv::Point2f selectPoint;
 int main(int argc, char **argv) {
 	ros::init(argc, argv, "add_two_ints_server");
 	ros::NodeHandle n;
+
 	image_transport::ImageTransport it_(n);
 	image_transport::Publisher image_pub_;
+	image_transport::Publisher qr_image_pub_;
 
 	ros::Subscriber taskSubscriber_ = n.subscribe("task", 1, &parseTask);
 	statusPublisher = n.advertise<pap_common::VisionStatus>("visionStatus",
@@ -55,12 +57,15 @@ int main(int argc, char **argv) {
 
 	ros::Rate loop_rate(25);
 	image_pub_ = it_.advertise("camera1", 1);
+	qr_image_pub_ = it_.advertise("image", 1);
 
 	//CvCapture* capture = cvCaptureFromCAM(CV_CAP_ANY);
 #ifndef SIMULATION
 	CvCapture* capture = cvCaptureFromCAM(1);
 	CvCapture* capture2 = cvCaptureFromCAM(2);
+	CvCapture* capture3 = cvCaptureFromCAM(3);
 #endif
+
 	int id_counter = 0;
 
 	while (ros::ok()) {
@@ -68,16 +73,21 @@ int main(int argc, char **argv) {
 #ifndef SIMULATION
 		IplImage* frame = cvQueryFrame(capture); //Create image frames from capture
 		IplImage* frame2 = cvQueryFrame(capture2);//Create image frames from capture2
+		IplImage* frame3 = cvQueryFrame(capture3); //Create image frames from capture2
 
 		cv::Mat input(frame);
 		cv::Mat input2(frame);
+		cv::Mat input3(frame3);
+
 #else
 		cv::Mat input;
 		cv::Mat input2;
+		cv::Mat input3;
 #endif
 		id_counter++;
 		cv_bridge::CvImage out_msg;
 		cv_bridge::CvImage out_msg2;
+		cv_bridge::CvImage out_msg3;
 		smdPart smd;
 		pap_common::VisionStatus visionMsg;
 		cv::Point2f position;
@@ -94,6 +104,12 @@ int main(int argc, char **argv) {
 								"/home/johan/Schreibtisch/Webcam_Pictures/Webcam-1435326531.png");
 #endif
 				break;
+
+			case QRCODE:
+				// Publish image
+				qr_image_pub_.publish(out_msg3.toImageMsg());
+				break;
+
 			case CHIP:
 				// Chip
 #ifdef SIMULATION
@@ -299,6 +315,10 @@ void parseTask(const pap_common::TaskConstPtr& taskMsg) {
 			finder.setSize(taskMsg->data1, taskMsg->data2);
 			ROS_INFO("Setting size....");
 			visionState = TAPE;
+			break;
+
+		case pap_vision::START__QRCODE_FINDER:
+			visionState = QRCODE;
 			break;
 
 			// This state is for manually selecting of the fiducials

@@ -58,6 +58,8 @@ bool QNode::init() {
 			&QNode::visionStatusCallback, this);
 	placerStatusSubscriber_ = n_.subscribe("placerStatus", 100,
 			&QNode::placerStatusCallback, this);
+	qrCodeScannerSubscriber_ = n_.subscribe("barcode", 100,
+			&QNode::qrCodeCallback, this);
 
 	//imagePub_ = it_.advertise("renderedPcb", 1);
 	imagePub_ = n_.advertise<sensor_msgs::PointCloud2>("renderedPcb", 2);
@@ -290,6 +292,20 @@ void QNode::resetLEDTask(int LEDnumber) {
 	arduino_publisher_.publish(arduinoMsg);
 }
 
+
+void QNode::setBottomLEDTask() {
+	pap_common::ArduinoMsg arduinoMsg;
+	arduinoMsg.command = pap_common::SETBOTTOMLED;
+	arduino_publisher_.publish(arduinoMsg);
+}
+
+void QNode::resetBottomLEDTask() {
+	pap_common::ArduinoMsg arduinoMsg;
+	arduinoMsg.command = pap_common::RESETBOTTOMLED;
+	arduino_publisher_.publish(arduinoMsg);
+}
+
+
 void QNode::sendTask(pap_common::DESTINATION destination, pap_common::TASK task,
 		ComponentPlacerData componentData) {
 	pap_common::Task taskMsg;
@@ -313,6 +329,12 @@ void QNode::visionStatusCallback(
 	} else {
 		Q_EMIT signalPosition(statusMsg->data1, statusMsg->data2);
 	}
+}
+
+void QNode::qrCodeCallback(const std_msgs::StringConstPtr& qrMsg) {
+	ROS_INFO("QR Code message received");
+	//QString qrCode = &qrMsg;
+	//Q_EMIT
 }
 
 void QNode::sendPcbImage(QImage* image, visualization_msgs::MarkerArray *markerList) {

@@ -128,6 +128,7 @@ void checkStatusController(int numberOfController,
 //	}
 }
 
+
 int main(int argc, char **argv) {
 	ros::init(argc, argv, "motorController");
 
@@ -136,7 +137,7 @@ int main(int argc, char **argv) {
 	statusPublisher = n.advertise<pap_common::Status>("status", 1000);
 
 	ROS_INFO("Motor controller started...");
-	ros::Rate loop_rate(5);
+	ros::Rate loop_rate(10);
 	controller.connectToBus();
 
 	state = STATUS;

@@ -11,8 +11,6 @@
 #include <QDebug>
 #include <QGraphicsRectItem>
 
-
-
 graphicsScene::graphicsScene(QWidget *parent) :
 		QGraphicsScene(parent) {
 
@@ -23,19 +21,23 @@ void graphicsScene::contextMenuEvent(QGraphicsSceneContextMenuEvent *event) {
 	QPointF pt = event->scenePos();
 	QAction *fiducial1 = new QAction("Mark as 1. fiducial", this);
 	QAction *fiducial2 = new QAction("Mark as 2. fiducial", this);
+	QAction *gotoPoint = new QAction("Goto", this);
 	menu.addAction(fiducial1);
 	menu.addAction(fiducial2);
+	menu.addAction(gotoPoint);
 	QAction* selectedItem = menu.exec(event->screenPos());
 	if (selectedItem) {
 		if (selectedItem->text().toStdString() == "Mark as 1. fiducial") {
-			Q_EMIT sendMousePoint(0,pt);
+			Q_EMIT sendMousePoint(0, pt);
+		} else if (selectedItem->text().toStdString()
+				== "Mark as 2. fiducial") {
+			Q_EMIT sendMousePoint(1, pt);
 		}
-		else if(selectedItem->text().toStdString() == "Mark as 2. fiducial"){
-			Q_EMIT sendMousePoint(1,pt);
+		else if (selectedItem->text().toStdString() == "Goto") {
+			Q_EMIT gotoPad(pt);
 		}
 	}
 }
-
 
 PadView::PadView() {
 	// TODO Auto-generated constructor stub

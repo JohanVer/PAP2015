@@ -145,8 +145,11 @@ smdPart padFinder::findTip(cv::Mat* input) {
 	float radiusMax = ((partWidth_) / 100.0)
 				* (100.0 + ERROR_PERCENT_TIP);
 
+	//cv::HoughCircles(gray, circles, CV_HOUGH_GRADIENT, 1, gray.rows / 4, 200,
+		//	100, radiusMin * PIXEL_TO_MM_BOTTOM,radiusMax * PIXEL_TO_MM_BOTTOM);
+
 	cv::HoughCircles(gray, circles, CV_HOUGH_GRADIENT, 1, gray.rows / 4, 200,
-			100, radiusMin * PIXEL_TO_MM_TOP,radiusMax * PIXEL_TO_MM_TOP);
+				100, 10,500);
 
 	for( size_t i = 0; i < circles.size(); i++ )
 	    {
@@ -174,8 +177,8 @@ smdPart padFinder::findTip(cv::Mat* input) {
 	if (nearestPart(&tipObjects, &smdFinal, input->cols, input->rows)) {
 		cv::circle(final, Point2f(smdFinal.x, smdFinal.y), smdFinal.rot, CV_RGB(0, 255, 0), 3);
 		cv::circle( final, Point2f(smdFinal.x, smdFinal.y), 3, Scalar(255,0,0), -1, 8, 0 );
-		smdFinal.x = (smdFinal.x - (input->cols / 2 - 1));
-		smdFinal.y = ((input->rows / 2 - 1) - smdFinal.y);
+		smdFinal.x = (smdFinal.x - (input->cols / 2 - 1))/PIXEL_TO_MM_BOTTOM;
+		smdFinal.y = ((input->rows / 2 - 1) - smdFinal.y)/PIXEL_TO_MM_BOTTOM;
 	}
 
 	*input = final.clone();
@@ -240,8 +243,8 @@ smdPart padFinder::findChip(cv::Mat* input,unsigned int camera_select) {
 
 	if (nearestPart(&smdObjects, &smdFinal, input->cols, input->rows)) {
 		circle(final, Point2f(smdFinal.x, smdFinal.y), 5, CV_RGB(0, 0, 255), 3);
-		smdFinal.x = smdFinal.x - (input->cols / 2 - 1);
-		smdFinal.y = (input->rows / 2 - 1) - smdFinal.y;
+		smdFinal.x = (smdFinal.x - (input->cols / 2 - 1))/pxToMM;
+		smdFinal.y = ((input->rows / 2 - 1) - smdFinal.y)/pxToMM;
 	}
 
 	/*
@@ -307,8 +310,8 @@ smdPart padFinder::findSmallSMD(cv::Mat* input) {
 
 	if (nearestPart(&smdObjects, &smdFinal, input->cols, input->rows)) {
 		circle(final, Point2f(smdFinal.x, smdFinal.y), 5, CV_RGB(0, 0, 255), 3);
-		smdFinal.x = smdFinal.x - (input->cols / 2 - 1);
-		smdFinal.y = (input->rows / 2 - 1) - smdFinal.y;
+		smdFinal.x = (smdFinal.x - (input->cols / 2 - 1))/PIXEL_TO_MM_TOP;
+		smdFinal.y = ((input->rows / 2 - 1) - smdFinal.y)/PIXEL_TO_MM_TOP;
 	}
 	//cv::imshow("grey", gray);
 	//cv::imshow("input", *input);
@@ -402,8 +405,8 @@ smdPart padFinder::findSMDTape(cv::Mat* input) {
 
 	if (nearestPart(&smdObjects, &smdFinal, input->cols, input->rows)) {
 		circle(final, Point2f(smdFinal.x, smdFinal.y), 5, CV_RGB(0, 0, 255), 3);
-		smdFinal.x = smdFinal.x - (input->cols / 2 - 1);
-		smdFinal.y = (input->rows / 2 - 1) - smdFinal.y;
+		smdFinal.x = (smdFinal.x - (input->cols / 2 - 1))/PIXEL_TO_MM_TOP;
+		smdFinal.y = ((input->rows / 2 - 1) - smdFinal.y)/PIXEL_TO_MM_TOP;
 	}
 
 	/*
@@ -567,8 +570,9 @@ cv::Point2f padFinder::findPads(cv::Mat* input, bool startSelect,
 					drawRotatedRect(final, pad, CV_RGB(0, 0, 255));
 
 					// TODO: Change into middle coordinate of the camera
-					outputPosition.x = mc.x / PIXEL_TO_MM_TOP;
-					outputPosition.y = mc.y / PIXEL_TO_MM_TOP;
+					outputPosition.x = (mc.x - (input->cols / 2 - 1)) / PIXEL_TO_MM_TOP;
+					outputPosition.y = ((input->rows / 2 - 1) - mc.y )/ PIXEL_TO_MM_TOP;
+
 				} else {
 					drawRotatedRect(final, pad, CV_RGB(255, 0, 0));
 				}
