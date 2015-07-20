@@ -23,7 +23,7 @@
 #include <tf/transform_broadcaster.h>
 
 // Switch for simulation or gathering data from usb camera
-//#define SIMULATION
+#define SIMULATION
 
 char key;
 using namespace std;
@@ -115,7 +115,7 @@ int main(int argc, char **argv) {
 #ifdef SIMULATION
 				input =
 						cv::imread(
-								"/home/johan/Schreibtisch/Webcam_Pictures/Webcam-1435311766.png");
+								"/home/nikolas/Desktop/Webcam_Pictures/Webcam-1435311766.png");
 #endif
 
 				if (cameraSelect == CAMERA_TOP) {
@@ -207,11 +207,11 @@ int main(int argc, char **argv) {
 
 			input =
 					cv::imread(
-							"/home/johan/Schreibtisch/Webcam_Pictures/Webcam-1435326531.png");
+							"/home/nikolas/Desktop/Webcam_Pictures/Webcam-1435326531.png");
 
 			input2 =
 					cv::imread(
-							"/home/johan/Schreibtisch/Webcam_Pictures/Webcam-1435326531.png");
+							"/home/nikolas/Desktop/Webcam_Pictures/Webcam-1435326531.png");
 
 #endif
 		}
