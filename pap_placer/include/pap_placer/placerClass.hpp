@@ -110,7 +110,7 @@ private:
 	} tip;
 
 	// These offsets are relative to camera
-	Offset tipRightOffset, tipLeftOffset, dispenserTipOffset;
+	Offset tip2Offset, tip1Offset, dispenserTipOffset;
 
 	// These offsets are relative to homing position
 	Offset pcbOriginOffset, pickUpAreaOffset;
