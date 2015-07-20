@@ -34,12 +34,12 @@ PlaceController::PlaceController() {
 	cameraBottomOffset.z = 0.1;
 
 	// Offsets relative to camera
-	tipRightOffset.x = -50;
-	tipRightOffset.y = 50;
-	tipRightOffset.z = 0;
-	tipLeftOffset.x = -50;
-	tipLeftOffset.y = 5;
-	tipLeftOffset.z = 0;
+	tip2Offset.x = -50;
+	tip2Offset.y = 50;
+	tip2Offset.z = 0;
+	tip1Offset.x = -50;
+	tip1Offset.y = 5;
+	tip1Offset.z = 0;
 	dispenserTipOffset.x = -40;
 	dispenserTipOffset.y = 25;
 	dispenserTipOffset.z = 0;
@@ -88,20 +88,27 @@ Offset PlaceController::getCompPickUpCoordinates() {
 	Offset temp;
 	switch (tip) {
 	case LEFT_TIP:
-		temp.x = pickUpAreaOffset.x + PickUpCorrection.x + SmallBoxOffsetTable[currentComponent.box].x + tipLeftOffset.x;
-		temp.y = pickUpAreaOffset.y + PickUpCorrection.y + SmallBoxOffsetTable[currentComponent.box].y + tipLeftOffset.y;
-		temp.z = pickUpAreaOffset.z + tipLeftOffset.z;
+		temp.x = pickUpAreaOffset.x + PickUpCorrection.x + SmallBoxOffsetTable[currentComponent.box].x + tip1Offset.x;
+		temp.y = pickUpAreaOffset.y + PickUpCorrection.y + SmallBoxOffsetTable[currentComponent.box].y + tip1Offset.y;
+		temp.z = pickUpAreaOffset.z + tip1Offset.z;
 		temp.rot = PickUpCorrection.rot;
 		break;
 	case RIGHT_TIP:
-		temp.x = pickUpAreaOffset.x + PickUpCorrection.x + SmallBoxOffsetTable[currentComponent.box].x + tipRightOffset.x;
-		temp.y = pickUpAreaOffset.y + PickUpCorrection.y + SmallBoxOffsetTable[currentComponent.box].y + tipRightOffset.y;
-		temp.z = pickUpAreaOffset.z + tipRightOffset.z;
+		temp.x = pickUpAreaOffset.x + PickUpCorrection.x + SmallBoxOffsetTable[currentComponent.box].x + tip2Offset.x;
+		temp.y = pickUpAreaOffset.y + PickUpCorrection.y + SmallBoxOffsetTable[currentComponent.box].y + tip2Offset.y;
+		temp.z = pickUpAreaOffset.z + tip2Offset.z;
 		temp.rot = PickUpCorrection.rot;
 		break;
 	}
 	return temp;
 };
+
+void PlaceController::setPickUpCorrectionOffset(float xDiff, float yDiff, float rotDiff) {
+	PickUpCorrection.x = xDiff;
+	PickUpCorrection.y = yDiff;
+	PickUpCorrection.rot = rotDiff;
+}
+
 
 Offset PlaceController::getBottomCamCoordinates() {
 	return cameraBottomOffset;
@@ -124,26 +131,21 @@ Offset PlaceController::getCompPlaceCoordinates() {
 	Offset temp;
 	switch (tip) {
 	case LEFT_TIP:
-		temp.x = pcbOriginOffset.x + currentComponent.destX + PlaceCorrection.x + tipLeftOffset.x;
-		temp.y = pcbOriginOffset.y + currentComponent.destY + PlaceCorrection.y + tipLeftOffset.y;
-		temp.z = pcbOriginOffset.z + currentComponent.height + tipLeftOffset.z;
+		temp.x = pcbOriginOffset.x + currentComponent.destX + PlaceCorrection.x + tip1Offset.x;
+		temp.y = pcbOriginOffset.y + currentComponent.destY + PlaceCorrection.y + tip1Offset.y;
+		temp.z = pcbOriginOffset.z + currentComponent.height + tip1Offset.z;
 		temp.rot = currentComponent.rotation + PlaceCorrection.rot;
 		break;
 	case RIGHT_TIP:
-		temp.x = pcbOriginOffset.x + currentComponent.destX + PlaceCorrection.x + tipRightOffset.x;
-		temp.y = pcbOriginOffset.y + currentComponent.destY + PlaceCorrection.y + tipRightOffset.y;
-		temp.z = pcbOriginOffset.z + currentComponent.height + tipRightOffset.z;
+		temp.x = pcbOriginOffset.x + currentComponent.destX + PlaceCorrection.x + tip2Offset.x;
+		temp.y = pcbOriginOffset.y + currentComponent.destY + PlaceCorrection.y + tip2Offset.y;
+		temp.z = pcbOriginOffset.z + currentComponent.height + tip2Offset.z;
 		temp.rot = currentComponent.rotation + PlaceCorrection.rot;
 		break;
 	}
 	return temp;
 };
 
-void PlaceController::setPickUpCorrectionOffset(float xDiff, float yDiff, float rotDiff) {
-	PickUpCorrection.x = xDiff;
-	PickUpCorrection.y = yDiff;
-	PickUpCorrection.rot = rotDiff;
-}
 
 void PlaceController::setPlaceCorrectionOffset(float xDiff, float yDiff, float rotDiff) {
 	PlaceCorrection.x = xDiff;
@@ -158,15 +160,15 @@ void PlaceController::setBottomCamCorrectionOffset(float xDiff, float yDiff) {
 
 Offset PlaceController::getTip1Coordinates() {
 	Offset tip1Coordinate;
-	tip1Coordinate.x = cameraBottomOffset.x + tipLeftOffset.x;
-	tip1Coordinate.y = cameraBottomOffset.y + tipLeftOffset.y;
+	tip1Coordinate.x = cameraBottomOffset.x + tip1Offset.x;
+	tip1Coordinate.y = cameraBottomOffset.y + tip1Offset.y;
 	return tip1Coordinate;
 }
 
 Offset PlaceController::getTip2Coordinates() {
 	Offset tip2Coordinate;
-	tip2Coordinate.x = cameraBottomOffset.x + tipRightOffset.x;
-	tip2Coordinate.y = cameraBottomOffset.y + tipRightOffset.y;
+	tip2Coordinate.x = cameraBottomOffset.x + tip2Offset.x;
+	tip2Coordinate.y = cameraBottomOffset.y + tip2Offset.y;
 	return tip2Coordinate;
 }
 
@@ -182,14 +184,16 @@ void PlaceController::setDispenserOffset(float xDiff, float yDiff) {
 	dispenserTipOffset.y = dispenserTipOffset.y + yDiff;
 }
 
+
+
 void PlaceController::setTip1Offset(float xDiff, float yDiff) {
-	tipLeftOffset.x = tipLeftOffset.x + xDiff;
-	tipLeftOffset.y = tipLeftOffset.y + yDiff;
+	tip1Offset.x = tip1Offset.x + xDiff;
+	tip1Offset.y = tip1Offset.y + yDiff;
 }
 
 void PlaceController::setTip2Offset(float xDiff, float yDiff) {
-	tipRightOffset.x = tipRightOffset.x + xDiff;
-	tipRightOffset.y = tipRightOffset.y + yDiff;
+	tip2Offset.x = tip2Offset.x + xDiff;
+	tip2Offset.y = tip2Offset.y + yDiff;
 }
 
 float PlaceController::getComponentLenth() {

@@ -66,7 +66,7 @@ ros::Subscriber statusSubsriber_;
 ros::Subscriber visionStatusSubsriber_;
 ros::Subscriber placerTaskSubscriber_;
 
-bool visionEnabled = false;
+bool visionEnabled = true;
 bool manualOperation = true;
 
 bool placerNodeBusy = false;
@@ -162,7 +162,7 @@ int main(int argc, char **argv) {
 				IDLE_called = false;
 			}
 			sendPlacerStatus(pap_common::IDLE_STATE,
-					pap_common::PLACER_FINISHED);
+					pap_common::PLACER_ACTIVE);
 			break;
 
 		case CALIBRATE:
@@ -339,12 +339,12 @@ int main(int argc, char **argv) {
 
 			break;
 
-		case GOTOBOX: // Send coordinates to motor controller and wait until position reached
+		// Send coordinates to motor controller and wait until position reached
+		case GOTOBOX:
 			ROS_INFO("PlacerState: GOTOBOX");
 			sendPlacerStatus(pap_common::IDLE_STATE, pap_common::PLACER_IDLE);
 			sendPlacerStatus(pap_common::GOTOBOX_STATE,
 					pap_common::PLACER_ACTIVE);
-			sendPlacerInfo(GOTOBOX);
 
 			if (!placerNodeBusy && !boxCoordinatesSent) {
 				Offset destination = placeController.getBoxCoordinates();
@@ -359,16 +359,15 @@ int main(int argc, char **argv) {
 			if (motorcontrollerStatus[1].positionReached
 					&& motorcontrollerStatus[2].positionReached
 					&& motorcontrollerStatus[3].positionReached
-					&& boxCoordinatesSent) {
+					&& placerNodeBusy) {
 				placerNodeBusy = false;
 				if (manualOperation) {
 					if (visionEnabled) {
 						state = FINDCOMPONENT;
 					} else {
-						//IDLE_called = true;
-						//state = IDLE;
-						ros::Duration(2).sleep();
-						state = GOTOPICKUPCOOR;
+						IDLE_called = true;
+						state = IDLE;
+						//state = GOTOPICKUPCOOR;
 					}
 				} else {
 					if (visionEnabled) {
@@ -426,9 +425,11 @@ int main(int argc, char **argv) {
 				placerNodeBusy = true;
 			}
 
-			if (componentFound) {
+			if (componentFound && placerNodeBusy) {
 				sendTask(pap_common::VISION, pap_vision::STOP_VISION);
 				placerNodeBusy = false;
+				//IDLE_called = true;
+				//state = IDLE;
 				state = GOTOPICKUPCOOR;	// Component position has been update in vision callback function
 			} else if (componentFinder_counter == COMPFINDERTIMEOUT) {
 				sendTask(pap_common::VISION, pap_vision::STOP_VISION);
@@ -455,7 +456,7 @@ int main(int argc, char **argv) {
 			if (motorcontrollerStatus[1].positionReached
 					&& motorcontrollerStatus[2].positionReached
 					&& motorcontrollerStatus[3].positionReached
-					&& compPickUpCoordinatesSent) {
+					&& placerNodeBusy) {
 				placerNodeBusy = false;
 				if (manualOperation) {
 					sendPlacerStatus(pap_common::GOTOBOX_STATE,
@@ -507,7 +508,7 @@ int main(int argc, char **argv) {
 
 				sendRelaisTask(1, false);				// Turn on vacuum
 				sendRelaisTask(2, true);
-				ros::Duration(1).sleep();// Wait until vacuum has been built up
+				ros::Duration(1).sleep();				// Wait until vacuum has been built up
 
 				if (placeController.selectTip()) {		// Activate tip
 					sendRelaisTask(3, false);			// Left tip
@@ -515,14 +516,14 @@ int main(int argc, char **argv) {
 				} else {
 					sendRelaisTask(7, true);			// Right tip
 				}
-				ros::Duration(1).sleep();		// Wait until cylinder activated
+				ros::Duration(1).sleep();				// Wait until cylinder activated
 
 				if (placeController.selectTip()) {
-					sendRelaisTask(5, true);		// Turn on left vacuum valve
+					sendRelaisTask(5, true);			// Turn on left vacuum valve
 				} else {
-					sendRelaisTask(4, true);	// Turn on right vacuum valve
+					sendRelaisTask(4, true);			// Turn on right vacuum valve
 				}
-				ros::Duration(1).sleep();		// Wait until component fixed
+				ros::Duration(1).sleep();				// Wait until component fixed
 
 				if (placeController.selectTip()) {		// Release tip
 					sendRelaisTask(6, false);
@@ -531,10 +532,10 @@ int main(int argc, char **argv) {
 				} else {
 					sendRelaisTask(7, false);			// Right tip
 				}
-				ros::Duration(1).sleep();		// Wait until cylinder released
+				ros::Duration(1).sleep();				// Wait until cylinder released
 
 				Offset destination = placeController.getCompPickUpCoordinates();
-				sendStepperTask(2, (int) destination.rot);	// Turn component
+				//sendStepperTask(2, (int) destination.rot);	// Turn component
 
 				if (manualOperation) {
 					if (visionEnabled) {
@@ -845,6 +846,7 @@ void visionStatusCallback(const pap_common::VisionStatusConstPtr& statusMsg) {
 	case pap_vision::START_PAD_FINDER:
 
 		placeController.setPlaceCorrectionOffset(xDiff, yDiff, rotDiff);
+		componentFound = true;
 		break;
 
 	case pap_vision::SEARCH_CIRCLE:
@@ -937,7 +939,7 @@ void placerCallback(const pap_common::TaskConstPtr& taskMsg) {
 			sendPlacerStatus(pap_common::CALIBRATION_STATE,
 					pap_common::PLACER_IDLE);
 			state = CALIBRATE;
-			ROS_INFO("Calibration called...");
+			ROS_INFO("Calibration started...");
 			break;
 		case pap_common::HOMING:
 			sendPlacerStatus(pap_common::HOMING_STATE, pap_common::PLACER_IDLE);
