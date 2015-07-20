@@ -15,6 +15,7 @@ GerberPadParser::GerberPadParser() {
 	outerRectRot_ = 0.0;
 	pcbSize.setX(0.0);
 	pcbSize.setY(0.0);
+	differenceAngle_ = 0.0;
 
 }
 
@@ -24,6 +25,7 @@ GerberPadParser::~GerberPadParser() {
 
 void GerberPadParser::parseShapes(std::string fileName) {
 	std::ifstream infile;
+	shapeInformationArray_.clear();
 	infile.open(fileName.c_str(), std::ios::in);
 	std::string line;
 	while (std::getline(infile, line)) {
@@ -232,11 +234,12 @@ void GerberPadParser::setTable(QTableWidget* table) {
 	}
 }
 
-void GerberPadParser::loadFile(std::string fileName) {
+void GerberPadParser::loadFile(std::string fileName, bool bottomLayer) {
 
 	std::ifstream infile;
 	infile.open(fileName.c_str(), std::ios::in);
 	padInformationArray_.clear();
+	padInformationArrayPrint_.clear();
 
 	// Outlines are part of the first entry!
 
@@ -247,6 +250,7 @@ void GerberPadParser::loadFile(std::string fileName) {
 	outerRect.rect.setHeight(height_);
 	outerRect.rect.setWidth(width_);
 	padInformationArray_.push_back(outerRect);
+	padInformationArrayPrint_.push_back(outerRect);
 
 	float xParsed, yParsed = 0.0;
 	std::string line;
@@ -300,11 +304,21 @@ void GerberPadParser::loadFile(std::string fileName) {
 			if (dFound != std::string::npos) {
 				yParsed = parseFloat(line, yFound, dFound);
 				PadInformation newPad;
-				newPad.rect.setX(width_ - (xParsed * 25.4));
+
+				bottomLayer_ = bottomLayer;
+				if (bottomLayer) {
+					ROS_INFO("Bottom layer detected");
+					newPad.rect.setX((xParsed * 25.4));
+
+				} else {
+					ROS_INFO("Top layer detected");
+					newPad.rect.setX(width_ - (xParsed * 25.4));
+				}
 				newPad.rect.setY(yParsed * 25.4);
 				// Convert d-code using tabular out of whl file
 				if (searchShape(dCodeShape, &newPad)) {
 					padInformationArray_.push_back(newPad);
+					padInformationArrayPrint_.push_back(newPad);
 					ROS_INFO(
 							"Shape: %d , X-pos: %f , Y-pos: %f, X-Size: %f, Y-Size: %f, Rotation %f, Type: %s  ",
 							dCodeShape, newPad.rect.x(), newPad.rect.y(),
@@ -313,9 +327,7 @@ void GerberPadParser::loadFile(std::string fileName) {
 				}
 			}
 		}
-
 	}
-
 	ROS_INFO("Parsed %d pads...", (int )padInformationArray_.size());
 }
 
@@ -330,14 +342,9 @@ QRectF GerberPadParser::renderImage(QGraphicsScene* scene, int width,
 	printedRects.clear();
 	scene->clear();
 
-//pcbSize.x = 0;
-//pcbSize.y = 0;
-
 	pixelConversionFactor = 0.0;
 	double pixelWidth = (double) width / (double) width_;
 	double pixelHeight = (double) height / (double) height_;
-//ROS_INFO("PixW %f PixH %f Cols %d Rows %d", pixelWidth, pixelHeight,
-//		dst->cols, dst->rows);
 
 	if (pixelWidth > pixelHeight) {
 		pixelConversionFactor = pixelHeight;
@@ -351,10 +358,10 @@ QRectF GerberPadParser::renderImage(QGraphicsScene* scene, int width,
 	float pcbSizeY = (pcbSize.y());
 
 	// Draw Pads
-	for (std::size_t i = 0; i < padInformationArray_.size(); i++) {
+	for (std::size_t i = 0; i < padInformationArrayPrint_.size(); i++) {
 		QRectF pad;
 		PadInformation padInfo;
-		padInfo = padInformationArray_[i];
+		padInfo = padInformationArrayPrint_[i];
 
 		double upperCornerPadX =
 				((padInfo.rect.x() - padInfo.rect.width() / 2.0)
@@ -363,6 +370,7 @@ QRectF GerberPadParser::renderImage(QGraphicsScene* scene, int width,
 				- ((padInfo.rect.y() + padInfo.rect.height() / 2.0)
 						* pixelConversionFactor);
 
+		ROS_INFO("X: %f",upperCornerPadX);
 		pad.setX(upperCornerPadX);
 		pad.setY(upperCornerPadY);	// + pcbSizeY);
 
@@ -387,9 +395,7 @@ QRectF GerberPadParser::renderImage(QGraphicsScene* scene, int width,
 		rect->setRotation(padInfo.rotation);
 		ROS_INFO("ROTATION: %f", padInfo.rotation);
 		scene->addItem(rect);
-
 	}
-
 	return pcbSize;
 }
 
@@ -409,6 +415,9 @@ int GerberPadParser::searchId(QPointF position, int height) {
 visualization_msgs::MarkerArray* GerberPadParser::getMarkerList(void) {
 	markerArray.markers.clear();
 
+	float xCameraOffset = 69.45;
+	float yCameraOffset = 31.66;
+
 	for (std::size_t i = 0; i < padInformationArray_.size(); i++) {
 		PadInformation padInfo;
 		padInfo = padInformationArray_[i];
@@ -420,14 +429,14 @@ visualization_msgs::MarkerArray* GerberPadParser::getMarkerList(void) {
 		marker.id = i + 1;
 		marker.type = visualization_msgs::Marker::CUBE;
 		marker.action = visualization_msgs::Marker::ADD;
-		marker.pose.position.x = (padInfo.rect.x())
-				* 0.001;
-		marker.pose.position.y = (padInfo.rect.y())
-				* 0.001;
+		marker.pose.position.x = ((padInfo.rect.y() + yCameraOffset) * 0.001)
+				- 0.11097;
+		marker.pose.position.y = ((padInfo.rect.x() + xCameraOffset) * 0.001)
+				+ 0.14813;
 		if (i != 0) {
-			marker.pose.position.z = 0.003;
+			marker.pose.position.z = 0.061;
 		} else {
-			marker.pose.position.z = 0.002;
+			marker.pose.position.z = 0.06;
 		}
 		tf::Quaternion rotQuat;
 		rotQuat.setEuler(0.0, 0.0, -padInfo.rotation * (M_PI / 180.0));
@@ -436,8 +445,8 @@ visualization_msgs::MarkerArray* GerberPadParser::getMarkerList(void) {
 		marker.pose.orientation.y = rotQuat.getY();
 		marker.pose.orientation.z = rotQuat.getZ();
 
-		marker.scale.x = padInfo.rect.width() * 0.001;
-		marker.scale.y = padInfo.rect.height() * 0.001;
+		marker.scale.y = padInfo.rect.width() * 0.001;
+		marker.scale.x = padInfo.rect.height() * 0.001;
 		marker.scale.z = 1 * 0.001;
 		if (i != 0) {
 			marker.scale.z = 0.01;

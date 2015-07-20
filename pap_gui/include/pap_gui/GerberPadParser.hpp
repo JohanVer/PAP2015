@@ -62,7 +62,7 @@ public:
 	GerberPadParser();
 	virtual ~GerberPadParser();
 	float parseFloat(std::string line, std::size_t start, std::size_t end);
-	void loadFile(std::string fileName);
+	void loadFile(std::string fileName,bool bottomLayer);
 	void parseShapes(std::string fileName);
 	bool searchShape(int shapeIndex, PadInformation* pad);
 	void setSize(float height, float width);
@@ -75,7 +75,7 @@ public:
 	visualization_msgs::MarkerArray* getMarkerList(void);
 
 	// TODO: Make getter/setter for this public variable array
-	std::vector<PadInformation> padInformationArray_;
+	std::vector<PadInformation> padInformationArray_,padInformationArrayPrint_;
 
 private:
 	std::vector<ShapeInformation> shapeInformationArray_;
@@ -86,6 +86,7 @@ private:
 	tf::Transform transformIntoGlobalPoint_, transTransformIntoRobot_,rotation_;
 	float differenceAngle_;
 	visualization_msgs::MarkerArray markerArray;
+	bool bottomLayer_;
 };
 
 #endif /* PAP_GUI_SRC_GERBERPADPARSER_HPP_ */

@@ -178,6 +178,8 @@ public Q_SLOTS:
 private:
 	Ui::MainWindowDesign ui;
 	QNode qnode;
+	bool bottomLayer_;
+	bool alreadyFlipped_;
 
 	// Current position
 	Offset currentPosition;
