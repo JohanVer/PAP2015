@@ -63,7 +63,7 @@ bool QNode::init() {
 
 	//imagePub_ = it_.advertise("renderedPcb", 1);
 	imagePub_ = n_.advertise<sensor_msgs::PointCloud2>("renderedPcb", 2);
-	markerPub_ = n_.advertise<visualization_msgs::MarkerArray>("marker",2);
+	markerPub_ = n_.advertise<visualization_msgs::MarkerArray>("marker", 2);
 
 	start();
 	return true;
@@ -99,6 +99,7 @@ void QNode::cameraCallback(const sensor_msgs::ImageConstPtr& camera_msg) {
 	//std::string s = ss.str();
 	//this->log(Info, s);
 
+	ROS_INFO("Frame id: %s",camera_msg->header.frame_id.c_str());
 	try {
 		cv_ptr = cv_bridge::toCvCopy(camera_msg,
 				sensor_msgs::image_encodings::RGB8);
@@ -107,10 +108,12 @@ void QNode::cameraCallback(const sensor_msgs::ImageConstPtr& camera_msg) {
 		return;
 	}
 
-	cameraImage_ = QImage((uchar*) cv_ptr->image.data, cv_ptr->image.cols,
-			cv_ptr->image.rows, QImage::Format_RGB888);
+	if (camera_msg->header.frame_id == "camera1") {
+		cameraImage_ = QImage((uchar*) cv_ptr->image.data, cv_ptr->image.cols,
+				cv_ptr->image.rows, QImage::Format_RGB888);
+		Q_EMIT cameraUpdated(1);
+	}
 
-	Q_EMIT cameraUpdated(1);
 }
 
 void QNode::run() {
@@ -292,7 +295,6 @@ void QNode::resetLEDTask(int LEDnumber) {
 	arduino_publisher_.publish(arduinoMsg);
 }
 
-
 void QNode::setBottomLEDTask() {
 	pap_common::ArduinoMsg arduinoMsg;
 	arduinoMsg.command = pap_common::SETBOTTOMLED;
@@ -304,7 +306,6 @@ void QNode::resetBottomLEDTask() {
 	arduinoMsg.command = pap_common::RESETBOTTOMLED;
 	arduino_publisher_.publish(arduinoMsg);
 }
-
 
 void QNode::sendTask(pap_common::DESTINATION destination, pap_common::TASK task,
 		ComponentPlacerData componentData) {
@@ -337,93 +338,94 @@ void QNode::qrCodeCallback(const std_msgs::StringConstPtr& qrMsg) {
 	//Q_EMIT
 }
 
-void QNode::sendPcbImage(QImage* image, visualization_msgs::MarkerArray *markerList) {
+void QNode::sendPcbImage(QImage* image,
+		visualization_msgs::MarkerArray *markerList) {
 	static unsigned int id_counter;
 
 	// Pointcloud Approach--------------------------------------------------------------------
 
 	/*
-	std_msgs::Header header;
-	header.seq = id_counter + 1;
-	header.stamp = ros::Time::now();
-	header.frame_id = "renderedPCB";
+	 std_msgs::Header header;
+	 header.seq = id_counter + 1;
+	 header.stamp = ros::Time::now();
+	 header.frame_id = "renderedPCB";
 
-	sensor_msgs::PointCloud2 out_msg;
+	 sensor_msgs::PointCloud2 out_msg;
 
-	out_msg.header = header;
-	//out_msg.height = image->height();
-	//out_msg.width = image->width();
-	//out_msg.point_step = 15;
-	//out_msg.row_step = 15 * image->width();
+	 out_msg.header = header;
+	 //out_msg.height = image->height();
+	 //out_msg.width = image->width();
+	 //out_msg.point_step = 15;
+	 //out_msg.row_step = 15 * image->width();
 
-	// Set modifiers
-	unsigned int n_points = image->height() * image->width();
-	sensor_msgs::PointCloud2Modifier modifier(out_msg);
-	modifier.setPointCloud2FieldsByString(2, "xyz", "rgb");
-	modifier.resize(n_points);
+	 // Set modifiers
+	 unsigned int n_points = image->height() * image->width();
+	 sensor_msgs::PointCloud2Modifier modifier(out_msg);
+	 modifier.setPointCloud2FieldsByString(2, "xyz", "rgb");
+	 modifier.resize(n_points);
 
-	// Create rgb data from QImage
-	std::vector<uint8_t> rawDataHolder;
-	for (size_t i = 0; i < (image->byteCount()); i++) {
-		if (i != 0 && i % 2044 != 00) {
-			rawDataHolder.push_back((image->bits())[i]);
-		}
-	}
+	 // Create rgb data from QImage
+	 std::vector<uint8_t> rawDataHolder;
+	 for (size_t i = 0; i < (image->byteCount()); i++) {
+	 if (i != 0 && i % 2044 != 00) {
+	 rawDataHolder.push_back((image->bits())[i]);
+	 }
+	 }
 
-	ROS_INFO("Size of RGB Array %d : ",(int)rawDataHolder.size());
-	// Calculate width and height for each point (square)
+	 ROS_INFO("Size of RGB Array %d : ",(int)rawDataHolder.size());
+	 // Calculate width and height for each point (square)
 
-	double blockWidth = (pcbWidth_ / (float) image->width()) * 0.001; // In meters
-	double blockHeight = (pcbHeight_ / (float) image->height()) * 0.001; // In meters
+	 double blockWidth = (pcbWidth_ / (float) image->width()) * 0.001; // In meters
+	 double blockHeight = (pcbHeight_ / (float) image->height()) * 0.001; // In meters
 
-	ROS_INFO("BlockWidth: %f BlockHeight: %f",blockWidth,blockHeight);
+	 ROS_INFO("BlockWidth: %f BlockHeight: %f",blockWidth,blockHeight);
 
-    // Define positions of points in meters
-	std::vector<float> point_data;
-	point_data.resize(image->height()* image->width() *3);
-
-
-	for(size_t i = 0; i < image->height(); i++){
-		for(size_t j = 0; j < image->width(); j++){
-			point_data[(i*image->width()*3)+3*j] = j*blockWidth;
-			point_data[(i*image->width()*3)+3*j+1] = i * blockHeight;
-			point_data[(i*image->width()*3)+3*j+2] = 0.1;
-			}
-	}
-
-	ROS_INFO("Size of Pos Array :  %d",(int)point_data.size());
-
-	//for(size_t i = 0; i < point_data.size(); i++){
-	//	ROS_INFO("X: %f Y: %f Z: %f", point_data[i*3+0],point_data[i*3+1],point_data[i*3+2]);
-	//}
+	 // Define positions of points in meters
+	 std::vector<float> point_data;
+	 point_data.resize(image->height()* image->width() *3);
 
 
-	// Define the iterators. When doing so, you define the Field you would like to iterate upon and
-	// the type of you would like returned: it is not necessary the type of the PointField as sometimes
-	// you pack data in another type (e.g. 3 uchar + 1 uchar for RGB are packed in a float)
-	sensor_msgs::PointCloud2Iterator<float> iter_x(out_msg, "x");
-	sensor_msgs::PointCloud2Iterator<float> iter_y(out_msg, "y");
-	sensor_msgs::PointCloud2Iterator<float> iter_z(out_msg, "z");
-	// Even though the r,g,b,a fields do not exist (it's usually rgb, rgba), you can create iterators for
-	// those: they will handle data packing for you (in little endian RGB is packed as *,R,G,B in a float
-	// and RGBA as A,R,G,B)
-	sensor_msgs::PointCloud2Iterator<uint8_t> iter_r(out_msg, "r");
-	sensor_msgs::PointCloud2Iterator<uint8_t> iter_g(out_msg, "g");
-	sensor_msgs::PointCloud2Iterator<uint8_t> iter_b(out_msg, "b");
+	 for(size_t i = 0; i < image->height(); i++){
+	 for(size_t j = 0; j < image->width(); j++){
+	 point_data[(i*image->width()*3)+3*j] = j*blockWidth;
+	 point_data[(i*image->width()*3)+3*j+1] = i * blockHeight;
+	 point_data[(i*image->width()*3)+3*j+2] = 0.1;
+	 }
+	 }
 
-	// Fill the PointCloud2
-	for (size_t i = 0; i < n_points;
-			++i, ++iter_x, ++iter_y, ++iter_z, ++iter_r, ++iter_g, ++iter_b) {
-		*iter_x = point_data[3 * i + 0];
-		*iter_y = point_data[3 * i + 1];
-		*iter_z = point_data[3 * i + 2];
-		*iter_r = rawDataHolder[3 * i + 0];
-		*iter_g = rawDataHolder[3 * i + 1];
-		*iter_b = rawDataHolder[3 * i + 2];
-	}
+	 ROS_INFO("Size of Pos Array :  %d",(int)point_data.size());
 
-	imagePub_.publish(out_msg);
-	*/
+	 //for(size_t i = 0; i < point_data.size(); i++){
+	 //	ROS_INFO("X: %f Y: %f Z: %f", point_data[i*3+0],point_data[i*3+1],point_data[i*3+2]);
+	 //}
+
+
+	 // Define the iterators. When doing so, you define the Field you would like to iterate upon and
+	 // the type of you would like returned: it is not necessary the type of the PointField as sometimes
+	 // you pack data in another type (e.g. 3 uchar + 1 uchar for RGB are packed in a float)
+	 sensor_msgs::PointCloud2Iterator<float> iter_x(out_msg, "x");
+	 sensor_msgs::PointCloud2Iterator<float> iter_y(out_msg, "y");
+	 sensor_msgs::PointCloud2Iterator<float> iter_z(out_msg, "z");
+	 // Even though the r,g,b,a fields do not exist (it's usually rgb, rgba), you can create iterators for
+	 // those: they will handle data packing for you (in little endian RGB is packed as *,R,G,B in a float
+	 // and RGBA as A,R,G,B)
+	 sensor_msgs::PointCloud2Iterator<uint8_t> iter_r(out_msg, "r");
+	 sensor_msgs::PointCloud2Iterator<uint8_t> iter_g(out_msg, "g");
+	 sensor_msgs::PointCloud2Iterator<uint8_t> iter_b(out_msg, "b");
+
+	 // Fill the PointCloud2
+	 for (size_t i = 0; i < n_points;
+	 ++i, ++iter_x, ++iter_y, ++iter_z, ++iter_r, ++iter_g, ++iter_b) {
+	 *iter_x = point_data[3 * i + 0];
+	 *iter_y = point_data[3 * i + 1];
+	 *iter_z = point_data[3 * i + 2];
+	 *iter_r = rawDataHolder[3 * i + 0];
+	 *iter_g = rawDataHolder[3 * i + 1];
+	 *iter_b = rawDataHolder[3 * i + 2];
+	 }
+
+	 imagePub_.publish(out_msg);
+	 */
 
 	markerPub_.publish(*markerList);
 

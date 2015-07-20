@@ -23,7 +23,7 @@
 #include <tf/transform_broadcaster.h>
 
 // Switch for simulation or gathering data from usb camera
-//#define SIMULATION
+#define SIMULATION
 
 char key;
 using namespace std;
@@ -48,6 +48,7 @@ int main(int argc, char **argv) {
 
 	image_transport::ImageTransport it_(n);
 	image_transport::Publisher image_pub_;
+	image_transport::Publisher image_pub_2;
 	image_transport::Publisher qr_image_pub_;
 
 	ros::Subscriber taskSubscriber_ = n.subscribe("task", 1, &parseTask);
@@ -57,6 +58,7 @@ int main(int argc, char **argv) {
 
 	ros::Rate loop_rate(25);
 	image_pub_ = it_.advertise("camera1", 1);
+	image_pub_2 = it_.advertise("camera2", 1);
 	qr_image_pub_ = it_.advertise("image", 1);
 
 	//CvCapture* capture = cvCaptureFromCAM(CV_CAP_ANY);
@@ -73,7 +75,7 @@ int main(int argc, char **argv) {
 #ifndef SIMULATION
 		IplImage* frame = cvQueryFrame(capture); //Create image frames from capture
 		IplImage* frame2 = cvQueryFrame(capture2);//Create image frames from capture2
-		IplImage* frame3 = cvQueryFrame(capture3); //Create image frames from capture2
+		IplImage* frame3 = cvQueryFrame(capture3);//Create image frames from capture2
 
 		cv::Mat input(frame);
 		cv::Mat input2(frame);
@@ -116,9 +118,14 @@ int main(int argc, char **argv) {
 				input =
 						cv::imread(
 								"/home/johan/Schreibtisch/Webcam_Pictures/Webcam-1435311766.png");
+				input2 =
+						cv::imread(
+								"/home/johan/Schreibtisch/Webcam_Pictures/Webcam-1435311766.png");
+
 #endif
 
 				if (cameraSelect == CAMERA_TOP) {
+					ROS_INFO("HALLO HERE");
 					smd = finder.findChip(&input, cameraSelect);
 				} else if (cameraSelect == CAMERA_BOTTOM) {
 					smd = finder.findChip(&input2, cameraSelect);
@@ -141,6 +148,9 @@ int main(int argc, char **argv) {
 				input =
 						cv::imread(
 								"/home/johan/Schreibtisch/Webcam_Pictures/Webcam-1435326387.png");
+				input2 =
+						cv::imread(
+								"/home/johan/Schreibtisch/Webcam_Pictures/Webcam-1435326387.png");
 #endif
 				smd = finder.findSmallSMD(&input);
 				if (smd.x != 0.0 && smd.y != 0.0) {
@@ -158,6 +168,9 @@ int main(int argc, char **argv) {
 				input =
 						cv::imread(
 								"/home/johan/Schreibtisch/Webcam_Pictures/Webcam-1435327178.png");
+				input2 =
+						cv::imread(
+								"/home/johan/Schreibtisch/Webcam_Pictures/Webcam-1435327178.png");
 #endif
 				smd = finder.findSMDTape(&input);
 				if (smd.x != 0.0 && smd.y != 0.0) {
@@ -173,6 +186,9 @@ int main(int argc, char **argv) {
 				// Pads
 #ifdef SIMULATION
 				input =
+						cv::imread(
+								"/home/johan/Schreibtisch/Webcam_Pictures/Webcam-1435326531.png");
+				input2 =
 						cv::imread(
 								"/home/johan/Schreibtisch/Webcam_Pictures/Webcam-1435326531.png");
 #endif
@@ -244,7 +260,7 @@ int main(int argc, char **argv) {
 		cvtColor(input, outputRGB, CV_BGR2RGB);
 
 		std_msgs::Header header;
-		header.seq = id_counter + 1;
+		header.seq = id_counter;
 		header.stamp = ros::Time::now();
 		header.frame_id = "camera1";
 
@@ -261,22 +277,22 @@ int main(int argc, char **argv) {
 		transform.setRotation(rotQuat);
 
 		transformBr.sendTransform(
-					tf::StampedTransform(transform, ros::Time::now(), "/world",
-							"/renderedPCB"));
+				tf::StampedTransform(transform, ros::Time::now(), "/world",
+						"/renderedPCB"));
 
 		// Camera 2
 
 		cv::Mat outputRGB2;
 		cvtColor(input2, outputRGB2, CV_BGR2RGB);
 		std_msgs::Header header2;
-		header2.seq = id_counter + 1;
+		header2.seq = id_counter;
 		header2.stamp = ros::Time::now();
 		header2.frame_id = "camera2";
 
 		out_msg2.header = header2; // Same timestamp and tf frame as input image
 		out_msg2.encoding = sensor_msgs::image_encodings::RGB8; // Or whatever
 		out_msg2.image = outputRGB2;
-		image_pub_.publish(out_msg2.toImageMsg());
+		image_pub_2.publish(out_msg2.toImageMsg());
 
 		//cvReleaseCapture(&capture); //Release capture.
 		//cvDestroyWindow("Camera_Output"); //Destroy Window
