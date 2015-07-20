@@ -150,6 +150,7 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent) :
 	valve6Active_ = false;
 	valve7Active_ = false;
 	valve8Active_ = false;
+	alreadyFlipped_ = false;
 
 	/* Load database */
 	loadDatabaseContent();
@@ -1715,6 +1716,11 @@ void MainWindow::sendGotoFiducial(int indexOfFiducial) {
 
 void MainWindow::on_inputPad_Button_clicked() {
 	//get a filename to open
+	if(alreadyFlipped_){
+		ui.padView_Image->scale(-1,1);
+		alreadyFlipped_ = false;
+	}
+
 	QString gerberFile = QFileDialog::getOpenFileName(this, tr("Open Whl file"),
 			"/home", tr("Text Files (*.txt  *.Whl)"));
 
@@ -1724,12 +1730,21 @@ void MainWindow::on_inputPad_Button_clicked() {
 
 	//get a filename to open
 	gerberFile = QFileDialog::getOpenFileName(this, tr("Open PasteBot file"),
-			"/home", tr("Text Files (*.txt  *.PasteBot)"));
+			"/home", tr("Text Files (*.txt  *.PasteBot *.PasteTop)"));
 
+	bottomLayer_ = false;
+	if(gerberFile.contains(".PasteBot")){
+		bottomLayer_ = true;
+		ui.padView_Image->scale(-1,1);
+		alreadyFlipped_ = true;
+	}
+	else{
+		bottomLayer_ = false;
+	}
 	const char *filenamePaste = gerberFile.toLatin1().data();
 
 	// First load shape data from .Whl file
-	padParser.loadFile(filenamePaste);
+	padParser.loadFile(filenamePaste,bottomLayer_);
 	// Then load cad file .PasteBot
 	padParser.setTable(ui.padTable);
 	padFileLoaded_ = true;
@@ -1769,6 +1784,7 @@ void MainWindow::on_padViewGenerate_button_clicked() {
 	QRectF pcbSize = padParser.renderImage(&scenePads_, ui.padView_Image->width() - 20,
 			ui.padView_Image->height() - 20);
 
+
 	ui.padView_Image->setScene(&scenePads_);
 	ui.padView_Image->show();
 
@@ -1794,15 +1810,16 @@ void MainWindow::padPressed(int numberOfFiducial, QPointF padPos) {
 void MainWindow::gotoPad(QPointF padPos){
 	ROS_INFO("Goto Pad....");
 	id_ = padParser.searchId(padPos, ui.padView_Image->width() - 20);
-	if (qnode.getStatus()[0].positionReached
-				&& qnode.getStatus()[1].positionReached
-				&& qnode.getStatus()[2].positionReached) {
+	ROS_INFO("ID: %d",id_);
+	//if (qnode.getStatus()[0].positionReached
+		//		&& qnode.getStatus()[1].positionReached
+			//	&& qnode.getStatus()[2].positionReached) {
 
 			float x = padParser.padInformationArray_[id_].rect.x();
 			float y = padParser.padInformationArray_[id_].rect.y();
 			ROS_INFO("Goto position x: %f y: %f", x, y);
-			qnode.sendTask(pap_common::CONTROLLER, pap_common::COORD, x, y, 50.0);
-	}
+			qnode.sendTask(pap_common::CONTROLLER, pap_common::COORD, x, y, 10);
+	//}
 }
 
 void MainWindow::on_calibrationButton_clicked() {
@@ -1812,10 +1829,21 @@ void MainWindow::on_calibrationButton_clicked() {
 void MainWindow::on_calcOrientation_Button_clicked() {
 	QPointF local1, global1, local2, global2;
 
+
 	local1.setX(ui.fiducialTable->item(2, 0)->text().toFloat() + currentPosition.x);
 	local1.setY(ui.fiducialTable->item(2, 1)->text().toFloat() + currentPosition.y);
 	local2.setX(ui.fiducialTable->item(3, 0)->text().toFloat() + currentPosition.x);
 	local2.setY(ui.fiducialTable->item(3, 1)->text().toFloat() + currentPosition.y);
+
+	/*
+	float xCamera = 170.0;
+	float yCamera = 140.0;
+
+	local1.setX(ui.fiducialTable->item(0, 0)->text().toFloat()+xCamera);
+	local2.setX(ui.fiducialTable->item(1, 0)->text().toFloat()+xCamera);
+	local1.setY(ui.fiducialTable->item(0, 1)->text().toFloat()+yCamera);
+	local2.setY(ui.fiducialTable->item(1, 1)->text().toFloat()+yCamera);
+	*/
 
 	global1.setX(ui.fiducialTable->item(0, 0)->text().toFloat());
 	global1.setY(ui.fiducialTable->item(0, 1)->text().toFloat());
