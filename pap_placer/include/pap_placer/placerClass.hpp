@@ -68,6 +68,9 @@ public:
 	PlaceController();
 	~PlaceController();
 
+	// Current destination coordinates for gotocoord state
+	Offset currentDestination_;
+
 	Offset getBoxCoordinates();
 	Offset getCompPickUpCoordinates();
 	Offset getPCBCalibCoordinates();
@@ -119,4 +122,7 @@ private:
 	// Correction feedback from vision for pick-up and place
 	Offset PickUpCorrection, PlaceCorrection;
 	int PickUpRotCorrection, PlaceRotCorrection;
+
+	// Current destination coordinates for gotocoord state
+	Offset currentDestination;
 };

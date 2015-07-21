@@ -114,7 +114,7 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent) :
 			SLOT(padPressed(int,QPointF)));
 
 	QWidget::connect(&scenePads_, SIGNAL(gotoPad(QPointF)), this,
-				SLOT(gotoPad(QPointF)));
+			SLOT(gotoPad(QPointF)));
 
 	// Cameras
 	QObject::connect(&qnode, SIGNAL(cameraUpdated(int )), this,
@@ -129,8 +129,8 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent) :
 			SLOT(placerStatusUpdated(int, int)));
 
 	// QR code scanner
-		QObject::connect(&qnode, SIGNAL(placerStatusUpdated(int, int)), this,
-				SLOT(placerStatusUpdated(int, int)));
+	QObject::connect(&qnode, SIGNAL(placerStatusUpdated(int, int)), this,
+			SLOT(placerStatusUpdated(int, int)));
 
 	connect(ui.xManPos, SIGNAL(released()), this, SLOT(releasexManPos()));
 	connect(ui.xManNeg, SIGNAL(released()), this, SLOT(releasexManNeg()));
@@ -1026,15 +1026,28 @@ void MainWindow::closeEvent(QCloseEvent *event) {
 }
 
 void MainWindow::cameraUpdated(int index) {
-	int width = ui.camera1->width();
-	int height = ui.camera1->height() - 2;
-	QImage camera1Scaled = qnode.getCamera1()->scaled(width, height,
-			Qt::KeepAspectRatio);
-	cameraPicture1 = QPixmap::fromImage(camera1Scaled);
-	scene_.clear();
-	scene_.addPixmap(cameraPicture1);
-	ui.camera1->setScene(&scene_);
-	ui.camera1->show();
+	if (index == 1) {
+		int width = ui.camera1->width();
+		int height = ui.camera1->height() - 2;
+		QImage camera1Scaled = qnode.getCamera1()->scaled(width, height,
+				Qt::KeepAspectRatio);
+		cameraPicture1 = QPixmap::fromImage(camera1Scaled);
+		scene_.clear();
+		scene_.addPixmap(cameraPicture1);
+		ui.camera1->setScene(&scene_);
+		ui.camera1->show();
+	} else if (index == 2) {
+		int width = ui.camera2->width();
+		int height = ui.camera2->height() - 2;
+		QImage camera2Scaled = qnode.getCamera2()->scaled(width, height,
+				Qt::KeepAspectRatio);
+		cameraPicture2 = QPixmap::fromImage(camera2Scaled);
+		scene2_.clear();
+		scene2_.addPixmap(cameraPicture2);
+		ui.camera2->setScene(&scene2_);
+		ui.camera2->show();
+	}
+
 }
 
 void MainWindow::on_startHoming_clicked(bool check) {
@@ -1565,7 +1578,6 @@ void MainWindow::setCamera1Point(QPointF point) {
 	float percentageY = (100.0 / (float) ui.camera1->height()) * point.y();
 }
 
-
 void MainWindow::findQRCode() {
 
 	qnode.sendTask(pap_common::VISION, pap_vision::START__QRCODE_FINDER);
@@ -1599,7 +1611,6 @@ void MainWindow::findQRCode() {
 void MainWindow::on_ScanQRCodeButton_clicked() {
 
 }
-
 
 void MainWindow::setFiducial(QPointF point) {
 	float percentageX = (100.0 / (float) ui.camera1->width()) * point.x();
@@ -1716,8 +1727,8 @@ void MainWindow::sendGotoFiducial(int indexOfFiducial) {
 
 void MainWindow::on_inputPad_Button_clicked() {
 	//get a filename to open
-	if(alreadyFlipped_){
-		ui.padView_Image->scale(-1,1);
+	if (alreadyFlipped_) {
+		ui.padView_Image->scale(-1, 1);
 		alreadyFlipped_ = false;
 	}
 
@@ -1733,18 +1744,17 @@ void MainWindow::on_inputPad_Button_clicked() {
 			"/home", tr("Text Files (*.txt  *.PasteBot *.PasteTop)"));
 
 	bottomLayer_ = false;
-	if(gerberFile.contains(".PasteBot")){
+	if (gerberFile.contains(".PasteBot")) {
 		bottomLayer_ = true;
-		ui.padView_Image->scale(-1,1);
+		ui.padView_Image->scale(-1, 1);
 		alreadyFlipped_ = true;
-	}
-	else{
+	} else {
 		bottomLayer_ = false;
 	}
 	const char *filenamePaste = gerberFile.toLatin1().data();
 
 	// First load shape data from .Whl file
-	padParser.loadFile(filenamePaste,bottomLayer_);
+	padParser.loadFile(filenamePaste, bottomLayer_);
 	// Then load cad file .PasteBot
 	padParser.setTable(ui.padTable);
 	padFileLoaded_ = true;
@@ -1753,7 +1763,7 @@ void MainWindow::on_inputPad_Button_clicked() {
 void MainWindow::on_padViewSetSize_button_clicked() {
 	float width = ui.padViewWidth_text->text().toFloat();
 	float height = ui.padViewHeight_text->text().toFloat();
-	padParser.setSize(height,width);
+	padParser.setSize(height, width);
 	qnode.pcbHeight_ = height;
 	qnode.pcbWidth_ = width;
 	sizeDefined_ = true;
@@ -1781,22 +1791,21 @@ void MainWindow::on_padViewGenerate_button_clicked() {
 	}
 
 	// Build image with QGraphicsItem
-	QRectF pcbSize = padParser.renderImage(&scenePads_, ui.padView_Image->width() - 20,
-			ui.padView_Image->height() - 20);
-
+	QRectF pcbSize = padParser.renderImage(&scenePads_,
+			ui.padView_Image->width() - 20, ui.padView_Image->height() - 20);
 
 	ui.padView_Image->setScene(&scenePads_);
 	ui.padView_Image->show();
 
-
-	QImage *image = new QImage(pcbSize.width(),pcbSize.height(), QImage::Format_RGB888);
+	QImage *image = new QImage(pcbSize.width(), pcbSize.height(),
+			QImage::Format_RGB888);
 	QPainter painter(image);
 	painter.setRenderHint(QPainter::Antialiasing);
 	scenePads_.render(&painter);
-	if(!image->save("/home/johan/Schreibtisch/file_name.png")){
+	if (!image->save("/home/johan/Schreibtisch/file_name.png")) {
 		ROS_ERROR("Error while saving image");
 	}
-	qnode.sendPcbImage(image,padParser.getMarkerList());
+	qnode.sendPcbImage(image, padParser.getMarkerList());
 
 }
 
@@ -1807,18 +1816,18 @@ void MainWindow::padPressed(int numberOfFiducial, QPointF padPos) {
 			padParser.padInformationArray_[id_].rect.y());
 }
 
-void MainWindow::gotoPad(QPointF padPos){
+void MainWindow::gotoPad(QPointF padPos) {
 	ROS_INFO("Goto Pad....");
 	id_ = padParser.searchId(padPos, ui.padView_Image->width() - 20);
-	ROS_INFO("ID: %d",id_);
+	ROS_INFO("ID: %d", id_);
 	//if (qnode.getStatus()[0].positionReached
-		//		&& qnode.getStatus()[1].positionReached
-			//	&& qnode.getStatus()[2].positionReached) {
+	//		&& qnode.getStatus()[1].positionReached
+	//	&& qnode.getStatus()[2].positionReached) {
 
-			float x = padParser.padInformationArray_[id_].rect.x();
-			float y = padParser.padInformationArray_[id_].rect.y();
-			ROS_INFO("Goto position x: %f y: %f", x, y);
-			qnode.sendTask(pap_common::CONTROLLER, pap_common::COORD, x, y, 10);
+	float x = padParser.padInformationArray_[id_].rect.x();
+	float y = padParser.padInformationArray_[id_].rect.y();
+	ROS_INFO("Goto position x: %f y: %f", x, y);
+	qnode.sendTask(pap_common::CONTROLLER, pap_common::COORD, x, y, 10);
 	//}
 }
 
@@ -1829,21 +1838,24 @@ void MainWindow::on_calibrationButton_clicked() {
 void MainWindow::on_calcOrientation_Button_clicked() {
 	QPointF local1, global1, local2, global2;
 
-
-	local1.setX(ui.fiducialTable->item(2, 0)->text().toFloat() + currentPosition.x);
-	local1.setY(ui.fiducialTable->item(2, 1)->text().toFloat() + currentPosition.y);
-	local2.setX(ui.fiducialTable->item(3, 0)->text().toFloat() + currentPosition.x);
-	local2.setY(ui.fiducialTable->item(3, 1)->text().toFloat() + currentPosition.y);
+	local1.setX(
+			ui.fiducialTable->item(2, 0)->text().toFloat() + currentPosition.x);
+	local1.setY(
+			ui.fiducialTable->item(2, 1)->text().toFloat() + currentPosition.y);
+	local2.setX(
+			ui.fiducialTable->item(3, 0)->text().toFloat() + currentPosition.x);
+	local2.setY(
+			ui.fiducialTable->item(3, 1)->text().toFloat() + currentPosition.y);
 
 	/*
-	float xCamera = 170.0;
-	float yCamera = 140.0;
+	 float xCamera = 170.0;
+	 float yCamera = 140.0;
 
-	local1.setX(ui.fiducialTable->item(0, 0)->text().toFloat()+xCamera);
-	local2.setX(ui.fiducialTable->item(1, 0)->text().toFloat()+xCamera);
-	local1.setY(ui.fiducialTable->item(0, 1)->text().toFloat()+yCamera);
-	local2.setY(ui.fiducialTable->item(1, 1)->text().toFloat()+yCamera);
-	*/
+	 local1.setX(ui.fiducialTable->item(0, 0)->text().toFloat()+xCamera);
+	 local2.setX(ui.fiducialTable->item(1, 0)->text().toFloat()+xCamera);
+	 local1.setY(ui.fiducialTable->item(0, 1)->text().toFloat()+yCamera);
+	 local2.setY(ui.fiducialTable->item(1, 1)->text().toFloat()+yCamera);
+	 */
 
 	global1.setX(ui.fiducialTable->item(0, 0)->text().toFloat());
 	global1.setY(ui.fiducialTable->item(0, 1)->text().toFloat());
@@ -1947,8 +1959,8 @@ void MainWindow::on_startTipFinder_Button_clicked() {
 	displaySMDCoords(0.0, 0.0, 0.0, 1);
 }
 
-void MainWindow::on_bottomLEDButton_clicked(){
-	if(!bottomLEDon) {
+void MainWindow::on_bottomLEDButton_clicked() {
+	if (!bottomLEDon) {
 		qnode.setBottomLEDTask();
 		bottomLEDon = true;
 	} else {

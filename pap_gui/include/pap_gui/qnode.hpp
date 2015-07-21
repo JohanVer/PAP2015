@@ -100,9 +100,11 @@ public:
 
 	QStringListModel* loggingModel() { return &logging_model; }
 	QImage* getCamera1() { return &cameraImage_; }
+	QImage* getCamera2() { return &cameraImage2_; }
 	controllerStatus* getStatus(){ return motorcontrollerStatus;}
 	void log( const LogLevel &level, const std::string &msg);
 	void cameraCallback(const sensor_msgs::Image::ConstPtr& camera_msg);
+	void cameraCallback2(const sensor_msgs::ImageConstPtr& camera_msg);
 
 	void sendTask(pap_common::DESTINATION,pap_common::TASK);
 	void sendTask(pap_common::DESTINATION,pap_vision::VISION);
@@ -143,9 +145,10 @@ private:
 	ros::Subscriber qrCodeScannerSubscriber_;
     QStringListModel logging_model;
     image_transport::Subscriber image_sub_;
+    image_transport::Subscriber image_sub2_;
     cv_bridge::CvImagePtr cv_ptr;
     controllerStatus motorcontrollerStatus[3];
-    QImage cameraImage_;
+    QImage cameraImage_, cameraImage2_;
     //image_transport::Publisher imagePub_;
     ros::Publisher imagePub_;
     ros::Publisher markerPub_;

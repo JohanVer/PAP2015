@@ -25,10 +25,10 @@ PlaceController::PlaceController() {
 	// Rough offset values - need to be refined
 	pcbOriginOffset.x = 282;
 	pcbOriginOffset.y = 149;
-	pcbOriginOffset.z = 0.1;
+	pcbOriginOffset.z = 2.1;
 	pickUpAreaOffset.x = 109;
 	pickUpAreaOffset.y = 261;
-	pickUpAreaOffset.z = 0.1;
+	pickUpAreaOffset.z = 1.1;
 	cameraBottomOffset.x = 236;
 	cameraBottomOffset.y = 197;
 	cameraBottomOffset.z = 0.1;
@@ -37,17 +37,17 @@ PlaceController::PlaceController() {
 	tip2Offset.x = -50;
 	tip2Offset.y = 50;
 	tip2Offset.z = 0;
-	tip1Offset.x = -50;
-	tip1Offset.y = 5;
+	tip1Offset.x = 0;
+	tip1Offset.y = 0;
 	tip1Offset.z = 0;
 	dispenserTipOffset.x = -40;
 	dispenserTipOffset.y = 25;
 	dispenserTipOffset.z = 0;
 
 	// Correction offsets
-	PickUpCorrection.x = 5;
-	PickUpCorrection.y = 5;
-	PickUpCorrection.z = 5;
+	PickUpCorrection.x = 0;
+	PickUpCorrection.y = 0;
+	PickUpCorrection.z = 0;
 	PickUpRotCorrection = 0;
 	PlaceCorrection.x = 0;
 	PlaceCorrection.y = 0;

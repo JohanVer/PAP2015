@@ -184,8 +184,8 @@ private:
 	// Current position
 	Offset currentPosition;
 	// Structures for holding the camera1 image (top camera)
-	QPixmap cameraPicture1;
-	QGraphicsScene scene_;
+	QPixmap cameraPicture1, cameraPicture2;
+	QGraphicsScene scene_, scene2_;
 
 
 
