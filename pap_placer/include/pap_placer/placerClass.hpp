@@ -10,12 +10,12 @@
 #include <cstdio>
 
 /*****************************************************************************
-** Namespace
-*****************************************************************************/
+ ** Namespace
+ *****************************************************************************/
 using namespace std;
 /*****************************************************************************
-** Class implementation
-*****************************************************************************/
+ ** Class implementation
+ *****************************************************************************/
 
 class ComponentPlacerData {
 public:
@@ -62,14 +62,19 @@ public:
 private:
 };
 
-
 class PlaceController {
 public:
 	PlaceController();
 	~PlaceController();
 
+	// These offsets are relative to camera
+	Offset tip2Offset, tip1Offset, dispenserTipOffset;
 	// Current destination coordinates for gotocoord state
-	Offset currentDestination_;
+	Offset currentDestination_, lastDestination_;
+	float zMoveheight_;
+
+	Offset camClibrationOffset_;
+	Offset tip1ClibrationOffset_;
 
 	Offset getBoxCoordinates();
 	Offset getCompPickUpCoordinates();
@@ -99,11 +104,6 @@ public:
 	bool getCalibrationStatus();
 	int getBoxNumber();
 
-
-
-
-
-
 private:
 	ComponentPlacerData currentComponent;
 	bool calibrationStatus;
@@ -111,9 +111,6 @@ private:
 	enum TIP {
 		LEFT_TIP, RIGHT_TIP
 	} tip;
-
-	// These offsets are relative to camera
-	Offset tip2Offset, tip1Offset, dispenserTipOffset;
 
 	// These offsets are relative to homing position
 	Offset pcbOriginOffset, pickUpAreaOffset;

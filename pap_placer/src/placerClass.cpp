@@ -21,28 +21,29 @@ PlaceController::PlaceController() {
 	calibrationStatus = true;
 
 	// Move:  	z = 30.0;
+	zMoveheight_ = 25.0;
 
 	// Rough offset values - need to be refined
 	pcbOriginOffset.x = 282;
 	pcbOriginOffset.y = 149;
-	pcbOriginOffset.z = 2.1;
+	pcbOriginOffset.z = 20.1;
 	pickUpAreaOffset.x = 109;
 	pickUpAreaOffset.y = 261;
-	pickUpAreaOffset.z = 1.1;
+	pickUpAreaOffset.z = 0.1;
 	cameraBottomOffset.x = 236;
 	cameraBottomOffset.y = 197;
-	cameraBottomOffset.z = 0.1;
+	cameraBottomOffset.z = 20;
 
 	// Offsets relative to camera
-	tip2Offset.x = -50;
-	tip2Offset.y = 50;
-	tip2Offset.z = 0;
-	tip1Offset.x = 0;
-	tip1Offset.y = 0;
-	tip1Offset.z = 0;
-	dispenserTipOffset.x = -40;
-	dispenserTipOffset.y = 25;
-	dispenserTipOffset.z = 0;
+	tip2Offset.x = -95.904;
+	tip2Offset.y = 64.709;
+	tip2Offset.z = 20;
+	tip1Offset.x = -96.888;
+	tip1Offset.y = -2,798;
+	tip1Offset.z = 37.2;
+	dispenserTipOffset.x = -56,185;
+	dispenserTipOffset.y = 35,269;
+	dispenserTipOffset.z = 20;
 
 	// Correction offsets
 	PickUpCorrection.x = 0;
@@ -88,8 +89,8 @@ Offset PlaceController::getCompPickUpCoordinates() {
 	Offset temp;
 	switch (tip) {
 	case LEFT_TIP:
-		temp.x = pickUpAreaOffset.x + PickUpCorrection.x + SmallBoxOffsetTable[currentComponent.box].x + tip1Offset.x;
-		temp.y = pickUpAreaOffset.y + PickUpCorrection.y + SmallBoxOffsetTable[currentComponent.box].y + tip1Offset.y;
+		temp.x = pickUpAreaOffset.x + PickUpCorrection.x + SmallBoxOffsetTable[currentComponent.box].x + (tip1Offset.x - camClibrationOffset_.x + tip1ClibrationOffset_.x);
+		temp.y = pickUpAreaOffset.y + PickUpCorrection.y + SmallBoxOffsetTable[currentComponent.box].y + (tip1Offset.y - camClibrationOffset_.y + tip1ClibrationOffset_.y);
 		temp.z = pickUpAreaOffset.z + tip1Offset.z;
 		temp.rot = PickUpCorrection.rot;
 		break;
@@ -131,6 +132,7 @@ Offset PlaceController::getCompPlaceCoordinates() {
 	Offset temp;
 	switch (tip) {
 	case LEFT_TIP:
+
 		temp.x = pcbOriginOffset.x + currentComponent.destX + PlaceCorrection.x + tip1Offset.x;
 		temp.y = pcbOriginOffset.y + currentComponent.destY + PlaceCorrection.y + tip1Offset.y;
 		temp.z = pcbOriginOffset.z + currentComponent.height + tip1Offset.z;
@@ -162,6 +164,7 @@ Offset PlaceController::getTip1Coordinates() {
 	Offset tip1Coordinate;
 	tip1Coordinate.x = cameraBottomOffset.x + tip1Offset.x;
 	tip1Coordinate.y = cameraBottomOffset.y + tip1Offset.y;
+	tip1Coordinate.z = tip1Offset.z;
 	return tip1Coordinate;
 }
 
@@ -169,6 +172,7 @@ Offset PlaceController::getTip2Coordinates() {
 	Offset tip2Coordinate;
 	tip2Coordinate.x = cameraBottomOffset.x + tip2Offset.x;
 	tip2Coordinate.y = cameraBottomOffset.y + tip2Offset.y;
+	tip2Coordinate.z = tip2Offset.z;
 	return tip2Coordinate;
 }
 
@@ -176,6 +180,7 @@ Offset PlaceController::getDispenserCoordinates() {
 	Offset dispenserCoordinate;
 	dispenserCoordinate.x = cameraBottomOffset.x + dispenserTipOffset.x;
 	dispenserCoordinate.y = cameraBottomOffset.y + dispenserTipOffset.y;
+	dispenserCoordinate.z = dispenserTipOffset.z;
 	return dispenserCoordinate;
 }
 
@@ -184,11 +189,13 @@ void PlaceController::setDispenserOffset(float xDiff, float yDiff) {
 	dispenserTipOffset.y = dispenserTipOffset.y + yDiff;
 }
 
-
-
 void PlaceController::setTip1Offset(float xDiff, float yDiff) {
-	tip1Offset.x = tip1Offset.x + xDiff;
-	tip1Offset.y = tip1Offset.y + yDiff;
+
+	tip1Offset.x = tip1Offset.x + camClibrationOffset_.x + xDiff;
+	tip1Offset.y = tip1Offset.y + camClibrationOffset_.y + yDiff;
+	ROS_INFO("x/yDiff:: x:%f y:%f", xDiff, yDiff);
+	ROS_INFO("camClibrationOffset_: x:%f y:%f", camClibrationOffset_.x, camClibrationOffset_.y);
+	ROS_INFO("tip1offset: x:%f y:%f", tip1Offset.x, tip1Offset.y);
 }
 
 void PlaceController::setTip2Offset(float xDiff, float yDiff) {

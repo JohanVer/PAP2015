@@ -207,8 +207,8 @@ int main(int argc, char **argv) {
 				smd = finder.findTip(&input2);
 				if (smd.x != 0.0 && smd.y != 0.0) {
 					visionMsg.task = pap_vision::SEARCH_CIRCLE;
-					visionMsg.data1 = smd.x;
-					visionMsg.data2 = smd.y;
+					visionMsg.data1 = -smd.y;
+					visionMsg.data2 = smd.x;
 					visionMsg.data3 = smd.rot;
 					visionMsg.camera = 1;
 					statusPublisher.publish(visionMsg);

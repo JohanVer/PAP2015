@@ -91,8 +91,8 @@ bool padFinder::isBorderTouched(cv::RotatedRect pad) {
 	for (int i = 0; i < 4; ++i) {
 		vertices[i] = vertices2f[i];
 
-		if (vertices[i].x < 5 || vertices[i].x > 635 || vertices[i].y > 475
-				|| vertices[i].y < 5) {
+		if (vertices[i].x < 2 || vertices[i].x > 638 || vertices[i].y > 478
+				|| vertices[i].y < 2) {
 			return true;
 		}
 	}
@@ -147,7 +147,7 @@ smdPart padFinder::findTip(cv::Mat* input) {
 	//	100, radiusMin * PIXEL_TO_MM_BOTTOM,radiusMax * PIXEL_TO_MM_BOTTOM);
 
 	cv::HoughCircles(gray, circles, CV_HOUGH_GRADIENT, 1, gray.rows / 4, 200,
-			100, 10, 500);
+			70, 10, 500);
 
 	for (size_t i = 0; i < circles.size(); i++) {
 		Point center(cvRound(circles[i][0]), cvRound(circles[i][1]));
