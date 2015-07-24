@@ -18,15 +18,16 @@
  *****************************************************************************/
 PlaceController::PlaceController() {
 
-	calibrationStatus = true;
+	MovingHeight_ = 25.0;
 
-	// Move:  	z = 30.0;
-	zMoveheight_ = 25.0;
+	idleCoordinates_.x = 1.0;
+	idleCoordinates_.y = 1.0;
+	idleCoordinates_.z = 1.0;
 
 	// Rough offset values - need to be refined
 	pcbOriginOffset.x = 282;
 	pcbOriginOffset.y = 149;
-	pcbOriginOffset.z = 20.1;
+	pcbOriginOffset.z = 25.1;
 	pickUpAreaOffset.x = 109;
 	pickUpAreaOffset.y = 261;
 	pickUpAreaOffset.z = 0.1;
@@ -104,6 +105,10 @@ Offset PlaceController::getCompPickUpCoordinates() {
 	return temp;
 };
 
+float PlaceController::getCompSuckingHeight() {
+	return pickUpAreaOffset.z + currentComponent.height;
+};
+
 void PlaceController::setPickUpCorrectionOffset(float xDiff, float yDiff, float rotDiff) {
 	PickUpCorrection.x = xDiff;
 	PickUpCorrection.y = yDiff;
@@ -133,21 +138,24 @@ Offset PlaceController::getCompPlaceCoordinates() {
 	switch (tip) {
 	case LEFT_TIP:
 
-		temp.x = pcbOriginOffset.x + currentComponent.destX + PlaceCorrection.x + tip1Offset.x;
-		temp.y = pcbOriginOffset.y + currentComponent.destY + PlaceCorrection.y + tip1Offset.y;
-		temp.z = pcbOriginOffset.z + currentComponent.height + tip1Offset.z;
+		temp.x = currentComponent.destX + PlaceCorrection.x + (tip1Offset.x - camClibrationOffset_.x + tip1ClibrationOffset_.x);
+		temp.y = currentComponent.destY + PlaceCorrection.y + (tip1Offset.y - camClibrationOffset_.y + tip1ClibrationOffset_.y);
+		temp.z = pcbOriginOffset.z + tip1Offset.z;
 		temp.rot = currentComponent.rotation + PlaceCorrection.rot;
 		break;
 	case RIGHT_TIP:
-		temp.x = pcbOriginOffset.x + currentComponent.destX + PlaceCorrection.x + tip2Offset.x;
-		temp.y = pcbOriginOffset.y + currentComponent.destY + PlaceCorrection.y + tip2Offset.y;
-		temp.z = pcbOriginOffset.z + currentComponent.height + tip2Offset.z;
+		temp.x = currentComponent.destX + PlaceCorrection.x + tip2Offset.x;
+		temp.y = currentComponent.destY + PlaceCorrection.y + tip2Offset.y;
+		temp.z = pcbOriginOffset.z + tip2Offset.z;
 		temp.rot = currentComponent.rotation + PlaceCorrection.rot;
 		break;
 	}
 	return temp;
 };
 
+float PlaceController::getCompPlaceHeight() {
+	return pcbOriginOffset.z + currentComponent.height;
+};
 
 void PlaceController::setPlaceCorrectionOffset(float xDiff, float yDiff, float rotDiff) {
 	PlaceCorrection.x = xDiff;
@@ -225,19 +233,6 @@ int PlaceController::selectTip() {
 };
 
 
-
-
-
-
-
-
-void PlaceController::systemCalibration() {
-
-};
-
-bool PlaceController::getCalibrationStatus() {
-	return calibrationStatus;
-};
 
 void PlaceController::updatePlacementData(ComponentPlacerData * data) {
 	currentComponent.box = data->box;

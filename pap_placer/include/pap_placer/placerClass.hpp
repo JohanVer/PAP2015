@@ -71,7 +71,8 @@ public:
 	Offset tip2Offset, tip1Offset, dispenserTipOffset;
 	// Current destination coordinates for gotocoord state
 	Offset currentDestination_, lastDestination_;
-	float zMoveheight_;
+	Offset idleCoordinates_;
+	float MovingHeight_;
 
 	Offset camClibrationOffset_;
 	Offset tip1ClibrationOffset_;
@@ -82,6 +83,8 @@ public:
 	Offset getPCBCompCoordinates();
 	Offset getCompPlaceCoordinates();
 	Offset getBottomCamCoordinates();
+	float getCompSuckingHeight();
+	float getCompPlaceHeight();
 	float getComponentLenth();
 	float getComponentWidth();
 
@@ -106,7 +109,6 @@ public:
 
 private:
 	ComponentPlacerData currentComponent;
-	bool calibrationStatus;
 
 	enum TIP {
 		LEFT_TIP, RIGHT_TIP
