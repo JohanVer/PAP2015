@@ -13,6 +13,7 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   pap_common
   pcb_cv
+  qt_build
 )
 
 ## System dependencies are found with CMake's conventions

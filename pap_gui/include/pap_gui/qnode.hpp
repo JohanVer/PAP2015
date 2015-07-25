@@ -39,6 +39,7 @@
 #include "pap_common/Task.h"
 #include "pap_common/Status.h"
 #include "pap_common/VisionStatus.h"
+#include "pap_common/DispenseTask.h"
 #include "pap_common/ArduinoMsg.h"
 #include "../../../pap_common/include/pap_common/task_message_def.h"
 #include "../../../pap_common/include/pap_common/status_message_def.h"
@@ -48,6 +49,7 @@
 
 #include "../../../pap_common/include/pap_common/placer_message_def.h"
 #include "pap_common/PlacerStatus.h"
+#include "DispenserPlanner.hpp"
 
 #include <vector>
 
@@ -111,6 +113,7 @@ public:
 	void sendTask(pap_common::DESTINATION destination,pap_common::TASK task, float x, float y, float z );
 	void sendTask(pap_common::DESTINATION destination,pap_vision::VISION task,float x, float y, float z);
 	void sendTask(pap_common::DESTINATION destination, pap_common::TASK task,ComponentPlacerData componentData);
+	void sendDispenserTask(dispenseInfo dispenseTask);
 
 	void statusCallback(const pap_common::StatusConstPtr&  statusMsg);
 	void placerStatusCallback(const pap_common::PlacerStatusConstPtr&  statusMsg);
@@ -125,6 +128,7 @@ public:
 	void setBottomLEDTask();
 	void resetBottomLEDTask();
 
+
 Q_SIGNALS:
 	void loggingUpdated();
 	void statusUpdated(int index);
@@ -134,11 +138,12 @@ Q_SIGNALS:
     void rosShutdown();
     void smdCoordinates(float x,float y,float rot,unsigned int cameraSelect);
     void signalPosition(float x,float y);
+    void dispenserFinished();
 
 private:
 	int init_argc;
 	char** init_argv;
-	ros::Publisher task_publisher, arduino_publisher_;
+	ros::Publisher task_publisher, arduino_publisher_, dispenser_publisher_;
 	ros::Subscriber statusSubsriber_;
 	ros::Subscriber placerStatusSubscriber_;
 	ros::Subscriber visionStatusSubsriber_;

@@ -8,3 +8,6 @@ int32 box
 float32 width
 float32 length
 float32 height
+float32 velX
+float32 velY
+float32 velZ

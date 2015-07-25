@@ -40,7 +40,7 @@
 #include <QPixmap>
 #include <QPainter>
 #include <QSize>
-
+#include "DispenserPlanner.hpp"
 #include "../../../pap_placer/include/pap_placer/placerNode.hpp"
 
 
@@ -154,6 +154,11 @@ public Q_SLOTS:
     void padPressed(int numberOfFiducial,QPointF padPos);
     void on_calcOrientation_Button_clicked();
 
+    //Dispense button
+
+    void on_startDispense_button_clicked();
+    void dispenseSinglePad(QPointF point);
+
     void on_pickupComponentButton_clicked();
     void on_goToComponentButton_clicked();
     void on_goToPCBButton_clicked();
@@ -186,7 +191,7 @@ private:
 	// Structures for holding the camera1 image (top camera)
 	QPixmap cameraPicture1, cameraPicture2;
 	QGraphicsScene scene_, scene2_;
-
+	DispenserPlanner dispenserPlanner;
 
 
 	// Structures for holding the rendered image of the pcb

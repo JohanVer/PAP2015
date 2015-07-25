@@ -17,6 +17,30 @@ using namespace std;
  ** Class implementation
  *****************************************************************************/
 
+class dispenseInfos{
+public:
+	dispenseInfos(){
+		xPos = 0.0;
+		yPos = 0.0;
+		xPos2 = 0.0;
+		yPos2 = 0.0;
+		type = Point;
+		rotation = 0.0;
+		velocity = 0.0;
+		time = 0.0;
+	}
+
+	enum dispensePadType {
+		Point, Long
+	};
+
+	int type;
+	float xPos, yPos, xPos2, yPos2;
+	float rotation;
+	float velocity;
+	float time;
+};
+
 class ComponentPlacerData {
 public:
 	float destX;
@@ -67,6 +91,7 @@ public:
 	PlaceController();
 	~PlaceController();
 
+	dispenseInfos dispenseTask;
 	// These offsets are relative to camera
 	Offset tip2Offset, tip1Offset, dispenserTipOffset;
 	// Current destination coordinates for gotocoord state
@@ -117,6 +142,7 @@ private:
 	// These offsets are relative to homing position
 	Offset pcbOriginOffset, pickUpAreaOffset;
 	Offset cameraBottomOffset;
+
 
 	// Correction feedback from vision for pick-up and place
 	Offset PickUpCorrection, PlaceCorrection;

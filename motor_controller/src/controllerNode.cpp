@@ -128,7 +128,6 @@ void checkStatusController(int numberOfController,
 //	}
 }
 
-
 int main(int argc, char **argv) {
 	ros::init(argc, argv, "motorController");
 
@@ -217,6 +216,23 @@ void parseTask(const pap_common::TaskConstPtr& taskMsg) {
 		case pap_common::COORD:
 			coordError = controller.gotoCoord(taskMsg->data1, taskMsg->data2,
 					taskMsg->data3);
+			if (coordError != error_codes::NO_ERROR) {
+				if (coordError == error_codes::X_ERROR) {
+					ROS_ERROR("Error while setting x-axis");
+					cmdExecuted = false;
+				} else if (coordError == error_codes::Y_ERROR) {
+					ROS_ERROR("Error while setting y-axis");
+					cmdExecuted = false;
+				} else if (coordError == error_codes::Z_ERROR) {
+					ROS_ERROR("Error while setting z-axis");
+					cmdExecuted = false;
+				}
+			}
+			break;
+
+		case pap_common::COORD_VEL:
+			coordError = controller.gotoCoord(taskMsg->data1, taskMsg->data2,
+					taskMsg->data3, taskMsg->velX, taskMsg->velY);
 			if (coordError != error_codes::NO_ERROR) {
 				if (coordError == error_codes::X_ERROR) {
 					ROS_ERROR("Error while setting x-axis");

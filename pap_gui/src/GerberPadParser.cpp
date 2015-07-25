@@ -346,6 +346,7 @@ QRectF GerberPadParser::renderImage(QGraphicsScene* scene, int width,
 	double pixelWidth = (double) width / (double) width_;
 	double pixelHeight = (double) height / (double) height_;
 
+	heightPixel_ = height;
 	if (pixelWidth > pixelHeight) {
 		pixelConversionFactor = pixelHeight;
 	} else {
@@ -395,6 +396,7 @@ QRectF GerberPadParser::renderImage(QGraphicsScene* scene, int width,
 		rect->setRotation(padInfo.rotation);
 		ROS_INFO("ROTATION: %f", padInfo.rotation);
 		scene->addItem(rect);
+		//scene->addEllipse(padInfo.rect.x()*pixelConversionFactor,heightPixel_-(padInfo.rect.y()*pixelConversionFactor),1,1,QPen(Qt::blue, 1, Qt::SolidLine));
 	}
 	return pcbSize;
 }
@@ -539,3 +541,5 @@ void GerberPadParser::rotatePads(void) {
 	ROS_INFO("Calibration: Transformed %d pads...",
 			(int )padInformationArray_.size());
 }
+
+

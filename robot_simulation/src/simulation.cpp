@@ -39,7 +39,8 @@ double desX, desY, desZ = 0;
 controllerStatus controllerState1, controllerState2, controllerState3;
 ros::Publisher statusPublisher;
 
-void sendTransforms(double x_des, double y_des, double z_des, double nozzle_1,double nozzle_2);
+void sendTransforms(double x_des, double y_des, double z_des, double nozzle_1,
+		double nozzle_2);
 void simulateXAxisMovement(void);
 void simulateYAxisMovement(void);
 void simulateZAxisMovement(void);
@@ -54,8 +55,6 @@ double matrix[6][6] = { { ts, 0.0, 0.0, 0.5 * pow(ts, 2.0), 0.0, 0.0 }, { 0.0,
 		ts, 0.0, 0.0, 0.5 * pow(ts, 2.0), 0.0 }, { 0.0, 0.0, ts, 0.0, 0.0, 0.5
 		* pow(ts, 2.0) }, { 1.0, 0.0, 0.0, ts, 0.0, 0.0 }, { 0.0, 1.0, 0.0, 0.0,
 		ts, 0.0 }, { 0.0, 0.0, 1.0, 0.0, 0.0, ts } };
-
-
 
 void checkStatusController(int numberOfController,
 		controllerStatus* controllerStatusAct) {
@@ -86,13 +85,15 @@ void checkStatusController(int numberOfController,
 }
 
 void parseArduinoTask(const pap_common::ArduinoMsg& taskMsg) {
-	if ((taskMsg.command == 2 && taskMsg.data == 3) ||  (taskMsg.command == 1 && taskMsg.data == 6)) {
+	if ((taskMsg.command == 2 && taskMsg.data == 3)
+			|| (taskMsg.command == 1 && taskMsg.data == 6)) {
 		currentState.tip1 = -20.00;
-	} else if ((taskMsg.command == 1 && taskMsg.data == 3) ||  (taskMsg.command == 2 && taskMsg.data == 6)) {
+	} else if ((taskMsg.command == 1 && taskMsg.data == 3)
+			|| (taskMsg.command == 2 && taskMsg.data == 6)) {
 		currentState.tip1 = 0.00;
 	}
 	if (taskMsg.data == 7) {
-		if(taskMsg.command == 1) {
+		if (taskMsg.command == 1) {
 			currentState.tip2 = -20.00;
 		} else {
 			currentState.tip2 = 0.00;
@@ -107,13 +108,13 @@ void parseTask(const pap_common::TaskConstPtr& taskMsg) {
 		case pap_common::HOMING:
 			if (controllerConnected && controllerEnergized) {
 				desX = xHome;							// Desired position
-				distXTotal = desX - currentState.x;		// Distance we have to go
+				distXTotal = desX - currentState.x;	// Distance we have to go
 
 				desY = yHome;							// Desired position
-				distYTotal = desY - currentState.y;		// Distance we have to go
+				distYTotal = desY - currentState.y;	// Distance we have to go
 
 				desZ = zHome;							// Desired position
-				distZTotal = desZ - currentState.z;		// Distance we have to go
+				distZTotal = desZ - currentState.z;	// Distance we have to go
 			}
 
 			break;
@@ -133,13 +134,26 @@ void parseTask(const pap_common::TaskConstPtr& taskMsg) {
 		case pap_common::COORD:
 			if (controllerConnected && controllerEnergized) {
 				desX = taskMsg->data1;					// Desired position
-				distXTotal = desX - currentState.x;		// Distance we have to go
+				distXTotal = desX - currentState.x;	// Distance we have to go
 
 				desY = taskMsg->data2;					// Desired position
-				distYTotal = desY - currentState.y;		// Distance we have to go
+				distYTotal = desY - currentState.y;	// Distance we have to go
 
 				desZ = taskMsg->data3;					// Desired position
-				distZTotal = desZ - currentState.z;		// Distance we have to go
+				distZTotal = desZ - currentState.z;	// Distance we have to go
+			}
+			break;
+
+		case pap_common::COORD_VEL:
+			if (controllerConnected && controllerEnergized) {
+				desX = taskMsg->data1;					// Desired position
+				distXTotal = desX - currentState.x;	// Distance we have to go
+
+				desY = taskMsg->data2;					// Desired position
+				distYTotal = desY - currentState.y;	// Distance we have to go
+
+				desZ = taskMsg->data3;					// Desired position
+				distZTotal = desZ - currentState.z;	// Distance we have to go
 			}
 			break;
 
@@ -178,7 +192,7 @@ void parseTask(const pap_common::TaskConstPtr& taskMsg) {
 			controllerState2.error = false;
 			controllerState3.error = false;
 
-			if(!controllerConnected) {
+			if (!controllerConnected) {
 				controllerConnected = true;
 			} else {
 				controllerConnected = false;
@@ -240,14 +254,13 @@ void simulate_next_step_z(double accZ, double ts) {
 	currentState.vz = currentState.vz + accZ * ts;
 }
 
-
-
 int main(int argc, char **argv) {
 	ros::init(argc, argv, "tf_sender");
 	ros::NodeHandle n;
 	ros::Rate loop_rate(100);
 	ros::Subscriber taskSubscriber_ = n.subscribe("task", 1, &parseTask);
-	ros::Subscriber ardunioTaskSubscriber_ = n.subscribe("arduinoTx", 1, &parseArduinoTask);
+	ros::Subscriber ardunioTaskSubscriber_ = n.subscribe("arduinoTx", 1,
+			&parseArduinoTask);
 	statusPublisher = n.advertise<pap_common::Status>("status", 1000);
 
 	// Initialize positions
@@ -256,17 +269,37 @@ int main(int argc, char **argv) {
 	currentState.z = zHome;
 	currentState.tip1 = tip1Home;
 	currentState.tip2 = tip2Home;
-
+	unsigned int counter = 0;
 	while (ros::ok()) {
 
+		counter++;
+		if (counter == 10) {
+			pap_common::Status stateMessage;
+			stateMessage.data1 = pap_common::XMOTOR;
+			stateMessage.posX = currentState.x;
+			statusPublisher.publish(stateMessage);
+			stateMessage.data1 = pap_common::YMOTOR;
+			stateMessage.posY = currentState.y;
+			statusPublisher.publish(stateMessage);
+			stateMessage.data1 = pap_common::ZMOTOR;
+			stateMessage.posZ = currentState.z;
+			statusPublisher.publish(stateMessage);
+			counter = 0;
+		}
+
 		if (controllerConnected && controllerEnergized) {
-			if (distXTotal != 0) simulateXAxisMovement();
-			if (distYTotal != 0) simulateYAxisMovement();
-			if (distZTotal != 0) simulateZAxisMovement();
+			if (distXTotal != 0)
+				simulateXAxisMovement();
+			if (distYTotal != 0)
+				simulateYAxisMovement();
+			if (distZTotal != 0)
+				simulateZAxisMovement();
 		}
 
 		// Init and set tips!
-		sendTransforms((currentState.x/1000), (currentState.y/1000), (currentState.z/1000), (currentState.tip1/1000), (currentState.tip2/1000));
+		sendTransforms((currentState.x / 1000), (currentState.y / 1000),
+				(currentState.z / 1000), (currentState.tip1 / 1000),
+				(currentState.tip2 / 1000));
 
 		ros::spinOnce();
 		loop_rate.sleep();
@@ -294,13 +327,13 @@ void simulateXAxisMovement() {
 		// More than half of total distance left -> accelerate or keep max velocity
 		if (distX > (0.5 * distXTotal)) {
 			if (currentState.vx < maxVelocity) {
-				simulate_next_step_x(accX, ts);				// Accelerate until Vmax
+				simulate_next_step_x(accX, ts);			// Accelerate until Vmax
 			} else {
 				currentState.vx = maxVelocity;
 				simulate_next_step_x(0, ts);				// stay at Vmax
 			}
 
-		// Half distance done, keep v or slow down depending on distance left
+			// Half distance done, keep v or slow down depending on distance left
 		} else if (distX > epsilonDistance && currentState.vx > 0) {
 
 			if (distX > brakePath) {
@@ -309,7 +342,7 @@ void simulateXAxisMovement() {
 				simulate_next_step_x(-accXDelay, ts);		// Slow down
 			}
 
-		// Distance left is now smaller than epsilonDistance
+			// Distance left is now smaller than epsilonDistance
 		} else {
 			currentState.x = desX;
 			currentState.vx = 0;
@@ -341,13 +374,13 @@ void simulateXAxisMovement() {
 		// More than half of total distance left -> accelerate or keep max velocity
 		if (distX > (0.5 * abs(distXTotal))) {
 			if (abs(currentState.vx) < maxVelocity) {
-				simulate_next_step_x(-accX, ts);			// Accelerate until Vmax
+				simulate_next_step_x(-accX, ts);		// Accelerate until Vmax
 			} else {
 				currentState.vx = -maxVelocity;
 				simulate_next_step_x(0, ts);				// stay at Vmax
 			}
 
-		// Half distance done, keep v or slow down depending on distance left
+			// Half distance done, keep v or slow down depending on distance left
 		} else if (distX > epsilonDistance && abs(currentState.vx) > 0) {
 
 			if (distX > brakePath) {
@@ -356,7 +389,7 @@ void simulateXAxisMovement() {
 				simulate_next_step_x(+accXDelay, ts);		// Slow down
 			}
 
-		// Distance left is now smaller than epsilonDistance
+			// Distance left is now smaller than epsilonDistance
 		} else {
 			currentState.x = desX;
 			currentState.vx = 0;
@@ -391,13 +424,13 @@ void simulateYAxisMovement() {
 		// More than half of total distance left -> accelerate or keep max velocity
 		if (distY > (0.5 * distYTotal)) {
 			if (currentState.vy < maxVelocity) {
-				simulate_next_step_y(accY, ts);				// Accelerate until Vmax
+				simulate_next_step_y(accY, ts);			// Accelerate until Vmax
 			} else {
 				currentState.vy = maxVelocity;
 				simulate_next_step_y(0, ts);				// stay at Vmax
 			}
 
-		// Half distance done, keep v or slow down depending on distance left
+			// Half distance done, keep v or slow down depending on distance left
 		} else if (distY > epsilonDistance && currentState.vy > 0) {
 
 			if (distY > brakePath) {
@@ -406,7 +439,7 @@ void simulateYAxisMovement() {
 				simulate_next_step_y(-accYDelay, ts);		// Slow down
 			}
 
-		// Distance left is now smaller than epsilonDistance
+			// Distance left is now smaller than epsilonDistance
 		} else {
 			currentState.y = desY;
 			currentState.vy = 0;
@@ -438,13 +471,13 @@ void simulateYAxisMovement() {
 		// More than half of total distance left -> accelerate or keep max velocity
 		if (distY > (0.5 * abs(distYTotal))) {
 			if (abs(currentState.vy) < maxVelocity) {
-				simulate_next_step_y(-accY, ts);			// Accelerate until Vmax
+				simulate_next_step_y(-accY, ts);		// Accelerate until Vmax
 			} else {
 				currentState.vy = -maxVelocity;
 				simulate_next_step_y(0, ts);				// stay at Vmax
 			}
 
-		// Half distance done, keep v or slow down depending on distance left
+			// Half distance done, keep v or slow down depending on distance left
 		} else if (distY > epsilonDistance && abs(currentState.vy) > 0) {
 
 			if (distY > brakePath) {
@@ -453,7 +486,7 @@ void simulateYAxisMovement() {
 				simulate_next_step_y(+accYDelay, ts);		// Slow down
 			}
 
-		// Distance left is now smaller than epsilonDistance
+			// Distance left is now smaller than epsilonDistance
 		} else {
 			currentState.y = desY;
 			currentState.vy = 0;
@@ -488,13 +521,13 @@ void simulateZAxisMovement() {
 		// More than half of total distance left -> accelerate or keep max velocity
 		if (distZ > (0.5 * distZTotal)) {
 			if (currentState.vz < maxVelocity) {
-				simulate_next_step_z(accZ, ts);				// Accelerate until Vmax
+				simulate_next_step_z(accZ, ts);			// Accelerate until Vmax
 			} else {
 				currentState.vz = maxVelocity;
 				simulate_next_step_z(0, ts);				// stay at Vmax
 			}
 
-		// Half distance done, keep v or slow down depending on distance left
+			// Half distance done, keep v or slow down depending on distance left
 		} else if (distZ > epsilonDistance && currentState.vz > 0) {
 
 			if (distZ > brakePath) {
@@ -503,7 +536,7 @@ void simulateZAxisMovement() {
 				simulate_next_step_z(-accZDelay, ts);		// Slow down
 			}
 
-		// Distance left is now smaller than epsilonDistance
+			// Distance left is now smaller than epsilonDistance
 		} else {
 			currentState.z = desZ;
 			currentState.vz = 0;
@@ -535,13 +568,13 @@ void simulateZAxisMovement() {
 		// More than half of total distance left -> accelerate or keep max velocity
 		if (distZ > (0.5 * abs(distZTotal))) {
 			if (abs(currentState.vz) < maxVelocity) {
-				simulate_next_step_z(-accZ, ts);			// Accelerate until Vmax
+				simulate_next_step_z(-accZ, ts);		// Accelerate until Vmax
 			} else {
 				currentState.vz = -maxVelocity;
 				simulate_next_step_z(0, ts);				// stay at Vmax
 			}
 
-		// Half distance done, keep v or slow down depending on distance left
+			// Half distance done, keep v or slow down depending on distance left
 		} else if (distZ > epsilonDistance && abs(currentState.vz) > 0) {
 
 			if (distZ > brakePath) {
@@ -550,7 +583,7 @@ void simulateZAxisMovement() {
 				simulate_next_step_z(+accZDelay, ts);		// Slow down
 			}
 
-		// Distance left is now smaller than epsilonDistance
+			// Distance left is now smaller than epsilonDistance
 		} else {
 			currentState.z = desZ;
 			currentState.vz = 0;
@@ -571,7 +604,7 @@ void sendTransforms(double x, double y, double z, double nozzle_1,
 	tf::Transform transform;
 	tf::Transform transformReference;
 	tf::Transform transformX;
-	tf::Transform transformY, transformZ, transformS1,transformS2;
+	tf::Transform transformY, transformZ, transformS1, transformS2;
 //	static float x = 0.0;
 //	static float y = 0.0;
 //	static float z = 0.0;
@@ -601,7 +634,7 @@ void sendTransforms(double x, double y, double z, double nozzle_1,
 //		if (z >= 0.07)
 //			z = 0.0;
 
-	transformX.setOrigin(tf::Vector3(0.023026, 0.11628+x, 0.11244));
+	transformX.setOrigin(tf::Vector3(0.023026, 0.11628 + x, 0.11244));
 	tf::Quaternion qX;
 	qX.setX(-0.699941);
 	qX.setY(0.000131839);
@@ -629,7 +662,8 @@ void sendTransforms(double x, double y, double z, double nozzle_1,
 
 	// Stepper1-Link
 	//transformS1.setOrigin(tf::Vector3(-0.044085 + y, 0.2214 + x, 0.10935+z));
-	transformS1.setOrigin(tf::Vector3(-0.044085 + y, 0.2214 + x, 0.10935 + z + nozzle_1));
+	transformS1.setOrigin(
+			tf::Vector3(-0.044085 + y, 0.2214 + x, 0.10935 + z + nozzle_1));
 	tf::Quaternion qS1;
 	qS1.setX(0.00737794);
 	qS1.setY(-0.706695);
@@ -639,7 +673,8 @@ void sendTransforms(double x, double y, double z, double nozzle_1,
 
 	// Stepper2-Link
 	//transformS2.setOrigin(tf::Vector3(-0.11908 + y, 0.22134 + x, 0.10935 +z));
-	transformS2.setOrigin(tf::Vector3(-0.11908 + y, 0.22134 + x, 0.10935 + z + nozzle_2));		// Change Niko
+	transformS2.setOrigin(
+			tf::Vector3(-0.11908 + y, 0.22134 + x, 0.10935 + z + nozzle_2));// Change Niko
 	tf::Quaternion qS2;
 	qS2.setX(0.00737794);
 	qS2.setY(-0.706695);
@@ -661,14 +696,14 @@ void sendTransforms(double x, double y, double z, double nozzle_1,
 					"/y-axis"));
 
 	br.sendTransform(
-				tf::StampedTransform(transformZ, ros::Time::now(), "/base_link",
-						"/z-axis"));
+			tf::StampedTransform(transformZ, ros::Time::now(), "/base_link",
+					"/z-axis"));
 
 	br.sendTransform(
-					tf::StampedTransform(transformS1, ros::Time::now(), "/base_link",
-							"/nozzle_1"));
+			tf::StampedTransform(transformS1, ros::Time::now(), "/base_link",
+					"/nozzle_1"));
 
 	br.sendTransform(
-					tf::StampedTransform(transformS2, ros::Time::now(), "/base_link",
-							"/nozzle_2"));
+			tf::StampedTransform(transformS2, ros::Time::now(), "/base_link",
+					"/nozzle_2"));
 }

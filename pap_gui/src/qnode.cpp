@@ -62,6 +62,8 @@ bool QNode::init() {
 	qrCodeScannerSubscriber_ = n_.subscribe("barcode", 100,
 			&QNode::qrCodeCallback, this);
 
+	dispenser_publisher_ = n_.advertise<pap_common::DispenseTask>(
+			"dispenseTask", 100);
 	//imagePub_ = it_.advertise("renderedPcb", 1);
 	imagePub_ = n_.advertise<sensor_msgs::PointCloud2>("renderedPcb", 2);
 	markerPub_ = n_.advertise<visualization_msgs::MarkerArray>("marker", 2);
@@ -96,30 +98,30 @@ bool QNode::init(const std::string &master_url, const std::string &host_url) {
 
 void QNode::cameraCallback(const sensor_msgs::ImageConstPtr& camera_msg) {
 
-	uchar dataArray[camera_msg->width*camera_msg->height*3];
+	uchar dataArray[camera_msg->width * camera_msg->height * 3];
 
-	for(size_t i = 0; i < camera_msg->width*camera_msg->height*3; i++){
+	for (size_t i = 0; i < camera_msg->width * camera_msg->height * 3; i++) {
 		dataArray[i] = camera_msg->data.at(i);
 	}
 
 	if (camera_msg->header.frame_id == "camera1") {
-		cameraImage_ = QImage(dataArray, camera_msg->width,
-				camera_msg->height, QImage::Format_RGB888);
+		cameraImage_ = QImage(dataArray, camera_msg->width, camera_msg->height,
+				QImage::Format_RGB888);
 		Q_EMIT cameraUpdated(1);
 	}
 }
 
 void QNode::cameraCallback2(const sensor_msgs::ImageConstPtr& camera_msg) {
 
-	uchar dataArray[camera_msg->width*camera_msg->height*3];
+	uchar dataArray[camera_msg->width * camera_msg->height * 3];
 
-	for(size_t i = 0; i < camera_msg->width*camera_msg->height*3; i++){
+	for (size_t i = 0; i < camera_msg->width * camera_msg->height * 3; i++) {
 		dataArray[i] = camera_msg->data.at(i);
 	}
 
 	if (camera_msg->header.frame_id == "camera2") {
-		cameraImage2_ = QImage(dataArray, camera_msg->width,
-				camera_msg->height, QImage::Format_RGB888);
+		cameraImage2_ = QImage(dataArray, camera_msg->width, camera_msg->height,
+				QImage::Format_RGB888);
 		Q_EMIT cameraUpdated(2);
 	}
 
@@ -212,9 +214,16 @@ void QNode::sendTask(pap_common::DESTINATION destination, pap_common::TASK task,
 
 void QNode::placerStatusCallback(
 		const pap_common::PlacerStatusConstPtr& statusMsg) {
-	int indicator = statusMsg->process;
-	int status = statusMsg->status;
-	Q_EMIT placerStatusUpdated(indicator, status);
+	if (statusMsg->process == pap_common::INFO) {
+		if(statusMsg->status == pap_common::DISPENSER_FINISHED){
+			Q_EMIT dispenserFinished();
+		}
+
+	} else {
+		int indicator = statusMsg->process;
+		int status = statusMsg->status;
+		Q_EMIT placerStatusUpdated(indicator, status);
+	}
 }
 
 void QNode::statusCallback(const pap_common::StatusConstPtr& statusMsg) {
@@ -329,6 +338,16 @@ void QNode::sendTask(pap_common::DESTINATION destination, pap_common::TASK task,
 	taskMsg.width = componentData.width;
 	taskMsg.height = componentData.height;
 	task_publisher.publish(taskMsg);
+}
+
+void QNode::sendDispenserTask(dispenseInfo dispenseTask) {
+	pap_common::DispenseTask msg;
+	msg.xPos1 = dispenseTask.xPos;
+	msg.xPos2 = dispenseTask.xPos2;
+	msg.yPos1 = dispenseTask.yPos;
+	msg.yPos2 = dispenseTask.yPos2;
+	msg.velocity = dispenseTask.velocity;
+	dispenser_publisher_.publish(msg);
 }
 
 void QNode::visionStatusCallback(

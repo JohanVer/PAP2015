@@ -72,7 +72,7 @@ public:
 			float vel, unsigned int acc, unsigned int dec);
 	bool startSetting(unsigned char adressDevice, unsigned int settingAddress);
 	bool manual(unsigned char deviceAddress, unsigned char direction);
-	int gotoCoord(float x, float y, float z);
+	int  gotoCoord(float x, float y, float z, float velX = 50.0, float velY = 300.0, float velZ = 100.0 );
 	bool stop(unsigned char deviceAddress);
 
 

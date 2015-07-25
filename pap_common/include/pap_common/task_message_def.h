@@ -18,7 +18,8 @@ enum TASK {
   GOTOBOX = 10,
   GOTOPCB = 11,
   PLACEMENT = 12,
-  CALIBRATION = 13
+  CALIBRATION = 13,
+  COORD_VEL = 14
 };
 
 /*

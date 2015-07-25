@@ -22,9 +22,11 @@ void graphicsScene::contextMenuEvent(QGraphicsSceneContextMenuEvent *event) {
 	QAction *fiducial1 = new QAction("Mark as 1. fiducial", this);
 	QAction *fiducial2 = new QAction("Mark as 2. fiducial", this);
 	QAction *gotoPoint = new QAction("Goto", this);
+	QAction *dispensePadM = new QAction("Dispense Pad", this);
 	menu.addAction(fiducial1);
 	menu.addAction(fiducial2);
 	menu.addAction(gotoPoint);
+	menu.addAction(dispensePadM);
 	QAction* selectedItem = menu.exec(event->screenPos());
 	if (selectedItem) {
 		if (selectedItem->text().toStdString() == "Mark as 1. fiducial") {
@@ -32,9 +34,10 @@ void graphicsScene::contextMenuEvent(QGraphicsSceneContextMenuEvent *event) {
 		} else if (selectedItem->text().toStdString()
 				== "Mark as 2. fiducial") {
 			Q_EMIT sendMousePoint(1, pt);
-		}
-		else if (selectedItem->text().toStdString() == "Goto") {
+		} else if (selectedItem->text().toStdString() == "Goto") {
 			Q_EMIT gotoPad(pt);
+		} else if (selectedItem->text().toStdString() == "Dispense Pad") {
+			Q_EMIT dispensePad(pt);
 		}
 	}
 }

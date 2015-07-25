@@ -116,6 +116,9 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent) :
 	QWidget::connect(&scenePads_, SIGNAL(gotoPad(QPointF)), this,
 			SLOT(gotoPad(QPointF)));
 
+	QWidget::connect(&scenePads_, SIGNAL(dispensePad(QPointF)), this,
+			SLOT(dispenseSinglePad(QPointF)));
+
 	// Cameras
 	QObject::connect(&qnode, SIGNAL(cameraUpdated(int )), this,
 			SLOT(cameraUpdated(int )));
@@ -1966,6 +1969,87 @@ void MainWindow::on_bottomLEDButton_clicked() {
 	} else {
 		qnode.resetBottomLEDTask();
 		bottomLEDon = false;
+	}
+}
+
+void MainWindow::on_startDispense_button_clicked() {
+	float pxFactor = padParser.pixelConversionFactor;
+	float nozzleDiameter = ui.nozzleDispCombo->currentText().toFloat();
+	for (size_t i = 1; i < padParser.padInformationArray_.size(); i++) {
+		scenePads_.addEllipse(
+				padParser.padInformationArray_[i].rect.x() * pxFactor,
+				padParser.heightPixel_
+						- (padParser.padInformationArray_[i].rect.y() * pxFactor),
+				1, 1, QPen(Qt::blue, 1, Qt::SolidLine));
+		std::vector<dispenseInfo> dispInfo = dispenserPlanner.planDispensing(
+				padParser.padInformationArray_[i], nozzleDiameter);
+		for (size_t j = 0; j < dispInfo.size(); j++) {
+			qnode.sendDispenserTask(dispInfo[j]);
+
+			QEventLoop loop;
+			QTimer *timer = new QTimer(this);
+
+			connect(&qnode, SIGNAL(dispenserFinished()), &loop, SLOT(quit()));
+			connect(timer, SIGNAL(timeout()), &loop, SLOT(quit()));
+			timer->setSingleShot(true);
+			timer->start(10000);
+
+			loop.exec(); //blocks untill either signalPosition or timeout was fired
+
+			// Is timeout ocurred?
+			if (!timer->isActive()) {
+				return;
+			}
+			//ROS_INFO("Print: X %f Y %f X2 %f Y2 %f",dispInfo[j].xPos *pxFactor ,(padParser.height_-dispInfo[j].yPos)*pxFactor,dispInfo[j].xPos2*pxFactor,(padParser.height_-dispInfo[j].yPos2)*pxFactor);
+			scenePads_.addLine(
+					QLineF(dispInfo[j].xPos * pxFactor,
+							padParser.heightPixel_
+									- (dispInfo[j].yPos * pxFactor),
+							dispInfo[j].xPos2 * pxFactor,
+							padParser.heightPixel_
+									- (dispInfo[j].yPos2 * pxFactor)),
+					QPen(Qt::blue, nozzleDiameter * pxFactor, Qt::SolidLine));
+		}
+	}
+}
+
+void MainWindow::dispenseSinglePad(QPointF point) {
+	id_ = padParser.searchId(point, ui.padView_Image->width() - 20);
+	float nozzleDiameter = ui.nozzleDispCombo->currentText().toFloat();
+	float pxFactor = padParser.pixelConversionFactor;
+	if (id_ != -1) {
+		std::vector<dispenseInfo> dispInfo = dispenserPlanner.planDispensing(
+				padParser.padInformationArray_[id_], nozzleDiameter);
+		for (size_t j = 0; j < dispInfo.size(); j++) {
+			qnode.sendDispenserTask(dispInfo[j]);
+
+			QEventLoop loop;
+			QTimer *timer = new QTimer(this);
+
+			connect(&qnode, SIGNAL(dispenserFinished()), &loop, SLOT(quit()));
+			connect(timer, SIGNAL(timeout()), &loop, SLOT(quit()));
+			timer->setSingleShot(true);
+			timer->start(10000);
+
+			loop.exec(); //blocks untill either signalPosition or timeout was fired
+
+			// Is timeout ocurred?
+			if (!timer->isActive()) {
+				return;
+			}
+			//ROS_INFO("Print: X %f Y %f X2 %f Y2 %f",dispInfo[j].xPos *pxFactor ,(padParser.height_-dispInfo[j].yPos)*pxFactor,dispInfo[j].xPos2*pxFactor,(padParser.height_-dispInfo[j].yPos2)*pxFactor);
+			scenePads_.addLine(
+					QLineF(dispInfo[j].xPos * pxFactor,
+							padParser.heightPixel_
+									- (dispInfo[j].yPos * pxFactor),
+							dispInfo[j].xPos2 * pxFactor,
+							padParser.heightPixel_
+									- (dispInfo[j].yPos2 * pxFactor)),
+					QPen(Qt::blue, nozzleDiameter * pxFactor, Qt::SolidLine));
+		}
+	}
+	else{
+		ROS_ERROR("No pad selected...");
 	}
 }
 

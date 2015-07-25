@@ -522,13 +522,13 @@ bool motorController::sendHoming() {
 	return error;
 }
 
-int motorController::gotoCoord(float x, float y, float z) {
+int motorController::gotoCoord(float x, float y, float z, float velX, float velY, float velZ ) {
 	ROS_INFO("Sending coordinate command...");
 	int error = NO_ERROR;
 
 	if (controllerConnected_1_) {
 		// Setting lines and collumns in the postion-set
-		if (!setSetting(1, 1, x, 50.0, 300, 600)) {
+		if (!setSetting(1, 1, x, velX, 300, 600)) {
 			error = X_ERROR;
 		}
 	} else {
@@ -536,7 +536,7 @@ int motorController::gotoCoord(float x, float y, float z) {
 	}
 
 	if (controllerConnected_2_) {
-		if (!setSetting(2, 1, y, 300, 600, 800)) {
+		if (!setSetting(2, 1, y, velY, 600, 800)) {
 			error = Y_ERROR;
 		}
 	} else {
@@ -544,7 +544,7 @@ int motorController::gotoCoord(float x, float y, float z) {
 	}
 
 	if (controllerConnected_3_) {
-		if (!setSetting(3, 1, z, 100, 300, 500)) {
+		if (!setSetting(3, 1, z, velZ, 300, 500)) {
 			error = Z_ERROR;
 		}
 	} else {

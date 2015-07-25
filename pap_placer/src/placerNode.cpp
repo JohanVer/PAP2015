@@ -6,6 +6,7 @@
 #include "pap_common/VisionStatus.h"
 #include "pap_common/ArduinoMsg.h"
 #include "pap_common/PlacerStatus.h"
+#include "pap_common/DispenseTask.h"
 #include "../../pap_common/include/pap_common/task_message_def.h"
 #include "../../pap_common/include/pap_common/status_message_def.h"
 #include "../../pap_common/include/pap_common/arduino_message_def.h"
@@ -40,6 +41,7 @@ controllerStatus motorcontrollerStatus[3];
 void statusCallback(const pap_common::StatusConstPtr& statusMsg);
 void visionStatusCallback(const pap_common::VisionStatusConstPtr& statusMsg);
 void placerCallback(const pap_common::TaskConstPtr& taskMsg);
+void dispenserCallback(const pap_common::DispenseTaskConstPtr& taskMsg);
 
 /* Send task functions */
 void sendTask(pap_common::DESTINATION, pap_common::TASK);
@@ -50,6 +52,8 @@ void sendTask(pap_common::DESTINATION destination, pap_vision::VISION task,
 		float x, float y, float z);
 void sendPlacerStatus(pap_common::PROCESS process,
 		pap_common::PLACER_STATUS status);
+void sendTask(pap_common::DESTINATION destination, pap_common::TASK task,
+		float x, float y, float z, float velx, float vely);
 void sendPlacerInfo(int state);
 
 /* Send arduino task funcionts */
@@ -65,6 +69,7 @@ ros::Publisher task_publisher, arduino_publisher_, placerStatus_publisher_;
 ros::Subscriber statusSubsriber_;
 ros::Subscriber visionStatusSubsriber_;
 ros::Subscriber placerTaskSubscriber_;
+ros::Subscriber dispenserTaskSubscriber_;
 
 bool visionEnabled = true;
 bool manualOperation = true;
@@ -87,6 +92,7 @@ bool pcbPlaceCoordinatesSent = false;
 bool homingCoordinatesSent = false;
 bool pcbBottomCamCoordinatesSent = false;
 bool cameraPositionReceived = false;
+bool dispensed = false;
 
 bool IDLE_called = true;
 int motorcontroller_counter = 0;
@@ -132,7 +138,9 @@ enum STATE {
 	CHECKCOMPONENTPLACEMENT,
 	GOTOCOORD,
 	HOMING,
-	ERROR
+	ERROR,
+	DISPENSE,
+	DISPENSETASK
 } state, last_state;
 
 int main(int argc, char **argv) {
@@ -154,6 +162,8 @@ int main(int argc, char **argv) {
 	visionStatusSubsriber_ = n_.subscribe("visionStatus", 100,
 			&visionStatusCallback);
 	placerTaskSubscriber_ = n_.subscribe("task", 10, &placerCallback);
+	dispenserTaskSubscriber_ = n_.subscribe("dispenseTask", 10,
+			&dispenserCallback);
 
 	ros::Rate loop_rate(100);
 	state = IDLE;
@@ -409,6 +419,30 @@ int main(int argc, char **argv) {
 			}
 			break;
 
+		case DISPENSETASK:
+			if (!positionSend) {
+				placeController.currentDestination_.x =
+						placeController.dispenseTask.xPos;
+				placeController.currentDestination_.y =
+						placeController.dispenseTask.yPos;
+				placeController.currentDestination_.z = 10.0;
+				positionSend = true;
+				last_state = state;
+				state = GOTOCOORD;
+			} else if (!dispensed) {
+				last_state = state;
+				state = DISPENSE;
+				dispensed = true;
+			} else {
+				dispensed = false;
+				positionSend = false;
+				IDLE_called = true;
+				sendPlacerStatus(pap_common::INFO,
+						pap_common::DISPENSER_FINISHED);
+				state = IDLE;
+			}
+			break;
+
 		case STARTPICKUP:
 			if (!positionSend) {
 				ROS_INFO("PlacerState: STARTPICKUP");
@@ -539,7 +573,7 @@ int main(int argc, char **argv) {
 				ros::Duration(1).sleep();
 
 				placeController.currentDestination_.z =
-				 placeController.getCompPlaceHeight();
+						placeController.getCompPlaceHeight();
 				ROS_INFO("PlacerState: GOTORELEASECOORD");
 				ROS_INFO("Go to: x:%f y:%f z:%f",
 						placeController.currentDestination_.x,
@@ -654,6 +688,64 @@ int main(int argc, char **argv) {
 					ROS_INFO("Last state: %d", last_state);
 				}
 				//ros::Duration(3).sleep();
+				break;
+
+			} else if (motorcontrollerStatus[1].error
+					|| motorcontrollerStatus[2].error
+					|| motorcontrollerStatus[3].error) {
+				sendPlacerStatus(pap_common::GOTOBOX_STATE,
+						pap_common::PLACER_ERROR);
+				error_code = MOTOR_ERROR;
+				state = ERROR;
+				break;
+
+			} else if (motorcontrollerStatus[1].failed
+					|| motorcontrollerStatus[2].failed
+					|| motorcontrollerStatus[3].failed) {
+				sendPlacerStatus(pap_common::GOTOBOX_STATE,
+						pap_common::PLACER_ERROR);
+				error_code = MOTOR_FAILED;
+				state = ERROR;
+				break;
+
+			} else if (motorcontroller_counter == MOTORCONTROLLER_TIMEOUT) {
+				error_code = MOTOR_TIMEOUT;
+				state = ERROR;
+				break;
+			} else {
+				motorcontroller_counter++;
+				break;
+			}
+			break;
+
+		case DISPENSE:
+			if (!placerNodeBusy) {
+				if (zPosReached == 0) {
+					sendTask(pap_common::CONTROLLER, pap_common::COORD_VEL,
+							placeController.dispenseTask.xPos2,
+							placeController.dispenseTask.yPos2, 10.0,
+							placeController.dispenseTask.velocity,
+							placeController.dispenseTask.velocity);
+
+					ROS_INFO("PlacerState: GOTOCOORD: x=%f y=%f z=%f",
+							placeController.dispenseTask.xPos2,
+							placeController.dispenseTask.yPos2, 10.0);
+				}
+				// Turn on dispenser
+				sendRelaisTask(8, true);
+				ros::Duration(0.3).sleep();
+				motorcontroller_counter = 0;
+				placerNodeBusy = true;
+			}
+
+			if (motorcontrollerStatus[1].positionReached
+					&& motorcontrollerStatus[2].positionReached
+					&& motorcontrollerStatus[3].positionReached
+					&& placerNodeBusy) {
+				// Turn off dispenser
+				sendRelaisTask(8, false);
+				placerNodeBusy = false;
+				state = last_state;
 				break;
 
 			} else if (motorcontrollerStatus[1].error
@@ -891,6 +983,16 @@ void placerCallback(const pap_common::TaskConstPtr& taskMsg) {
 	}
 }
 
+void dispenserCallback(const pap_common::DispenseTaskConstPtr& taskMsg) {
+	placeController.dispenseTask.xPos = taskMsg->xPos1;
+	placeController.dispenseTask.xPos2 = taskMsg->xPos2;
+	placeController.dispenseTask.yPos = taskMsg->yPos1;
+	placeController.dispenseTask.yPos2 = taskMsg->yPos2;
+	placeController.dispenseTask.velocity = taskMsg->velocity;
+	state = DISPENSETASK;
+	ROS_INFO("Dispensing...");
+}
+
 /*****************************************************************************
  ** Send task functions
  *****************************************************************************/
@@ -927,6 +1029,19 @@ void sendTask(pap_common::DESTINATION destination, pap_common::TASK task,
 	taskMsg.data1 = x;
 	taskMsg.data2 = y;
 	taskMsg.data3 = z;
+	task_publisher.publish(taskMsg);
+}
+
+void sendTask(pap_common::DESTINATION destination, pap_common::TASK task,
+		float x, float y, float z, float velx, float vely) {
+	pap_common::Task taskMsg;
+	taskMsg.destination = destination;
+	taskMsg.task = task;
+	taskMsg.data1 = x;
+	taskMsg.data2 = y;
+	taskMsg.data3 = z;
+	taskMsg.velX = velx;
+	taskMsg.velY = vely;
 	task_publisher.publish(taskMsg);
 }
 

@@ -73,16 +73,17 @@ public:
 			QPointF global2);
 	void rotatePads(void);
 	visualization_msgs::MarkerArray* getMarkerList(void);
-
 	// TODO: Make getter/setter for this public variable array
 	std::vector<PadInformation> padInformationArray_,padInformationArrayPrint_;
+	double pixelConversionFactor;
+	float height_, width_,outerRectRot_;
+	int heightPixel_;
 
 private:
 	std::vector<ShapeInformation> shapeInformationArray_;
 	std::vector<QRectF> printedRects;
-	double pixelConversionFactor;
 	QRectF pcbSize;
-	float height_, width_,outerRectRot_;
+
 	tf::Transform transformIntoGlobalPoint_, transTransformIntoRobot_,rotation_;
 	float differenceAngle_;
 	visualization_msgs::MarkerArray markerArray;
