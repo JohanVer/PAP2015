@@ -40,7 +40,7 @@
        <locale language="English" country="Australia"/>
       </property>
       <property name="currentIndex">
-       <number>6</number>
+       <number>4</number>
       </property>
       <widget class="QWidget" name="tab_status">
        <attribute name="title">
@@ -255,8 +255,8 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>98</width>
-           <height>28</height>
+           <width>281</width>
+           <height>265</height>
           </rect>
          </property>
          <attribute name="label">
@@ -3278,7 +3278,7 @@
            <x>10</x>
            <y>30</y>
            <width>154</width>
-           <height>221</height>
+           <height>131</height>
           </rect>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_27">
@@ -3313,27 +3313,6 @@
            <widget class="QPushButton" name="goToComponentButton">
             <property name="text">
              <string>Go to Component</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="pickupComponentButton">
-            <property name="text">
-             <string>Pick-up Component</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="goToPCBButton">
-            <property name="text">
-             <string>Go to PCB</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="placeComponentButton">
-            <property name="text">
-             <string>Place Component</string>
             </property>
            </widget>
           </item>

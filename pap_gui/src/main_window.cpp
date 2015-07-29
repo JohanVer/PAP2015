@@ -49,24 +49,6 @@ int boxNumberMax = 59;
 int boxNumberMin = 0;
 int boxNumberSug = 1;
 
-struct databaseEntry {
-	QString package;
-	float length, width, height;
-	int pins;
-};
-
-ComponentPlacerData placementData;
-
-struct componentEntry {
-	string name, package, side, value;
-	float posX, posY, length, width, height;
-	int box, rotation, pins;
-};
-
-QVector<componentEntry> componentVector;
-QVector<databaseEntry> databaseVector;
-componentEntry singleComponent;
-
 MainWindow::MainWindow(int argc, char** argv, QWidget *parent) :
 		QMainWindow(parent), qnode(argc, argv) {
 	ui.setupUi(this); // Calling this incidentally connects all ui's triggers to on_...() callbacks in this class.
@@ -164,48 +146,6 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent) :
 	sizeDefined_ = false;
 	padFileLoaded_ = false;
 	//ui.checkBox_box->setDisabled(true);
-	/*
-	 indicatorClearPixmap.fill(Qt::transparent);
-	 indicatorActivePixmap.fill(Qt::transparent);
-	 indicatorFinishedPixmap.fill(Qt::transparent);
-	 indicatorErrorPixmap.fill(Qt::transparent);
-
-	 QPainter p1(&indicatorClearPixmap);
-	 p1.setRenderHint(QPainter::Antialiasing, true);
-	 QPen pen1(Qt::black, 1);
-	 p1.setPen(pen1);
-	 QBrush brush1(Qt::white);
-	 p1.setBrush(brush1);
-	 p1.drawEllipse(5, 5, 10, 10);
-
-	 QPainter p2(&indicatorActivePixmap);
-	 p2.setRenderHint(QPainter::Antialiasing, true);
-	 QPen pen2(Qt::black, 1);
-	 p2.setPen(pen2);
-	 QBrush brush2(Qt::yellow);
-	 p2.setBrush(brush2);
-	 p2.drawEllipse(5, 5, 10, 10);
-
-	 QPainter p3(&indicatorFinishedPixmap);
-	 p3.setRenderHint(QPainter::Antialiasing, true);
-	 QPen pen3(Qt::black, 1);
-	 p3.setPen(pen3);
-	 QBrush brush3(Qt::green);
-	 p3.setBrush(brush3);
-	 p3.drawEllipse(5, 5, 10, 10);
-
-	 QPainter p4(&indicatorErrorPixmap);
-	 p4.setRenderHint(QPainter::Antialiasing, true);
-	 QPen pen4(Qt::black, 1);
-	 p4.setPen(pen4);
-	 QBrush brush4(Qt::red);
-	 p4.setBrush(brush4);
-	 p4.drawEllipse(5, 5, 10, 10);*/
-
-	/*ui.label_indicator1->setPixmap(indicatorActivePixmap);
-	 ui.label_indicator2->setPixmap(indicatorErrorPixmap);
-	 ui.label_indicator3->setPixmap(indicatorFinishedPixmap);
-	 ui.label_indicator4->setPixmap(indicatorClearPixmap);*/
 
 	for (int i = 1; i <= 7; i++) {
 		placerStatusUpdated(i, pap_common::PLACER_IDLE);
@@ -249,7 +189,6 @@ void MainWindow::on_setCompBoxNrButton_2_clicked() {
 		if (boxNumber <= boxNumberMax && boxNumber >= boxNumberMin) {
 			singleComponent.box = boxNumber;
 			ui.checkBox_box->setChecked(true);
-			updatePlacementData();
 			ui.label_compBox_2->setText(QString::number(boxNumber));
 
 		} else {
@@ -265,34 +204,6 @@ void MainWindow::on_setCompBoxNrButton_2_clicked() {
 		msgBox.exec();
 		msgBox.close();
 	}
-}
-
-void MainWindow::on_pickupComponentButton_clicked() {
-
-	// Check box number, length, width and height
-
-	// If all within limits, no component is currently picked-up, not within process -> go to box and pick it up.
-	qnode.sendTask(pap_common::PLACER, pap_common::PICKUPCOMPONENT,
-			placementData);
-}
-
-void MainWindow::on_goToComponentButton_clicked() {
-	if (singleComponent.box == -1) {
-		QMessageBox msgBox;
-		msgBox.setText("Please set box number first.");
-		msgBox.exec();
-		msgBox.close();
-	} else {
-		qnode.sendTask(pap_common::PLACER, pap_common::GOTOBOX, placementData);
-	}
-}
-
-void MainWindow::on_goToPCBButton_clicked() {
-	qnode.sendTask(pap_common::PLACER, pap_common::GOTOPCB, placementData);
-}
-
-void MainWindow::on_placeComponentButton_clicked() {
-	qnode.sendTask(pap_common::PLACER, pap_common::PLACEMENT, placementData);
 }
 
 void MainWindow::on_setCompBoxNrButton_clicked() {
@@ -818,31 +729,60 @@ void MainWindow::updateDatabaseTable() {
 	ui.tableWidget->show();
 }
 
+/*************************************************************************************************************
+ ** Placement control buttons
+ **************************************************************************************************************/
 void MainWindow::on_startSinglePlacementButton_clicked() {
 
-	// Check all prerequesits
-	if (ui.checkBox_pcbPlaced->isChecked()) {
-		if (ui.checkBox_position->isChecked()
-				&& ui.checkBox_orientation->isChecked()
-				&& ui.checkBox_box->isChecked()) {
+	 /*if (ui.checkBox_pcbPlaced->isChecked()) {
+	 if (ui.checkBox_position->isChecked()
+	 && ui.checkBox_orientation->isChecked()
+	 && ui.checkBox_box->isChecked()) {
 
-		} else {
-			QMessageBox msgBox;
-			msgBox.setText("Component information not complete.");
-			msgBox.exec();
-			msgBox.close();
-		}
-	} else {
+	 } else {
+	 QMessageBox msgBox;
+	 msgBox.setText("Component information not complete.");
+	 msgBox.exec();
+	 msgBox.close();
+	 }
+	 } else {
+	 QMessageBox msgBox;
+	 msgBox.setText("Please place a circuit board.");
+	 msgBox.exec();
+	 msgBox.close();
+	 }*/
+	if (singleComponent.box == -1) {
 		QMessageBox msgBox;
-		msgBox.setText("Please place a circuit board.");
+		msgBox.setText("Please set box number first.");
 		msgBox.exec();
 		msgBox.close();
+	} else {
+		updatePlacementData();
+		qnode.sendTask(pap_common::PLACER, pap_common::GOTOBOX, placementData);
 	}
 
 }
 
+void MainWindow::on_goToComponentButton_clicked() {
+	if (singleComponent.box == -1) {
+		QMessageBox msgBox;
+		msgBox.setText("Please set box number first.");
+		msgBox.exec();
+		msgBox.close();
+	} else {
+		qnode.sendTask(pap_common::PLACER, pap_common::GOTOBOX, placementData);
+	}
+}
+
 // Package that is going to be sent to placeController
 void MainWindow::updatePlacementData() {
+
+	ROS_INFO("placerInfo - before: x%f, y=%f", singleComponent.posX,
+			singleComponent.posY);
+	padParser.transformComponent(&singleComponent);
+	ROS_INFO("placerInfo - after: x%f, y=%f", singleComponent.posX,
+			singleComponent.posY);
+
 	placementData.destX = singleComponent.posX;
 	placementData.destY = singleComponent.posY;
 	placementData.box = singleComponent.box;
@@ -875,8 +815,6 @@ void MainWindow::on_placeSingleComponentButton_clicked() {
 		}
 
 		ui.tab_manager->setCurrentIndex(4);
-
-		updatePlacementData();
 
 		/*QWizard wizard;
 		 wizard.addPage(createIntroPage());
@@ -2047,8 +1985,7 @@ void MainWindow::dispenseSinglePad(QPointF point) {
 									- (dispInfo[j].yPos2 * pxFactor)),
 					QPen(Qt::blue, nozzleDiameter * pxFactor, Qt::SolidLine));
 		}
-	}
-	else{
+	} else {
 		ROS_ERROR("No pad selected...");
 	}
 }

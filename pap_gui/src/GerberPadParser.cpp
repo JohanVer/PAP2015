@@ -8,6 +8,8 @@
 #define CHANGE_SHAPE 54
 #define ENDOFFILE_GERBER 02
 #include "../include/pap_gui/GerberPadParser.hpp"
+//#include "../include/pap_gui/main_window.hpp"
+
 
 GerberPadParser::GerberPadParser() {
 	height_ = 0.0;
@@ -542,4 +544,21 @@ void GerberPadParser::rotatePads(void) {
 			(int )padInformationArray_.size());
 }
 
+
+void GerberPadParser::transformComponent(componentEntry *componentInformation) {
+
+	tf::Point pointToTransform;
+	// This point should be transformed
+	pointToTransform.setX(componentInformation->posX);
+	pointToTransform.setY(componentInformation->posY);
+	pointToTransform.setZ(0.0);
+
+	pointToTransform = transformIntoGlobalPoint_ * pointToTransform;
+	pointToTransform = rotation_ * pointToTransform;
+	pointToTransform = transformIntoGlobalPoint_.inverse() * pointToTransform;
+	pointToTransform = transTransformIntoRobot_ * pointToTransform;
+	componentInformation->posX = pointToTransform.x();
+	componentInformation->posY = pointToTransform.y();
+
+}
 

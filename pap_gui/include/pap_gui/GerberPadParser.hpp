@@ -33,6 +33,7 @@
 #include <QRectF>
 #include "visualization_msgs/Marker.h"
 #include "visualization_msgs/MarkerArray.h"
+//#include "main_window.hpp"
 
 class PadInformation {
 public:
@@ -57,6 +58,13 @@ public:
 	float rotation;
 };
 
+class componentEntry {
+public:
+	std::string name, package, side, value;
+	float posX, posY, length, width, height;
+	int box, rotation, pins;
+};
+
 class GerberPadParser {
 public:
 	GerberPadParser();
@@ -72,6 +80,7 @@ public:
 	float calibratePads(QPointF local1, QPointF local2, QPointF global1,
 			QPointF global2);
 	void rotatePads(void);
+	void transformComponent(componentEntry *componentInformation);
 	visualization_msgs::MarkerArray* getMarkerList(void);
 	// TODO: Make getter/setter for this public variable array
 	std::vector<PadInformation> padInformationArray_,padInformationArrayPrint_;

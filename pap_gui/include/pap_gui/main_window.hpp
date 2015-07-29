@@ -43,6 +43,21 @@
 #include "DispenserPlanner.hpp"
 #include "../../../pap_placer/include/pap_placer/placerNode.hpp"
 
+/*
+class componentEntry {
+public:
+	string name, package, side, value;
+	float posX, posY, length, width, height;
+	int box, rotation, pins;
+};*/
+
+class databaseEntry {
+public:
+	QString package;
+	float length, width, height;
+	int pins;
+};
+
 
 /*****************************************************************************
 ** Namespace
@@ -159,10 +174,7 @@ public Q_SLOTS:
     void on_startDispense_button_clicked();
     void dispenseSinglePad(QPointF point);
 
-    void on_pickupComponentButton_clicked();
     void on_goToComponentButton_clicked();
-    void on_goToPCBButton_clicked();
-    void on_placeComponentButton_clicked();
     void updatePlacementData();
 
     void keyPressEvent(QKeyEvent *e);
@@ -185,6 +197,12 @@ private:
 	QNode qnode;
 	bool bottomLayer_;
 	bool alreadyFlipped_;
+
+	// Pick and place data structures
+	QVector<componentEntry> componentVector;
+	QVector<databaseEntry> databaseVector;
+	ComponentPlacerData placementData;
+	componentEntry singleComponent;
 
 	// Current position
 	Offset currentPosition;
