@@ -8,36 +8,13 @@
 #ifndef PAP2015_PAP_GUI_SRC_DISPENSERPLANNER_HPP_
 #define PAP2015_PAP_GUI_SRC_DISPENSERPLANNER_HPP_
 
-#include "GerberPadParser.hpp"
+#include <CommonDataClasses.hpp>
 #include <vector>
 #include <math.h>
+#include <ros/ros.h>
 
 #define PERCENTAGE_EDGE_DISTANCE 0.1
 #define VELOCITY_DISPENSE 0.1
-
-class dispenseInfo{
-public:
-	dispenseInfo(){
-		xPos = 0.0;
-		yPos = 0.0;
-		xPos2 = 0.0;
-		yPos2 = 0.0;
-		type = Point;
-		rotation = 0.0;
-		velocity = 0.0;
-		time = 0.0;
-	}
-
-	enum dispensePadType {
-		Point, Long
-	};
-
-	int type;
-	float xPos, yPos, xPos2, yPos2;
-	float rotation;
-	float velocity;
-	float time;
-};
 
 class DispenserPlanner {
 public:

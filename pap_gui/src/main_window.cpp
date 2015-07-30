@@ -1975,15 +1975,28 @@ void MainWindow::on_bottomLEDButton_clicked() {
 void MainWindow::on_startDispense_button_clicked() {
 	float pxFactor = padParser.pixelConversionFactor;
 	float nozzleDiameter = ui.nozzleDispCombo->currentText().toFloat();
-	for (size_t i = 1; i < padParser.padInformationArray_.size(); i++) {
+	for (size_t i = 1; i < padParser.padInformationArrayPrint_.size(); i++) {
 		scenePads_.addEllipse(
-				padParser.padInformationArray_[i].rect.x() * pxFactor,
+				padParser.padInformationArrayPrint_[i].rect.x() * pxFactor,
 				padParser.heightPixel_
-						- (padParser.padInformationArray_[i].rect.y() * pxFactor),
-				1, 1, QPen(Qt::blue, 1, Qt::SolidLine));
+						- (padParser.padInformationArrayPrint_[i].rect.y()
+								* pxFactor), 1, 1,
+				QPen(Qt::blue, 1, Qt::SolidLine));
 		std::vector<dispenseInfo> dispInfo = dispenserPlanner.planDispensing(
-				padParser.padInformationArray_[i], nozzleDiameter);
+				padParser.padInformationArrayPrint_[i], nozzleDiameter);
+
 		for (size_t j = 0; j < dispInfo.size(); j++) {
+			scenePads_.addLine(
+					QLineF(dispInfo[j].xPos * pxFactor,
+							padParser.heightPixel_
+									- (dispInfo[j].yPos * pxFactor),
+							dispInfo[j].xPos2 * pxFactor,
+							padParser.heightPixel_
+									- (dispInfo[j].yPos2 * pxFactor)),
+					QPen(Qt::blue, nozzleDiameter * pxFactor, Qt::SolidLine));
+
+			// TODO: Transform output into global coordinate system
+			//			padParser.transformDispenserInfo(&dispInfo[j]);
 			qnode.sendDispenserTask(dispInfo[j]);
 
 			QEventLoop loop;
@@ -2001,14 +2014,7 @@ void MainWindow::on_startDispense_button_clicked() {
 				return;
 			}
 			//ROS_INFO("Print: X %f Y %f X2 %f Y2 %f",dispInfo[j].xPos *pxFactor ,(padParser.height_-dispInfo[j].yPos)*pxFactor,dispInfo[j].xPos2*pxFactor,(padParser.height_-dispInfo[j].yPos2)*pxFactor);
-			scenePads_.addLine(
-					QLineF(dispInfo[j].xPos * pxFactor,
-							padParser.heightPixel_
-									- (dispInfo[j].yPos * pxFactor),
-							dispInfo[j].xPos2 * pxFactor,
-							padParser.heightPixel_
-									- (dispInfo[j].yPos2 * pxFactor)),
-					QPen(Qt::blue, nozzleDiameter * pxFactor, Qt::SolidLine));
+
 		}
 	}
 }
@@ -2019,8 +2025,21 @@ void MainWindow::dispenseSinglePad(QPointF point) {
 	float pxFactor = padParser.pixelConversionFactor;
 	if (id_ != -1) {
 		std::vector<dispenseInfo> dispInfo = dispenserPlanner.planDispensing(
-				padParser.padInformationArray_[id_], nozzleDiameter);
+				padParser.padInformationArrayPrint_[id_], nozzleDiameter);
+
+
 		for (size_t j = 0; j < dispInfo.size(); j++) {
+			scenePads_.addLine(
+					QLineF(dispInfo[j].xPos * pxFactor,
+							padParser.heightPixel_
+									- (dispInfo[j].yPos * pxFactor),
+							dispInfo[j].xPos2 * pxFactor,
+							padParser.heightPixel_
+									- (dispInfo[j].yPos2 * pxFactor)),
+					QPen(Qt::blue, nozzleDiameter * pxFactor, Qt::SolidLine));
+
+			// TODO: Transform output into global coordinate system
+//			padParser.transformDispenserInfo(&dispInfo[j]);
 			qnode.sendDispenserTask(dispInfo[j]);
 
 			QEventLoop loop;
@@ -2038,17 +2057,8 @@ void MainWindow::dispenseSinglePad(QPointF point) {
 				return;
 			}
 			//ROS_INFO("Print: X %f Y %f X2 %f Y2 %f",dispInfo[j].xPos *pxFactor ,(padParser.height_-dispInfo[j].yPos)*pxFactor,dispInfo[j].xPos2*pxFactor,(padParser.height_-dispInfo[j].yPos2)*pxFactor);
-			scenePads_.addLine(
-					QLineF(dispInfo[j].xPos * pxFactor,
-							padParser.heightPixel_
-									- (dispInfo[j].yPos * pxFactor),
-							dispInfo[j].xPos2 * pxFactor,
-							padParser.heightPixel_
-									- (dispInfo[j].yPos2 * pxFactor)),
-					QPen(Qt::blue, nozzleDiameter * pxFactor, Qt::SolidLine));
 		}
-	}
-	else{
+	} else {
 		ROS_ERROR("No pad selected...");
 	}
 }

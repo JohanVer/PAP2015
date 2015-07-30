@@ -8,6 +8,7 @@
 #ifndef PAP_GUI_SRC_GERBERPADPARSER_HPP_
 #define PAP_GUI_SRC_GERBERPADPARSER_HPP_
 
+//#include "DispenserPlanner.hpp"
 #include <string>
 #include <iostream>
 #include <fstream>
@@ -33,29 +34,8 @@
 #include <QRectF>
 #include "visualization_msgs/Marker.h"
 #include "visualization_msgs/MarkerArray.h"
+#include "CommonDataClasses.hpp"
 
-class PadInformation {
-public:
-	PadInformation() {
-		rotation = 0.0;
-	}
-	QRectF rect;
-	std::string shapeStr;
-	float rotation;
-};
-
-class ShapeInformation {
-public:
-	ShapeInformation() {
-		shapeIndex = 0;
-		shapeStr = "";
-		rotation = 0.0;
-	}
-	int shapeIndex;
-	std::string shapeStr;
-	QPointF padDimensions;
-	float rotation;
-};
 
 class GerberPadParser {
 public:
@@ -73,6 +53,7 @@ public:
 			QPointF global2);
 	void rotatePads(void);
 	visualization_msgs::MarkerArray* getMarkerList(void);
+	void transformDispenserInfo(dispenseInfo *info);
 	// TODO: Make getter/setter for this public variable array
 	std::vector<PadInformation> padInformationArray_,padInformationArrayPrint_;
 	double pixelConversionFactor;
