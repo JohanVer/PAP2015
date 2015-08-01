@@ -373,7 +373,7 @@ QRectF GerberPadParser::renderImage(QGraphicsScene* scene, int width,
 				- ((padInfo.rect.y() + padInfo.rect.height() / 2.0)
 						* pixelConversionFactor);
 
-		ROS_INFO("X: %f",upperCornerPadX);
+		ROS_INFO("X: %f", upperCornerPadX);
 		pad.setX(upperCornerPadX);
 		pad.setY(upperCornerPadY);	// + pcbSizeY);
 
@@ -474,6 +474,7 @@ visualization_msgs::MarkerArray* GerberPadParser::getMarkerList(void) {
 float GerberPadParser::calibratePads(QPointF local1, QPointF local2,
 		QPointF global1, QPointF global2) {
 
+	ROS_INFO("In calibration routine!");
 	// Local = Robot reference coordinate system
 	// Global = PCB coordinate system
 
@@ -544,6 +545,33 @@ void GerberPadParser::rotatePads(void) {
 			(int )padInformationArray_.size());
 }
 
+void GerberPadParser::transformDispenserInfo(dispenseInfo *info) {
+	tf::Transform backTransform = transformIntoGlobalPoint_;
+	tf::Point pointToTransform, pointToTransform2;
+	// This point should be transformed
+	pointToTransform.setX(info->xPos);
+	pointToTransform.setY(info->yPos);
+	pointToTransform.setZ(0.0);
+
+	pointToTransform2.setX(info->xPos2);
+	pointToTransform2.setY(info->yPos2);
+	pointToTransform2.setZ(0.0);
+
+	pointToTransform = transformIntoGlobalPoint_ * pointToTransform;
+	pointToTransform = rotation_ * pointToTransform;
+	pointToTransform = backTransform.inverse() * pointToTransform;
+	pointToTransform = transTransformIntoRobot_ * pointToTransform;
+
+	pointToTransform2 = transformIntoGlobalPoint_ * pointToTransform2;
+	pointToTransform2 = rotation_ * pointToTransform2;
+	pointToTransform2 = backTransform.inverse() * pointToTransform2;
+	pointToTransform2 = transTransformIntoRobot_ * pointToTransform2;
+
+	info->xPos = pointToTransform.x();
+	info->yPos = pointToTransform.y();
+	info->xPos2 = pointToTransform2.x();
+	info->yPos2 = pointToTransform2.y();
+}
 
 void GerberPadParser::transformComponent(componentEntry *componentInformation) {
 

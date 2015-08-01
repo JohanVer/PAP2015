@@ -341,8 +341,8 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>98</width>
-           <height>28</height>
+           <width>100</width>
+           <height>30</height>
           </rect>
          </property>
          <attribute name="label">
@@ -432,8 +432,8 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>98</width>
-           <height>28</height>
+           <width>100</width>
+           <height>30</height>
           </rect>
          </property>
          <attribute name="label">
@@ -501,8 +501,8 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>98</width>
-           <height>28</height>
+           <width>100</width>
+           <height>30</height>
           </rect>
          </property>
          <attribute name="label">
@@ -527,8 +527,8 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>98</width>
-           <height>28</height>
+           <width>100</width>
+           <height>30</height>
           </rect>
          </property>
          <attribute name="label">
@@ -579,8 +579,8 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>98</width>
-           <height>28</height>
+           <width>100</width>
+           <height>30</height>
           </rect>
          </property>
          <attribute name="label">
@@ -1262,7 +1262,7 @@
                </sizepolicy>
               </property>
               <property name="text">
-               <string>Tip Left</string>
+               <string>Tip 2</string>
               </property>
              </widget>
             </item>
@@ -1275,7 +1275,7 @@
                </sizepolicy>
               </property>
               <property name="text">
-               <string>Tip Right</string>
+               <string>Tip 1</string>
               </property>
              </widget>
             </item>
@@ -1965,6 +1965,45 @@
          </property>
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
+         </property>
+        </widget>
+       </widget>
+       <widget class="QGroupBox" name="groupBox_20">
+        <property name="geometry">
+         <rect>
+          <x>800</x>
+          <y>520</y>
+          <width>271</width>
+          <height>61</height>
+         </rect>
+        </property>
+        <property name="title">
+         <string>Calibration</string>
+        </property>
+        <widget class="Line" name="line_23">
+         <property name="geometry">
+          <rect>
+           <x>0</x>
+           <y>10</y>
+           <width>241</width>
+           <height>20</height>
+          </rect>
+         </property>
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="calibrationButton">
+         <property name="geometry">
+          <rect>
+           <x>0</x>
+           <y>30</y>
+           <width>152</width>
+           <height>27</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Calibrate</string>
          </property>
         </widget>
        </widget>
@@ -3260,89 +3299,17 @@
          </property>
         </widget>
        </widget>
-       <widget class="QGroupBox" name="groupBox_17">
-        <property name="geometry">
-         <rect>
-          <x>450</x>
-          <y>320</y>
-          <width>301</width>
-          <height>271</height>
-         </rect>
-        </property>
-        <property name="title">
-         <string>Test section</string>
-        </property>
-        <widget class="QWidget" name="verticalLayoutWidget_23">
-         <property name="geometry">
-          <rect>
-           <x>10</x>
-           <y>30</y>
-           <width>154</width>
-           <height>131</height>
-          </rect>
-         </property>
-         <layout class="QVBoxLayout" name="verticalLayout_27">
-          <item>
-           <widget class="QPushButton" name="startSinglePlacementButton">
-            <property name="text">
-             <string>Start placement</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <spacer name="verticalSpacer_9">
-            <property name="orientation">
-             <enum>Qt::Vertical</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>20</width>
-              <height>40</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item>
-           <widget class="QPushButton" name="calibrationButton">
-            <property name="text">
-             <string>Calibrate</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="goToComponentButton">
-            <property name="text">
-             <string>Go to Component</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-        <widget class="Line" name="line_20">
-         <property name="geometry">
-          <rect>
-           <x>0</x>
-           <y>10</y>
-           <width>301</width>
-           <height>20</height>
-          </rect>
-         </property>
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-        </widget>
-       </widget>
        <widget class="QGroupBox" name="groupBox_19">
         <property name="geometry">
          <rect>
           <x>790</x>
           <y>50</y>
           <width>201</width>
-          <height>281</height>
+          <height>311</height>
          </rect>
         </property>
         <property name="title">
-         <string>PLacement Status</string>
+         <string>Placement Status</string>
         </property>
         <widget class="Line" name="line_22">
          <property name="geometry">
@@ -3517,6 +3484,19 @@
           </item>
          </layout>
         </widget>
+        <widget class="QPushButton" name="startSinglePlacementButton">
+         <property name="geometry">
+          <rect>
+           <x>20</x>
+           <y>280</y>
+           <width>152</width>
+           <height>27</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Start placement</string>
+         </property>
+        </widget>
        </widget>
       </widget>
       <widget class="QWidget" name="tab_4">
@@ -3644,45 +3624,6 @@
           </item>
          </layout>
         </widget>
-       </widget>
-       <widget class="QPushButton" name="pushButton">
-        <property name="geometry">
-         <rect>
-          <x>820</x>
-          <y>70</y>
-          <width>71</width>
-          <height>51</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string>0</string>
-        </property>
-       </widget>
-       <widget class="QPushButton" name="pushButton_2">
-        <property name="geometry">
-         <rect>
-          <x>890</x>
-          <y>70</y>
-          <width>71</width>
-          <height>51</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string>1</string>
-        </property>
-       </widget>
-       <widget class="QPushButton" name="pushButton_7">
-        <property name="geometry">
-         <rect>
-          <x>960</x>
-          <y>70</y>
-          <width>71</width>
-          <height>51</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string>PushButton</string>
-        </property>
        </widget>
       </widget>
       <widget class="QWidget" name="tab_5">
@@ -3869,6 +3810,19 @@
           <string>0.41</string>
          </property>
         </item>
+       </widget>
+       <widget class="QPushButton" name="goToPCBButton">
+        <property name="geometry">
+         <rect>
+          <x>250</x>
+          <y>120</y>
+          <width>101</width>
+          <height>27</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Go to PCB</string>
+        </property>
        </widget>
       </widget>
      </widget>

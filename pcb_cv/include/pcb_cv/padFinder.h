@@ -18,9 +18,11 @@
 
 // Conversion factors for pixel to mm
 // Top-Camera:
-#define PIXEL_TO_MM_TOP 33.559461935
+#define PIXEL_TO_MM_TOP 34.0
 // Bottom-Camera
-#define PIXEL_TO_MM_BOTTOM 9.016666667/2
+#define PIXEL_TO_MM_BOTTOM 25.00
+
+#define PIXEL_TO_MM_PCB 35.13
 
 enum CAMERA_SELECT {
 	CAMERA_TOP, CAMERA_BOTTOM

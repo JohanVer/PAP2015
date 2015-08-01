@@ -18,33 +18,33 @@
  *****************************************************************************/
 PlaceController::PlaceController() {
 
-	MovingHeight_ = 25.0;
+	MovingHeight_ = 45.0;
 
 	idleCoordinates_.x = 1.0;
 	idleCoordinates_.y = 1.0;
 	idleCoordinates_.z = 1.0;
 
 	// Rough offset values - need to be refined
-	pcbOriginOffset.x = 282;
-	pcbOriginOffset.y = 149;
-	pcbOriginOffset.z = 25.1;
+	pcbOriginOffset.x = 300;
+	pcbOriginOffset.y = 145;
+	pcbOriginOffset.z = 45.0;
 	pickUpAreaOffset.x = 109;
 	pickUpAreaOffset.y = 261;
-	pickUpAreaOffset.z = 0.1;
-	cameraBottomOffset.x = 236;
-	cameraBottomOffset.y = 197;
-	cameraBottomOffset.z = 20;
+	pickUpAreaOffset.z = 20.1;
+	cameraBottomOffset.x = 234.95;
+	cameraBottomOffset.y = 194.19;
+	cameraBottomOffset.z = 13;
 
 	// Offsets relative to camera
 	tip2Offset.x = -95.904;
 	tip2Offset.y = 64.709;
-	tip2Offset.z = 20;
+	tip2Offset.z = 45;
 	tip1Offset.x = -96.888;
 	tip1Offset.y = -2,798;
-	tip1Offset.z = 37.2;
+	tip1Offset.z = 45;
 	dispenserTipOffset.x = -56,185;
 	dispenserTipOffset.y = 35,269;
-	dispenserTipOffset.z = 20;
+	dispenserTipOffset.z = 45;
 
 	// Correction offsets
 	PickUpCorrection.x = 0;
@@ -90,15 +90,15 @@ Offset PlaceController::getCompPickUpCoordinates() {
 	Offset temp;
 	switch (tip) {
 	case LEFT_TIP:
-		temp.x = pickUpAreaOffset.x + PickUpCorrection.x + SmallBoxOffsetTable[currentComponent.box].x + (tip1Offset.x - camClibrationOffset_.x + tip1ClibrationOffset_.x);
+		temp.x = pickUpAreaOffset.x + PickUpCorrection.x + SmallBoxOffsetTable[currentComponent.box].x + (tip1Offset.x + camClibrationOffset_.x + tip1ClibrationOffset_.x);
 		temp.y = pickUpAreaOffset.y + PickUpCorrection.y + SmallBoxOffsetTable[currentComponent.box].y + (tip1Offset.y - camClibrationOffset_.y + tip1ClibrationOffset_.y);
-		temp.z = pickUpAreaOffset.z + tip1Offset.z;
+		temp.z = 30.0;			//MovingHeight_; //pickUpAreaOffset.z + tip1Offset.z;
 		temp.rot = PickUpCorrection.rot;
 		break;
 	case RIGHT_TIP:
 		temp.x = pickUpAreaOffset.x + PickUpCorrection.x + SmallBoxOffsetTable[currentComponent.box].x + tip2Offset.x;
 		temp.y = pickUpAreaOffset.y + PickUpCorrection.y + SmallBoxOffsetTable[currentComponent.box].y + tip2Offset.y;
-		temp.z = pickUpAreaOffset.z + tip2Offset.z;
+		temp.z = 30.0; 			//MovingHeight_; //pickUpAreaOffset.z + tip2Offset.z;
 		temp.rot = PickUpCorrection.rot;
 		break;
 	}

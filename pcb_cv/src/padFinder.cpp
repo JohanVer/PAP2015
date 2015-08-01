@@ -91,8 +91,8 @@ bool padFinder::isBorderTouched(cv::RotatedRect pad) {
 	for (int i = 0; i < 4; ++i) {
 		vertices[i] = vertices2f[i];
 
-		if (vertices[i].x < 2 || vertices[i].x > 638 || vertices[i].y > 478
-				|| vertices[i].y < 2) {
+		if (vertices[i].x < 5 || vertices[i].x > 635 || vertices[i].y > 475
+				|| vertices[i].y < 5) {
 			return true;
 		}
 	}
@@ -583,9 +583,9 @@ cv::Point2f padFinder::findPads(cv::Mat* input, bool startSelect,
 
 					// TODO: Change into middle coordinate of the camera
 					outputPosition.x = (mc.x - (input->cols / 2 - 1))
-							/ PIXEL_TO_MM_TOP;
+							/ PIXEL_TO_MM_PCB;
 					outputPosition.y = ((input->rows / 2 - 1) - mc.y)
-							/ PIXEL_TO_MM_TOP;
+							/ PIXEL_TO_MM_PCB;
 
 				} else {
 					drawRotatedRect(final, pad, CV_RGB(255, 0, 0));
@@ -600,8 +600,10 @@ cv::Point2f padFinder::findPads(cv::Mat* input, bool startSelect,
 	cv::cvtColor(bw, out, CV_GRAY2BGR);
 
 	*input = final.clone();
+	//cv::imshow("src", *input);
+	//	cv::waitKey(0);
 	return outputPosition;
-	//cv::imshow("src", input);
+
 	//cv::imshow("bw", bw);
 	//cv::imshow("final", final);
 	//cv::imshow("grey", gray);

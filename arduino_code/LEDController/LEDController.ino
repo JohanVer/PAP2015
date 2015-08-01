@@ -17,7 +17,7 @@ void messageCb( const pap_common::ArduinoMsg& arduinoMsg);
 pap_common::ArduinoMsg arduMsg;
 ros::NodeHandle  nh;
 ros::Subscriber<pap_common::ArduinoMsg> arduinoMessageSub("arduinoTx", messageCb );
-ros::Publisher statusPublisher("arduStatus", &arduMsg);
+//ros::Publisher statusPublisher("arduStatus", &arduMsg);
 
 enum ARDUINO_TASK {
   SETRELAIS = 1,
@@ -69,7 +69,7 @@ void setup()
   FastLED.addLeds<CHIPSET, BOT_LED_PIN,RGB>(bottom_leds, NUM_BOT_LEDS);
 
   nh.initNode();
-  nh.advertise(statusPublisher);
+  //nh.advertise(statusPublisher);
   nh.subscribe(arduinoMessageSub);
   
   resetAllLEDs();

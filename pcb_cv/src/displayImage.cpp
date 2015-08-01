@@ -56,7 +56,7 @@ int main(int argc, char **argv) {
 			1000);
 	tf::TransformBroadcaster transformBr;
 
-	ros::Rate loop_rate(25);
+	ros::Rate loop_rate(15);
 	image_pub_ = it_.advertise("camera1", 10);
 	image_pub_2 = it_.advertise("camera2", 10);
 	qr_image_pub_ = it_.advertise("image", 10);

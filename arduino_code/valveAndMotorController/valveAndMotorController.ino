@@ -15,7 +15,7 @@ void messageCb( const pap_common::ArduinoMsg& arduinoMsg);
 pap_common::ArduinoMsg arduMsg;
 ros::NodeHandle  nh;
 ros::Subscriber<pap_common::ArduinoMsg> arduinoMessageSub("arduinoTx", messageCb );
-ros::Publisher statusPublisher("arduStatus", &arduMsg);
+//ros::Publisher statusPublisher("arduStatus", &arduMsg);
 
 enum ARDUINO_TASK {
   SETRELAIS = 1,
@@ -189,7 +189,7 @@ void setup()
   stepper1.setSpeed(30); // RPM
   //stepper2.setSpeed(30);
   nh.initNode();
-  nh.advertise(statusPublisher);
+  //nh.advertise(statusPublisher);
   nh.subscribe(arduinoMessageSub);
 }
 

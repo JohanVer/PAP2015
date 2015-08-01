@@ -174,7 +174,7 @@ public Q_SLOTS:
     void on_startDispense_button_clicked();
     void dispenseSinglePad(QPointF point);
 
-    void on_goToComponentButton_clicked();
+    void on_goToPCBButton_clicked();
     void updatePlacementData();
 
     void keyPressEvent(QKeyEvent *e);

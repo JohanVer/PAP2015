@@ -25,6 +25,8 @@
 #define COMPFINDERTIMEOUT 300
 #define MOTORCONTROLLER_TIMEOUT 2000
 
+#define posTolerance 1	// Deviation of position in percentage
+
 #define TIP1_DIAMETER_VISION 20.0
 #define TIP2_DIAMETER_VISION 20.0
 #define DISPENSER_DIAMETER_VISION 1.0
@@ -81,14 +83,12 @@ int zPosReached = 0;
 
 bool boxCoordinatesSent = false;
 bool componentPickUpStarted = false;
-bool pcbCoordinatesSent = false;
 bool pcbOrigCoordinatesSent = false;
 bool componentPlacementStarted = false;
 bool componentFinderStarted = false;
 bool componentFound = false;
 bool compPickUpCoordinatesSent = false;
 bool bottomCamCoordinatesSent = false;
-bool pcbPlaceCoordinatesSent = false;
 bool homingCoordinatesSent = false;
 bool pcbBottomCamCoordinatesSent = false;
 bool cameraPositionReceived = false;
@@ -123,6 +123,7 @@ enum STATE {
 	IDLE,
 	CALIBRATE,
 	GOTOPCBORIGIN,
+
 	FINDPADS,
 	GOTOBOX,
 	FINDCOMPONENT,
@@ -255,10 +256,12 @@ int main(int argc, char **argv) {
 
 					if (cameraPositionReceived) {
 						sendTask(pap_common::VISION, pap_vision::STOP_VISION);
-						calibration_state = DISPENSER;
+						calibration_state = CAMERA;
 						cameraPositionReceived = false;
 						positionSend = false;
 						visionStarted = false;
+						IDLE_called = true;
+						state = IDLE;
 					}
 				}
 				break;
@@ -414,8 +417,8 @@ int main(int argc, char **argv) {
 				state = GOTOCOORD;
 			} else {
 				positionSend = false;
-				IDLE_called = true;
-				state = IDLE;
+				//IDLE_called = true;
+				state = STARTPICKUP; //IDLE;
 			}
 			break;
 
@@ -451,9 +454,8 @@ int main(int argc, char **argv) {
 				sendPlacerStatus(pap_common::STARTPICKUP_STATE,
 						pap_common::PLACER_ACTIVE);
 
-				sendRelaisTask(1, false);				// Turn on vacuum
-				sendRelaisTask(2, true);
 				ros::Duration(1).sleep();
+
 				if (placeController.selectTip()) {		// Activate tip
 					sendRelaisTask(3, false);			// tip 1
 					sendRelaisTask(6, true);
@@ -473,6 +475,8 @@ int main(int argc, char **argv) {
 				last_state = state;
 				state = GOTOCOORD;
 			} else {
+				sendRelaisTask(1, false);				// Turn on vacuum
+				sendRelaisTask(2, true);
 				if (placeController.selectTip()) {	// Turn on vacuum
 					sendRelaisTask(5, true);		// Tip 1
 				} else {
@@ -487,6 +491,8 @@ int main(int argc, char **argv) {
 					sendRelaisTask(7, false);			// Tip 2
 				}
 				ros::Duration(1).sleep();
+				sendRelaisTask(2, false);				// Turn on vacuum
+				sendRelaisTask(1, true);
 
 				//sendStepperTask(2, (int) destination.rot);	// Turn component
 				//ros::Duration(1).sleep();		// Wait until cylinder released
@@ -632,7 +638,23 @@ int main(int argc, char **argv) {
 
 		case GOTOCOORD:
 			if (!placerNodeBusy) {
-				if (zPosReached == 0) {
+				ROS_INFO("lastX: %f", placeController.lastDestination_.x);
+				ROS_INFO("lastY: %f", placeController.lastDestination_.y);
+				ROS_INFO("currentX: %f", placeController.currentDestination_.x);
+				ROS_INFO("currentY: %f", placeController.currentDestination_.y);
+				if (zPosReached == 0
+						&& ((placeController.lastDestination_.x
+								< (placeController.currentDestination_.x
+										* (1 - posTolerance / 100)))
+								|| (placeController.lastDestination_.y
+										< (placeController.currentDestination_.y
+												* (1 - posTolerance / 100)))
+								|| (placeController.lastDestination_.x
+										> (placeController.currentDestination_.x
+												* (1 + posTolerance / 100)))
+								|| (placeController.lastDestination_.y
+										> (placeController.currentDestination_.y
+												* (1 + posTolerance / 100))))) {
 					sendTask(pap_common::CONTROLLER, pap_common::COORD,
 							placeController.lastDestination_.x,
 							placeController.lastDestination_.y,
@@ -644,7 +666,19 @@ int main(int argc, char **argv) {
 							placeController.MovingHeight_);
 					ROS_INFO("zPos: %d", zPosReached);
 
-				} else if (zPosReached == 1) {
+				} else if (zPosReached == 1
+						&& ((placeController.lastDestination_.x
+								< (placeController.currentDestination_.x
+										* (1 - posTolerance / 100)))
+								|| (placeController.lastDestination_.y
+										< (placeController.currentDestination_.y
+												* (1 - posTolerance / 100)))
+								|| (placeController.lastDestination_.x
+										> (placeController.currentDestination_.x
+												* (1 + posTolerance / 100)))
+								|| (placeController.lastDestination_.y
+										> (placeController.currentDestination_.y
+												* (1 + posTolerance / 100))))) {
 					sendTask(pap_common::CONTROLLER, pap_common::COORD,
 							placeController.currentDestination_.x,
 							placeController.currentDestination_.y,
@@ -656,7 +690,19 @@ int main(int argc, char **argv) {
 							placeController.MovingHeight_);
 					ROS_INFO("zPos: %d", zPosReached);
 
-				} else if (zPosReached == 2) {
+				} else if (zPosReached == 2
+						|| ((placeController.lastDestination_.x
+								>= (placeController.currentDestination_.x
+										* (1 - posTolerance / 100)))
+								&& (placeController.lastDestination_.y
+										>= (placeController.currentDestination_.y
+												* (1 - posTolerance / 100)))
+								&& (placeController.lastDestination_.x
+										<= (placeController.currentDestination_.x
+												* (1 + posTolerance / 100)))
+								&& (placeController.lastDestination_.y
+										<= (placeController.currentDestination_.y
+												* (1 + posTolerance / 100))))) {
 					sendTask(pap_common::CONTROLLER, pap_common::COORD,
 							placeController.currentDestination_.x,
 							placeController.currentDestination_.y,
@@ -666,7 +712,7 @@ int main(int argc, char **argv) {
 							placeController.currentDestination_.x,
 							placeController.currentDestination_.y,
 							placeController.currentDestination_.z);
-
+					zPosReached = 2;
 					ROS_INFO("zPos: %d", zPosReached);
 				}
 				ros::Duration(0.3).sleep();
@@ -951,14 +997,13 @@ void placerCallback(const pap_common::TaskConstPtr& taskMsg) {
 			state = STARTPICKUP;
 			ROS_INFO("Pick-up component called...");
 			break;
+
 		case pap_common::GOTOPCB:
 			sendPlacerStatus(pap_common::GOTOPCBCOMP_STATE,
 					pap_common::PLACER_IDLE);
-			pcbCoordinatesSent = false;
-			pcbPlaceCoordinatesSent = false;
-			state = GOTOPCBCOMP;
-			ROS_INFO("go to pcb called...");
+			state = GOTOPCBORIGIN;
 			break;
+
 		case pap_common::PLACEMENT:
 			sendPlacerStatus(pap_common::STARTPLACEMET_STATE,
 					pap_common::PLACER_IDLE);
@@ -1114,7 +1159,6 @@ void resetLEDTask(int LEDnumber) {
 void resetProcessVariables() {
 	boxCoordinatesSent = false;
 	componentPickUpStarted = false;
-	pcbCoordinatesSent = false;
 	componentPlacementStarted = false;
 	compPickUpCoordinatesSent = false;
 	componentFinderStarted = false;
