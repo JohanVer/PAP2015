@@ -1663,7 +1663,7 @@ void MainWindow::sendGotoFiducial(int indexOfFiducial) {
 void MainWindow::on_inputPad_Button_clicked() {
 	//get a filename to open
 	if (alreadyFlipped_) {
-		ui.padView_Image->scale(-1, 1);
+		ui.padView_Image->scale(-1, -1);
 		alreadyFlipped_ = false;
 	}
 
@@ -1681,7 +1681,7 @@ void MainWindow::on_inputPad_Button_clicked() {
 	bottomLayer_ = false;
 	if (gerberFile.contains(".PasteBot")) {
 		bottomLayer_ = true;
-		ui.padView_Image->scale(-1, 1);
+		ui.padView_Image->scale(-1, -1);
 		alreadyFlipped_ = true;
 	} else {
 		bottomLayer_ = false;
@@ -1910,22 +1910,22 @@ void MainWindow::on_startDispense_button_clicked() {
 	float nozzleDiameter = ui.nozzleDispCombo->currentText().toFloat();
 	for (size_t i = 1; i < padParser.padInformationArrayPrint_.size(); i++) {
 		scenePads_.addEllipse(
-				padParser.padInformationArrayPrint_[i].rect.x() * pxFactor,
+				padParser.padInformationArrayPrint_[i].rect.y() * pxFactor,
 				padParser.heightPixel_
-						- (padParser.padInformationArrayPrint_[i].rect.y()
+						- (padParser.padInformationArrayPrint_[i].rect.x()
 								* pxFactor), 1, 1,
-				QPen(Qt::blue, 1, Qt::SolidLine));
+				QPen(Qt::blue, 2, Qt::SolidLine));
 		std::vector<dispenseInfo> dispInfo = dispenserPlanner.planDispensing(
 				padParser.padInformationArrayPrint_[i], nozzleDiameter);
 
 		for (size_t j = 0; j < dispInfo.size(); j++) {
 			scenePads_.addLine(
-					QLineF(dispInfo[j].xPos * pxFactor,
+					QLineF(dispInfo[j].yPos * pxFactor,
 							padParser.heightPixel_
-									- (dispInfo[j].yPos * pxFactor),
-							dispInfo[j].xPos2 * pxFactor,
+									- (dispInfo[j].xPos * pxFactor),
+							dispInfo[j].yPos2 * pxFactor,
 							padParser.heightPixel_
-									- (dispInfo[j].yPos2 * pxFactor)),
+									- (dispInfo[j].xPos2 * pxFactor)),
 					QPen(Qt::blue, nozzleDiameter * pxFactor, Qt::SolidLine));
 
 			// TODO: Transform output into global coordinate system
@@ -1963,12 +1963,12 @@ void MainWindow::dispenseSinglePad(QPointF point) {
 
 		for (size_t j = 0; j < dispInfo.size(); j++) {
 			scenePads_.addLine(
-					QLineF(dispInfo[j].xPos * pxFactor,
+					QLineF(dispInfo[j].yPos * pxFactor,
 							padParser.heightPixel_
-									- (dispInfo[j].yPos * pxFactor),
-							dispInfo[j].xPos2 * pxFactor,
+									- (dispInfo[j].xPos * pxFactor),
+							dispInfo[j].yPos2 * pxFactor,
 							padParser.heightPixel_
-									- (dispInfo[j].yPos2 * pxFactor)),
+									- (dispInfo[j].xPos2 * pxFactor)),
 					QPen(Qt::blue, nozzleDiameter * pxFactor, Qt::SolidLine));
 
 			// TODO: Transform output into global coordinate system

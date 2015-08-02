@@ -158,8 +158,8 @@ void GerberPadParser::parseShapes(std::string fileName) {
 								ShapeInformation shape;
 								shape.shapeIndex = dCode;
 								shape.shapeStr = shapeStr;
-								shape.padDimensions.setX(firstArg * 25.4);
-								shape.padDimensions.setY(secondArg * 25.4);
+								shape.padDimensions.setY(firstArg * 25.4);
+								shape.padDimensions.setX(secondArg * 25.4);
 								shape.rotation = thirdArg;
 								shapeInformationArray_.push_back(shape);
 							}
@@ -246,11 +246,11 @@ void GerberPadParser::loadFile(std::string fileName, bool bottomLayer) {
 	// Outlines are part of the first entry!
 
 	PadInformation outerRect;
-	outerRect.rect.setX(width_ / 2 + pcbSize.x());
-	outerRect.rect.setY(height_ / 2 + pcbSize.y());
+	outerRect.rect.setY(width_ / 2 + pcbSize.x());
+	outerRect.rect.setX(height_ / 2 + pcbSize.y());
 	outerRect.rotation = outerRectRot_;
-	outerRect.rect.setHeight(height_);
-	outerRect.rect.setWidth(width_);
+	outerRect.rect.setHeight(width_);
+	outerRect.rect.setWidth(height_);
 	padInformationArray_.push_back(outerRect);
 	padInformationArrayPrint_.push_back(outerRect);
 
@@ -308,15 +308,18 @@ void GerberPadParser::loadFile(std::string fileName, bool bottomLayer) {
 				PadInformation newPad;
 
 				bottomLayer_ = bottomLayer;
+				newPad.rect.setX(height_-(yParsed * 25.4));
 				if (bottomLayer) {
 					ROS_INFO("Bottom layer detected");
-					newPad.rect.setX((xParsed * 25.4));
+					newPad.rect.setY((xParsed * 25.4));
+
 
 				} else {
 					ROS_INFO("Top layer detected");
-					newPad.rect.setX(width_ - (xParsed * 25.4));
+					newPad.rect.setY(width_ - (xParsed * 25.4));
+					//newPad.rect.setX(width_ - (xParsed * 25.4));
 				}
-				newPad.rect.setY(yParsed * 25.4);
+				//newPad.rect.setY(yParsed * 25.4);
 				// Convert d-code using tabular out of whl file
 				if (searchShape(dCodeShape, &newPad)) {
 					padInformationArray_.push_back(newPad);
@@ -364,7 +367,15 @@ QRectF GerberPadParser::renderImage(QGraphicsScene* scene, int width,
 	for (std::size_t i = 0; i < padInformationArrayPrint_.size(); i++) {
 		QRectF pad;
 		PadInformation padInfo;
-		padInfo = padInformationArrayPrint_[i];
+
+		// Change x,
+
+		//padInfo = padInformationArrayPrint_[i];
+		padInfo.rect.setX(padInformationArrayPrint_[i].rect.y());
+				padInfo.rect.setY(padInformationArrayPrint_[i].rect.x());
+				padInfo.rect.setWidth(padInformationArrayPrint_[i].rect.height());
+				padInfo.rect.setHeight(padInformationArrayPrint_[i].rect.width());
+				padInfo.rotation = padInformationArrayPrint_[i].rotation;
 
 		double upperCornerPadX =
 				((padInfo.rect.x() - padInfo.rect.width() / 2.0)

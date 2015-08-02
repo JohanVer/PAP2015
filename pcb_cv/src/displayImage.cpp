@@ -174,8 +174,8 @@ int main(int argc, char **argv) {
 				smd = finder.findSMDTape(&input);
 				if (smd.x != 0.0 && smd.y != 0.0) {
 					visionMsg.task = pap_vision::START_TAPE_FINDER;
-					visionMsg.data1 = smd.x;
-					visionMsg.data2 = smd.y;
+					visionMsg.data1 = smd.y;
+					visionMsg.data2 = smd.x;
 					visionMsg.data3 = smd.rot;
 					visionMsg.camera = 0;
 					statusPublisher.publish(visionMsg);
@@ -195,8 +195,8 @@ int main(int argc, char **argv) {
 				//ROS_INFO("X %f Y  %f", position.x, position.y);
 				if (selectPad && position.x != 0.0 && position.y != 0.0) {
 					visionMsg.task = pap_vision::START_PAD_FINDER;
-					visionMsg.data1 = position.x;
-					visionMsg.data2 = position.y;
+					visionMsg.data1 = position.y;
+					visionMsg.data2 = position.x;
 					visionMsg.data3 = 0.0;
 					visionMsg.camera = 0;
 					statusPublisher.publish(visionMsg);
