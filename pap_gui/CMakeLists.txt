@@ -20,6 +20,7 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   pap_common
   pcb_cv
+  tf
 )
 
 set(SOURCE_BUILD "/home/nikolas/catkin_ws/src/PAP2015/pap_gui/include/pap_gui/")

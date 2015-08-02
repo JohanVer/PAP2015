@@ -26,6 +26,7 @@
 #include <QVector>
 #include <QString>
 #include <QFile>
+#include <tf/transform_broadcaster.h>
 
 /*****************************************************************************
  ** Namespaces
@@ -136,6 +137,9 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent) :
 	valve7Active_ = false;
 	valve8Active_ = false;
 	alreadyFlipped_ = false;
+
+	tip1Pos_ = 0.0;
+	tip2Pos_ = 0.0;
 
 	/* Load database */
 	loadDatabaseContent();
@@ -1183,8 +1187,10 @@ void MainWindow::statusUpdated(int index) {
 		} else {
 			ui.posLabel1->setText("busy");
 		}
+		if(qnode.getStatus()[index].pos != 0.0){
 		ui.label_posX->setText(QString::number((qnode.getStatus())[index].pos));
 		currentPosition.x = (qnode.getStatus())[index].pos;
+		}
 		break;
 
 	case 2:
@@ -1205,8 +1211,11 @@ void MainWindow::statusUpdated(int index) {
 		} else {
 			ui.posLabel2->setText("busy");
 		}
+
+		if(qnode.getStatus()[index].pos != 0.0){
 		ui.label_posY->setText(QString::number((qnode.getStatus())[index].pos));
 		currentPosition.y = (qnode.getStatus())[index].pos;
+		}
 		break;
 
 	case 3:
@@ -1227,10 +1236,14 @@ void MainWindow::statusUpdated(int index) {
 		} else {
 			ui.posLabel3->setText("busy");
 		}
+		if(qnode.getStatus()[index].pos != 0.0){
 		ui.label_posZ->setText(QString::number((qnode.getStatus())[index].pos));
 		currentPosition.z = (qnode.getStatus())[index].pos;
+		}
 		break;
 	}
+	// Send transforms to rviz
+	sendTransforms(currentPosition.x/1000.0,currentPosition.y/1000.0,currentPosition.z/1000.0,tip1Pos_/1000.0,tip2Pos_/1000.0);
 }
 
 // Vacuum valve 1
@@ -1278,11 +1291,13 @@ void MainWindow::on_valveToggle4_clicked(bool check) {
 		qnode.sendRelaisTask(3, false);
 		qnode.sendRelaisTask(6, true);
 		ui.valveToggle4->setText("On");
+		tip2Pos_ = -20;
 		valve4Active_ = true;
 	} else {
 		qnode.sendRelaisTask(6, false);
 		qnode.sendRelaisTask(3, true);
 		ui.valveToggle4->setText("Off");
+		tip2Pos_ = 0.0;
 		valve4Active_ = false;
 	}
 }
@@ -1290,10 +1305,12 @@ void MainWindow::on_valveToggle5_clicked(bool check) {
 	if (!valve5Active_) {
 		qnode.sendRelaisTask(7, true);
 		ui.valveToggle5->setText("On");
+		tip1Pos_ = -20;
 		valve5Active_ = true;
 	} else {
 		qnode.sendRelaisTask(7, false);
 		ui.valveToggle5->setText("Off");
+		tip1Pos_ = 0.0;
 		valve5Active_ = false;
 	}
 }
@@ -1994,6 +2011,100 @@ void MainWindow::dispenseSinglePad(QPointF point) {
 	} else {
 		ROS_ERROR("No pad selected...");
 	}
+}
+
+void MainWindow::sendTransforms(double x, double y, double z, double nozzle_1,
+		double nozzle_2) {
+	static tf::TransformBroadcaster br;
+	tf::Transform transform;
+	tf::Transform transformReference;
+	tf::Transform transformX;
+	tf::Transform transformY, transformZ, transformS1, transformS2;
+
+	// Reference frame
+	transformReference.setOrigin(tf::Vector3(0.0, 0.0, 0.0));
+	tf::Quaternion qRef;
+	qRef.setRPY(0, 0, 0);
+	transformReference.setRotation(qRef);
+
+	// Base_link frame
+	transform.setOrigin(tf::Vector3(0, 0, 0));
+	tf::Quaternion q;
+	q.setRPY(0, 0, 0);
+	transform.setRotation(q);
+
+	transformX.setOrigin(tf::Vector3(0.023026, 0.11628 + x, 0.11244));
+	tf::Quaternion qX;
+	qX.setX(-0.699941);
+	qX.setY(0.000131839);
+	qX.setZ(0.000619792);
+	qX.setW(0.7142);
+	transformX.setRotation(qX);
+
+	// Y-Link
+	transformY.setOrigin(tf::Vector3(-0.11097 + y, 0.14813 + x, 0.16924));
+	tf::Quaternion qY;
+	qY.setX(-0.504923);
+	qY.setY(0.494495);
+	qY.setZ(0.505109);
+	qY.setW(-0.495371);
+	transformY.setRotation(qY);
+
+	// Z-Link
+	transformZ.setOrigin(tf::Vector3(-0.032259 + y, 0.16839 + x, 0.15228 + z));
+	tf::Quaternion qZ;
+	qZ.setX(0.000131839);
+	qZ.setY(0.699941);
+	qZ.setZ(0.7142);
+	qZ.setW(-0.000619792);
+	transformZ.setRotation(qZ);
+
+	// Stepper1-Link
+	//transformS1.setOrigin(tf::Vector3(-0.044085 + y, 0.2214 + x, 0.10935+z));
+	transformS1.setOrigin(
+			tf::Vector3(-0.044085 + y, 0.2214 + x, 0.10935 + z + nozzle_1));
+	tf::Quaternion qS1;
+	qS1.setX(0.00737794);
+	qS1.setY(-0.706695);
+	qS1.setZ(-0.00688299);
+	qS1.setW(0.707446);
+	transformS1.setRotation(qS1);
+
+	// Stepper2-Link
+	//transformS2.setOrigin(tf::Vector3(-0.11908 + y, 0.22134 + x, 0.10935 +z));
+	transformS2.setOrigin(
+			tf::Vector3(-0.11908 + y, 0.22134 + x, 0.10935 + z + nozzle_2));// Change Niko
+	tf::Quaternion qS2;
+	qS2.setX(0.00737794);
+	qS2.setY(-0.706695);
+	qS2.setZ(-0.00688299);
+	qS2.setW(0.707446);
+	transformS2.setRotation(qS2);
+
+	br.sendTransform(
+			tf::StampedTransform(transformReference, ros::Time::now(),
+					"/base_link", "/world"));
+	//br.sendTransform(tf::StampedTransform(transform,ros::Time::now(),"/world","/base_link"));
+
+	// Axes
+	br.sendTransform(
+			tf::StampedTransform(transformX, ros::Time::now(), "/base_link",
+					"/x-axis"));
+	br.sendTransform(
+			tf::StampedTransform(transformY, ros::Time::now(), "/base_link",
+					"/y-axis"));
+
+	br.sendTransform(
+			tf::StampedTransform(transformZ, ros::Time::now(), "/base_link",
+					"/z-axis"));
+
+	br.sendTransform(
+			tf::StampedTransform(transformS1, ros::Time::now(), "/base_link",
+					"/nozzle_1"));
+
+	br.sendTransform(
+			tf::StampedTransform(transformS2, ros::Time::now(), "/base_link",
+					"/nozzle_2"));
 }
 
 }

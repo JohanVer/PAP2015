@@ -42,6 +42,7 @@
 #include <QSize>
 #include "DispenserPlanner.hpp"
 #include "../../../pap_placer/include/pap_placer/placerNode.hpp"
+#include <tf/transform_broadcaster.h>
 
 /*
 class componentEntry {
@@ -168,6 +169,8 @@ public Q_SLOTS:
     void initPadTable(int rows);
     void padPressed(int numberOfFiducial,QPointF padPos);
     void on_calcOrientation_Button_clicked();
+    void sendTransforms(double x, double y, double z, double nozzle_1,
+    		double nozzle_2);
 
     //Dispense button
 
@@ -232,7 +235,7 @@ private:
 	bool valve7Active_;
 	bool valve8Active_;
 	bool visionStarted_, sizeDefined_,padFileLoaded_;
-
+	float tip1Pos_,tip2Pos_;
 	// Variables for fiducial marking
     QTableView tableView;
     int fiducialSize_;

@@ -273,7 +273,7 @@ int main(int argc, char **argv) {
 	while (ros::ok()) {
 
 		counter++;
-		if (counter == 10) {
+		if (counter == 5) {
 			pap_common::Status stateMessage;
 			stateMessage.data1 = pap_common::XMOTOR;
 			stateMessage.posX = currentState.x;
@@ -297,9 +297,9 @@ int main(int argc, char **argv) {
 		}
 
 		// Init and set tips!
-		sendTransforms((currentState.x / 1000), (currentState.y / 1000),
-				(currentState.z / 1000), (currentState.tip1 / 1000),
-				(currentState.tip2 / 1000));
+		//sendTransforms((currentState.x / 1000), (currentState.y / 1000),
+		//		(currentState.z / 1000), (currentState.tip1 / 1000),
+		//		(currentState.tip2 / 1000));
 
 		ros::spinOnce();
 		loop_rate.sleep();
