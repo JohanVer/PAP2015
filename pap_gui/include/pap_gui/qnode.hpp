@@ -157,6 +157,8 @@ private:
     //image_transport::Publisher imagePub_;
     ros::Publisher imagePub_;
     ros::Publisher markerPub_;
+    uchar dataArray[640*480 * 3];
+    uchar dataArray2[640*480 * 3];
 
 public:
     float pcbWidth_,pcbHeight_;

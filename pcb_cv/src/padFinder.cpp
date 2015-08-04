@@ -216,7 +216,7 @@ smdPart padFinder::findChip(cv::Mat* input, unsigned int camera_select) {
 				/ pxToMM;
 		//ROS_INFO("Converted Area: %f, expected %f", rectConvertedArea,
 		//	(partWidth_ * partHeight_));
-		ROS_INFO("padFinder: width=%f, height=%f", rect.size.width, rect.size.height);
+		//ROS_INFO("padFinder: width=%f, height=%f", rect.size.width, rect.size.height);
 		if ((rect.size.width / pxToMM
 				> ((partWidth_) / 100.0) * (100.0 - ERROR_PERCENT_CHIP)
 				&& rect.size.width / pxToMM
@@ -236,8 +236,8 @@ smdPart padFinder::findChip(cv::Mat* input, unsigned int camera_select) {
 								* (100.0 + ERROR_PERCENT_CHIP))) {
 			contoursSorted.push_back(contours[i]);
 
-			ROS_INFO("Found Width: %f Height: %f", rect.size.width,
-					rect.size.height);
+			//ROS_INFO("Found Width: %f Height: %f", rect.size.width,
+			//		rect.size.height);
 			smdPart smd;
 			smd.x = rect.center.x;
 			smd.y = rect.center.y;
@@ -475,7 +475,7 @@ cv::Point2f padFinder::findPads(cv::Mat* input, bool startSelect,
 			if (std::fabs(cv::contourArea(contours[i])) < 50
 					|| !cv::isContourConvex(approx)) {
 				continue;
-				ROS_INFO("Zu klein");
+				//ROS_INFO("Zu klein");
 			}
 
 			if (approx.size() >= 4 && approx.size() <= 6) {
@@ -545,7 +545,7 @@ cv::Point2f padFinder::findPads(cv::Mat* input, bool startSelect,
 
 		if (foundVia) {
 			repeat = true;
-			ROS_INFO("Repeat...");
+			//ROS_INFO("Repeat...");
 		} else
 			repeat = false;
 

@@ -968,6 +968,7 @@ void MainWindow::cameraUpdated(int index) {
 	if (index == 1) {
 		int width = ui.camera1->width();
 		int height = ui.camera1->height() - 2;
+
 		QImage camera1Scaled = qnode.getCamera1()->scaled(width, height,
 				Qt::KeepAspectRatio);
 		cameraPicture1 = QPixmap::fromImage(camera1Scaled);
@@ -986,7 +987,6 @@ void MainWindow::cameraUpdated(int index) {
 		ui.camera2->setScene(&scene2_);
 		ui.camera2->show();
 	}
-
 }
 
 void MainWindow::on_startHoming_clicked(bool check) {

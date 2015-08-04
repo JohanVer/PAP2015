@@ -133,7 +133,7 @@ void imageCallback1(const sensor_msgs::ImageConstPtr& msg) {
 					visionMsg.data2 = smd.x;
 					visionMsg.data3 = smd.rot;
 					visionMsg.camera = cameraSelect;
-					ROS_INFO("X %f, Y %f", smd.x, smd.y);
+					//ROS_INFO("X %f, Y %f", smd.x, smd.y);
 					statusPublisher.publish(visionMsg);
 				}
 			}
@@ -273,7 +273,7 @@ void imageCallback2(const sensor_msgs::ImageConstPtr& msg) {
 					visionMsg.data2 = smd.x;
 					visionMsg.data3 = smd.rot;
 					visionMsg.camera = cameraSelect;
-					ROS_INFO("X %f, Y %f", smd.x, smd.y);
+					//ROS_INFO("X %f, Y %f", smd.x, smd.y);
 					statusPublisher.publish(visionMsg);
 				}
 			}
@@ -372,7 +372,7 @@ void parseTask(const pap_common::TaskConstPtr& taskMsg) {
 				selectPad = true;
 				selectPoint.x = taskMsg->data2;
 				selectPoint.y = taskMsg->data3;
-				ROS_INFO("Pixel %f %f", selectPoint.x, selectPoint.y);
+				//ROS_INFO("Pixel %f %f", selectPoint.x, selectPoint.y);
 			} else {
 				selectPad = false;
 				selectPoint.x = 0.0;

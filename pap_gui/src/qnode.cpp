@@ -51,8 +51,8 @@ bool QNode::init() {
 	task_publisher = n_.advertise<pap_common::Task>("task", 1000);
 	arduino_publisher_ = n_.advertise<pap_common::ArduinoMsg>("arduinoTx",
 			1000);
-	image_sub_ = it_.subscribe("camera1", 10, &QNode::cameraCallback, this);
-	image_sub2_ = it_.subscribe("camera2", 10, &QNode::cameraCallback2, this);
+	image_sub_ = it_.subscribe("camera1", 2, &QNode::cameraCallback, this);
+	image_sub2_ = it_.subscribe("camera2", 2, &QNode::cameraCallback2, this);
 	statusSubsriber_ = n_.subscribe("status", 100, &QNode::statusCallback,
 			this);
 	visionStatusSubsriber_ = n_.subscribe("visionStatus", 100,
@@ -98,8 +98,6 @@ bool QNode::init(const std::string &master_url, const std::string &host_url) {
 
 void QNode::cameraCallback(const sensor_msgs::ImageConstPtr& camera_msg) {
 
-	uchar dataArray[camera_msg->width * camera_msg->height * 3];
-
 	for (size_t i = 0; i < camera_msg->width * camera_msg->height * 3; i++) {
 		dataArray[i] = camera_msg->data.at(i);
 	}
@@ -113,14 +111,12 @@ void QNode::cameraCallback(const sensor_msgs::ImageConstPtr& camera_msg) {
 
 void QNode::cameraCallback2(const sensor_msgs::ImageConstPtr& camera_msg) {
 
-	uchar dataArray[camera_msg->width * camera_msg->height * 3];
-
 	for (size_t i = 0; i < camera_msg->width * camera_msg->height * 3; i++) {
-		dataArray[i] = camera_msg->data.at(i);
+		dataArray2[i] = camera_msg->data.at(i);
 	}
 
 	if (camera_msg->header.frame_id == "camera2") {
-		cameraImage2_ = QImage(dataArray, camera_msg->width, camera_msg->height,
+		cameraImage2_ = QImage(dataArray2, camera_msg->width, camera_msg->height,
 				QImage::Format_RGB888);
 		Q_EMIT cameraUpdated(2);
 	}
