@@ -25,7 +25,7 @@
 #define COMPFINDERTIMEOUT 300
 #define MOTORCONTROLLER_TIMEOUT 2000
 
-#define posTolerance 1	// Deviation of position in percentage
+#define posTolerance 500	// Deviation of position in um
 
 #define TIP1_DIAMETER_VISION 20.0
 #define TIP2_DIAMETER_VISION 20.0
@@ -645,16 +645,16 @@ int main(int argc, char **argv) {
 				if (zPosReached == 0
 						&& ((placeController.lastDestination_.x
 								< (placeController.currentDestination_.x
-										* (1 - posTolerance / 100)))
+										- (posTolerance / 1000)))
 								|| (placeController.lastDestination_.y
 										< (placeController.currentDestination_.y
-												* (1 - posTolerance / 100)))
+												- (posTolerance / 1000)))
 								|| (placeController.lastDestination_.x
 										> (placeController.currentDestination_.x
-												* (1 + posTolerance / 100)))
+												+ (posTolerance / 1000)))
 								|| (placeController.lastDestination_.y
 										> (placeController.currentDestination_.y
-												* (1 + posTolerance / 100))))) {
+												+ (posTolerance / 1000))))) {
 					sendTask(pap_common::CONTROLLER, pap_common::COORD,
 							placeController.lastDestination_.x,
 							placeController.lastDestination_.y,
@@ -669,16 +669,16 @@ int main(int argc, char **argv) {
 				} else if (zPosReached == 1
 						&& ((placeController.lastDestination_.x
 								< (placeController.currentDestination_.x
-										* (1 - posTolerance / 100)))
+										- (posTolerance / 1000)))
 								|| (placeController.lastDestination_.y
 										< (placeController.currentDestination_.y
-												* (1 - posTolerance / 100)))
+												- (posTolerance / 1000)))
 								|| (placeController.lastDestination_.x
 										> (placeController.currentDestination_.x
-												* (1 + posTolerance / 100)))
+												+ (posTolerance / 1000)))
 								|| (placeController.lastDestination_.y
 										> (placeController.currentDestination_.y
-												* (1 + posTolerance / 100))))) {
+												+ (posTolerance / 1000))))) {
 					sendTask(pap_common::CONTROLLER, pap_common::COORD,
 							placeController.currentDestination_.x,
 							placeController.currentDestination_.y,
@@ -692,17 +692,17 @@ int main(int argc, char **argv) {
 
 				} else if (zPosReached == 2
 						|| ((placeController.lastDestination_.x
-								>= (placeController.currentDestination_.x
-										* (1 - posTolerance / 100)))
+								< (placeController.currentDestination_.x
+										- (posTolerance / 1000)))
 								&& (placeController.lastDestination_.y
-										>= (placeController.currentDestination_.y
-												* (1 - posTolerance / 100)))
+										< (placeController.currentDestination_.y
+												- (posTolerance / 1000)))
 								&& (placeController.lastDestination_.x
-										<= (placeController.currentDestination_.x
-												* (1 + posTolerance / 100)))
+										> (placeController.currentDestination_.x
+												+ (posTolerance / 1000)))
 								&& (placeController.lastDestination_.y
-										<= (placeController.currentDestination_.y
-												* (1 + posTolerance / 100))))) {
+										> (placeController.currentDestination_.y
+												+ (posTolerance / 1000))))) {
 					sendTask(pap_common::CONTROLLER, pap_common::COORD,
 							placeController.currentDestination_.x,
 							placeController.currentDestination_.y,

@@ -27,7 +27,7 @@ PlaceController::PlaceController() {
 	// Rough offset values - need to be refined
 	pcbOriginOffset.x = 300;
 	pcbOriginOffset.y = 145;
-	pcbOriginOffset.z = 45.0;
+	pcbOriginOffset.z = 22.0;
 	pickUpAreaOffset.x = 109;
 	pickUpAreaOffset.y = 261;
 	pickUpAreaOffset.z = 20.1;
