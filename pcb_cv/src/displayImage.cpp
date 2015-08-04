@@ -64,9 +64,9 @@ int main(int argc, char **argv) {
 			1000);
 
 	image_transport::Subscriber camera1sub = it_.subscribe("Camera1/image_raw",
-			1, imageCallback1);
+			2, imageCallback1);
 	image_transport::Subscriber camera2sub = it_.subscribe("Camera2/image_raw",
-			1, imageCallback2);
+			2, imageCallback2);
 	tf::TransformBroadcaster transformBr;
 
 	ros::Rate loop_rate(10);
@@ -76,7 +76,7 @@ int main(int argc, char **argv) {
 
 	while (ros::ok()) {
 		ros::spinOnce();
-		loop_rate.sleep();
+		//loop_rate.sleep();
 	}
 }
 

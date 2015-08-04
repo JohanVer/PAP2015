@@ -6,6 +6,7 @@
       <remap from="usb_cam" to="usb_camera0"/>
   </node>
   <node name="Camera2" pkg="usb_cam" type="usb_cam_node" output="screen" >
+	<param name="video_device" value="/dev/video2" />
 	<param name="pixel_format" value="yuyv" />
        <remap from="usb_cam" to="usb_camera1"/>
   </node>

@@ -128,7 +128,7 @@ void QNode::cameraCallback2(const sensor_msgs::ImageConstPtr& camera_msg) {
 }
 
 void QNode::run() {
-	ros::Rate loop_rate(20);
+	ros::Rate loop_rate(100);
 	int count = 0;
 	while (ros::ok()) {
 		ros::spinOnce();
