@@ -27,7 +27,8 @@ set(SOURCE_BUILD "/home/nikolas/catkin_ws/src/PAP2015/pap_gui/include/pap_gui/")
 set(SOURCE_BUILD2 "/home/johan/Documents/catkin_ws/src/pap_gui/include/pap_gui/")
 set(SOURCE_BUILD3 "/home/johan/Dokumente/catkin_ws/src/PAP2015/pap_gui/include/pap_gui/")
 set(SOURCE_BUILD4 "/home/vertensj/Documents/catkin_ws/src/PAP2015/pap_gui/include/pap_gui/")
-include_directories(${catkin_INCLUDE_DIRS} ${SOURCE_BUILD} ${SOURCE_BUILD2} ${SOURCE_BUILD3} ${SOURCE_BUILD4})
+set(SOURCE_BUILD5 "/home/johan/catkin_ws/src/PAP2015/pap_gui/include/pap_gui/")
+include_directories(${catkin_INCLUDE_DIRS} ${SOURCE_BUILD} ${SOURCE_BUILD2} ${SOURCE_BUILD3} ${SOURCE_BUILD4} ${SOURCE_BUILD5})
 
 # Use this to define what the package will export (e.g. libs, headers).
 # Since the default here is to produce only a binary, we don't worry about
