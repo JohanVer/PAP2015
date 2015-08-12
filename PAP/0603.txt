@@ -1,0 +1,32 @@
+*Pick And Place List
+*ArtikelNo=
+*Revision=
+*Company=
+*Author=
+*Tel=
+*Fax=
+*eMail=
+*
+*Project=Powermeter_V4.3
+*ArticleNo=
+*RevisionNo=
+*Variant=<alle Bauteile>
+*PCB=<alle Bauteile>
+*Date=28. April 2015 18:49h
+*CreatedBy=TARGET 3001! V16 professional 16.8.0.6
+*Comment1=
+*Comment2=
+*Comment3=
+*Comment4=
+*Comment5=
+*
+*Coordinates in mm, always center of component
+*Origin 0/0=Lower left corner of PCB
+*PckOrigin=
+*Rotation in degree (0-360, math. pos.)
+*Selection=All components
+*
+*No,"Value/Spec/Package","X","Y","Rotation",Side,"Name"
+*---------------------------------------------------------------------------------------
+33,"1uF//0603","26.81","5.00","90.0",Bot,"C41"
+
