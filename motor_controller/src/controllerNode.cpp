@@ -117,12 +117,13 @@ void checkStatusController(int numberOfController,
 //	if (controllerStatusAct->positionReached
 //			!= controllerStatusOld->positionReached) {
 
-	if (controllerStatusAct->positionReached) {
+	if (controllerStatusAct->positionReached && !controllerStatusOld->positionReached) {
 		stateMessage.status = pap_common::POSITIONREACHED;
-	} else {
+		statusPublisher.publish(stateMessage);
+	} else if(!controllerStatusAct->positionReached && controllerStatusOld->positionReached) {
 		stateMessage.status = pap_common::POSITIONNOTREACHED;
+		statusPublisher.publish(stateMessage);
 	}
-	statusPublisher.publish(stateMessage);
 
 	controllerStatusOld->positionReached = controllerStatusAct->positionReached;
 //	}
@@ -215,7 +216,7 @@ void parseTask(const pap_common::TaskConstPtr& taskMsg) {
 			break;
 		case pap_common::COORD:
 			coordError = controller.gotoCoord(taskMsg->data1, taskMsg->data2,
-					taskMsg->data3);
+					taskMsg->data3,50.0,300.0,100.0);
 			if (coordError != error_codes::NO_ERROR) {
 				if (coordError == error_codes::X_ERROR) {
 					ROS_ERROR("Error while setting x-axis");
@@ -232,7 +233,7 @@ void parseTask(const pap_common::TaskConstPtr& taskMsg) {
 
 		case pap_common::COORD_VEL:
 			coordError = controller.gotoCoord(taskMsg->data1, taskMsg->data2,
-					taskMsg->data3, taskMsg->velX, taskMsg->velY);
+					taskMsg->data3, taskMsg->velX, taskMsg->velY,100.0);
 			if (coordError != error_codes::NO_ERROR) {
 				if (coordError == error_codes::X_ERROR) {
 					ROS_ERROR("Error while setting x-axis");

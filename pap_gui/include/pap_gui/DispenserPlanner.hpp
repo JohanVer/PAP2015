@@ -14,7 +14,7 @@
 #include <ros/ros.h>
 
 #define PERCENTAGE_EDGE_DISTANCE 0.1
-#define VELOCITY_DISPENSE 0.1
+#define VELOCITY_DISPENSE 0.5
 
 class DispenserPlanner {
 public:

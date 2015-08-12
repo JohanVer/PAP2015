@@ -22,7 +22,7 @@
 // Bottom-Camera
 #define PIXEL_TO_MM_BOTTOM 25.00
 
-#define PIXEL_TO_MM_PCB 35.13
+#define PIXEL_TO_MM_PCB 33.63
 
 enum CAMERA_SELECT {
 	CAMERA_TOP, CAMERA_BOTTOM

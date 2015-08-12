@@ -494,7 +494,7 @@ float GerberPadParser::calibratePads(QPointF local1, QPointF local2,
 	float cvAngle = atan2(local2.y() - local1.y(), local2.x() - local1.x());
 
 	differenceAngle_ = fixedAngle - cvAngle;
-	ROS_INFO("Calibration : Difference Angle %f", differenceAngle_);
+	ROS_INFO("Calibration : Difference Angle %f", differenceAngle_*(180.0/M_PI));
 
 // This calculates the translation of the pads in the global pad frame
 	transformIntoGlobalPoint_.setOrigin(
@@ -503,7 +503,7 @@ float GerberPadParser::calibratePads(QPointF local1, QPointF local2,
 
 // This rotates the pads in the global pad frame
 	tf::Quaternion rotQuat;
-	rotQuat.setEuler(0.0, 0.0, differenceAngle_);
+	rotQuat.setEuler(0.0, 0.0, -differenceAngle_);
 	rotation_.setOrigin(tf::Vector3(0.0, 0.0, 0.0));
 	rotation_.setRotation(rotQuat);
 

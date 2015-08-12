@@ -23,7 +23,7 @@
 #define PLACEMENTDELAY1 5
 #define PLACEMENTDELAY2 5
 #define COMPFINDERTIMEOUT 300
-#define MOTORCONTROLLER_TIMEOUT 2000
+#define MOTORCONTROLLER_TIMEOUT 3000
 
 #define posTolerance 500	// Deviation of position in um
 
@@ -31,6 +31,7 @@
 #define TIP2_DIAMETER_VISION 20.0
 #define DISPENSER_DIAMETER_VISION 1.0
 #define CAMERA_DIAMETER_VISION 11.0
+#define DISPENSER_HEIGHT 22.0
 
 int pickupwait_counter, placementwait_counter = 0;
 int componentFinder_counter = 0;
@@ -66,6 +67,7 @@ void setLEDTask(int LEDnumber);
 void resetLEDTask(int LEDnumber);
 
 void resetProcessVariables();
+void resetMotorState(bool x, bool y, bool z);
 
 ros::Publisher task_publisher, arduino_publisher_, placerStatus_publisher_;
 ros::Subscriber statusSubsriber_;
@@ -428,7 +430,7 @@ int main(int argc, char **argv) {
 						placeController.dispenseTask.xPos;
 				placeController.currentDestination_.y =
 						placeController.dispenseTask.yPos;
-				placeController.currentDestination_.z = 10.0;
+				placeController.currentDestination_.z = DISPENSER_HEIGHT;
 				positionSend = true;
 				last_state = state;
 				state = GOTOCOORD;
@@ -655,11 +657,12 @@ int main(int argc, char **argv) {
 								|| (placeController.lastDestination_.y
 										> (placeController.currentDestination_.y
 												+ (posTolerance / 1000))))) {
+
 					sendTask(pap_common::CONTROLLER, pap_common::COORD,
 							placeController.lastDestination_.x,
 							placeController.lastDestination_.y,
 							placeController.MovingHeight_);
-
+					ros::Duration(0.3).sleep();
 					ROS_INFO("PlacerState: GOTOCOORD: x=%f y=%f z=%f",
 							placeController.lastDestination_.x,
 							placeController.lastDestination_.y,
@@ -679,11 +682,12 @@ int main(int argc, char **argv) {
 								|| (placeController.lastDestination_.y
 										> (placeController.currentDestination_.y
 												+ (posTolerance / 1000))))) {
+
 					sendTask(pap_common::CONTROLLER, pap_common::COORD,
 							placeController.currentDestination_.x,
 							placeController.currentDestination_.y,
 							placeController.MovingHeight_);
-
+					ros::Duration(0.3).sleep();
 					ROS_INFO("PlacerState: GOTOCOORD: x=%f y=%f z=%f",
 							placeController.currentDestination_.x,
 							placeController.currentDestination_.y,
@@ -703,10 +707,12 @@ int main(int argc, char **argv) {
 								&& (placeController.lastDestination_.y
 										> (placeController.currentDestination_.y
 												+ (posTolerance / 1000))))) {
+
 					sendTask(pap_common::CONTROLLER, pap_common::COORD,
 							placeController.currentDestination_.x,
 							placeController.currentDestination_.y,
 							placeController.currentDestination_.z);
+					ros::Duration(0.3).sleep();
 
 					ROS_INFO("PlacerState: GOTOCOORD: x=%f y=%f z=%f",
 							placeController.currentDestination_.x,
@@ -715,7 +721,6 @@ int main(int argc, char **argv) {
 					zPosReached = 2;
 					ROS_INFO("zPos: %d", zPosReached);
 				}
-				ros::Duration(0.3).sleep();
 				motorcontroller_counter = 0;
 				placerNodeBusy = true;
 			}
@@ -766,20 +771,21 @@ int main(int argc, char **argv) {
 
 		case DISPENSE:
 			if (!placerNodeBusy) {
-				if (zPosReached == 0) {
-					sendTask(pap_common::CONTROLLER, pap_common::COORD_VEL,
-							placeController.dispenseTask.xPos2,
-							placeController.dispenseTask.yPos2, 10.0,
-							placeController.dispenseTask.velocity,
-							placeController.dispenseTask.velocity);
 
-					ROS_INFO("PlacerState: GOTOCOORD: x=%f y=%f z=%f",
-							placeController.dispenseTask.xPos2,
-							placeController.dispenseTask.yPos2, 10.0);
-				}
 				// Turn on dispenser
 				sendRelaisTask(8, true);
+				ros::Duration(placeController.dispenseTask.time).sleep();
+
+				sendTask(pap_common::CONTROLLER, pap_common::COORD_VEL,
+						placeController.dispenseTask.xPos2,
+						placeController.dispenseTask.yPos2, DISPENSER_HEIGHT,
+						placeController.dispenseTask.velocity,
+						placeController.dispenseTask.velocity);
 				ros::Duration(0.3).sleep();
+				ROS_INFO("PlacerState: GOTOCOORD: x=%f y=%f z=%f",
+						placeController.dispenseTask.xPos2,
+						placeController.dispenseTask.yPos2, DISPENSER_HEIGHT);
+
 				motorcontroller_counter = 0;
 				placerNodeBusy = true;
 			}
@@ -829,6 +835,7 @@ int main(int argc, char **argv) {
 			state = IDLE;
 			break;
 		}
+		//ROS_INFO("Reached 1: %d Reached 2: %d Reached 3: %d",motorcontrollerStatus[1].positionReached,motorcontrollerStatus[2].positionReached,motorcontrollerStatus[3].positionReached);
 		ros::spinOnce();
 		loop_rate.sleep();
 	}
@@ -850,10 +857,12 @@ void statusCallback(const pap_common::StatusConstPtr& statusMsg) {
 
 	if (statusMsg->status == pap_common::POSITIONREACHED) {
 		motorcontrollerStatus[index].positionReached = true;
+		ROS_INFO("Reached");
 	}
 
 	if (statusMsg->status == pap_common::POSITIONNOTREACHED) {
 		motorcontrollerStatus[index].positionReached = false;
+		ROS_INFO("NotReached");
 	}
 
 	if (statusMsg->status == pap_common::ERROR) {
@@ -1034,6 +1043,7 @@ void dispenserCallback(const pap_common::DispenseTaskConstPtr& taskMsg) {
 	placeController.dispenseTask.yPos = taskMsg->yPos1;
 	placeController.dispenseTask.yPos2 = taskMsg->yPos2;
 	placeController.dispenseTask.velocity = taskMsg->velocity;
+	placeController.dispenseTask.time = taskMsg->waitTime;
 	state = DISPENSETASK;
 	ROS_INFO("Dispensing...");
 }
@@ -1167,5 +1177,11 @@ void resetProcessVariables() {
 	pickupwait_counter = 0;
 	placementwait_counter = 0;
 	componentFinder_counter = 0;
+}
+
+void resetMotorState(bool x, bool y, bool z){
+	motorcontrollerStatus[1].positionReached = x;
+	motorcontrollerStatus[2].positionReached = y;
+	motorcontrollerStatus[3].positionReached = z;
 }
 

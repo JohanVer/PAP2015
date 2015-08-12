@@ -343,6 +343,7 @@ void QNode::sendDispenserTask(dispenseInfo dispenseTask) {
 	msg.yPos1 = dispenseTask.yPos;
 	msg.yPos2 = dispenseTask.yPos2;
 	msg.velocity = dispenseTask.velocity;
+	msg.waitTime = dispenseTask.time;
 	dispenser_publisher_.publish(msg);
 }
 

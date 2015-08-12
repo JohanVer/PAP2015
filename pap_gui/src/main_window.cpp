@@ -738,7 +738,7 @@ void MainWindow::updateDatabaseTable() {
  **************************************************************************************************************/
 void MainWindow::on_startSinglePlacementButton_clicked() {
 
-	 /*if (ui.checkBox_pcbPlaced->isChecked()) {
+	/*if (ui.checkBox_pcbPlaced->isChecked()) {
 	 if (ui.checkBox_position->isChecked()
 	 && ui.checkBox_orientation->isChecked()
 	 && ui.checkBox_box->isChecked()) {
@@ -768,8 +768,8 @@ void MainWindow::on_startSinglePlacementButton_clicked() {
 }
 
 void MainWindow::on_goToPCBButton_clicked() {
-		ui.tab_manager->setCurrentIndex(1);
-		qnode.sendTask(pap_common::PLACER, pap_common::GOTOPCB, placementData);
+	ui.tab_manager->setCurrentIndex(1);
+	qnode.sendTask(pap_common::PLACER, pap_common::GOTOPCB, placementData);
 }
 
 // Package that is going to be sent to placeController
@@ -1187,9 +1187,10 @@ void MainWindow::statusUpdated(int index) {
 		} else {
 			ui.posLabel1->setText("busy");
 		}
-		if(qnode.getStatus()[index].pos != 0.0){
-		ui.label_posX->setText(QString::number((qnode.getStatus())[index].pos));
-		currentPosition.x = (qnode.getStatus())[index].pos;
+		if (qnode.getStatus()[index].pos != 0.0) {
+			ui.label_posX->setText(
+					QString::number((qnode.getStatus())[index].pos));
+			currentPosition.x = (qnode.getStatus())[index].pos;
 		}
 		break;
 
@@ -1212,9 +1213,10 @@ void MainWindow::statusUpdated(int index) {
 			ui.posLabel2->setText("busy");
 		}
 
-		if(qnode.getStatus()[index].pos != 0.0){
-		ui.label_posY->setText(QString::number((qnode.getStatus())[index].pos));
-		currentPosition.y = (qnode.getStatus())[index].pos;
+		if (qnode.getStatus()[index].pos != 0.0) {
+			ui.label_posY->setText(
+					QString::number((qnode.getStatus())[index].pos));
+			currentPosition.y = (qnode.getStatus())[index].pos;
 		}
 		break;
 
@@ -1236,14 +1238,16 @@ void MainWindow::statusUpdated(int index) {
 		} else {
 			ui.posLabel3->setText("busy");
 		}
-		if(qnode.getStatus()[index].pos != 0.0){
-		ui.label_posZ->setText(QString::number((qnode.getStatus())[index].pos));
-		currentPosition.z = (qnode.getStatus())[index].pos;
+		if (qnode.getStatus()[index].pos != 0.0) {
+			ui.label_posZ->setText(
+					QString::number((qnode.getStatus())[index].pos));
+			currentPosition.z = (qnode.getStatus())[index].pos;
 		}
 		break;
 	}
 	// Send transforms to rviz
-	sendTransforms(currentPosition.x/1000.0,currentPosition.y/1000.0,currentPosition.z/1000.0,tip1Pos_/1000.0,tip2Pos_/1000.0);
+	sendTransforms(currentPosition.x / 1000.0, currentPosition.y / 1000.0,
+			currentPosition.z / 1000.0, tip1Pos_ / 1000.0, tip2Pos_ / 1000.0);
 }
 
 // Vacuum valve 1
@@ -1597,14 +1601,17 @@ void MainWindow::setFiducial(QPointF point) {
 
 	qnode.sendTask(pap_common::VISION, pap_vision::START_PAD_FINDER);
 	if (ui.fiducialTable->fiducialSize_ == 0) {
-		setFiducialTable(0, padPosition_.x()+ currentPosition.x, padPosition_.y() + currentPosition.y);
+		setFiducialTable(0, padPosition_.x() + currentPosition.x,
+				padPosition_.y() + currentPosition.y);
 	} else if (ui.fiducialTable->fiducialSize_ == 1) {
-		setFiducialTable(1, padPosition_.x()+ currentPosition.x, padPosition_.y() + currentPosition.y);
+		setFiducialTable(1, padPosition_.x() + currentPosition.x,
+				padPosition_.y() + currentPosition.y);
 	} else {
 		ui.fiducialTable->clear();
 		ui.fiducialTable->fiducialSize_ = 0;
 		initFiducialTable();
-		setFiducialTable(0, padPosition_.x()+ currentPosition.x, padPosition_.y()+ currentPosition.y);
+		setFiducialTable(0, padPosition_.x() + currentPosition.x,
+				padPosition_.y() + currentPosition.y);
 	}
 
 }
@@ -1779,7 +1786,7 @@ void MainWindow::gotoPad(QPointF padPos) {
 	float x = padParser.padInformationArray_[id_].rect.x();
 	float y = padParser.padInformationArray_[id_].rect.y();
 	ROS_INFO("Goto position x: %f y: %f", x, y);
-	qnode.sendTask(pap_common::CONTROLLER, pap_common::COORD, x, y, 10);
+	qnode.sendTask(pap_common::CONTROLLER, pap_common::COORD, x, y, 22);
 	//}
 }
 
@@ -1791,14 +1798,10 @@ void MainWindow::on_calibrationButton_clicked() {
 void MainWindow::on_calcOrientation_Button_clicked() {
 	QPointF local1, global1, local2, global2;
 
-	local1.setX(
-			ui.fiducialTable->item(0, 2)->text().toFloat() );
-	local1.setY(
-			ui.fiducialTable->item(0, 3)->text().toFloat());
-	local2.setX(
-			ui.fiducialTable->item(1, 2)->text().toFloat());
-	local2.setY(
-			ui.fiducialTable->item(1, 3)->text().toFloat());
+	local1.setX(ui.fiducialTable->item(0, 2)->text().toFloat());
+	local1.setY(ui.fiducialTable->item(0, 3)->text().toFloat());
+	local2.setX(ui.fiducialTable->item(1, 2)->text().toFloat());
+	local2.setY(ui.fiducialTable->item(1, 3)->text().toFloat());
 
 	/*
 	 float xCamera = 170.0;
@@ -1946,7 +1949,7 @@ void MainWindow::on_startDispense_button_clicked() {
 					QPen(Qt::blue, nozzleDiameter * pxFactor, Qt::SolidLine));
 
 			// TODO: Transform output into global coordinate system
-			//			padParser.transformDispenserInfo(&dispInfo[j]);
+			padParser.transformDispenserInfo(&dispInfo[j]);
 			qnode.sendDispenserTask(dispInfo[j]);
 
 			QEventLoop loop;
@@ -1977,7 +1980,6 @@ void MainWindow::dispenseSinglePad(QPointF point) {
 		std::vector<dispenseInfo> dispInfo = dispenserPlanner.planDispensing(
 				padParser.padInformationArrayPrint_[id_], nozzleDiameter);
 
-
 		for (size_t j = 0; j < dispInfo.size(); j++) {
 			scenePads_.addLine(
 					QLineF(dispInfo[j].yPos * pxFactor,
@@ -1989,7 +1991,7 @@ void MainWindow::dispenseSinglePad(QPointF point) {
 					QPen(Qt::blue, nozzleDiameter * pxFactor, Qt::SolidLine));
 
 			// TODO: Transform output into global coordinate system
-//			padParser.transformDispenserInfo(&dispInfo[j]);
+			padParser.transformDispenserInfo(&dispInfo[j]);
 			qnode.sendDispenserTask(dispInfo[j]);
 
 			QEventLoop loop;
