@@ -118,6 +118,18 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent) :
 	QObject::connect(&qnode, SIGNAL(placerStatusUpdated(int, int)), this,
 			SLOT(placerStatusUpdated(int, int)));
 
+	//LED Slider
+	connect(ui.ringBrightnessSlider, SIGNAL(valueChanged(int)), this,
+			SLOT(changeRingLEDBrightness(int)));
+
+	connect(ui.backBrightnessSlider, SIGNAL(valueChanged(int)), this,
+			SLOT(changeBackLEDBrightness(int)));
+
+	// Color Combo LED Ring
+
+	connect(ui.ringColorCombo, SIGNAL(activated(int)), this,
+			SLOT(changeRingColor(int)));
+
 	connect(ui.xManPos, SIGNAL(released()), this, SLOT(releasexManPos()));
 	connect(ui.xManNeg, SIGNAL(released()), this, SLOT(releasexManNeg()));
 	connect(ui.YManPos, SIGNAL(released()), this, SLOT(releaseyManPos()));
@@ -1441,6 +1453,42 @@ void MainWindow::on_resetLEDButton_clicked() {
 		msgBox.setText("Only numbers accepted.");
 		msgBox.exec();
 		msgBox.close();
+	}
+
+}
+
+void MainWindow::on_ledResetButton_clicked() {
+	qnode.LEDTask(pap_common::RESETALLLED, 0);
+}
+
+void MainWindow::changeRingLEDBrightness(int brightness) {
+	qnode.LEDTask(pap_common::SETBRIGHTNESSRING, brightness);
+}
+
+void MainWindow::changeBackLEDBrightness(int brightness) {
+	qnode.LEDTask(pap_common::SETBRIGHTNESSBACK, brightness);
+}
+
+void MainWindow::changeRingColor(int comboValue) {
+	switch (comboValue) {
+	// Green
+	case 0:
+		qnode.LEDTask(pap_common::SETRINGCOLOR, 0);
+		break;
+		// Red
+	case 1:
+		qnode.LEDTask(pap_common::SETRINGCOLOR, 96);
+		break;
+
+		//Blue
+	case 2:
+		qnode.LEDTask(pap_common::SETRINGCOLOR, 171);
+		break;
+
+		// White
+	case 3:
+		qnode.LEDTask(pap_common::SETRINGCOLOR, 128);
+		break;
 	}
 }
 

@@ -321,6 +321,13 @@ void QNode::resetBottomLEDTask() {
 	arduino_publisher_.publish(arduinoMsg);
 }
 
+void QNode::LEDTask(int task, int data) {
+	pap_common::ArduinoMsg arduinoMsg;
+	arduinoMsg.command = task;
+	arduinoMsg.data = data;
+	arduino_publisher_.publish(arduinoMsg);
+}
+
 void QNode::sendTask(pap_common::DESTINATION destination, pap_common::TASK task,
 		ComponentPlacerData componentData) {
 	pap_common::Task taskMsg;

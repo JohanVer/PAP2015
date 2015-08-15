@@ -141,6 +141,10 @@ public Q_SLOTS:
     void on_setCompBoxNrButton_2_clicked();
     void on_setLEDButton_clicked();
     void on_resetLEDButton_clicked();
+    void on_ledResetButton_clicked();
+    void changeRingLEDBrightness(int brightness);
+    void changeBackLEDBrightness(int brightness);
+    void changeRingColor(int comboValue);
 
     void on_startSinglePlacementButton_clicked();
     //void initializeBoxPositionVector();

@@ -127,6 +127,7 @@ public:
 	void sendPcbImage(QImage* image,visualization_msgs::MarkerArray *markerList);
 	void setBottomLEDTask();
 	void resetBottomLEDTask();
+	void LEDTask(int task, int data);
 
 
 Q_SIGNALS:
