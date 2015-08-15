@@ -145,6 +145,8 @@ public Q_SLOTS:
     void changeRingLEDBrightness(int brightness);
     void changeBackLEDBrightness(int brightness);
     void changeRingColor(int comboValue);
+    void on_blinkBackButton_clicked();
+    void on_blinkRingButton_clicked();
 
     void on_startSinglePlacementButton_clicked();
     //void initializeBoxPositionVector();

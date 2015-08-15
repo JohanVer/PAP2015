@@ -1461,6 +1461,30 @@ void MainWindow::on_ledResetButton_clicked() {
 	qnode.LEDTask(pap_common::RESETALLLED, 0);
 }
 
+void MainWindow::on_blinkBackButton_clicked() {
+	static unsigned int backBlinking = 0;
+	if(backBlinking){
+		qnode.LEDTask(pap_common::BACKLIGHTBLINK, 0);
+		backBlinking = 0;
+	}
+	else{
+		qnode.LEDTask(pap_common::BACKLIGHTBLINK, 1);
+		backBlinking = 1;
+	}
+}
+
+void MainWindow::on_blinkRingButton_clicked() {
+	static unsigned int ringBlinking = 0;
+	if(ringBlinking){
+			qnode.LEDTask(pap_common::RINGBLINK, 0);
+			ringBlinking = 0;
+		}
+		else{
+		qnode.LEDTask(pap_common::RINGBLINK, 1);
+			ringBlinking = 1;
+		}
+}
+
 void MainWindow::changeRingLEDBrightness(int brightness) {
 	qnode.LEDTask(pap_common::SETBRIGHTNESSRING, brightness);
 }
