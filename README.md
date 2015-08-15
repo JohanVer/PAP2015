@@ -1,5 +1,5 @@
 # PAP2015
-TODO-LIST:--------------------------------------------------------------------------------------------------
+#TODO
 
 Johan: 
 1. Tape Calibration: Goto correct tape position (Lookup table)
@@ -17,7 +17,7 @@ Nikolas:
 5. Placer-Planner: Implement complete (all parts with one click magic) assembling of smd parts
 6. Placer-Planner: Test the part rotation procedure (does the system rotate the part in the right direction?)
 
-DEPENDENCIES:-----------------------------------------------------------------------------------------------
+#DEPENDENCIES
 
 sudo apt-get install ros-indigo-rosserial-arduino
 sudo apt-get install ros-indigo-rosserial
