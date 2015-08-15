@@ -227,13 +227,15 @@ smdPart padFinder::findChip(cv::Mat* input, unsigned int camera_select) {
 						< ((partHeight_) / 100.0) * (100.0 + ERROR_PERCENT_CHIP))
 				|| (rect.size.height / pxToMM
 						> ((partWidth_) / 100.0) * (100.0 - ERROR_PERCENT_CHIP)
-				&& rect.size.height / pxToMM
-						< ((partWidth_) / 100.0) * (100.0 + ERROR_PERCENT_CHIP)
-				&& rect.size.width / pxToMM
-						> ((partHeight_) / 100.0) * (100.0 - ERROR_PERCENT_CHIP)
-				&& rect.size.width / pxToMM
-						< ((partHeight_) / 100.0)
-								* (100.0 + ERROR_PERCENT_CHIP))) {
+						&& rect.size.height / pxToMM
+								< ((partWidth_) / 100.0)
+										* (100.0 + ERROR_PERCENT_CHIP)
+						&& rect.size.width / pxToMM
+								> ((partHeight_) / 100.0)
+										* (100.0 - ERROR_PERCENT_CHIP)
+						&& rect.size.width / pxToMM
+								< ((partHeight_) / 100.0)
+										* (100.0 + ERROR_PERCENT_CHIP))) {
 			contoursSorted.push_back(contours[i]);
 
 			//ROS_INFO("Found Width: %f Height: %f", rect.size.width,
@@ -333,7 +335,7 @@ smdPart padFinder::findSmallSMD(cv::Mat* input) {
 	return smdFinal;
 }
 
-smdPart padFinder::findSMDTape(cv::Mat* input) {
+smdPart padFinder::findSMDTape(cv::Mat* input,bool searchTapeRotation) {
 	std::vector<smdPart> smdObjects;
 	cv::Mat gray;
 	cv::Mat final = input->clone();
@@ -341,7 +343,6 @@ smdPart padFinder::findSMDTape(cv::Mat* input) {
 	cv::threshold(gray, gray, 255, 255, CV_THRESH_BINARY | CV_THRESH_OTSU);
 	cv::erode(gray, gray, cv::Mat(), cv::Point(-1, -1),
 	ERODE_ITERATIONS_TAPE_FINDER);
-
 	std::vector<std::vector<cv::Point> > contours;
 	std::vector<std::vector<cv::Point> > contoursSorted;
 	vector<Vec4i> hierarchy;
@@ -376,47 +377,66 @@ smdPart padFinder::findSMDTape(cv::Mat* input) {
 		}
 	}
 
+
 	for (int i = 0; i < contours.size(); i++) {
 		// Sort out circles
 		bool found = false;
-		for (int j = 0; j <= circlesIndex.size(); j++) {
+		for (int j = 0; j < circlesIndex.size(); j++) {
 			if (circlesIndex[j] == i) {
 				found = true;
 			}
 		}
-
 		if (!found) {
 			cv::RotatedRect rect = minAreaRect(contours[i]);
 			float rectConvertedArea = rect.size.width / PIXEL_TO_MM_TOP
 					* rect.size.height / PIXEL_TO_MM_TOP;
-			//ROS_INFO("Tape size : %f Des size: %f",rectConvertedArea,(partWidth_ * partHeight_));
-			if (!isBorderTouched(rect)
-					&& rectConvertedArea
-							> ((partWidth_ * partHeight_) / 100.0)
-									* (100.0 - ERROR_PERCENT_SMDTAPE)
-					&& rectConvertedArea
-							< ((partWidth_ * partHeight_) / 100.0)
-									* (100.0 + ERROR_PERCENT_SMDTAPE)) {
-			//if(isBorderTouched(rect)){
-				smdPart smd;
-				smd.x = rect.center.x;
-				smd.y = rect.center.y;
-				smd.rot = rect.angle;
-				if (rect.size.height < rect.size.width) {
-					smd.rot = std::fabs(smd.rot);
-				} else {
-					smd.rot = -(90.0 + smd.rot);
+			if (searchTapeRotation) {
+				if (isBorderTouched(rect) && rectConvertedArea > 30.0) {
+					smdPart smd;
+					smd.x = rect.center.x;
+					smd.y = rect.center.y;
+					smd.rot = rect.angle;
+					if (rect.size.height < rect.size.width) {
+						smd.rot = std::fabs(smd.rot);
+					} else {
+						smd.rot = -(90.0 + smd.rot);
+					}
+					//ROS_INFO("Angle : %f Area: %f",rect.angle,rectConvertedArea);
+					smdObjects.push_back(smd);
+					drawRotatedRect(final, rect, CV_RGB(0, 0, 255));
 				}
-				//ROS_INFO("Angle : %f Width: %f Height: %f",rect.angle,rect.size.width,rect.size.height);
-				smdObjects.push_back(smd);
-				//drawRotatedRect(final, rect, CV_RGB(0, 0, 255));
-				cv::drawContours(final, contours, i, CV_RGB(0, 255, 0), 2);
+			} else {
+				//ROS_INFO("Tape size : %f Des size: %f",rectConvertedArea,(partWidth_ * partHeight_));
+				if (!isBorderTouched(rect)
+						&& rectConvertedArea
+								> ((partWidth_ * partHeight_) / 100.0)
+										* (100.0 - ERROR_PERCENT_SMDTAPE)
+						&& rectConvertedArea
+								< ((partWidth_ * partHeight_) / 100.0)
+										* (100.0 + ERROR_PERCENT_SMDTAPE)) {
+
+					smdPart smd;
+					smd.x = rect.center.x;
+					smd.y = rect.center.y;
+					smd.rot = rect.angle;
+					if (rect.size.height < rect.size.width) {
+						smd.rot = std::fabs(smd.rot);
+					} else {
+						smd.rot = -(90.0 + smd.rot);
+					}
+					//ROS_INFO("Angle : %f Width: %f Height: %f",rect.angle,rect.size.width,rect.size.height);
+					smdObjects.push_back(smd);
+					//drawRotatedRect(final, rect, CV_RGB(0, 0, 255));
+					cv::drawContours(final, contours, i, CV_RGB(0, 255, 0), 2);
+				}
 			}
 		}
 	}
 
 	smdPart smdFinal;
-
+	if(!smdObjects.size()){
+		return smdFinal;
+	}
 	if (nearestPart(&smdObjects, &smdFinal, input->cols, input->rows)) {
 		circle(final, Point2f(smdFinal.x, smdFinal.y), 5, CV_RGB(0, 0, 255), 3);
 		smdFinal.x = (smdFinal.x - (input->cols / 2 - 1)) / PIXEL_TO_MM_TOP;

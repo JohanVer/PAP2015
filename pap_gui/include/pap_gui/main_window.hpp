@@ -60,6 +60,12 @@ public:
 };
 
 
+class tapeCalibrationValue {
+public:
+	float x, y, rot;
+	int index;
+};
+
 /*****************************************************************************
 ** Namespace
 *****************************************************************************/
@@ -147,6 +153,7 @@ public Q_SLOTS:
     void changeRingColor(int comboValue);
     void on_blinkBackButton_clicked();
     void on_blinkRingButton_clicked();
+    void on_calibrateTapeButton_clicked(void);
 
     void on_startSinglePlacementButton_clicked();
     //void initializeBoxPositionVector();
@@ -160,6 +167,9 @@ public Q_SLOTS:
     void on_startTipFinder_Button_clicked();
     void on_bottomLEDButton_clicked();
     void gotoPad(QPointF padPos);
+    void calibrateTape(int tapeNumber, float componentWidth,
+    		float componentHeight);
+    tapeCalibrationValue calculatePosOfTapePart(int numOfTape, int numOfPart);
     // Display Functions
     void displaySMDCoords(float x,float y,float rot, unsigned int cameraSelect);
     void setCamera1Point(QPointF point);
@@ -248,6 +258,8 @@ private:
     QPointF padPosition_;
     GerberPadParser padParser;
     int id_;
+
+    std::vector<tapeCalibrationValue> tapeCalibrationValues;
 
 };
 

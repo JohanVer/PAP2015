@@ -45,4 +45,4 @@ Source: https://github.com/FastLED/FastLED/archive/3.0.3
 Extract into sketchbook/libraries and give it a propper name like "FastLED"
 
 For using the image_simulator you should add something like this to your bashrc:
-export PAPIMAGES=/home/johan/Dokumente/catkin_ws/src/PAP2015/image_simulator/images
+export PAPIMAGES=/home/johan/Dokumente/catkin_ws/src/PAP2015/PAP/

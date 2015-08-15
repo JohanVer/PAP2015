@@ -37,7 +37,7 @@ VISION_PROCESS visionState = IDLE;
 void parseTask(const pap_common::TaskConstPtr& taskMsg);
 
 int main(int argc, char **argv) {
-	ros::init(argc, argv, "add_two_ints_server");
+	ros::init(argc, argv, "image_simulator");
 	ros::NodeHandle n;
 
 	image_transport::ImageTransport it_(n);
@@ -51,34 +51,34 @@ int main(int argc, char **argv) {
 
 	ros::Rate loop_rate(30);
 	image_pub_ = it_.advertise("Camera1/image_raw", 10);
-	image_pub_2 = it_.advertise("Camera2", 10);
+	image_pub_2 = it_.advertise("Camera2/image_raw", 10);
 	//qr_image_pub_ = it_.advertise("image", 10);
 
 	while (ros::ok()) {
 		cv::Mat input;
 		switch (visionState) {
 		case IDLE:
-			input = cv::imread(string(getenv("PAPIMAGES")) + "/Chip.png");
+			input = cv::imread(string(getenv("PAPRESOURCES")) + "images/Chip.png");
 			break;
 
 		case CHIP:
-			input = cv::imread(string(getenv("PAPIMAGES")) + "/Chip.png");
+			input = cv::imread(string(getenv("PAPRESOURCES")) + "images/Chip.png");
 			break;
 
 		case TAPE:
-			input = cv::imread(string(getenv("PAPIMAGES")) + "/Tape0402.png");
+			input = cv::imread(string(getenv("PAPRESOURCES")) + "images/Tape0402.png");
 			break;
 
 		case QRCODE:
-			input = cv::imread(string(getenv("PAPIMAGES")) + "/Chip.png");
+			input = cv::imread(string(getenv("PAPRESOURCES")) + "images/Chip.png");
 			break;
 
 		case CIRCLE:
-			input = cv::imread(string(getenv("PAPIMAGES")) + "/Chip.png");
+			input = cv::imread(string(getenv("PAPRESOURCES")) + "images/Chip.png");
 			break;
 
 		case PAD:
-			input = cv::imread(string(getenv("PAPIMAGES")) + "/Pad.png");
+			input = cv::imread(string(getenv("PAPRESOURCES")) + "images/Pad.png");
 			break;
 
 		}

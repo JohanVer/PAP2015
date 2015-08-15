@@ -36,6 +36,7 @@ enum VISION_PROCESS {
 
 VISION_PROCESS visionState = IDLE;
 bool visionEnabled, selectPad = false;
+bool searchTapeRotation = false;
 ros::Publisher statusPublisher;
 padFinder finder;
 unsigned int cameraSelect;
@@ -139,7 +140,7 @@ void imageCallback1(const sensor_msgs::ImageConstPtr& msg) {
 			break;
 		case TAPE:
 			// SMD Tape
-			smd = finder.findSMDTape(&input);
+			smd = finder.findSMDTape(&input, searchTapeRotation);
 			if (smd.x != 0.0 && smd.y != 0.0) {
 				visionMsg.task = pap_vision::START_TAPE_FINDER;
 				visionMsg.data1 = smd.y;
@@ -304,7 +305,12 @@ void parseTask(const pap_common::TaskConstPtr& taskMsg) {
 
 		case pap_vision::START_TAPE_FINDER:
 			finder.setSize(taskMsg->data1, taskMsg->data2);
-			ROS_INFO("Setting size....");
+			if (taskMsg->data3 == 1.0) {
+				searchTapeRotation = true;
+			}
+			else{
+				searchTapeRotation = false;
+			}
 			visionState = TAPE;
 			break;
 

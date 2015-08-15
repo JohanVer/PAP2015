@@ -50,7 +50,7 @@ public:
 	cv::Point2f findPads(cv::Mat* input,bool startSelect,cv::Point2f selectPad);
 	smdPart findChip(cv::Mat* input, unsigned int camera_select);
 	smdPart findSmallSMD(cv::Mat* input);
-	smdPart findSMDTape(cv::Mat* input);
+	smdPart findSMDTape(cv::Mat* input,bool searchTapeRotation);
 	smdPart findTip(cv::Mat* input);
 
 	double angle(cv::Point pt1, cv::Point pt2, cv::Point pt0);
