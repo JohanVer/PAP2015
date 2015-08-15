@@ -22,9 +22,6 @@
 #include "../../pap_common/include/pap_common/task_message_def.h"
 #include <tf/transform_broadcaster.h>
 
-// Switch for simulation or gathering data from usb camera
-//#define SIMULATION
-
 char key;
 using namespace std;
 using namespace cv;
@@ -102,12 +99,7 @@ void imageCallback1(const sensor_msgs::ImageConstPtr& msg) {
 	if (visionEnabled) {
 		switch (visionState) {
 		case IDLE:
-#ifdef SIMULATION
-			input =
-			cv::imread(
-					"/home/nikolas/Desktop/Webcam_Pictures/Webcam-1435326531.png");
 
-#endif
 			break;
 
 		case QRCODE:
@@ -117,12 +109,6 @@ void imageCallback1(const sensor_msgs::ImageConstPtr& msg) {
 
 		case CHIP:
 			// Chip
-#ifdef SIMULATION
-			input =
-			cv::imread(
-					"/home/nikolas/Desktop/Webcam_Pictures/Webcam-1435311766.png");
-
-#endif
 
 			if (cameraSelect == CAMERA_TOP) {
 				smd = finder.findChip(&input, cameraSelect);
@@ -141,11 +127,6 @@ void imageCallback1(const sensor_msgs::ImageConstPtr& msg) {
 			break;
 		case SMALL_SMD:
 			// SMD Chip
-#ifdef SIMULATION
-			input =
-			cv::imread(
-					"/home/nikolas/Desktop/Webcam_Pictures/Webcam-1435326387.png");
-#endif
 			smd = finder.findSmallSMD(&input);
 			if (smd.x != 0.0 && smd.y != 0.0) {
 				visionMsg.task = pap_vision::START_SMALL_FINDER;
@@ -158,11 +139,6 @@ void imageCallback1(const sensor_msgs::ImageConstPtr& msg) {
 			break;
 		case TAPE:
 			// SMD Tape
-#ifdef SIMULATION
-			input =
-			cv::imread(
-					"/home/nikolas/Desktop/Webcam_Pictures/Webcam-1435327178.png");
-#endif
 			smd = finder.findSMDTape(&input);
 			if (smd.x != 0.0 && smd.y != 0.0) {
 				visionMsg.task = pap_vision::START_TAPE_FINDER;
@@ -175,11 +151,6 @@ void imageCallback1(const sensor_msgs::ImageConstPtr& msg) {
 			break;
 		case PAD:
 			// Pads
-#ifdef SIMULATION
-			input =
-			cv::imread(
-					"/home/nikolas/Desktop/Webcam_Pictures/Webcam-1435326531.png");
-#endif
 			position = finder.findPads(&input, selectPad, selectPoint);
 			//ROS_INFO("X %f Y  %f", position.x, position.y);
 			if (selectPad && position.x != 0.0 && position.y != 0.0) {
@@ -193,13 +164,6 @@ void imageCallback1(const sensor_msgs::ImageConstPtr& msg) {
 			break;
 		}
 	} else {
-#ifdef SIMULATION
-
-		input =
-		cv::imread(
-				"/home/nikolas/Desktop/Webcam_Pictures/Webcam-1435326531.png");
-
-#endif
 	}
 
 	// Crosshairs
@@ -249,21 +213,10 @@ void imageCallback2(const sensor_msgs::ImageConstPtr& msg) {
 	if (visionEnabled) {
 		switch (visionState) {
 		case IDLE:
-#ifdef SIMULATION
-			input2 =
-			cv::imread(
-					"/home/nikolas/Desktop/Webcam_Pictures/Webcam-1435326531.png");
-#endif
 			break;
 
 		case CHIP:
 			// Chip
-#ifdef SIMULATION
-			input2 =
-			cv::imread(
-					"/home/nikolas/Desktop/Webcam_Pictures/Webcam-1435311766.png");
-
-#endif
 
 			if (cameraSelect == CAMERA_BOTTOM) {
 				smd = finder.findChip(&input2, cameraSelect);
@@ -293,12 +246,6 @@ void imageCallback2(const sensor_msgs::ImageConstPtr& msg) {
 			break;
 		}
 	} else {
-#ifdef SIMULATION
-		input2 =
-		cv::imread(
-				"/home/nikolas/Desktop/Webcam_Pictures/Webcam-1435326531.png");
-
-#endif
 	}
 
 	// Crosshairs
@@ -378,7 +325,6 @@ void parseTask(const pap_common::TaskConstPtr& taskMsg) {
 				selectPoint.x = 0.0;
 				selectPoint.y = 0.0;
 			}
-
 			break;
 
 		case pap_vision::SEARCH_CIRCLE:

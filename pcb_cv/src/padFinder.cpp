@@ -397,6 +397,7 @@ smdPart padFinder::findSMDTape(cv::Mat* input) {
 					&& rectConvertedArea
 							< ((partWidth_ * partHeight_) / 100.0)
 									* (100.0 + ERROR_PERCENT_SMDTAPE)) {
+			//if(isBorderTouched(rect)){
 				smdPart smd;
 				smd.x = rect.center.x;
 				smd.y = rect.center.y;
@@ -408,6 +409,7 @@ smdPart padFinder::findSMDTape(cv::Mat* input) {
 				}
 				//ROS_INFO("Angle : %f Width: %f Height: %f",rect.angle,rect.size.width,rect.size.height);
 				smdObjects.push_back(smd);
+				//drawRotatedRect(final, rect, CV_RGB(0, 0, 255));
 				cv::drawContours(final, contours, i, CV_RGB(0, 255, 0), 2);
 			}
 		}
