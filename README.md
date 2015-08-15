@@ -1,21 +1,23 @@
-# PAP2015
+#PAP2015
 #TODO
 
-Johan: 
-1. Tape Calibration: Goto correct tape position (Lookup table)
-2. LED-Controller: Test new LED functions: Slider for dimming, blinking, color selection
-3. Dispenser-Planner: Sort dispenser tasks due to distances
-4. Dispenser-Planner: Check middle points of dispenser planning
-5. Dispenser-Planner: Modify dispenser height
-6. Dispenser-Planner: Pause-Button, Exclude-Function
+Johan:
+ 
+* Tape Calibration: Goto correct tape position (Lookup table)
+* LED-Controller: Test new LED functions: Slider for dimming, blinking, color selection
+* Dispenser-Planner: Sort dispenser tasks due to distances
+* Dispenser-Planner: Check middle points of dispenser planning
+* Dispenser-Planner: Modify dispenser height
+* Dispenser-Planner: Pause-Button, Exclude-Function
 
 Nikolas:
-1. Placer-Planner: Implement possibility to choose a tape
-2. Placer-Planner: Use the functions "calibrateTape" and "positionOfComponent"
-3. Placer-Planner: Check the parsed positions (after the point there are only zeros)
-4. Placer-Planner: Implement the second nozzle
-5. Placer-Planner: Implement complete (all parts with one click magic) assembling of smd parts
-6. Placer-Planner: Test the part rotation procedure (does the system rotate the part in the right direction?)
+
+* Placer-Planner: Implement possibility to choose a tape
+* Placer-Planner: Use the functions "calibrateTape" and "positionOfComponent"
+* Placer-Planner: Check the parsed positions (after the point there are only zeros)
+* Placer-Planner: Implement the second nozzle
+* Placer-Planner: Implement complete (all parts with one click magic) assembling of smd parts
+* Placer-Planner: Test the part rotation procedure (does the system rotate the part in the right direction?)
 
 #DEPENDENCIES
 
