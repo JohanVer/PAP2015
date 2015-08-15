@@ -1,4 +1,7 @@
 #PAP2015
+
+
+![Image of PAP2015](https://github.com/JohanVer/PAP2015/pap2015.jpg)
 #TODO
 
 Johan:
