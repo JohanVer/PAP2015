@@ -509,8 +509,8 @@ void MainWindow::on_compDeleteButton_clicked() {
 void MainWindow::loadDatabaseContent() {
 
 	std::fstream databaseFile;
-	databaseFile.open(
-			"/home/nikolas/catkin_ws/src/PAP2015/pap_gui/src/database.txt",
+	std::string fileName = std::string(getenv("PAPRESOURCES")) +"database/database.txt";
+	databaseFile.open(fileName.c_str(),
 			std::fstream::in | std::fstream::out | std::fstream::app);
 
 	/* ok, proceed  */
@@ -1538,7 +1538,6 @@ void MainWindow::on_startChipFinder_Button_clicked() {
 }
 
 void MainWindow::on_startSmallSMDFinder_Button_clicked() {
-	// TODO: Take size values from the database!
 	if (ui.SmallSMD_Combo->currentText() == "0805") {
 		qnode.sendTask(pap_common::VISION, pap_vision::START_SMALL_FINDER, 1.25,
 				2.0, 0.0);
@@ -1554,7 +1553,6 @@ void MainWindow::on_startSmallSMDFinder_Button_clicked() {
 }
 
 void MainWindow::on_startTapeFinder_Button_clicked() {
-	// TODO: Take size values from the database!
 	if (ui.tapeFinder_Combo->currentText() == "0805") {
 		qnode.sendTask(pap_common::VISION, pap_vision::START_TAPE_FINDER, 1.25,
 				2.0, 0.0);
@@ -2025,7 +2023,6 @@ void MainWindow::on_startDispense_button_clicked() {
 									- (dispInfo[j].xPos2 * pxFactor)),
 					QPen(Qt::blue, nozzleDiameter * pxFactor, Qt::SolidLine));
 
-			// TODO: Transform output into global coordinate system
 			padParser.transformDispenserInfo(&dispInfo[j]);
 			qnode.sendDispenserTask(dispInfo[j]);
 
@@ -2067,7 +2064,6 @@ void MainWindow::dispenseSinglePad(QPointF point) {
 									- (dispInfo[j].xPos2 * pxFactor)),
 					QPen(Qt::blue, nozzleDiameter * pxFactor, Qt::SolidLine));
 
-			// TODO: Transform output into global coordinate system
 			padParser.transformDispenserInfo(&dispInfo[j]);
 			qnode.sendDispenserTask(dispInfo[j]);
 
@@ -2187,8 +2183,14 @@ void MainWindow::sendTransforms(double x, double y, double z, double nozzle_1,
 }
 
 void MainWindow::on_calibrateTapeButton_clicked(void) {
+
+	// TODO{Niko}: Use these functions in gui and placer node
+
+	// EXAMPLE: Calibrate tape number 1 with 0402 component dimensions
 	calibrateTape(1, 0.5, 1.0);
-	calculatePosOfTapePart(1,4);
+
+	// EXAMPLE: Get 4th position of component in 1st tape
+	tapeCalibrationValue positionOfComponent = calculatePosOfTapePart(1,4);
 }
 
 tapeCalibrationValue MainWindow::calculatePosOfTapePart(int numOfTape, int numOfPart) {
@@ -2209,8 +2211,9 @@ tapeCalibrationValue MainWindow::calculatePosOfTapePart(int numOfTape, int numOf
 
 	tf::Point pointToTransform;
 	// This point should be transformed
-	pointToTransform.setX(tapeCalibrationValues[indexInVector].x + numOfPart*1.0);
-	pointToTransform.setY(tapeCalibrationValues[indexInVector].y);
+	// Distance between components on tape is 1 mm
+	pointToTransform.setX(numOfPart*1.0);
+	pointToTransform.setY(0.0);
 	pointToTransform.setZ(0.0);
 
 	// This rotates the component to the tape orientation
@@ -2221,8 +2224,8 @@ tapeCalibrationValue MainWindow::calculatePosOfTapePart(int numOfTape, int numOf
 
 	pointToTransform = rotation_ * pointToTransform;
 
-	out.x = pointToTransform.x();
-	out.y = pointToTransform.y();
+	out.x = pointToTransform.x() + tapeCalibrationValues[indexInVector].x;
+	out.y = pointToTransform.y() + tapeCalibrationValues[indexInVector].y;
 	out.rot = tapeCalibrationValues[indexInVector].rot;
 
 	ROS_INFO("Calculated Pos of part in Tape: x %f y %f rot %f",out.x,out.y,out.rot);
@@ -2231,7 +2234,8 @@ tapeCalibrationValue MainWindow::calculatePosOfTapePart(int numOfTape, int numOf
 
 void MainWindow::calibrateTape(int tapeNumber, float componentWidth,
 		float componentHeight) {
-	// TODO: Goto tape with index: tapeNumber
+	// TODO{Johan}: Goto tape with index: tapeNumber
+
 	tapeCalibrationValue calibrationVal;
 	calibrationVal.index = tapeNumber;
 

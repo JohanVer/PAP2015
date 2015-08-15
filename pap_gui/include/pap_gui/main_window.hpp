@@ -64,6 +64,13 @@ class tapeCalibrationValue {
 public:
 	float x, y, rot;
 	int index;
+
+	tapeCalibrationValue(){
+		x = 0;
+		y = 0;
+		rot = 0;
+		index = 0;
+	}
 };
 
 /*****************************************************************************

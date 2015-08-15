@@ -1,6 +1,24 @@
 # PAP2015
+TODO-LIST:--------------------------------------------------------------------------------------------------
 
-DEPENDENCIES:
+Johan: 
+1. Tape Calibration: Goto correct tape position (Lookup table)
+2. LED-Controller: Test new LED functions: Slider for dimming, blinking, color selection
+3. Dispenser-Planner: Sort dispenser tasks due to distances
+4. Dispenser-Planner: Check middle points of dispenser planning
+5. Dispenser-Planner: Modify dispenser height
+6. Dispenser-Planner: Pause-Button, Exclude-Function
+
+Nikolas:
+1. Placer-Planner: Implement possibility to choose a tape
+2. Placer-Planner: Use the functions "calibrateTape" and "positionOfComponent"
+3. Placer-Planner: Check the parsed positions (after the point there are only zeros)
+4. Placer-Planner: Implement the second nozzle
+5. Placer-Planner: Implement complete (all parts with one click magic) assembling of smd parts
+6. Placer-Planner: Test the part rotation procedure (does the system rotate the part in the right direction?)
+
+DEPENDENCIES:-----------------------------------------------------------------------------------------------
+
 sudo apt-get install ros-indigo-rosserial-arduino
 sudo apt-get install ros-indigo-rosserial
 sudo apt-get update && sudo apt-get install arduino arduino-core
