@@ -9,6 +9,9 @@
 #define NUM_BOT_LEDS 24
 #define CHIPSET   WS2812B
 
+#define SPEEDBACK 2
+#define SPEEDRING 1
+
 CRGB leds[NUM_LEDS];
 CRGB bottom_leds[NUM_BOT_LEDS];
 
@@ -25,6 +28,10 @@ int ringColor = 96;
 
 int brightnessRing = 255;
 int brightnessBack = 255;
+int counter1 = 0;
+int blinkIteration = 0;
+bool down = false;
+int delayMs = 0;
 //ros::Publisher statusPublisher("arduStatus", &arduMsg);
 
 enum ARDUINO_TASK {
@@ -44,6 +51,12 @@ enum ARDUINO_TASK {
   SETBRIGHTNESSBACK = 14,
   SETRINGCOLOR = 15
 };
+
+enum LED_STATE{
+  LED_IDLE,
+  LED_BLINKRING,
+  LED_BLINKBACK
+}ledState;
 
 
 void messageCb( const pap_common::ArduinoMsg& arduinoMsg){
@@ -80,20 +93,28 @@ void messageCb( const pap_common::ArduinoMsg& arduinoMsg){
   
   if(arduinoMsg.command == RINGBLINK ){
     if(arduinoMsg.data){
-      ringBlinking = true;
+      ledState = LED_BLINKRING;
     }
     else{
-     ringBlinking = false; 
+     ledState = LED_IDLE;
+     resetAllLEDs();
     }
+    blinkIteration = 0;
+    delayMs = 0;
+    down = false;
   }
   
   if(arduinoMsg.command == BACKLIGHTBLINK ){
     if(arduinoMsg.data){
-      backLightBlinking = true;
+      ledState = LED_BLINKBACK;
     }
     else{
-     backLightBlinking = false; 
+     ledState = LED_IDLE;
+     resetAllLEDs();
     }
+    blinkIteration = 0;
+    delayMs = 0;
+    down = false;
   }
   
   if(arduinoMsg.command == SETBRIGHTNESSRING ){
@@ -124,28 +145,81 @@ void setup()
   nh.subscribe(arduinoMessageSub);
   
   resetAllLEDs();
-  //LEDtest();
 }
 
 void loop()
 {  
   nh.spinOnce();
   delay(1);
-  if(ringBlinking){
-    blinkRing(1.0);
+  if(delayMs > 0 ){
+    delayMs--;
   }
-  
-  if(backLightBlinking){
-    blinkBacklight(2.0,backColor);
+  switch(ledState){
+    case LED_IDLE:
+      
+    break;
+    
+    case LED_BLINKRING:
+    
+    if(delayMs == 0){
+    delayMs = ((SPEEDRING/2.0)/51.0)*1000.0;
+    
+    if(!down){
+      blinkIteration += 5;
+    }
+    else{
+     blinkIteration -= 5; 
+    }
+    
+    if(!down && blinkIteration == 255){
+     down = true;
+    }
+    else if ( down && blinkIteration == 0){
+      down = false;
+    }
+    
+    for (int i = 0; i < NUM_BOT_LEDS; i++) {
+        bottom_leds[i].setHSV( 96, 255, blinkIteration);
+      }
+      FastLED.show();
+      
+    }
+    
+    break;
+    
+    case LED_BLINKBACK:
+    
+    if(delayMs == 0){
+    delayMs = ((SPEEDBACK/2.0)/51.0)*1000.0;
+    
+    if(!down){
+      blinkIteration += 5;
+    }
+    else{
+     blinkIteration -= 5; 
+    }
+    
+    if(!down && blinkIteration == 255){
+     down = true;
+    }
+    else if ( down && blinkIteration == 0){
+      down = false;
+    }
+    
+    for (int i = 0; i < NUM_LEDS; i++) {
+        leds[i].setHSV( 0, 255, blinkIteration);
+      }
+    FastLED.show();
+    }
+    break;
   }
 }
 
 void showRingLeds(){
  for (int i = 0; i < NUM_BOT_LEDS; i++) {
-      if(bottom_leds[i])
       bottom_leds[i].setHSV( ringColor, 255, brightnessRing);// = CRGB::Green;
-      FastLED.show();
     }  
+    FastLED.show();
 }
 
 void LEDtest() {
@@ -180,39 +254,4 @@ void resetAllLEDs() {
     }   
 }
 
-void blinkRing(float speed){
-  for (int blinkIter = 0; blinkIter <= 255; blinkIter+=5 ){
-    for (int i = 0; i < NUM_BOT_LEDS; i++) {
-        bottom_leds[i].setHSV( 96, 255, blinkIter);
-        FastLED.show();
-      }
-      delay((speed/2.0)/51.0);
-  }
-  
-  for (int blinkIter = 255; blinkIter >= 0; blinkIter -= 5 ){
-    for (int i = 0; i < NUM_BOT_LEDS; i++) {
-        bottom_leds[i].setHSV( 96, 255, blinkIter);
-        FastLED.show();
-      }
-      delay((speed/2.0)/51.0);
-  }
-}
-
-void blinkBacklight(float speed, int color){
-  for (int blinkIter = 0; blinkIter <= 255; blinkIter+=5 ){
-    for (int i = 0; i < NUM_LEDS; i++) {
-        leds[i].setHSV( color, 255, blinkIter);
-        FastLED.show();
-      }
-      delay((speed/2.0)/51.0);
-  }
-  
-  for (int blinkIter = 255; blinkIter >= 0; blinkIter -= 5 ){
-    for (int i = 0; i < NUM_LEDS; i++) {
-        leds[i].setHSV( color, 255, blinkIter);
-        FastLED.show();
-      }
-      delay((speed/2.0)/51.0);
-  }
-}
 

@@ -7,7 +7,7 @@
 Johan:
  
 * Tape Calibration: Goto correct tape position (Lookup table)
-* LED-Controller: Test new LED functions: Slider for dimming, blinking, color selection
+* CHECKED LED-Controller: Test new LED functions: Slider for dimming, blinking, color selection
 * Dispenser-Planner: Sort dispenser tasks due to distances
 * Dispenser-Planner: Check middle points of dispenser planning
 * Dispenser-Planner: Modify dispenser height
@@ -68,4 +68,4 @@ Source: https://github.com/FastLED/FastLED/archive/3.0.3
 Extract into sketchbook/libraries and give it a propper name like "FastLED"
 
 For using the image_simulator you should add something like this to your bashrc:
-export PAPIMAGES=/home/johan/Dokumente/catkin_ws/src/PAP2015/PAP/
+export PAPRESOURCES=/home/johan/Dokumente/catkin_ws/src/PAP2015/PAP/
