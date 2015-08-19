@@ -102,6 +102,7 @@ public:
 
 	Offset camClibrationOffset_;
 	Offset tip1ClibrationOffset_;
+	Offset dispenserCalibrationOffset_;
 
 	Offset getBoxCoordinates();
 	Offset getCompPickUpCoordinates();

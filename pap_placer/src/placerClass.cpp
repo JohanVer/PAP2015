@@ -42,8 +42,8 @@ PlaceController::PlaceController() {
 	tip1Offset.x = -96.888;
 	tip1Offset.y = -2,798;
 	tip1Offset.z = 45;
-	dispenserTipOffset.x = -56,185;
-	dispenserTipOffset.y = 35,269;
+	dispenserTipOffset.x = -55,985;
+	dispenserTipOffset.y = 36,869;
 	dispenserTipOffset.z = 45;
 
 	// Correction offsets
@@ -138,7 +138,7 @@ Offset PlaceController::getCompPlaceCoordinates() {
 	switch (tip) {
 	case LEFT_TIP:
 
-		temp.x = currentComponent.destX + PlaceCorrection.x + (tip1Offset.x - camClibrationOffset_.x + tip1ClibrationOffset_.x);
+		temp.x = currentComponent.destX + PlaceCorrection.x + (tip1Offset.x + camClibrationOffset_.x + tip1ClibrationOffset_.x);
 		temp.y = currentComponent.destY + PlaceCorrection.y + (tip1Offset.y - camClibrationOffset_.y + tip1ClibrationOffset_.y);
 		temp.z = pcbOriginOffset.z + tip1Offset.z;
 		temp.rot = currentComponent.rotation + PlaceCorrection.rot;

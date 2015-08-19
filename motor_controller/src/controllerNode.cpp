@@ -13,6 +13,7 @@ controllerStatus controllerState1, controllerState2, controllerState3,
 		oldControllerState1, oldControllerState2, oldControllerState3;
 ros::Publisher statusPublisher;
 
+bool sendHomeOffset = false;
 int xTimeOutTimer, yTimeOutTimer, zTimeOutTimer = 0;
 
 enum STATE {
@@ -162,6 +163,12 @@ int main(int argc, char **argv) {
 				checkStatusController(3, &controllerState3,
 						&oldControllerState3);
 			}
+
+			if(sendHomeOffset && controllerState1.positionReached && controllerState2.positionReached && controllerState3.positionReached){
+				sendHomeOffset = false;
+				controller.gotoCoord(5, 5,
+									0.1,50.0,300.0,100.0);
+			}
 			break;
 
 		}
@@ -181,6 +188,10 @@ void parseTask(const pap_common::TaskConstPtr& taskMsg) {
 			if (!controller.sendHoming()) {
 				ROS_ERROR("Error while sending homing command");
 				cmdExecuted = false;
+
+			}
+			else{
+				sendHomeOffset = true;
 			}
 			break;
 		case pap_common::CURRENT:

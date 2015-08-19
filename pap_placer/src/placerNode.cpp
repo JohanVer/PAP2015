@@ -25,13 +25,14 @@
 #define COMPFINDERTIMEOUT 300
 #define MOTORCONTROLLER_TIMEOUT 3000
 
-#define posTolerance 500	// Deviation of position in um
+#define posTolerance 70	// Deviation of position in um
+#define DISPENSER_TOLERANCE 0.01
 
 #define TIP1_DIAMETER_VISION 20.0
 #define TIP2_DIAMETER_VISION 20.0
 #define DISPENSER_DIAMETER_VISION 1.0
 #define CAMERA_DIAMETER_VISION 11.0
-#define DISPENSER_HEIGHT 22.0
+#define DISPENSER_HEIGHT 12.2
 
 int pickupwait_counter, placementwait_counter = 0;
 int componentFinder_counter = 0;
@@ -68,6 +69,7 @@ void resetLEDTask(int LEDnumber);
 
 void resetProcessVariables();
 void resetMotorState(bool x, bool y, bool z);
+void resetMotorState(int index, bool value);
 
 ros::Publisher task_publisher, arduino_publisher_, placerStatus_publisher_;
 ros::Subscriber statusSubsriber_;
@@ -171,7 +173,7 @@ int main(int argc, char **argv) {
 	ros::Rate loop_rate(100);
 	state = IDLE;
 	calibration_state = CAMERA;
-
+	bool outTolerance = false;
 	while (ros::ok()) {
 		switch (state) {
 		case IDLE:
@@ -247,8 +249,8 @@ int main(int argc, char **argv) {
 					if (!visionStarted) {
 						ros::Duration(3).sleep();
 						counterMean = 0;
-						placeController.tip1ClibrationOffset_.x = 0.0;
-						placeController.tip1ClibrationOffset_.y = 0.0;
+						placeController.dispenserCalibrationOffset_.x = 0.0;
+						placeController.dispenserCalibrationOffset_.y = 0.0;
 						sendTask(pap_common::VISION, pap_vision::START_VISION);
 						sendTask(pap_common::VISION, pap_vision::SEARCH_CIRCLE,
 						TIP1_DIAMETER_VISION, 0.0, 0.0);
@@ -258,12 +260,12 @@ int main(int argc, char **argv) {
 
 					if (cameraPositionReceived) {
 						sendTask(pap_common::VISION, pap_vision::STOP_VISION);
-						calibration_state = CAMERA;
+						calibration_state = DISPENSER;
 						cameraPositionReceived = false;
 						positionSend = false;
 						visionStarted = false;
-						IDLE_called = true;
-						state = IDLE;
+						//IDLE_called = true;
+						//state = IDLE;
 					}
 				}
 				break;
@@ -281,6 +283,9 @@ int main(int argc, char **argv) {
 					state = GOTOCOORD;
 				} else {
 					if (!visionStarted) {
+						counterMean = 0;
+						placeController.dispenserTipOffset.x = 0;
+						placeController.dispenserTipOffset.x = 0;
 						ros::Duration(3).sleep();
 						sendTask(pap_common::VISION, pap_vision::START_VISION);
 						sendTask(pap_common::VISION, pap_vision::SEARCH_CIRCLE,
@@ -290,10 +295,12 @@ int main(int argc, char **argv) {
 
 					if (cameraPositionReceived) {
 						sendTask(pap_common::VISION, pap_vision::STOP_VISION);
-						calibration_state = TIP2;
+						calibration_state = CAMERA;
 						cameraPositionReceived = false;
 						positionSend = false;
 						visionStarted = false;
+						IDLE_called = true;
+						state = IDLE;
 					}
 				}
 				break;
@@ -639,80 +646,81 @@ int main(int argc, char **argv) {
 			break;
 
 		case GOTOCOORD:
+			if (fabs(
+					placeController.lastDestination_.x
+							- placeController.currentDestination_.x)
+					> (posTolerance / 1000)
+					|| fabs(
+							placeController.lastDestination_.y
+									- placeController.currentDestination_.y)
+							> (posTolerance / 1000)
+
+							/*placeController.lastDestination_.x
+							 < (placeController.currentDestination_.x
+							 - (posTolerance / 1000)))
+							 && (placeController.lastDestination_.y
+							 < (placeController.currentDestination_.y
+							 - (posTolerance / 1000)))
+							 && (placeController.lastDestination_.x
+							 > (placeController.currentDestination_.x
+							 + (posTolerance / 1000)))
+							 && (placeController.lastDestination_.y
+							 > (placeController.currentDestination_.y
+							 + (posTolerance / 1000))))*/) {
+				outTolerance = true;
+			} else {
+				outTolerance = false;
+				ROS_INFO("In Tolerance");
+			}
 			if (!placerNodeBusy) {
 				ROS_INFO("lastX: %f", placeController.lastDestination_.x);
 				ROS_INFO("lastY: %f", placeController.lastDestination_.y);
 				ROS_INFO("currentX: %f", placeController.currentDestination_.x);
 				ROS_INFO("currentY: %f", placeController.currentDestination_.y);
-				if (zPosReached == 0
-						&& ((placeController.lastDestination_.x
-								< (placeController.currentDestination_.x
-										- (posTolerance / 1000)))
-								|| (placeController.lastDestination_.y
-										< (placeController.currentDestination_.y
-												- (posTolerance / 1000)))
-								|| (placeController.lastDestination_.x
-										> (placeController.currentDestination_.x
-												+ (posTolerance / 1000)))
-								|| (placeController.lastDestination_.y
-										> (placeController.currentDestination_.y
-												+ (posTolerance / 1000))))) {
-
+				if (zPosReached == 0 && outTolerance) {
+					float diffZ = fabs(
+							placeController.lastDestination_.z
+									- placeController.currentDestination_.z);
+					if (diffZ > DISPENSER_TOLERANCE) {
+						resetMotorState(3, false);
+					}
 					sendTask(pap_common::CONTROLLER, pap_common::COORD,
 							placeController.lastDestination_.x,
 							placeController.lastDestination_.y,
 							placeController.MovingHeight_);
-					ros::Duration(0.3).sleep();
+					//ros::Duration(0.3).sleep();
 					ROS_INFO("PlacerState: GOTOCOORD: x=%f y=%f z=%f",
 							placeController.lastDestination_.x,
 							placeController.lastDestination_.y,
 							placeController.MovingHeight_);
 					ROS_INFO("zPos: %d", zPosReached);
 
-				} else if (zPosReached == 1
-						&& ((placeController.lastDestination_.x
-								< (placeController.currentDestination_.x
-										- (posTolerance / 1000)))
-								|| (placeController.lastDestination_.y
-										< (placeController.currentDestination_.y
-												- (posTolerance / 1000)))
-								|| (placeController.lastDestination_.x
-										> (placeController.currentDestination_.x
-												+ (posTolerance / 1000)))
-								|| (placeController.lastDestination_.y
-										> (placeController.currentDestination_.y
-												+ (posTolerance / 1000))))) {
-
+				} else if (zPosReached == 1 && outTolerance) {
+					resetMotorState(false, false, true);
 					sendTask(pap_common::CONTROLLER, pap_common::COORD,
 							placeController.currentDestination_.x,
 							placeController.currentDestination_.y,
 							placeController.MovingHeight_);
-					ros::Duration(0.3).sleep();
+					//ros::Duration(0.3).sleep();
 					ROS_INFO("PlacerState: GOTOCOORD: x=%f y=%f z=%f",
 							placeController.currentDestination_.x,
 							placeController.currentDestination_.y,
 							placeController.MovingHeight_);
 					ROS_INFO("zPos: %d", zPosReached);
 
-				} else if (zPosReached == 2
-						|| ((placeController.lastDestination_.x
-								< (placeController.currentDestination_.x
-										- (posTolerance / 1000)))
-								&& (placeController.lastDestination_.y
-										< (placeController.currentDestination_.y
-												- (posTolerance / 1000)))
-								&& (placeController.lastDestination_.x
-										> (placeController.currentDestination_.x
-												+ (posTolerance / 1000)))
-								&& (placeController.lastDestination_.y
-										> (placeController.currentDestination_.y
-												+ (posTolerance / 1000))))) {
-
+				} else if (zPosReached == 2 || outTolerance) {
+					float diffZ = fabs(
+							placeController.lastDestination_.z
+									- placeController.currentDestination_.z);
+					if (diffZ > DISPENSER_TOLERANCE) {
+						resetMotorState(3, false);
+					}
+					//resetMotorState(true, true, false);
 					sendTask(pap_common::CONTROLLER, pap_common::COORD,
 							placeController.currentDestination_.x,
 							placeController.currentDestination_.y,
 							placeController.currentDestination_.z);
-					ros::Duration(0.3).sleep();
+					//ros::Duration(0.3).sleep();
 
 					ROS_INFO("PlacerState: GOTOCOORD: x=%f y=%f z=%f",
 							placeController.currentDestination_.x,
@@ -775,13 +783,27 @@ int main(int argc, char **argv) {
 				// Turn on dispenser
 				sendRelaisTask(8, true);
 				ros::Duration(placeController.dispenseTask.time).sleep();
+				float diffX = fabs(
+						placeController.lastDestination_.x
+								- placeController.dispenseTask.xPos2);
+				float diffY = fabs(
+						placeController.lastDestination_.y
+								- placeController.dispenseTask.yPos2);
+
+				if (diffX > DISPENSER_TOLERANCE) {
+					resetMotorState(1, false);
+				}
+
+				if (diffY > DISPENSER_TOLERANCE) {
+					resetMotorState(2, false);
+				}
 
 				sendTask(pap_common::CONTROLLER, pap_common::COORD_VEL,
 						placeController.dispenseTask.xPos2,
 						placeController.dispenseTask.yPos2, DISPENSER_HEIGHT,
 						placeController.dispenseTask.velocity,
 						placeController.dispenseTask.velocity);
-				ros::Duration(0.3).sleep();
+				//ros::Duration(0.3).sleep();
 				ROS_INFO("PlacerState: GOTOCOORD: x=%f y=%f z=%f",
 						placeController.dispenseTask.xPos2,
 						placeController.dispenseTask.yPos2, DISPENSER_HEIGHT);
@@ -857,7 +879,7 @@ void statusCallback(const pap_common::StatusConstPtr& statusMsg) {
 
 	if (statusMsg->status == pap_common::POSITIONREACHED) {
 		motorcontrollerStatus[index].positionReached = true;
-		ROS_INFO("Reached");
+		ROS_INFO("Reached %d", index);
 	}
 
 	if (statusMsg->status == pap_common::POSITIONNOTREACHED) {
@@ -874,13 +896,13 @@ void statusCallback(const pap_common::StatusConstPtr& statusMsg) {
 	}
 
 	if (statusMsg->posX != 0.0) {
-		placeController.lastDestination_.x = statusMsg->posX;
+		placeController.lastDestination_.x = fabs(statusMsg->posX);
 	}
 	if (statusMsg->posY != 0.0) {
-		placeController.lastDestination_.y = statusMsg->posY;
+		placeController.lastDestination_.y = fabs(statusMsg->posY);
 	}
 	if (statusMsg->posZ != 0.0) {
-		placeController.lastDestination_.z = statusMsg->posZ;
+		placeController.lastDestination_.z = fabs(statusMsg->posZ);
 	}
 }
 
@@ -941,8 +963,18 @@ void visionStatusCallback(const pap_common::VisionStatusConstPtr& statusMsg) {
 				}
 				break;
 			case DISPENSER:
-				placeController.setDispenserOffset(xDiff, yDiff);
-				cameraPositionReceived = true;
+				counterMean++;
+				placeController.dispenserCalibrationOffset_.x += xDiff;
+				placeController.dispenserCalibrationOffset_.y += yDiff;
+
+				if (counterMean == 50) {
+					placeController.dispenserCalibrationOffset_.x /= 50;
+					placeController.dispenserCalibrationOffset_.y /= 50;
+					cameraPositionReceived = true;
+					ROS_INFO("Tip1 Calibration Offset: X: %f Y: %f",
+							placeController.dispenserCalibrationOffset_.x,
+							placeController.dispenserCalibrationOffset_.y);
+				}
 				break;
 			case TIP2:
 				placeController.setTip2Offset(xDiff, yDiff);
@@ -1038,10 +1070,22 @@ void placerCallback(const pap_common::TaskConstPtr& taskMsg) {
 }
 
 void dispenserCallback(const pap_common::DispenseTaskConstPtr& taskMsg) {
-	placeController.dispenseTask.xPos = taskMsg->xPos1;
-	placeController.dispenseTask.xPos2 = taskMsg->xPos2;
-	placeController.dispenseTask.yPos = taskMsg->yPos1;
-	placeController.dispenseTask.yPos2 = taskMsg->yPos2;
+	placeController.dispenseTask.xPos = taskMsg->xPos1
+			+ placeController.dispenserTipOffset.x
+			+ placeController.camClibrationOffset_.x
+			+ placeController.dispenserCalibrationOffset_.x;
+	placeController.dispenseTask.xPos2 = taskMsg->xPos2
+			+ placeController.dispenserTipOffset.x
+			+ placeController.camClibrationOffset_.x
+			+ placeController.dispenserCalibrationOffset_.x;
+	placeController.dispenseTask.yPos = taskMsg->yPos1
+			+ placeController.dispenserTipOffset.y
+			- placeController.camClibrationOffset_.y
+			+ placeController.dispenserCalibrationOffset_.y;
+	placeController.dispenseTask.yPos2 = taskMsg->yPos2
+			+ placeController.dispenserTipOffset.y
+			- placeController.camClibrationOffset_.y
+			+ placeController.dispenserCalibrationOffset_.y;
 	placeController.dispenseTask.velocity = taskMsg->velocity;
 	placeController.dispenseTask.time = taskMsg->waitTime;
 	state = DISPENSETASK;
@@ -1179,9 +1223,13 @@ void resetProcessVariables() {
 	componentFinder_counter = 0;
 }
 
-void resetMotorState(bool x, bool y, bool z){
+void resetMotorState(bool x, bool y, bool z) {
 	motorcontrollerStatus[1].positionReached = x;
 	motorcontrollerStatus[2].positionReached = y;
 	motorcontrollerStatus[3].positionReached = z;
+}
+
+void resetMotorState(int index, bool value) {
+	motorcontrollerStatus[index].positionReached = value;
 }
 
