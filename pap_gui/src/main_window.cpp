@@ -980,6 +980,8 @@ void MainWindow::cameraUpdated(int index) {
 }
 
 void MainWindow::on_startHoming_clicked(bool check) {
+	qnode.sendTask(pap_common::CONTROLLER, pap_common::COORD,currentPosition.x,currentPosition.y,45.0);
+	ros::Duration(2.0).sleep();
 	qnode.sendTask(pap_common::CONTROLLER, pap_common::HOMING);
 }
 
@@ -989,9 +991,13 @@ void MainWindow::on_switchCurrent_clicked(bool check) {
 }
 
 void MainWindow::on_gotoCoord_clicked(bool check) {
-	qnode.sendTask(pap_common::CONTROLLER, pap_common::COORD,
-			(ui.xLineEdit->text()).toFloat(), (ui.yLineEdit->text()).toFloat(),
-			(ui.zLineEdit->text()).toFloat());
+	//qnode.sendTask(pap_common::CONTROLLER, pap_common::COORD,
+	//		(ui.xLineEdit->text()).toFloat(), (ui.yLineEdit->text()).toFloat(),
+	//		(ui.zLineEdit->text()).toFloat());
+
+	qnode.sendTask(pap_common::PLACER, pap_common::GOTO,
+				(ui.xLineEdit->text()).toFloat(), (ui.yLineEdit->text()).toFloat(),
+				(ui.zLineEdit->text()).toFloat());
 }
 
 void MainWindow::on_xManPos_pressed() {

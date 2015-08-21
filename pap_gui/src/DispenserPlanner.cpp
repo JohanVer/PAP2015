@@ -71,7 +71,7 @@ std::vector<dispenseInfo> DispenserPlanner::planDispensing(
 			ROS_INFO("Dispenser Nozzle is too big for pad...");
 			numberOfLines = 1;
 			distanceFromEdgeCal = fmod(inHeight, nozzleDiameter);
-			distanceFromEdgeCal /= 2;
+			//distanceFromEdgeCal /= 3.0;
 			if (nozzleDiameter > inHeight) {
 				distanceFromEdgeCal = -distanceFromEdgeCal;
 			}
@@ -88,7 +88,7 @@ std::vector<dispenseInfo> DispenserPlanner::planDispensing(
 			ROS_INFO("Dispenser Nozzle is too big for pad...");
 			numberOfLines = 1;
 			distanceFromEdgeCal = fmod(inWidth, nozzleDiameter);
-			distanceFromEdgeCal /= 2;
+			distanceFromEdgeCal /= 3;
 			if (nozzleDiameter > inWidth) {
 				distanceFromEdgeCal = -distanceFromEdgeCal;
 			}
