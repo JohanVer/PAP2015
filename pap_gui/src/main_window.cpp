@@ -46,7 +46,7 @@ bool singleComponentSelected = false;
 bool placementProcessRunning = false;
 bool bottomLEDon = false;
 int componentCount = 0;
-int boxNumberMax = 59;
+int boxNumberMax = 86;
 int boxNumberMin = 0;
 int boxNumberSug = 1;
 float xTapeCalibration, yTapeCalibration, rotTapeCalibration = 0;
@@ -166,6 +166,9 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent) :
 	sizeDefined_ = false;
 	padFileLoaded_ = false;
 	//ui.checkBox_box->setDisabled(true);
+	for (size_t i = 0; i < 20; i++) {
+		tapeCompCounter[i] = 0;
+	}
 
 	for (int i = 1; i <= 7; i++) {
 		placerStatusUpdated(i, pap_common::PLACER_IDLE);
@@ -509,7 +512,8 @@ void MainWindow::on_compDeleteButton_clicked() {
 void MainWindow::loadDatabaseContent() {
 
 	std::fstream databaseFile;
-	std::string fileName = std::string(getenv("PAPRESOURCES")) +"database/database.txt";
+	std::string fileName = std::string(getenv("PAPRESOURCES"))
+			+ "database/database.txt";
 	databaseFile.open(fileName.c_str(),
 			std::fstream::in | std::fstream::out | std::fstream::app);
 
@@ -610,14 +614,14 @@ void MainWindow::on_loadGerberFileButton_clicked() {
 						componentString.size() - pos1);
 
 				pos1 = componentString.find('"');
-				newComponent.posX = atof(
-						(componentString.substr(0, pos1)).c_str());
+				QString* posX = new QString(componentString.substr(0, pos1).c_str());
+				newComponent.posX = posX->toFloat();
 				componentString = componentString.substr(pos1 + 3,
 						componentString.size() - pos1);
 
 				pos1 = componentString.find('"');
-				newComponent.posY = atof(
-						(componentString.substr(0, pos1)).c_str());
+				QString* posY = new QString(componentString.substr(0, pos1).c_str());
+				newComponent.posY = posY->toFloat();
 				componentString = componentString.substr(pos1 + 3,
 						componentString.size() - pos1);
 
@@ -754,23 +758,6 @@ void MainWindow::updateDatabaseTable() {
  **************************************************************************************************************/
 void MainWindow::on_startSinglePlacementButton_clicked() {
 
-	/*if (ui.checkBox_pcbPlaced->isChecked()) {
-	 if (ui.checkBox_position->isChecked()
-	 && ui.checkBox_orientation->isChecked()
-	 && ui.checkBox_box->isChecked()) {
-
-	 } else {
-	 QMessageBox msgBox;
-	 msgBox.setText("Component information not complete.");
-	 msgBox.exec();
-	 msgBox.close();
-	 }
-	 } else {
-	 QMessageBox msgBox;
-	 msgBox.setText("Please place a circuit board.");
-	 msgBox.exec();
-	 msgBox.close();
-	 }*/
 	if (singleComponent.box == -1) {
 		QMessageBox msgBox;
 		msgBox.setText("Please set box number first.");
@@ -797,6 +784,21 @@ void MainWindow::updatePlacementData() {
 	ROS_INFO("placerInfo - after: x%f, y=%f", singleComponent.posX,
 			singleComponent.posY);
 
+	// Is it a tape?
+	if ((singleComponent.box >= 67) && (singleComponent.box <= 86)) {
+		unsigned int tape_nr = singleComponent.box - 67;
+		tapeCalibrationValue tapePartPos = calculatePosOfTapePart(tape_nr,
+				tapeCompCounter[tape_nr]);
+		placementData.tapeX = tapePartPos.x;
+		placementData.tapeY = tapePartPos.y;
+		placementData.tapeRot = tapePartPos.rot;
+		tapeCompCounter[tape_nr]++;
+	} else {
+		placementData.tapeX = 0.0;
+		placementData.tapeY = 0.0;
+		placementData.tapeRot = 0.0;
+	}
+
 	placementData.destX = singleComponent.posX;
 	placementData.destY = singleComponent.posY;
 	placementData.box = singleComponent.box;
@@ -809,13 +811,11 @@ void MainWindow::updatePlacementData() {
 void MainWindow::on_placeSingleComponentButton_clicked() {
 
 	int currentComp = ui.tableWidget->currentRow();
-
 	if (currentComp == -1) {
 		QMessageBox msgBox;
 		msgBox.setText("Please select a component.");
 		msgBox.exec();
 		msgBox.close();
-
 	} else {
 
 		singleComponent = componentVector.at(currentComp);
@@ -829,34 +829,8 @@ void MainWindow::on_placeSingleComponentButton_clicked() {
 		}
 
 		ui.tab_manager->setCurrentIndex(4);
-
-		/*QWizard wizard;
-		 wizard.addPage(createIntroPage());
-
-		 wizard.setWindowTitle("Trivial Wizard");
-		 wizard.show();*/
-
-		// Dialog - sure to place selceted component? - yes/no
-		// if yes - switch window to single component, update information box
-		// If all boxes checked, placement process can bet started
 	}
 }
-/*
- QWizardPage *MainWindow::createIntroPage()
- {
- QWizardPage *page = new QWizardPage;
- page->setTitle("Introduction");
-
- QLabel *label = new QLabel("This wizard will help you register your copy "
- "of Super Product Two.");
- label->setWordWrap(true);
-
- QVBoxLayout *layout = new QVBoxLayout;
- layout->addWidget(label);
- page->setLayout(layout);
-
- return page;
- }*/
 
 void MainWindow::on_startPlacementButton_clicked() {
 
@@ -2185,15 +2159,24 @@ void MainWindow::sendTransforms(double x, double y, double z, double nozzle_1,
 void MainWindow::on_calibrateTapeButton_clicked(void) {
 
 	// TODO{Niko}: Use these functions in gui and placer node
-
-	// EXAMPLE: Calibrate tape number 1 with 0402 component dimensions
-	calibrateTape(1, 0.5, 1.0);
-
+	QVector<int> usedTapes;
+	for (size_t i = 0; componentVector.size(); i++) {
+		if ((componentVector.at(i).box >= 67)
+				&& (componentVector.at(i).box <= 86)) {
+			int tape_nr = componentVector.at(i).box - 67;
+			if (usedTapes.indexOf(tape_nr) == -1) {
+				usedTapes.append(tape_nr);
+				calibrateTape(tape_nr, componentVector.at(i).width,
+						componentVector.at(i).length);
+			}
+		}
+	}
 	// EXAMPLE: Get 4th position of component in 1st tape
-	tapeCalibrationValue positionOfComponent = calculatePosOfTapePart(1,4);
+	//tapeCalibrationValue positionOfComponent = calculatePosOfTapePart(1,4);
 }
 
-tapeCalibrationValue MainWindow::calculatePosOfTapePart(int numOfTape, int numOfPart) {
+tapeCalibrationValue MainWindow::calculatePosOfTapePart(int numOfTape,
+		int numOfPart) {
 	tf::Transform rotation_;
 	tapeCalibrationValue out;
 
@@ -2204,7 +2187,7 @@ tapeCalibrationValue MainWindow::calculatePosOfTapePart(int numOfTape, int numOf
 		}
 	}
 
-	if (indexInVector == -1 ) {
+	if (indexInVector == -1) {
 		ROS_ERROR("Tape calibration values not found!");
 		return out;
 	}
@@ -2212,13 +2195,14 @@ tapeCalibrationValue MainWindow::calculatePosOfTapePart(int numOfTape, int numOf
 	tf::Point pointToTransform;
 	// This point should be transformed
 	// Distance between components on tape is 1 mm
-	pointToTransform.setX(numOfPart*1.0);
+	pointToTransform.setX(numOfPart * 1.0);
 	pointToTransform.setY(0.0);
 	pointToTransform.setZ(0.0);
 
 	// This rotates the component to the tape orientation
 	tf::Quaternion rotQuat;
-	rotQuat.setEuler(0.0, 0.0, tapeCalibrationValues[indexInVector].rot*(M_PI/180.0));
+	rotQuat.setEuler(0.0, 0.0,
+			tapeCalibrationValues[indexInVector].rot * (M_PI / 180.0));
 	rotation_.setOrigin(tf::Vector3(0.0, 0.0, 0.0));
 	rotation_.setRotation(rotQuat);
 
@@ -2228,7 +2212,8 @@ tapeCalibrationValue MainWindow::calculatePosOfTapePart(int numOfTape, int numOf
 	out.y = pointToTransform.y() + tapeCalibrationValues[indexInVector].y;
 	out.rot = tapeCalibrationValues[indexInVector].rot;
 
-	ROS_INFO("Calculated Pos of part in Tape: x %f y %f rot %f",out.x,out.y,out.rot);
+	ROS_INFO("Calculated Pos of part in Tape: x %f y %f rot %f", out.x, out.y,
+			out.rot);
 	return out;
 }
 

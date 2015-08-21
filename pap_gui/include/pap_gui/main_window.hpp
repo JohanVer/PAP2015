@@ -229,6 +229,7 @@ private:
 	QVector<databaseEntry> databaseVector;
 	ComponentPlacerData placementData;
 	componentEntry singleComponent;
+	int tapeCompCounter[20];
 
 	// Current position
 	Offset currentPosition;

@@ -340,6 +340,9 @@ void QNode::sendTask(pap_common::DESTINATION destination, pap_common::TASK task,
 	taskMsg.length = componentData.length;
 	taskMsg.width = componentData.width;
 	taskMsg.height = componentData.height;
+	taskMsg.velX = componentData.tapeX;
+	taskMsg.velY = componentData.tapeY;
+	taskMsg.velZ = componentData.tapeRot;
 	task_publisher.publish(taskMsg);
 }
 

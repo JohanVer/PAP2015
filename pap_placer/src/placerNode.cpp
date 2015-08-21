@@ -1015,10 +1015,19 @@ void placerCallback(const pap_common::TaskConstPtr& taskMsg) {
 				tempComponent.length = taskMsg->length;
 				tempComponent.width = taskMsg->width;
 				tempComponent.rotation = taskMsg->data3;
+				tempComponent.tapeX = taskMsg->velX;
+				tempComponent.tapeY = taskMsg->velY;
+				tempComponent.tapeRot = taskMsg->velZ;
 				placeController.updatePlacementData(&tempComponent);
 
-				state = GOTOBOX;// Start placement process with state GOTOBOX
-				ROS_INFO("Complete placement process called...");
+				if((tempComponent.box >= 67) && (tempComponent.box <= 86)) {
+					// Its a tape - no GOTOBOX, VISION states needed
+					state = GOTOPICKUPCOOR;
+					ROS_INFO("placer called - GOTOPICKUPCOOR");
+				} else {
+					state = GOTOBOX;	// Start placer with state GOTOBOX
+					ROS_INFO("placer called - GOTOBOX");
+				}
 			}
 			break;
 		case pap_common::GOTOBOX:

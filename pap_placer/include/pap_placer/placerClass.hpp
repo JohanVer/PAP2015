@@ -49,6 +49,7 @@ public:
 	float rotation;
 	float length, width, height;
 	int box;
+	float tapeX, tapeY, tapeRot;
 
 	ComponentPlacerData() {
 		destX = 0.0;
@@ -58,6 +59,9 @@ public:
 		width = 0.0;
 		height = 0.0;
 		box = 0;
+		tapeX = 0.0;
+		tapeY = 0.0;
+		tapeRot = 0.0;
 	}
 private:
 };

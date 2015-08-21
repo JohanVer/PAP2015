@@ -74,32 +74,73 @@ const Offset SmallBoxOffsetTable[59] = 	{	{0.0, 0.0}, {16.66, 0.0}, {33.32, 0.0}
 											{204.25, -2.0}, {204.25, -18.6}, {204.25, -35.2}, {204.25, -51.8}, {204.25, -68.4}, {204.25, -85}
 								 	 	 };
 
-//const Offset LargeBoxOffsetTable[10];
-//const Offset TapeOffsetTable[15];
+const Offset MiddleBoxOffsetTable[12] = {	{0.0, 0.0}, {0.0, 0.0}, {0.0, 0.0}, {0.0, 0.0},
+											{0.0, 0.0}, {0.0, 0.0}, {0.0, 0.0}, {0.0, 0.0},
+											{0.0, 0.0}, {0.0, 0.0}, {0.0, 0.0}, {0.0, 0.0}
+										};
+const Offset LargeBoxOffsetTable[8] = 	{	{0.0, 0.0}, {0.0, 0.0}, {0.0, 0.0}, {0.0, 0.0},
+											{0.0, 0.0}, {0.0, 0.0}, {0.0, 0.0}, {0.0, 0.0}
+										};
+
+const Offset TapeOffsetTable[20] = {{339.7, -40.0}, {339.7, -51.0}, {339.7, -62.0}, {339.7, -73.0}, {339.7, -84.0},
+									{339.7, -95.0}, {339.7, -106.0}, {339.7, -117.0}, {339.7, -128.0}, {339.7, -139.0},
+									{339.7, -150.0}, {339.7, -161.0}, {339.7, -172.0}, {339.7, -183.0}, {339.7, -194.0},
+									{339.7, -205.0}, {339.7, -216.0}, {339.7, -227.0}, {339.7, -238.0}, {339.7, -249.0}};
 
 
 Offset PlaceController::getBoxCoordinates() {
+
 	Offset temp;
-	temp.x = pickUpAreaOffset.x + SmallBoxOffsetTable[currentComponent.box].x;
-	temp.y = pickUpAreaOffset.y + SmallBoxOffsetTable[currentComponent.box].y;
+	temp.x = pickUpAreaOffset.x;
+	temp.y = pickUpAreaOffset.y;
 	temp.z = pickUpAreaOffset.z;
+	if(currentComponent.box < 59) { //47
+		temp.x += SmallBoxOffsetTable[currentComponent.box].x;
+		temp.y += SmallBoxOffsetTable[currentComponent.box].y;
+	//} else if((currentComponent.box >= 47) && (currentComponent.box < 59)) {
+		//temp.x += MiddleBoxOffsetTable[currentComponent.box - 47].x;
+		//temp.y += MiddleBoxOffsetTable[currentComponent.box - 47].y;
+	} else if((currentComponent.box >= 59) && (currentComponent.box < 67)) {
+		temp.x += LargeBoxOffsetTable[currentComponent.box - 59].x;
+		temp.y += LargeBoxOffsetTable[currentComponent.box - 59].y;
+	} else if((currentComponent.box >= 67) && (currentComponent.box <= 86)) {
+		// Its a tape
+		temp.x += TapeOffsetTable[currentComponent.box - 67].x;
+		temp.y += TapeOffsetTable[currentComponent.box - 67].y;
+	}
+
 	return temp;
 };
 
 Offset PlaceController::getCompPickUpCoordinates() {
 	Offset temp;
+	temp.z = 30.0;	// Same height for all pick ups
+
+	if(currentComponent.box < 59) { //47
+		temp.x = pickUpAreaOffset.x + SmallBoxOffsetTable[currentComponent.box].x + PickUpCorrection.x;
+		temp.y = pickUpAreaOffset.y + SmallBoxOffsetTable[currentComponent.box].y + PickUpCorrection.y;
+		temp.rot = PickUpCorrection.rot;
+	//} else if((currentComponent.box >= 47) && (currentComponent.box < 59)) {
+		//temp.x += MiddleBoxOffsetTable[currentComponent.box - 47].x;
+		//temp.y += MiddleBoxOffsetTable[currentComponent.box - 47].y;
+	//} else if((currentComponent.box >= 59) && (currentComponent.box < 67)) {
+		//temp.x = LargeBoxOffsetTable[currentComponent.box - 59].x;
+		//temp.y = LargeBoxOffsetTable[currentComponent.box - 59].y;
+	} else if((currentComponent.box >= 67) && (currentComponent.box <= 86)) {
+		// Its a tape
+		temp.x = currentComponent.tapeX;
+		temp.y = currentComponent.tapeY;
+		temp.rot = currentComponent.tapeRot;
+	}
+
 	switch (tip) {
 	case LEFT_TIP:
-		temp.x = pickUpAreaOffset.x + PickUpCorrection.x + SmallBoxOffsetTable[currentComponent.box].x + (tip1Offset.x + camClibrationOffset_.x + tip1ClibrationOffset_.x);
-		temp.y = pickUpAreaOffset.y + PickUpCorrection.y + SmallBoxOffsetTable[currentComponent.box].y + (tip1Offset.y - camClibrationOffset_.y + tip1ClibrationOffset_.y);
-		temp.z = 30.0;			//MovingHeight_; //pickUpAreaOffset.z + tip1Offset.z;
-		temp.rot = PickUpCorrection.rot;
+		temp.x += (tip1Offset.x + camClibrationOffset_.x + tip1ClibrationOffset_.x);
+		temp.y += (tip1Offset.y - camClibrationOffset_.y + tip1ClibrationOffset_.y);
 		break;
 	case RIGHT_TIP:
-		temp.x = pickUpAreaOffset.x + PickUpCorrection.x + SmallBoxOffsetTable[currentComponent.box].x + tip2Offset.x;
-		temp.y = pickUpAreaOffset.y + PickUpCorrection.y + SmallBoxOffsetTable[currentComponent.box].y + tip2Offset.y;
-		temp.z = 30.0; 			//MovingHeight_; //pickUpAreaOffset.z + tip2Offset.z;
-		temp.rot = PickUpCorrection.rot;
+		temp.x += tip2Offset.x;
+		temp.y += tip2Offset.y;
 		break;
 	}
 	return temp;
@@ -242,4 +283,7 @@ void PlaceController::updatePlacementData(ComponentPlacerData * data) {
 	currentComponent.length = data->length;
 	currentComponent.width = data->width;
 	currentComponent.rotation = data->rotation;
+	currentComponent.tapeX = data->tapeX;
+	currentComponent.tapeY = data->tapeY;
+	currentComponent.tapeRot = data->tapeRot;
 };
