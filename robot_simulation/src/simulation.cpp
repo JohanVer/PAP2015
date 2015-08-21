@@ -36,7 +36,8 @@ double distXTotal, distYTotal, distZTotal = 0;
 double distX, distY, distZ = 0;
 double desX, desY, desZ = 0;
 
-controllerStatus controllerState1, controllerState2, controllerState3;
+controllerStatus controllerState1, controllerState2, controllerState3,
+		oldControllerState1, oldControllerState2, oldControllerState3;
 ros::Publisher statusPublisher;
 
 void sendTransforms(double x_des, double y_des, double z_des, double nozzle_1,
@@ -57,7 +58,8 @@ double matrix[6][6] = { { ts, 0.0, 0.0, 0.5 * pow(ts, 2.0), 0.0, 0.0 }, { 0.0,
 		ts, 0.0 }, { 0.0, 0.0, 1.0, 0.0, 0.0, ts } };
 
 void checkStatusController(int numberOfController,
-		controllerStatus* controllerStatusAct) {
+		controllerStatus* controllerStatusAct,
+		controllerStatus* controllerStatusOld) {
 
 	pap_common::Status stateMessage;
 	stateMessage.data1 = numberOfController;
@@ -76,11 +78,18 @@ void checkStatusController(int numberOfController,
 	}
 	statusPublisher.publish(stateMessage);
 
-	if (controllerStatusAct->positionReached) {
+	if (controllerStatusAct->positionReached
+			&& !controllerStatusOld->positionReached) {
 		stateMessage.status = pap_common::POSITIONREACHED;
-	} else {
+		statusPublisher.publish(stateMessage);
+	} else if (!controllerStatusAct->positionReached
+			&& controllerStatusOld->positionReached) {
 		stateMessage.status = pap_common::POSITIONNOTREACHED;
+		statusPublisher.publish(stateMessage);
 	}
+
+	controllerStatusOld->positionReached = controllerStatusAct->positionReached;
+
 	statusPublisher.publish(stateMessage);
 }
 
@@ -123,13 +132,30 @@ void parseTask(const pap_common::TaskConstPtr& taskMsg) {
 				controllerState1.energized = true;
 				controllerState2.energized = true;
 				controllerState3.energized = true;
+				controllerState1.positionReached = true;
+				controllerState2.positionReached = true;
+				controllerState3.positionReached = true;
+				controllerState1.error = false;
+				controllerState2.error = false;
+				controllerState3.error = false;
 				controllerEnergized = true;
+
 			} else {
 				controllerState1.energized = false;
 				controllerState2.energized = false;
 				controllerState3.energized = false;
+				controllerState1.positionReached = false;
+				controllerState2.positionReached = false;
+				controllerState3.positionReached = false;
+				controllerState1.error = false;
+				controllerState2.error = false;
+				controllerState3.error = false;
 				controllerEnergized = false;
 			}
+
+			checkStatusController(1, &controllerState1, &oldControllerState1);
+			checkStatusController(2, &controllerState2, &oldControllerState2);
+			checkStatusController(3, &controllerState3, &oldControllerState3);
 			break;
 		case pap_common::COORD:
 			if (controllerConnected && controllerEnergized) {
@@ -315,7 +341,7 @@ void simulateXAxisMovement() {
 		// Update controller status
 		if (!controller1StatusSet) {
 			controllerState1.positionReached = false;
-			checkStatusController(1, &controllerState1);
+			checkStatusController(1, &controllerState1, &oldControllerState1);
 			controller1StatusSet = true;
 		}
 
@@ -350,7 +376,7 @@ void simulateXAxisMovement() {
 			distX = 0;
 			controller1StatusSet = false;
 			controllerState1.positionReached = true;
-			checkStatusController(1, &controllerState1);
+			checkStatusController(1, &controllerState1, &oldControllerState1);
 		}
 
 		//std::cout << "currrent x: " << currentState.x << "  current vx: " << currentState.vx << std::endl;
@@ -362,7 +388,7 @@ void simulateXAxisMovement() {
 		// Update controller status
 		if (!controller1StatusSet) {
 			controllerState1.positionReached = false;
-			checkStatusController(1, &controllerState1);
+			checkStatusController(1, &controllerState1, &oldControllerState1);
 			controller1StatusSet = true;
 		}
 
@@ -397,7 +423,7 @@ void simulateXAxisMovement() {
 			distX = 0;
 			controller1StatusSet = false;
 			controllerState1.positionReached = true;
-			checkStatusController(1, &controllerState1);
+			checkStatusController(1, &controllerState1, &oldControllerState1);
 		}
 
 		//std::cout << "currrent x: " << currentState.x << "  current vx: " << currentState.vx << std::endl;
@@ -412,7 +438,7 @@ void simulateYAxisMovement() {
 		// Update controller status
 		if (!controller2StatusSet) {
 			controllerState2.positionReached = false;
-			checkStatusController(2, &controllerState2);
+			checkStatusController(2, &controllerState2, &oldControllerState2);
 			controller2StatusSet = true;
 		}
 
@@ -447,7 +473,7 @@ void simulateYAxisMovement() {
 			distY = 0;
 			controller2StatusSet = false;
 			controllerState2.positionReached = true;
-			checkStatusController(2, &controllerState2);
+			checkStatusController(2, &controllerState2, &oldControllerState2);
 		}
 
 		//std::cout << "currrent x: " << currentState.x << "  current vx: " << currentState.vx << std::endl;
@@ -459,7 +485,7 @@ void simulateYAxisMovement() {
 		// Update controller status
 		if (!controller2StatusSet) {
 			controllerState2.positionReached = false;
-			checkStatusController(2, &controllerState2);
+			checkStatusController(2, &controllerState2, &oldControllerState2);
 			controller2StatusSet = true;
 		}
 
@@ -494,7 +520,7 @@ void simulateYAxisMovement() {
 			distY = 0;
 			controller2StatusSet = false;
 			controllerState2.positionReached = true;
-			checkStatusController(2, &controllerState2);
+			checkStatusController(2, &controllerState2, &oldControllerState2);
 		}
 
 		//std::cout << "currrent x: " << currentState.x << "  current vx: " << currentState.vx << std::endl;
@@ -509,7 +535,7 @@ void simulateZAxisMovement() {
 		// Update controller status
 		if (!controller3StatusSet) {
 			controllerState3.positionReached = false;
-			checkStatusController(3, &controllerState3);
+			checkStatusController(3, &controllerState3, &oldControllerState3);
 			controller3StatusSet = true;
 		}
 
@@ -544,7 +570,7 @@ void simulateZAxisMovement() {
 			distZ = 0;
 			controller3StatusSet = false;
 			controllerState3.positionReached = true;
-			checkStatusController(3, &controllerState3);
+			checkStatusController(3, &controllerState3, &oldControllerState3);
 		}
 
 		//std::cout << "currrent x: " << currentState.x << "  current vx: " << currentState.vx << std::endl;
@@ -556,7 +582,7 @@ void simulateZAxisMovement() {
 		// Update controller status
 		if (!controller3StatusSet) {
 			controllerState3.positionReached = false;
-			checkStatusController(3, &controllerState3);
+			checkStatusController(3, &controllerState3, &oldControllerState3);
 			controller3StatusSet = true;
 		}
 
@@ -591,7 +617,7 @@ void simulateZAxisMovement() {
 			distZ = 0;
 			controller3StatusSet = false;
 			controllerState3.positionReached = true;
-			checkStatusController(3, &controllerState3);
+			checkStatusController(3, &controllerState3, &oldControllerState3);
 		}
 
 		//std::cout << "currrent x: " << currentState.x << "  current vx: " << currentState.vx << std::endl;

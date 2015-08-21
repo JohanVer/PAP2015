@@ -70,6 +70,7 @@ void resetLEDTask(int LEDnumber);
 void resetProcessVariables();
 void resetMotorState(bool x, bool y, bool z);
 void resetMotorState(int index, bool value);
+void checkIfOverThreshold(int numberOfAxis);
 
 ros::Publisher task_publisher, arduino_publisher_, placerStatus_publisher_;
 ros::Subscriber statusSubsriber_;
@@ -97,6 +98,8 @@ bool homingCoordinatesSent = false;
 bool pcbBottomCamCoordinatesSent = false;
 bool cameraPositionReceived = false;
 bool dispensed = false;
+
+bool manualGoto = false;
 
 bool IDLE_called = true;
 int motorcontroller_counter = 0;
@@ -653,20 +656,7 @@ int main(int argc, char **argv) {
 					|| fabs(
 							placeController.lastDestination_.y
 									- placeController.currentDestination_.y)
-							> (posTolerance / 1000)
-
-							/*placeController.lastDestination_.x
-							 < (placeController.currentDestination_.x
-							 - (posTolerance / 1000)))
-							 && (placeController.lastDestination_.y
-							 < (placeController.currentDestination_.y
-							 - (posTolerance / 1000)))
-							 && (placeController.lastDestination_.x
-							 > (placeController.currentDestination_.x
-							 + (posTolerance / 1000)))
-							 && (placeController.lastDestination_.y
-							 > (placeController.currentDestination_.y
-							 + (posTolerance / 1000))))*/) {
+							> (posTolerance / 1000)) {
 				outTolerance = true;
 			} else {
 				outTolerance = false;
@@ -678,12 +668,7 @@ int main(int argc, char **argv) {
 				ROS_INFO("currentX: %f", placeController.currentDestination_.x);
 				ROS_INFO("currentY: %f", placeController.currentDestination_.y);
 				if (zPosReached == 0 && outTolerance) {
-					float diffZ = fabs(
-							placeController.lastDestination_.z
-									- placeController.currentDestination_.z);
-					if (diffZ > DISPENSER_TOLERANCE) {
-						resetMotorState(3, false);
-					}
+					checkIfOverThreshold(3);
 					sendTask(pap_common::CONTROLLER, pap_common::COORD,
 							placeController.lastDestination_.x,
 							placeController.lastDestination_.y,
@@ -696,7 +681,8 @@ int main(int argc, char **argv) {
 					ROS_INFO("zPos: %d", zPosReached);
 
 				} else if (zPosReached == 1 && outTolerance) {
-					resetMotorState(false, false, true);
+					checkIfOverThreshold(1);
+					checkIfOverThreshold(2);
 					sendTask(pap_common::CONTROLLER, pap_common::COORD,
 							placeController.currentDestination_.x,
 							placeController.currentDestination_.y,
@@ -709,12 +695,7 @@ int main(int argc, char **argv) {
 					ROS_INFO("zPos: %d", zPosReached);
 
 				} else if (zPosReached == 2 || outTolerance) {
-					float diffZ = fabs(
-							placeController.lastDestination_.z
-									- placeController.currentDestination_.z);
-					if (diffZ > DISPENSER_TOLERANCE) {
-						resetMotorState(3, false);
-					}
+					checkIfOverThreshold(3);
 					//resetMotorState(true, true, false);
 					sendTask(pap_common::CONTROLLER, pap_common::COORD,
 							placeController.currentDestination_.x,
@@ -744,6 +725,11 @@ int main(int argc, char **argv) {
 				} else if (zPosReached == 2) {
 					zPosReached = 0;
 					state = last_state;
+					if (manualGoto) {
+						sendPlacerStatus(pap_common::GOTO_STATE,
+								pap_common::PLACER_FINISHED);
+						manualGoto = false;
+					}
 					ROS_INFO("Last state: %d", last_state);
 				}
 				//ros::Duration(3).sleep();
@@ -862,6 +848,31 @@ int main(int argc, char **argv) {
 		loop_rate.sleep();
 	}
 	return 0;
+}
+
+void checkIfOverThreshold(int numberOfAxis) {
+	if (numberOfAxis == 1) {
+		float diffX = fabs(
+				placeController.lastDestination_.x
+						- placeController.currentDestination_.x);
+		if (diffX > DISPENSER_TOLERANCE) {
+			resetMotorState(1, false);
+		}
+	} else if (numberOfAxis == 2) {
+		float diffY = fabs(
+				placeController.lastDestination_.y
+						- placeController.currentDestination_.y);
+		if (diffY > DISPENSER_TOLERANCE) {
+			resetMotorState(2, false);
+		}
+	} else if (numberOfAxis == 3) {
+		float diffZ = fabs(
+				placeController.lastDestination_.z
+						- placeController.currentDestination_.z);
+		if (diffZ > DISPENSER_TOLERANCE) {
+			resetMotorState(3, false);
+		}
+	}
 }
 
 /*****************************************************************************
@@ -1062,8 +1073,15 @@ void placerCallback(const pap_common::TaskConstPtr& taskMsg) {
 			sendPlacerStatus(pap_common::HOMING_STATE, pap_common::PLACER_IDLE);
 			homingCoordinatesSent = false;
 			state = HOMING;
-			ROS_INFO("Calibration called...");
 			break;
+
+		case pap_common::GOTO:
+			placeController.currentDestination_.x = taskMsg->data1;
+			placeController.currentDestination_.y = taskMsg->data2;
+			placeController.currentDestination_.z = taskMsg->data3;
+			last_state = IDLE;
+			state = GOTOCOORD;
+			manualGoto = true;
 			break;
 		}
 	}
