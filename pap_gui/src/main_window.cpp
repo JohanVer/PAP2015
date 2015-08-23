@@ -1886,19 +1886,18 @@ void MainWindow::on_calibrationButton_clicked() {
 void MainWindow::on_calcOrientation_Button_clicked() {
 	QPointF local1, global1, local2, global2;
 
-	//float xCamera = 180.0;
-	//float yCamera = 140.0;
-	/*
-	 local1.setX(ui.fiducialTable->item(0, 2)->text().toFloat() + xCamera);
-	 local1.setY(ui.fiducialTable->item(0, 3)->text().toFloat() + yCamera);
-	 local2.setX(ui.fiducialTable->item(1, 2)->text().toFloat() + xCamera);
-	 local2.setY(ui.fiducialTable->item(1, 3)->text().toFloat() + yCamera);
-	 */
+	float xCamera = 0.0;
+	float yCamera = 0.0;
+	if (qnode.fakePadPos_) {
+		ROS_INFO("Simulation active: I will fake the pad positions...");
+		xCamera = 180.0;
+		yCamera = 140.0;
+	}
 
-	local1.setX(ui.fiducialTable->item(0, 2)->text().toFloat());
-	local1.setY(ui.fiducialTable->item(0, 3)->text().toFloat());
-	local2.setX(ui.fiducialTable->item(1, 2)->text().toFloat());
-	local2.setY(ui.fiducialTable->item(1, 3)->text().toFloat());
+	local1.setX(ui.fiducialTable->item(0, 2)->text().toFloat() + xCamera);
+	local1.setY(ui.fiducialTable->item(0, 3)->text().toFloat() + yCamera);
+	local2.setX(ui.fiducialTable->item(1, 2)->text().toFloat() + xCamera);
+	local2.setY(ui.fiducialTable->item(1, 3)->text().toFloat() + yCamera);
 
 	global1.setX(ui.fiducialTable->item(0, 0)->text().toFloat());
 	global1.setY(ui.fiducialTable->item(0, 1)->text().toFloat());
