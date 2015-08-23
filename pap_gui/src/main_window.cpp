@@ -165,6 +165,9 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent) :
 	id_ = 0;
 	sizeDefined_ = false;
 	padFileLoaded_ = false;
+
+	currentPosition.x = 0.0;
+	currentPosition.y = 0.0;
 	//ui.checkBox_box->setDisabled(true);
 
 	for (int i = 1; i <= 7; i++) {
@@ -509,7 +512,8 @@ void MainWindow::on_compDeleteButton_clicked() {
 void MainWindow::loadDatabaseContent() {
 
 	std::fstream databaseFile;
-	std::string fileName = std::string(getenv("PAPRESOURCES")) +"database/database.txt";
+	std::string fileName = std::string(getenv("PAPRESOURCES"))
+			+ "database/database.txt";
 	databaseFile.open(fileName.c_str(),
 			std::fstream::in | std::fstream::out | std::fstream::app);
 
@@ -1006,7 +1010,8 @@ void MainWindow::cameraUpdated(int index) {
 }
 
 void MainWindow::on_startHoming_clicked(bool check) {
-	qnode.sendTask(pap_common::CONTROLLER, pap_common::COORD,currentPosition.x,currentPosition.y,45.0);
+	qnode.sendTask(pap_common::CONTROLLER, pap_common::COORD, currentPosition.x,
+			currentPosition.y, 45.0);
 	ros::Duration(2.0).sleep();
 	qnode.sendTask(pap_common::CONTROLLER, pap_common::HOMING);
 }
@@ -1022,8 +1027,8 @@ void MainWindow::on_gotoCoord_clicked(bool check) {
 	//		(ui.zLineEdit->text()).toFloat());
 
 	qnode.sendTask(pap_common::PLACER, pap_common::GOTO,
-				(ui.xLineEdit->text()).toFloat(), (ui.yLineEdit->text()).toFloat(),
-				(ui.zLineEdit->text()).toFloat());
+			(ui.xLineEdit->text()).toFloat(), (ui.yLineEdit->text()).toFloat(),
+			(ui.zLineEdit->text()).toFloat());
 }
 
 void MainWindow::on_xManPos_pressed() {
@@ -1681,6 +1686,7 @@ void MainWindow::setFiducial(QPointF point) {
 	}
 
 	qnode.sendTask(pap_common::VISION, pap_vision::START_PAD_FINDER);
+	ros::Duration(0.5).sleep();
 	if (ui.fiducialTable->fiducialSize_ == 0) {
 		setFiducialTable(0, padPosition_.x() + currentPosition.x,
 				padPosition_.y() + currentPosition.y);
@@ -1746,6 +1752,7 @@ void MainWindow::setFiducialPads(int number, float x, float y) {
 void MainWindow::signalPosition(float x, float y) {
 	padPosition_.setX(x);
 	padPosition_.setY(y);
+	ROS_INFO("PadPos: %f %f", padPosition_.x(), padPosition_.y());
 }
 
 void MainWindow::sendGotoFiducial(int indexOfFiducial) {
@@ -1879,20 +1886,19 @@ void MainWindow::on_calibrationButton_clicked() {
 void MainWindow::on_calcOrientation_Button_clicked() {
 	QPointF local1, global1, local2, global2;
 
+	//float xCamera = 180.0;
+	//float yCamera = 140.0;
+	/*
+	 local1.setX(ui.fiducialTable->item(0, 2)->text().toFloat() + xCamera);
+	 local1.setY(ui.fiducialTable->item(0, 3)->text().toFloat() + yCamera);
+	 local2.setX(ui.fiducialTable->item(1, 2)->text().toFloat() + xCamera);
+	 local2.setY(ui.fiducialTable->item(1, 3)->text().toFloat() + yCamera);
+	 */
+
 	local1.setX(ui.fiducialTable->item(0, 2)->text().toFloat());
 	local1.setY(ui.fiducialTable->item(0, 3)->text().toFloat());
 	local2.setX(ui.fiducialTable->item(1, 2)->text().toFloat());
 	local2.setY(ui.fiducialTable->item(1, 3)->text().toFloat());
-
-	/*
-	 float xCamera = 170.0;
-	 float yCamera = 140.0;
-
-	 local1.setX(ui.fiducialTable->item(0, 0)->text().toFloat()+xCamera);
-	 local2.setX(ui.fiducialTable->item(1, 0)->text().toFloat()+xCamera);
-	 local1.setY(ui.fiducialTable->item(0, 1)->text().toFloat()+yCamera);
-	 local2.setY(ui.fiducialTable->item(1, 1)->text().toFloat()+yCamera);
-	 */
 
 	global1.setX(ui.fiducialTable->item(0, 0)->text().toFloat());
 	global1.setY(ui.fiducialTable->item(0, 1)->text().toFloat());
@@ -2010,12 +2016,7 @@ void MainWindow::on_startDispense_button_clicked() {
 	float pxFactor = padParser.pixelConversionFactor;
 	float nozzleDiameter = ui.nozzleDispCombo->currentText().toFloat();
 	for (size_t i = 1; i < padParser.padInformationArrayPrint_.size(); i++) {
-		scenePads_.addEllipse(
-				padParser.padInformationArrayPrint_[i].rect.y() * pxFactor,
-				padParser.heightPixel_
-						- (padParser.padInformationArrayPrint_[i].rect.x()
-								* pxFactor), 1, 1,
-				QPen(Qt::blue, 2, Qt::SolidLine));
+
 		std::vector<dispenseInfo> dispInfo = dispenserPlanner.planDispensing(
 				padParser.padInformationArrayPrint_[i], nozzleDiameter);
 
@@ -2049,6 +2050,13 @@ void MainWindow::on_startDispense_button_clicked() {
 			//ROS_INFO("Print: X %f Y %f X2 %f Y2 %f",dispInfo[j].xPos *pxFactor ,(padParser.height_-dispInfo[j].yPos)*pxFactor,dispInfo[j].xPos2*pxFactor,(padParser.height_-dispInfo[j].yPos2)*pxFactor);
 
 		}
+		scenePads_.addEllipse(
+				(padParser.padInformationArrayPrint_[i].rect.y()) * pxFactor
+						- 1.0,
+				padParser.heightPixel_
+						- (padParser.padInformationArrayPrint_[i].rect.x()
+								* pxFactor), 1, 1,
+				QPen(Qt::green, 2, Qt::SolidLine));
 	}
 }
 
@@ -2196,10 +2204,11 @@ void MainWindow::on_calibrateTapeButton_clicked(void) {
 	calibrateTape(1, 0.5, 1.0);
 
 	// EXAMPLE: Get 4th position of component in 1st tape
-	tapeCalibrationValue positionOfComponent = calculatePosOfTapePart(1,4);
+	tapeCalibrationValue positionOfComponent = calculatePosOfTapePart(1, 4);
 }
 
-tapeCalibrationValue MainWindow::calculatePosOfTapePart(int numOfTape, int numOfPart) {
+tapeCalibrationValue MainWindow::calculatePosOfTapePart(int numOfTape,
+		int numOfPart) {
 	tf::Transform rotation_;
 	tapeCalibrationValue out;
 
@@ -2210,7 +2219,7 @@ tapeCalibrationValue MainWindow::calculatePosOfTapePart(int numOfTape, int numOf
 		}
 	}
 
-	if (indexInVector == -1 ) {
+	if (indexInVector == -1) {
 		ROS_ERROR("Tape calibration values not found!");
 		return out;
 	}
@@ -2218,13 +2227,14 @@ tapeCalibrationValue MainWindow::calculatePosOfTapePart(int numOfTape, int numOf
 	tf::Point pointToTransform;
 	// This point should be transformed
 	// Distance between components on tape is 1 mm
-	pointToTransform.setX(numOfPart*1.0);
+	pointToTransform.setX(numOfPart * 1.0);
 	pointToTransform.setY(0.0);
 	pointToTransform.setZ(0.0);
 
 	// This rotates the component to the tape orientation
 	tf::Quaternion rotQuat;
-	rotQuat.setEuler(0.0, 0.0, tapeCalibrationValues[indexInVector].rot*(M_PI/180.0));
+	rotQuat.setEuler(0.0, 0.0,
+			tapeCalibrationValues[indexInVector].rot * (M_PI / 180.0));
 	rotation_.setOrigin(tf::Vector3(0.0, 0.0, 0.0));
 	rotation_.setRotation(rotQuat);
 
@@ -2234,7 +2244,8 @@ tapeCalibrationValue MainWindow::calculatePosOfTapePart(int numOfTape, int numOf
 	out.y = pointToTransform.y() + tapeCalibrationValues[indexInVector].y;
 	out.rot = tapeCalibrationValues[indexInVector].rot;
 
-	ROS_INFO("Calculated Pos of part in Tape: x %f y %f rot %f",out.x,out.y,out.rot);
+	ROS_INFO("Calculated Pos of part in Tape: x %f y %f rot %f", out.x, out.y,
+			out.rot);
 	return out;
 }
 
