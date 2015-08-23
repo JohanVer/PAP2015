@@ -15,6 +15,7 @@
 #include <MyContextMenuTable.hpp>
 #include <QtGui/QMainWindow>
 #include "ui_main_window.h"
+#include "slotselectordialog.h"
 #include "qnode.hpp"
 #include "pap_common/Task.h"
 #include "../../../pap_common/include/pap_common/vision_message_def.h"
@@ -43,6 +44,7 @@
 #include "DispenserPlanner.hpp"
 #include "../../../pap_placer/include/pap_placer/placerNode.hpp"
 #include <tf/transform_broadcaster.h>
+#include <algorithm>
 
 /*
 class componentEntry {
@@ -153,6 +155,7 @@ public Q_SLOTS:
     void on_scanPCBButton_clicked();
     void on_setCompBoxNrButton_2_clicked();
     void on_setLEDButton_clicked();
+    void setLedFromSelection(int);
     void on_resetLEDButton_clicked();
     void on_ledResetButton_clicked();
     void changeRingLEDBrightness(int brightness);

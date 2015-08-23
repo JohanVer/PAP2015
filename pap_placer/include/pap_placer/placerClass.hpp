@@ -1,3 +1,6 @@
+#ifndef PAP_PLACER_H
+#define PAP_PLACER_H
+
 #include "ros/ros.h"
 #include "std_msgs/Header.h"
 #include <vector>
@@ -153,3 +156,5 @@ private:
 	// Current destination coordinates for gotocoord state
 	Offset currentDestination;
 };
+
+#endif // PAP_PLACER_H

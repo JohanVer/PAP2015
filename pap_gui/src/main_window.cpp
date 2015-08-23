@@ -192,22 +192,33 @@ void MainWindow::on_scanPCBButton_clicked() {
 	// store image
 }
 
-void MainWindow::on_setCompBoxNrButton_2_clicked() {
+void MainWindow::setLedFromSelection(int selection) {
+	if (selection != -1) {
+		ROS_INFO("Set led number %d", selection);
+		qnode.setLEDTask(selection);
+	} else {
+		qnode.LEDTask(pap_common::RESETALLLED, 0);
+	}
+}
 
+void MainWindow::on_setCompBoxNrButton_2_clicked() {
+	SlotSelectorDialog w;
+	connect(&w, SIGNAL(setLed(int)), this, SLOT(setLedFromSelection(int)));
+	w.exec();
 	if (singleComponentSelected) {
 
 		bool ok = false;
-		QInputDialog* inputDialog = new QInputDialog();
-		inputDialog->setOptions(QInputDialog::NoButtons);
-
+		/*QInputDialog* inputDialog = new QInputDialog();
+		 inputDialog->setOptions(QInputDialog::NoButtons);
+		 */
 		/* Get boxNumber input */
 		int currentBox = singleComponent.box;
 		if (currentBox == -1) {
 			currentBox = 1;
 		}
 
-		int boxNumber = inputDialog->getInt(this, "Set new box number",
-				"Enter new box number:", currentBox);
+		int boxNumber = w.getIndex(); //inputDialog->getInt(this, "Set new box number",
+		//"Enter new box number:", currentBox);
 
 		if (boxNumber <= boxNumberMax && boxNumber >= boxNumberMin) {
 			singleComponent.box = boxNumber;
@@ -227,6 +238,7 @@ void MainWindow::on_setCompBoxNrButton_2_clicked() {
 		msgBox.exec();
 		msgBox.close();
 	}
+	qnode.LEDTask(pap_common::RESETALLLED, 0);
 }
 
 void MainWindow::on_setCompBoxNrButton_clicked() {
@@ -2011,13 +2023,38 @@ void MainWindow::on_bottomLEDButton_clicked() {
 	}
 }
 
+struct compareClass {
+	//compareClass(float paramA, float paramB) { this->xPos = paramA; this->yPos = paramB; }
+	bool operator()(PadInformation i, PadInformation j) {
+		//float arg1 = sqrt(pow(i.rect.x()-yPos,2) + pow(i.rect.y()-xPos,2));
+		//float arg2 = sqrt(pow(j.rect.x()-yPos,2) + pow(j.rect.y()-xPos,2));
+		float arg1 = i.rect.x();
+		float arg2 = j.rect.x();
+		return (arg1 < arg2);
+	}
+	//float xPos,yPos;
+};
+
 void MainWindow::on_startDispense_button_clicked() {
 	float pxFactor = padParser.pixelConversionFactor;
 	float nozzleDiameter = ui.nozzleDispCombo->currentText().toFloat();
-	for (size_t i = 1; i < padParser.padInformationArrayPrint_.size(); i++) {
+
+	std::vector<PadInformation> copy;
+	copy = padParser.padInformationArrayPrint_;
+
+	// Number 0 is background
+	copy.erase(copy.begin());
+
+	std::sort(copy.begin(), copy.end(), compareClass());
+
+	for (size_t i = 0; i < copy.size(); i++) {
 
 		std::vector<dispenseInfo> dispInfo = dispenserPlanner.planDispensing(
-				padParser.padInformationArrayPrint_[i], nozzleDiameter);
+				copy[i], nozzleDiameter);
+
+		//copy.erase(copy.begin());
+
+		//std::sort(copy.begin(), copy.end(), compareClass(currentPosition.x,currentPosition.y));
 
 		for (size_t j = 0; j < dispInfo.size(); j++) {
 			scenePads_.addLine(
@@ -2049,13 +2086,10 @@ void MainWindow::on_startDispense_button_clicked() {
 			//ROS_INFO("Print: X %f Y %f X2 %f Y2 %f",dispInfo[j].xPos *pxFactor ,(padParser.height_-dispInfo[j].yPos)*pxFactor,dispInfo[j].xPos2*pxFactor,(padParser.height_-dispInfo[j].yPos2)*pxFactor);
 
 		}
-		scenePads_.addEllipse(
-				(padParser.padInformationArrayPrint_[i].rect.y()) * pxFactor
-						- 1.0,
-				padParser.heightPixel_
-						- (padParser.padInformationArrayPrint_[i].rect.x()
-								* pxFactor), 1, 1,
+		scenePads_.addEllipse((copy[i].rect.y()) * pxFactor - 1.0,
+				padParser.heightPixel_ - (copy[i].rect.x() * pxFactor), 1, 1,
 				QPen(Qt::green, 2, Qt::SolidLine));
+
 	}
 }
 

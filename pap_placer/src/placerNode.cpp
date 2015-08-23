@@ -660,7 +660,7 @@ int main(int argc, char **argv) {
 				outTolerance = true;
 			} else {
 				outTolerance = false;
-				ROS_INFO("In Tolerance");
+				//ROS_INFO("In Tolerance");
 			}
 			if (!placerNodeBusy) {
 				ROS_INFO("lastX: %f", placeController.lastDestination_.x);
