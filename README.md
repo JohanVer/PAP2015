@@ -21,6 +21,7 @@ Nikolas:
 * Placer-Planner: Implement the second nozzle
 * Placer-Planner: Implement complete (all parts with one click magic) assembling of smd parts
 * Placer-Planner: Test the part rotation procedure (does the system rotate the part in the right direction?)
+* GUI: Pass occupied slots with name to slotsSelector
 
 #DEPENDENCIES
 
