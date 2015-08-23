@@ -9,7 +9,7 @@ Johan:
 * Tape Calibration: Goto correct tape position (Lookup table)
 * CHECKED LED-Controller: Test new LED functions: Slider for dimming, blinking, color selection
 * Dispenser-Planner: Sort dispenser tasks due to distances
-* Dispenser-Planner: Check middle points of dispenser planning
+* CHECKED  Dispenser-Planner: Check middle points of dispenser planning
 * Dispenser-Planner: Modify dispenser height
 * Dispenser-Planner: Pause-Button, Exclude-Function
 
