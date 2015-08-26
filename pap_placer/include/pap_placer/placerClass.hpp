@@ -1,3 +1,6 @@
+#ifndef PLACER_CLASS_H_
+#define PLACER_CLASS_H_
+
 #include "ros/ros.h"
 #include "std_msgs/Header.h"
 #include <vector>
@@ -108,6 +111,8 @@ public:
 	Offset tip1ClibrationOffset_;
 	Offset dispenserCalibrationOffset_;
 
+	Offset pickUpAreaOffset;
+
 	Offset getBoxCoordinates();
 	Offset getCompPickUpCoordinates();
 	Offset getPCBCalibCoordinates();
@@ -146,7 +151,7 @@ private:
 	} tip;
 
 	// These offsets are relative to homing position
-	Offset pcbOriginOffset, pickUpAreaOffset;
+	Offset pcbOriginOffset;
 	Offset cameraBottomOffset;
 
 
@@ -157,3 +162,5 @@ private:
 	// Current destination coordinates for gotocoord state
 	Offset currentDestination;
 };
+
+#endif // PLACER_CLASS_H_

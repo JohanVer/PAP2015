@@ -51,6 +51,12 @@ int boxNumberMin = 0;
 int boxNumberSug = 1;
 float xTapeCalibration, yTapeCalibration, rotTapeCalibration = 0;
 
+const Offset TapeOffsetTable[20] = {	{339.7, -40.0}, {339.7, -51.0}, {339.7, -62.0}, {339.7, -73.0}, {339.7, -84.0},
+						{339.7, -95.0}, {339.7, -106.0}, {339.7, -117.0}, {339.7, -128.0}, {339.7, -139.0},
+						{339.7, -150.0}, {339.7, -161.0}, {339.7, -172.0}, {339.7, -183.0}, {339.7, -194.0},
+						{339.7, -205.0}, {339.7, -216.0}, {339.7, -227.0}, {339.7, -238.0}, {339.7, -249.0}};
+
+
 MainWindow::MainWindow(int argc, char** argv, QWidget *parent) :
 		QMainWindow(parent), qnode(argc, argv) {
 	ui.setupUi(this); // Calling this incidentally connects all ui's triggers to on_...() callbacks in this class.
@@ -381,9 +387,11 @@ void MainWindow::updateComponentInformation() {
 			ui.label_compLength->setText(
 					QString::number(databaseVector.at(packageID).length, 'f',
 							2));
+			componentVector[currentComp].length = databaseVector.at(packageID).length;
 			ui.label_compWidth->setText(
 					QString::number(databaseVector.at(packageID).width, 'f',
 							2));
+			componentVector[currentComp].width = databaseVector.at(packageID).width;
 			ui.label_compHeight->setText(
 					QString::number(databaseVector.at(packageID).height, 'f',
 							2));
@@ -614,13 +622,15 @@ void MainWindow::on_loadGerberFileButton_clicked() {
 						componentString.size() - pos1);
 
 				pos1 = componentString.find('"');
-				QString* posX = new QString(componentString.substr(0, pos1).c_str());
+				QString* posX = new QString(
+						componentString.substr(0, pos1).c_str());
 				newComponent.posX = posX->toFloat();
 				componentString = componentString.substr(pos1 + 3,
 						componentString.size() - pos1);
 
 				pos1 = componentString.find('"');
-				QString* posY = new QString(componentString.substr(0, pos1).c_str());
+				QString* posY = new QString(
+						componentString.substr(0, pos1).c_str());
 				newComponent.posY = posY->toFloat();
 				componentString = componentString.substr(pos1 + 3,
 						componentString.size() - pos1);
@@ -980,7 +990,8 @@ void MainWindow::cameraUpdated(int index) {
 }
 
 void MainWindow::on_startHoming_clicked(bool check) {
-	qnode.sendTask(pap_common::CONTROLLER, pap_common::COORD,currentPosition.x,currentPosition.y,45.0);
+	qnode.sendTask(pap_common::CONTROLLER, pap_common::COORD, currentPosition.x,
+			currentPosition.y, 45.0);
 	ros::Duration(2.0).sleep();
 	qnode.sendTask(pap_common::CONTROLLER, pap_common::HOMING);
 }
@@ -996,8 +1007,8 @@ void MainWindow::on_gotoCoord_clicked(bool check) {
 	//		(ui.zLineEdit->text()).toFloat());
 
 	qnode.sendTask(pap_common::PLACER, pap_common::GOTO,
-				(ui.xLineEdit->text()).toFloat(), (ui.yLineEdit->text()).toFloat(),
-				(ui.zLineEdit->text()).toFloat());
+			(ui.xLineEdit->text()).toFloat(), (ui.yLineEdit->text()).toFloat(),
+			(ui.zLineEdit->text()).toFloat());
 }
 
 void MainWindow::on_xManPos_pressed() {
@@ -2165,15 +2176,17 @@ void MainWindow::sendTransforms(double x, double y, double z, double nozzle_1,
 void MainWindow::on_calibrateTapeButton_clicked(void) {
 
 	// TODO{Niko}: Use these functions in gui and placer node
-	QVector<int> usedTapes;
+	QVector<int> calibratedTapes;
 	for (size_t i = 0; componentVector.size(); i++) {
 		if ((componentVector.at(i).box >= 67)
 				&& (componentVector.at(i).box <= 86)) {
+			ROS_INFO("Calibrated tape: %d", componentVector.at(i).box);
 			int tape_nr = componentVector.at(i).box - 67;
-			if (usedTapes.indexOf(tape_nr) == -1) {
-				usedTapes.append(tape_nr);
+			if (calibratedTapes.indexOf(tape_nr) == -1) {
+				calibratedTapes.append(tape_nr);
 				calibrateTape(tape_nr, componentVector.at(i).width,
 						componentVector.at(i).length);
+				ROS_INFO("Index : %d Width: %f Height: %f",tape_nr,componentVector.at(i).width,componentVector.at(i).length);
 			}
 		}
 	}
@@ -2226,6 +2239,33 @@ tapeCalibrationValue MainWindow::calculatePosOfTapePart(int numOfTape,
 void MainWindow::calibrateTape(int tapeNumber, float componentWidth,
 		float componentHeight) {
 	// TODO{Johan}: Goto tape with index: tapeNumber
+
+	Offset temp = TapeOffsetTable[tapeNumber];
+	temp.x += 109;
+    temp.y += 261;
+	temp.z = 20.1;
+	qnode.sendTask(pap_common::PLACER, pap_common::GOTO, temp.x, temp.y,
+			temp.z);
+
+	QEventLoop loopPos;
+	QTimer *timerPos = new QTimer(this);
+	connect(&qnode, SIGNAL(positionGotoReached()),
+			&loopPos, SLOT(quit()));
+	connect(timerPos, SIGNAL(timeout()), &loopPos, SLOT(quit()));
+	timerPos->setSingleShot(true);
+	timerPos->start(20000);
+	loopPos.exec(); //blocks untill either signalPosition or timeout was fired
+
+	// Is timeout ocurred?
+	if (!timerPos->isActive()) {
+		QMessageBox msgBox;
+		const QString title = "Timeout";
+		msgBox.setWindowTitle(title);
+		msgBox.setText("Position not reached");
+		msgBox.exec();
+		msgBox.close();
+		return;
+	}
 
 	tapeCalibrationValue calibrationVal;
 	calibrationVal.index = tapeNumber;

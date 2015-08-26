@@ -140,6 +140,7 @@ Q_SIGNALS:
     void smdCoordinates(float x,float y,float rot,unsigned int cameraSelect);
     void signalPosition(float x,float y);
     void dispenserFinished();
+    void positionGotoReached();
 
 private:
 	int init_argc;

@@ -41,9 +41,7 @@
 #include <QPainter>
 #include <QSize>
 #include "DispenserPlanner.hpp"
-#include "../../../pap_placer/include/pap_placer/placerNode.hpp"
 #include <tf/transform_broadcaster.h>
-
 /*
 class componentEntry {
 public:
@@ -268,6 +266,7 @@ private:
     int id_;
 
     std::vector<tapeCalibrationValue> tapeCalibrationValues;
+
 
 };
 

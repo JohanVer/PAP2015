@@ -19,6 +19,7 @@ find_package(catkin REQUIRED COMPONENTS
   cv_bridge
   sensor_msgs
   pap_common
+  pap_placer
   pcb_cv
   tf
 )

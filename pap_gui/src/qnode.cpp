@@ -116,8 +116,8 @@ void QNode::cameraCallback2(const sensor_msgs::ImageConstPtr& camera_msg) {
 	}
 
 	if (camera_msg->header.frame_id == "camera2") {
-		cameraImage2_ = QImage(dataArray2, camera_msg->width, camera_msg->height,
-				QImage::Format_RGB888);
+		cameraImage2_ = QImage(dataArray2, camera_msg->width,
+				camera_msg->height, QImage::Format_RGB888);
 		Q_EMIT cameraUpdated(2);
 	}
 
@@ -210,8 +210,13 @@ void QNode::sendTask(pap_common::DESTINATION destination, pap_common::TASK task,
 
 void QNode::placerStatusCallback(
 		const pap_common::PlacerStatusConstPtr& statusMsg) {
-	if (statusMsg->process == pap_common::INFO) {
-		if(statusMsg->status == pap_common::DISPENSER_FINISHED){
+	if (statusMsg->process == pap_common::GOTO_STATE) {
+		if (statusMsg->status == pap_common::PLACER_FINISHED) {
+			Q_EMIT positionGotoReached();
+		}
+
+	} else if (statusMsg->process == pap_common::INFO) {
+		if (statusMsg->status == pap_common::DISPENSER_FINISHED) {
 			Q_EMIT dispenserFinished();
 		}
 
@@ -369,15 +374,15 @@ void QNode::visionStatusCallback(
 
 void QNode::qrCodeCallback(const std_msgs::StringConstPtr& qrMsg) {
 	ROS_INFO("QR Code message received");
-	//QString qrCode = &qrMsg;
-	//Q_EMIT
+//QString qrCode = &qrMsg;
+//Q_EMIT
 }
 
 void QNode::sendPcbImage(QImage* image,
 		visualization_msgs::MarkerArray *markerList) {
 	static unsigned int id_counter;
 
-	// Pointcloud Approach--------------------------------------------------------------------
+// Pointcloud Approach--------------------------------------------------------------------
 
 	/*
 	 std_msgs::Header header;
