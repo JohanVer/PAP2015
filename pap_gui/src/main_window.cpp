@@ -171,6 +171,9 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent) :
 	id_ = 0;
 	sizeDefined_ = false;
 	padFileLoaded_ = false;
+
+	currentPosition.x = 0.0;
+	currentPosition.y = 0.0;
 	//ui.checkBox_box->setDisabled(true);
 	for (size_t i = 0; i < 20; i++) {
 		tapeCompCounter[i] = 0;
@@ -198,22 +201,33 @@ void MainWindow::on_scanPCBButton_clicked() {
 	// store image
 }
 
-void MainWindow::on_setCompBoxNrButton_2_clicked() {
+void MainWindow::setLedFromSelection(int selection) {
+	if (selection != -1) {
+		ROS_INFO("Set led number %d", selection);
+		qnode.setLEDTask(selection);
+	} else {
+		qnode.LEDTask(pap_common::RESETALLLED, 0);
+	}
+}
 
+void MainWindow::on_setCompBoxNrButton_2_clicked() {
+	SlotSelectorDialog w;
+	connect(&w, SIGNAL(setLed(int)), this, SLOT(setLedFromSelection(int)));
+	w.exec();
 	if (singleComponentSelected) {
 
 		bool ok = false;
-		QInputDialog* inputDialog = new QInputDialog();
-		inputDialog->setOptions(QInputDialog::NoButtons);
-
+		/*QInputDialog* inputDialog = new QInputDialog();
+		 inputDialog->setOptions(QInputDialog::NoButtons);
+		 */
 		/* Get boxNumber input */
 		int currentBox = singleComponent.box;
 		if (currentBox == -1) {
 			currentBox = 1;
 		}
 
-		int boxNumber = inputDialog->getInt(this, "Set new box number",
-				"Enter new box number:", currentBox);
+		int boxNumber = w.getIndex(); //inputDialog->getInt(this, "Set new box number",
+		//"Enter new box number:", currentBox);
 
 		if (boxNumber <= boxNumberMax && boxNumber >= boxNumberMin) {
 			singleComponent.box = boxNumber;
@@ -233,6 +247,7 @@ void MainWindow::on_setCompBoxNrButton_2_clicked() {
 		msgBox.exec();
 		msgBox.close();
 	}
+	qnode.LEDTask(pap_common::RESETALLLED, 0);
 }
 
 void MainWindow::on_setCompBoxNrButton_clicked() {
@@ -1666,6 +1681,7 @@ void MainWindow::setFiducial(QPointF point) {
 	}
 
 	qnode.sendTask(pap_common::VISION, pap_vision::START_PAD_FINDER);
+	ros::Duration(0.5).sleep();
 	if (ui.fiducialTable->fiducialSize_ == 0) {
 		setFiducialTable(0, padPosition_.x() + currentPosition.x,
 				padPosition_.y() + currentPosition.y);
@@ -1731,6 +1747,7 @@ void MainWindow::setFiducialPads(int number, float x, float y) {
 void MainWindow::signalPosition(float x, float y) {
 	padPosition_.setX(x);
 	padPosition_.setY(y);
+	ROS_INFO("PadPos: %f %f", padPosition_.x(), padPosition_.y());
 }
 
 void MainWindow::sendGotoFiducial(int indexOfFiducial) {
@@ -1864,20 +1881,18 @@ void MainWindow::on_calibrationButton_clicked() {
 void MainWindow::on_calcOrientation_Button_clicked() {
 	QPointF local1, global1, local2, global2;
 
-	local1.setX(ui.fiducialTable->item(0, 2)->text().toFloat());
-	local1.setY(ui.fiducialTable->item(0, 3)->text().toFloat());
-	local2.setX(ui.fiducialTable->item(1, 2)->text().toFloat());
-	local2.setY(ui.fiducialTable->item(1, 3)->text().toFloat());
+	float xCamera = 0.0;
+	float yCamera = 0.0;
+	if (qnode.fakePadPos_) {
+		ROS_INFO("Simulation active: I will fake the pad positions...");
+		xCamera = 180.0;
+		yCamera = 140.0;
+	}
 
-	/*
-	 float xCamera = 170.0;
-	 float yCamera = 140.0;
-
-	 local1.setX(ui.fiducialTable->item(0, 0)->text().toFloat()+xCamera);
-	 local2.setX(ui.fiducialTable->item(1, 0)->text().toFloat()+xCamera);
-	 local1.setY(ui.fiducialTable->item(0, 1)->text().toFloat()+yCamera);
-	 local2.setY(ui.fiducialTable->item(1, 1)->text().toFloat()+yCamera);
-	 */
+	local1.setX(ui.fiducialTable->item(0, 2)->text().toFloat() + xCamera);
+	local1.setY(ui.fiducialTable->item(0, 3)->text().toFloat() + yCamera);
+	local2.setX(ui.fiducialTable->item(1, 2)->text().toFloat() + xCamera);
+	local2.setY(ui.fiducialTable->item(1, 3)->text().toFloat() + yCamera);
 
 	global1.setX(ui.fiducialTable->item(0, 0)->text().toFloat());
 	global1.setY(ui.fiducialTable->item(0, 1)->text().toFloat());
@@ -1991,18 +2006,38 @@ void MainWindow::on_bottomLEDButton_clicked() {
 	}
 }
 
+struct compareClass {
+	//compareClass(float paramA, float paramB) { this->xPos = paramA; this->yPos = paramB; }
+	bool operator()(PadInformation i, PadInformation j) {
+		//float arg1 = sqrt(pow(i.rect.x()-yPos,2) + pow(i.rect.y()-xPos,2));
+		//float arg2 = sqrt(pow(j.rect.x()-yPos,2) + pow(j.rect.y()-xPos,2));
+		float arg1 = i.rect.x();
+		float arg2 = j.rect.x();
+		return (arg1 < arg2);
+	}
+	//float xPos,yPos;
+};
+
 void MainWindow::on_startDispense_button_clicked() {
 	float pxFactor = padParser.pixelConversionFactor;
 	float nozzleDiameter = ui.nozzleDispCombo->currentText().toFloat();
-	for (size_t i = 1; i < padParser.padInformationArrayPrint_.size(); i++) {
-		scenePads_.addEllipse(
-				padParser.padInformationArrayPrint_[i].rect.y() * pxFactor,
-				padParser.heightPixel_
-						- (padParser.padInformationArrayPrint_[i].rect.x()
-								* pxFactor), 1, 1,
-				QPen(Qt::blue, 2, Qt::SolidLine));
+
+	std::vector<PadInformation> copy;
+	copy = padParser.padInformationArrayPrint_;
+
+	// Number 0 is background
+	copy.erase(copy.begin());
+
+	std::sort(copy.begin(), copy.end(), compareClass());
+
+	for (size_t i = 0; i < copy.size(); i++) {
+
 		std::vector<dispenseInfo> dispInfo = dispenserPlanner.planDispensing(
-				padParser.padInformationArrayPrint_[i], nozzleDiameter);
+				copy[i], nozzleDiameter);
+
+		//copy.erase(copy.begin());
+
+		//std::sort(copy.begin(), copy.end(), compareClass(currentPosition.x,currentPosition.y));
 
 		for (size_t j = 0; j < dispInfo.size(); j++) {
 			scenePads_.addLine(
@@ -2034,6 +2069,10 @@ void MainWindow::on_startDispense_button_clicked() {
 			//ROS_INFO("Print: X %f Y %f X2 %f Y2 %f",dispInfo[j].xPos *pxFactor ,(padParser.height_-dispInfo[j].yPos)*pxFactor,dispInfo[j].xPos2*pxFactor,(padParser.height_-dispInfo[j].yPos2)*pxFactor);
 
 		}
+		scenePads_.addEllipse((copy[i].rect.y()) * pxFactor - 1.0,
+				padParser.heightPixel_ - (copy[i].rect.x() * pxFactor), 1, 1,
+				QPen(Qt::green, 2, Qt::SolidLine));
+
 	}
 }
 

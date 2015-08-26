@@ -10,7 +10,6 @@
 #include "../include/pap_gui/GerberPadParser.hpp"
 //#include "../include/pap_gui/main_window.hpp"
 
-
 GerberPadParser::GerberPadParser() {
 	height_ = 0.0;
 	width_ = 0.0;
@@ -19,6 +18,11 @@ GerberPadParser::GerberPadParser() {
 	pcbSize.setY(0.0);
 	differenceAngle_ = 0.0;
 
+	// Initial Transform for simulation
+	transTransformIntoRobot_.setOrigin(
+			tf::Vector3(300.0, 150.0,
+					0.0));
+	transTransformIntoRobot_.setRotation(tf::Quaternion(0, 0, 0, 1));
 }
 
 GerberPadParser::~GerberPadParser() {
@@ -308,11 +312,10 @@ void GerberPadParser::loadFile(std::string fileName, bool bottomLayer) {
 				PadInformation newPad;
 
 				bottomLayer_ = bottomLayer;
-				newPad.rect.setX(height_-(yParsed * 25.4));
+				newPad.rect.setX(height_ - (yParsed * 25.4));
 				if (bottomLayer) {
 					ROS_INFO("Bottom layer detected");
 					newPad.rect.setY((xParsed * 25.4));
-
 
 				} else {
 					ROS_INFO("Top layer detected");
@@ -372,10 +375,10 @@ QRectF GerberPadParser::renderImage(QGraphicsScene* scene, int width,
 
 		//padInfo = padInformationArrayPrint_[i];
 		padInfo.rect.setX(padInformationArrayPrint_[i].rect.y());
-				padInfo.rect.setY(padInformationArrayPrint_[i].rect.x());
-				padInfo.rect.setWidth(padInformationArrayPrint_[i].rect.height());
-				padInfo.rect.setHeight(padInformationArrayPrint_[i].rect.width());
-				padInfo.rotation = padInformationArrayPrint_[i].rotation;
+		padInfo.rect.setY(padInformationArrayPrint_[i].rect.x());
+		padInfo.rect.setWidth(padInformationArrayPrint_[i].rect.height());
+		padInfo.rect.setHeight(padInformationArrayPrint_[i].rect.width());
+		padInfo.rotation = padInformationArrayPrint_[i].rotation;
 
 		double upperCornerPadX =
 				((padInfo.rect.x() - padInfo.rect.width() / 2.0)
@@ -494,7 +497,8 @@ float GerberPadParser::calibratePads(QPointF local1, QPointF local2,
 	float cvAngle = atan2(local2.y() - local1.y(), local2.x() - local1.x());
 
 	differenceAngle_ = fixedAngle - cvAngle;
-	ROS_INFO("Calibration : Difference Angle %f", differenceAngle_*(180.0/M_PI));
+	ROS_INFO("Calibration : Difference Angle %f",
+			differenceAngle_*(180.0/M_PI));
 
 // This calculates the translation of the pads in the global pad frame
 	transformIntoGlobalPoint_.setOrigin(

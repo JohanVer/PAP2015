@@ -9,7 +9,7 @@ Johan:
 * Tape Calibration: Goto correct tape position (Lookup table)
 * CHECKED LED-Controller: Test new LED functions: Slider for dimming, blinking, color selection
 * Dispenser-Planner: Sort dispenser tasks due to distances
-* Dispenser-Planner: Check middle points of dispenser planning
+* CHECKED  Dispenser-Planner: Check middle points of dispenser planning
 * Dispenser-Planner: Modify dispenser height
 * Dispenser-Planner: Pause-Button, Exclude-Function
 
@@ -21,6 +21,7 @@ Nikolas:
 * Placer-Planner: Implement the second nozzle
 * Placer-Planner: Implement complete (all parts with one click magic) assembling of smd parts
 * Placer-Planner: Test the part rotation procedure (does the system rotate the part in the right direction?)
+* GUI: Pass occupied slots with name to slotsSelector
 
 #DEPENDENCIES
 

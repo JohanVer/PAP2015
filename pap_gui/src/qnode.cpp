@@ -15,7 +15,9 @@
 #include <string>
 #include <std_msgs/String.h>
 #include <sstream>
+#include <ros/param.h>
 #include "../include/pap_gui/qnode.hpp"
+#include <ros/node_handle.h>
 
 /*****************************************************************************
  ** Namespaces
@@ -29,6 +31,7 @@ namespace pap_gui {
 
 QNode::QNode(int argc, char** argv) :
 		init_argc(argc), init_argv(argv) {
+	fakePadPos_ = false;
 }
 
 QNode::~QNode() {
@@ -46,6 +49,9 @@ bool QNode::init() {
 	}
 	ros::start(); // explicitly needed since our nodehandle is going out of scope.
 	ros::NodeHandle n_;
+	if (n_.getParam("/fakePadPos", fakePadPos_)) {
+		ROS_INFO("Param: %d", fakePadPos_);
+	}
 	image_transport::ImageTransport it_(n_);
 	// Add your ros communications here.
 	task_publisher = n_.advertise<pap_common::Task>("task", 1000);

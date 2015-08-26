@@ -43,6 +43,7 @@ public:
 	QRectF rect;
 	std::string shapeStr;
 	float rotation;
+	bool dispensed;
 };
 
 class ShapeInformation {

@@ -164,7 +164,7 @@ private:
 
 public:
     float pcbWidth_,pcbHeight_;
-
+    bool fakePadPos_;
 };
 
 }  // namespace pap_gui
