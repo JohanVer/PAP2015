@@ -31,8 +31,8 @@ int SlotSelectorDialog::searchId(QPointF position) {
 	for (size_t i = 0; i < printedSlots_.size(); i++) {
 		printedSlots_[i].occupied = false;
 	}
-	// First rect is outline
-	for (std::size_t i = 1; i < printedSlots_.size(); i++) {
+
+	for (std::size_t i = 0; i < printedSlots_.size(); i++) {
 		if (printedSlots_[i].pos.contains(convPoint)) {
 			Q_EMIT setLed(i);
 			printedSlots_[i].occupied = true;

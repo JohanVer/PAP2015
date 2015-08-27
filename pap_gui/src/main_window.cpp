@@ -239,7 +239,6 @@ void MainWindow::on_setCompBoxNrButton_2_clicked() {
 			msgBox.setText("BoxNumberMin = 0, BoxNumberMax = 59");
 			msgBox.exec();
 			msgBox.close();
-
 		}
 	} else {
 		QMessageBox msgBox;
