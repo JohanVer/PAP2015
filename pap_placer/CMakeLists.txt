@@ -12,7 +12,6 @@ find_package(catkin REQUIRED COMPONENTS
   cv_bridge
   sensor_msgs
   pap_common
-  pcb_cv
   qt_build
 )
 

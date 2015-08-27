@@ -20,12 +20,11 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   pap_common
   pap_placer
-  pcb_cv
   tf
 )
 
 set(SOURCE_BUILD "/home/nikolas/catkin_ws/src/PAP2015/pap_gui/include/pap_gui/")
-set(SOURCE_BUILD2 "/home/johan/Documents/catkin_ws/src/pap_gui/include/pap_gui/")
+set(SOURCE_BUILD2 "/home/johan/Documents/catkin_ws/src/PAP2015/pap_gui/include/pap_gui/")
 set(SOURCE_BUILD3 "/home/johan/Dokumente/catkin_ws/src/PAP2015/pap_gui/include/pap_gui/")
 set(SOURCE_BUILD4 "/home/vertensj/Documents/catkin_ws/src/PAP2015/pap_gui/include/pap_gui/")
 set(SOURCE_BUILD5 "/home/johan/catkin_ws/src/PAP2015/pap_gui/include/pap_gui/")
