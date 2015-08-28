@@ -7,6 +7,7 @@
 #include <QGraphicsObject>
 #include <QRectF>
 #include "ui_slotselectordialog.h"
+
 namespace Ui {
 class SlotSelectorDialog;
 }
@@ -31,11 +32,12 @@ public:
 	~SlotSelectorDialog();
 	int searchId(QPointF position);
 	int getIndex();
+	void paintSlots(void);
 	bool getName(int index, std::string* name);
 
 	std::vector<SlotInformation> nameList;
 private:
-	void paintSlots(void);
+
 
 Q_SIGNALS:
 	void setSlotIndex(int indexOfSlot);

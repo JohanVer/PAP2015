@@ -220,6 +220,7 @@ void MainWindow::on_setCompBoxNrButton_2_clicked() {
 	// The character shall be restricted to 5
 	test.name = std::string("100nF");
 	w.nameList.push_back(test);
+	w.paintSlots();
 
 
 	connect(&w, SIGNAL(setLed(int)), this, SLOT(setLedFromSelection(int)));

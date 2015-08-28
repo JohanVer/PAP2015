@@ -22,6 +22,11 @@ const Offset SmallBoxOffsetTable[59] =
 						-35.2 }, { 204.25, -51.8 }, { 204.25, -68.4 }, { 204.25,
 						-85 } };
 
+const Offset TapeOffsetTable[20] = {	{339.7, -40.0}, {339.7, -51.0}, {339.7, -62.0}, {339.7, -73.0}, {339.7, -84.0},
+						{339.7, -95.0}, {339.7, -106.0}, {339.7, -117.0}, {339.7, -128.0}, {339.7, -139.0},
+						{339.7, -150.0}, {339.7, -161.0}, {339.7, -172.0}, {339.7, -183.0}, {339.7, -194.0},
+						{339.7, -205.0}, {339.7, -216.0}, {339.7, -227.0}, {339.7, -238.0}, {339.7, -249.0}};
+
 int SlotSelectorDialog::searchId(QPointF position) {
 	Q_EMIT setLed(-1);
 	ros::Duration(0.2).sleep();
@@ -34,7 +39,9 @@ int SlotSelectorDialog::searchId(QPointF position) {
 
 	for (std::size_t i = 0; i < printedSlots_.size(); i++) {
 		if (printedSlots_[i].pos.contains(convPoint)) {
+			if(i < 59){
 			Q_EMIT setLed(i);
+			}
 			printedSlots_[i].occupied = true;
 			paintSlots();
 			return i;
@@ -49,6 +56,9 @@ void SlotSelectorDialog::slotPressed(int numberOfFiducial, QPointF padPos) {
 }
 
 int SlotSelectorDialog::getIndex() {
+	if(currentIndex_ > 58){
+		currentIndex_ += 8;
+	}
 	return currentIndex_;
 }
 
@@ -66,6 +76,15 @@ SlotSelectorDialog::SlotSelectorDialog(QWidget *parent) :
 		slot.pos.setHeight(10);
 		printedSlots_.push_back(slot);
 	}
+
+	for (size_t i = 0; i < 20; i++) {
+			SlotInformation slot;
+			slot.pos.setX(TapeOffsetTable[i].y);
+			slot.pos.setY(TapeOffsetTable[i].x);
+			slot.pos.setWidth(5);
+			slot.pos.setHeight(30);
+			printedSlots_.push_back(slot);
+		}
 	paintSlots();
 }
 
