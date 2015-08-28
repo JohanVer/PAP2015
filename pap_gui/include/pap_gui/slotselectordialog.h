@@ -14,9 +14,12 @@ class SlotSelectorDialog;
 class SlotInformation{
 public:
 	QRectF pos;
+	int index;
 	bool occupied;
+	std::string name;
 	SlotInformation(){
 		occupied = false;
+		index = 0;
 	}
 };
 
@@ -28,6 +31,9 @@ public:
 	~SlotSelectorDialog();
 	int searchId(QPointF position);
 	int getIndex();
+	bool getName(int index, std::string* name);
+
+	std::vector<SlotInformation> nameList;
 private:
 	void paintSlots(void);
 

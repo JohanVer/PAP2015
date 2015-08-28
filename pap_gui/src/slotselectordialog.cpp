@@ -67,24 +67,52 @@ SlotSelectorDialog::SlotSelectorDialog(QWidget *parent) :
 		printedSlots_.push_back(slot);
 	}
 	paintSlots();
+}
 
+bool SlotSelectorDialog::getName(int index, std::string* name) {
+	for (size_t i = 0; i < nameList.size(); i++) {
+		if (nameList[i].index == index) {
+			*name = nameList[i].name;
+			return true;
+		}
+	}
+	return false;
 }
 
 void SlotSelectorDialog::paintSlots(void) {
 	static bool alreadyflipped = false;
+	bool nameFound = false;
+	std::string partName;
 	sceneSlots_.clear();
+
 	for (size_t i = 0; i < printedSlots_.size(); i++) {
 		SlotInformation slot = printedSlots_[i];
 		QGraphicsRectItem *rect = new QGraphicsRectItem(
-				SmallBoxOffsetTable[i].y, SmallBoxOffsetTable[i].x, 10, 10);
-		if (slot.occupied) {
+				slot.pos.x(), slot.pos.y(), slot.pos.width(), slot.pos.height());
+		if (getName(i, &partName)) {
+			nameFound = true;
+			rect->setPen(QPen(Qt::red, 1, Qt::SolidLine));
+			rect->setBrush(Qt::red);
+		} else if (slot.occupied) {
+			nameFound = false;
 			rect->setPen(QPen(Qt::green, 1, Qt::SolidLine));
 			rect->setBrush(Qt::green);
 		} else {
+			nameFound = false;
 			rect->setPen(QPen(Qt::blue, 1, Qt::SolidLine));
 			rect->setBrush(Qt::blue);
 		}
 		sceneSlots_.addItem(rect);
+
+		// Print name
+		if (nameFound) {
+			QGraphicsTextItem * text = new QGraphicsTextItem;
+			text->setPos(slot.pos.x()+slot.pos.width(), slot.pos.y());
+			text->scale(-1,1);
+			text->scale(0.2,0.2);
+			text->setPlainText(partName.c_str());
+			sceneSlots_.addItem(text);
+		}
 	}
 	ui->graphicsView->setScene(&sceneSlots_);
 	if (!alreadyflipped) {

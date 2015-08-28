@@ -211,7 +211,17 @@ void MainWindow::setLedFromSelection(int selection) {
 }
 
 void MainWindow::on_setCompBoxNrButton_2_clicked() {
+	// Create the dialog for selecting the desired box
 	SlotSelectorDialog w;
+
+	// Here is a example how to pass occupied slots
+	SlotInformation test;
+	test.index = 1;
+	// The character shall be restricted to 5
+	test.name = std::string("100nF");
+	w.nameList.push_back(test);
+
+
 	connect(&w, SIGNAL(setLed(int)), this, SLOT(setLedFromSelection(int)));
 	w.exec();
 	if (singleComponentSelected) {
