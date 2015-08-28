@@ -70,7 +70,7 @@ void resetLEDTask(int LEDnumber);
 void resetProcessVariables();
 void resetMotorState(bool x, bool y, bool z);
 void resetMotorState(int index, bool value);
-void checkIfOverThreshold(int numberOfAxis);
+void checkIfOverThreshold(int numberOfAxis, float zValue);
 
 ros::Publisher task_publisher, arduino_publisher_, placerStatus_publisher_;
 ros::Subscriber statusSubsriber_;
@@ -668,7 +668,7 @@ int main(int argc, char **argv) {
 				ROS_INFO("currentX: %f", placeController.currentDestination_.x);
 				ROS_INFO("currentY: %f", placeController.currentDestination_.y);
 				if (zPosReached == 0 && outTolerance) {
-					checkIfOverThreshold(3);
+					checkIfOverThreshold(3,placeController.MovingHeight_);
 					sendTask(pap_common::CONTROLLER, pap_common::COORD,
 							placeController.lastDestination_.x,
 							placeController.lastDestination_.y,
@@ -681,8 +681,8 @@ int main(int argc, char **argv) {
 					ROS_INFO("zPos: %d", zPosReached);
 
 				} else if (zPosReached == 1 && outTolerance) {
-					checkIfOverThreshold(1);
-					checkIfOverThreshold(2);
+					checkIfOverThreshold(1,placeController.MovingHeight_);
+					checkIfOverThreshold(2,placeController.MovingHeight_);
 					sendTask(pap_common::CONTROLLER, pap_common::COORD,
 							placeController.currentDestination_.x,
 							placeController.currentDestination_.y,
@@ -695,7 +695,7 @@ int main(int argc, char **argv) {
 					ROS_INFO("zPos: %d", zPosReached);
 
 				} else if (zPosReached == 2 || outTolerance) {
-					checkIfOverThreshold(3);
+					checkIfOverThreshold(3,placeController.currentDestination_.z);
 					//resetMotorState(true, true, false);
 					sendTask(pap_common::CONTROLLER, pap_common::COORD,
 							placeController.currentDestination_.x,
@@ -850,7 +850,7 @@ int main(int argc, char **argv) {
 	return 0;
 }
 
-void checkIfOverThreshold(int numberOfAxis) {
+void checkIfOverThreshold(int numberOfAxis,float zValue) {
 	if (numberOfAxis == 1) {
 		float diffX = fabs(
 				placeController.lastDestination_.x
@@ -868,7 +868,7 @@ void checkIfOverThreshold(int numberOfAxis) {
 	} else if (numberOfAxis == 3) {
 		float diffZ = fabs(
 				placeController.lastDestination_.z
-						- placeController.currentDestination_.z);
+						- zValue);
 		if (diffZ > DISPENSER_TOLERANCE) {
 			resetMotorState(3, false);
 		}
