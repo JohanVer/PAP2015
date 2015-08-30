@@ -57,11 +57,12 @@ public:
 	void setTable(QTableWidget* table);
 	int searchId(QPointF position, int height);
 	float calibratePads(QPointF local1, QPointF local2, QPointF global1,
-			QPointF global2);
+			QPointF global2,bool simulationMode);
 	void rotatePads(void);
 	void transformComponent(componentEntry *componentInformation);
 	visualization_msgs::MarkerArray* getMarkerList(void);
 	void transformDispenserInfo(dispenseInfo *info);
+	void deleteEntry(int index);
 	// TODO: Make getter/setter for this public variable array
 	std::vector<PadInformation> padInformationArray_,padInformationArrayPrint_;
 	double pixelConversionFactor;

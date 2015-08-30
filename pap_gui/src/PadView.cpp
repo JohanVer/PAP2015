@@ -23,10 +23,12 @@ void graphicsScene::contextMenuEvent(QGraphicsSceneContextMenuEvent *event) {
 	QAction *fiducial2 = new QAction("Mark as 2. fiducial", this);
 	QAction *gotoPoint = new QAction("Goto", this);
 	QAction *dispensePadM = new QAction("Dispense Pad", this);
+	QAction *exclude = new QAction("Delete", this);
 	menu.addAction(fiducial1);
 	menu.addAction(fiducial2);
 	menu.addAction(gotoPoint);
 	menu.addAction(dispensePadM);
+	menu.addAction(exclude);
 	QAction* selectedItem = menu.exec(event->screenPos());
 	if (selectedItem) {
 		if (selectedItem->text().toStdString() == "Mark as 1. fiducial") {
@@ -38,17 +40,19 @@ void graphicsScene::contextMenuEvent(QGraphicsSceneContextMenuEvent *event) {
 			Q_EMIT gotoPad(pt);
 		} else if (selectedItem->text().toStdString() == "Dispense Pad") {
 			Q_EMIT dispensePad(pt);
+		} else if (selectedItem->text().toStdString() == "Delete") {
+			Q_EMIT deletePad(pt);
 		}
 	}
 }
 
 PadView::PadView() {
-	// TODO Auto-generated constructor stub
+// TODO Auto-generated constructor stub
 
 }
 
 PadView::~PadView() {
-	// TODO Auto-generated destructor stub
+// TODO Auto-generated destructor stub
 }
 
 PadView::PadView(QWidget *parent) :
@@ -57,7 +61,7 @@ PadView::PadView(QWidget *parent) :
 }
 
 void PadView::wheelEvent(QWheelEvent * event) {
-	//if ctrl pressed, use original functionality
+//if ctrl pressed, use original functionality
 	if (event->modifiers() & Qt::ControlModifier) {
 		QGraphicsView::wheelEvent(event);
 	}

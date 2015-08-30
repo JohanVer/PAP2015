@@ -26,6 +26,7 @@ Q_SIGNALS:
 	void sendMousePoint(int indexOfFiducial,QPointF point);
 	void gotoPad(QPointF point);
 	void dispensePad(QPointF point);
+	void deletePad(QPointF point);
 
 public Q_SLOTS:
 

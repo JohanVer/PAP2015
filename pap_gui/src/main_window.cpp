@@ -51,11 +51,13 @@ int boxNumberMin = 0;
 int boxNumberSug = 1;
 float xTapeCalibration, yTapeCalibration, rotTapeCalibration = 0;
 
-const Offset TapeOffsetTable[20] = {	{339.7, -40.0}, {339.7, -51.0}, {339.7, -62.0}, {339.7, -73.0}, {339.7, -84.0},
-						{339.7, -95.0}, {339.7, -106.0}, {339.7, -117.0}, {339.7, -128.0}, {339.7, -139.0},
-						{339.7, -150.0}, {339.7, -161.0}, {339.7, -172.0}, {339.7, -183.0}, {339.7, -194.0},
-						{339.7, -205.0}, {339.7, -216.0}, {339.7, -227.0}, {339.7, -238.0}, {339.7, -249.0}};
-
+const Offset TapeOffsetTable[20] = { { 339.7, -40.0 }, { 339.7, -51.0 }, {
+		339.7, -62.0 }, { 339.7, -73.0 }, { 339.7, -84.0 }, { 339.7, -95.0 }, {
+		339.7, -106.0 }, { 339.7, -117.0 }, { 339.7, -128.0 },
+		{ 339.7, -139.0 }, { 339.7, -150.0 }, { 339.7, -161.0 },
+		{ 339.7, -172.0 }, { 339.7, -183.0 }, { 339.7, -194.0 },
+		{ 339.7, -205.0 }, { 339.7, -216.0 }, { 339.7, -227.0 },
+		{ 339.7, -238.0 }, { 339.7, -249.0 } };
 
 MainWindow::MainWindow(int argc, char** argv, QWidget *parent) :
 		QMainWindow(parent), qnode(argc, argv) {
@@ -105,6 +107,9 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent) :
 
 	QWidget::connect(&scenePads_, SIGNAL(gotoPad(QPointF)), this,
 			SLOT(gotoPad(QPointF)));
+
+	QWidget::connect(&scenePads_, SIGNAL(deletePad(QPointF)), this,
+			SLOT(deletePad(QPointF)));
 
 	QWidget::connect(&scenePads_, SIGNAL(dispensePad(QPointF)), this,
 			SLOT(dispenseSinglePad(QPointF)));
@@ -171,6 +176,8 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent) :
 	id_ = 0;
 	sizeDefined_ = false;
 	padFileLoaded_ = false;
+	dispenserPaused = false;
+	lastDispenserId = 0;
 
 	currentPosition.x = 0.0;
 	currentPosition.y = 0.0;
@@ -217,14 +224,15 @@ void MainWindow::on_setCompBoxNrButton_2_clicked() {
 	// Here is a example how to pass occupied slots
 	SlotInformation test;
 	test.index = 1;
-	// The character shall be restricted to 5
+	// The character number shall be restricted to 5
 	test.name = std::string("100nF");
 	w.nameList.push_back(test);
 	w.paintSlots();
 
-
+	// Start slotSelector window
 	connect(&w, SIGNAL(setLed(int)), this, SLOT(setLedFromSelection(int)));
 	w.exec();
+
 	if (singleComponentSelected) {
 
 		bool ok = false;
@@ -412,11 +420,13 @@ void MainWindow::updateComponentInformation() {
 			ui.label_compLength->setText(
 					QString::number(databaseVector.at(packageID).length, 'f',
 							2));
-			componentVector[currentComp].length = databaseVector.at(packageID).length;
+			componentVector[currentComp].length =
+					databaseVector.at(packageID).length;
 			ui.label_compWidth->setText(
 					QString::number(databaseVector.at(packageID).width, 'f',
 							2));
-			componentVector[currentComp].width = databaseVector.at(packageID).width;
+			componentVector[currentComp].width =
+					databaseVector.at(packageID).width;
 			ui.label_compHeight->setText(
 					QString::number(databaseVector.at(packageID).height, 'f',
 							2));
@@ -1757,7 +1767,7 @@ void MainWindow::setFiducialPads(int number, float x, float y) {
 void MainWindow::signalPosition(float x, float y) {
 	padPosition_.setX(x);
 	padPosition_.setY(y);
-	ROS_INFO("PadPos: %f %f", padPosition_.x(), padPosition_.y());
+	//ROS_INFO("PadPos: %f %f", padPosition_.x(), padPosition_.y());
 }
 
 void MainWindow::sendGotoFiducial(int indexOfFiducial) {
@@ -1773,7 +1783,7 @@ void MainWindow::sendGotoFiducial(int indexOfFiducial) {
 		float x = ui.fiducialTable->item(indexOfFiducial, 2)->text().toFloat();
 		float y = ui.fiducialTable->item(indexOfFiducial, 3)->text().toFloat();
 		ROS_INFO("Goto position x: %f y: %f", x, y);
-		qnode.sendTask(pap_common::CONTROLLER, pap_common::COORD, x, y, 50.0);
+		qnode.sendTask(pap_common::CONTROLLER, pap_common::COORD, x, y, 22.0);
 	}
 }
 
@@ -1848,16 +1858,17 @@ void MainWindow::on_padViewGenerate_button_clicked() {
 
 	ui.padView_Image->setScene(&scenePads_);
 	ui.padView_Image->show();
-
-	QImage *image = new QImage(pcbSize.width(), pcbSize.height(),
-			QImage::Format_RGB888);
-	QPainter painter(image);
-	painter.setRenderHint(QPainter::Antialiasing);
-	scenePads_.render(&painter);
-	if (!image->save("/home/johan/Schreibtisch/file_name.png")) {
-		ROS_ERROR("Error while saving image");
-	}
-	qnode.sendPcbImage(image, padParser.getMarkerList());
+	/*
+	 QImage *image = new QImage(pcbSize.width(), pcbSize.height(),
+	 QImage::Format_RGB888);
+	 QPainter painter(image);
+	 painter.setRenderHint(QPainter::Antialiasing);
+	 scenePads_.render(&painter);
+	 if (!image->save("/home/johan/Schreibtisch/file_name.png")) {
+	 ROS_ERROR("Error while saving image");
+	 }
+	 */
+	qnode.sendPcbImage(padParser.getMarkerList());
 
 }
 
@@ -1883,6 +1894,12 @@ void MainWindow::gotoPad(QPointF padPos) {
 	//}
 }
 
+void MainWindow::deletePad(QPointF padPos) {
+	id_ = padParser.searchId(padPos, ui.padView_Image->width() - 20);
+	padParser.deleteEntry(id_);
+	on_padViewGenerate_button_clicked();
+}
+
 void MainWindow::on_calibrationButton_clicked() {
 	ui.tab_manager->setCurrentIndex(1);
 	qnode.sendTask(pap_common::PLACER, pap_common::CALIBRATION);
@@ -1897,19 +1914,38 @@ void MainWindow::on_calcOrientation_Button_clicked() {
 		ROS_INFO("Simulation active: I will fake the pad positions...");
 		xCamera = 180.0;
 		yCamera = 140.0;
+
+		local1.setX(xCamera);
+		local1.setY(yCamera);
+		local2.setX(xCamera);
+		local2.setY(yCamera);
+
+		global1.setX(0);
+		global1.setY(0);
+		global2.setX(0);
+		global2.setY(0);
+	} else {
+
+		local1.setX(ui.fiducialTable->item(0, 2)->text().toFloat() + xCamera);
+		local1.setY(ui.fiducialTable->item(0, 3)->text().toFloat() + yCamera);
+		local2.setX(ui.fiducialTable->item(1, 2)->text().toFloat() + xCamera);
+		local2.setY(ui.fiducialTable->item(1, 3)->text().toFloat() + yCamera);
+
+		global1.setX(ui.fiducialTable->item(0, 0)->text().toFloat());
+		global1.setY(ui.fiducialTable->item(0, 1)->text().toFloat());
+		global2.setX(ui.fiducialTable->item(1, 0)->text().toFloat());
+		global2.setY(ui.fiducialTable->item(1, 1)->text().toFloat());
 	}
-
-	local1.setX(ui.fiducialTable->item(0, 2)->text().toFloat() + xCamera);
-	local1.setY(ui.fiducialTable->item(0, 3)->text().toFloat() + yCamera);
-	local2.setX(ui.fiducialTable->item(1, 2)->text().toFloat() + xCamera);
-	local2.setY(ui.fiducialTable->item(1, 3)->text().toFloat() + yCamera);
-
-	global1.setX(ui.fiducialTable->item(0, 0)->text().toFloat());
-	global1.setY(ui.fiducialTable->item(0, 1)->text().toFloat());
-	global2.setX(ui.fiducialTable->item(1, 0)->text().toFloat());
-	global2.setY(ui.fiducialTable->item(1, 1)->text().toFloat());
-	padParser.calibratePads(local1, local2, global1, global2);
+	padParser.calibratePads(local1, local2, global1, global2,
+			qnode.fakePadPos_);
 	padParser.rotatePads();
+
+	QMessageBox msgBox;
+	const QString title = "Calibration";
+	msgBox.setWindowTitle(title);
+	msgBox.setText("Calibration finished");
+	msgBox.exec();
+	msgBox.close();
 }
 
 void MainWindow::keyPressEvent(QKeyEvent *e) {
@@ -1961,7 +1997,6 @@ void MainWindow::keyReleaseEvent(QKeyEvent *e) {
 				(float) pap_common::XMOTOR, (float) pap_common::BACKWARD, 0.0);
 		qnode.sendTask(pap_common::CONTROLLER, pap_common::STOP,
 				(float) pap_common::XMOTOR, 0.0, 0.0);
-		ROS_INFO("Released down xmotor %d", (int )e->isAutoRepeat());
 		break;
 	case Qt::Key_W:
 		qnode.sendTask(pap_common::CONTROLLER, pap_common::STOP,
@@ -1970,7 +2005,6 @@ void MainWindow::keyReleaseEvent(QKeyEvent *e) {
 				(float) pap_common::XMOTOR, (float) pap_common::FORWARD, 0.0);
 		qnode.sendTask(pap_common::CONTROLLER, pap_common::STOP,
 				(float) pap_common::XMOTOR, 0.0, 0.0);
-		ROS_INFO("Released up xmotor %d", (int )e->isAutoRepeat());
 		break;
 	case Qt::Key_A:
 		qnode.sendTask(pap_common::CONTROLLER, pap_common::STOP,
@@ -2028,10 +2062,37 @@ struct compareClass {
 	//float xPos,yPos;
 };
 
+void MainWindow::on_stopDispense_button_clicked() {
+	dispenserPaused = true;
+	QMessageBox msgBox;
+	const QString title = "Dispensing information";
+	msgBox.setWindowTitle(title);
+	msgBox.setText("Dispensing paused");
+	msgBox.exec();
+	msgBox.close();
+}
+
+void MainWindow::on_resetDispense_button_clicked() {
+	dispenserPaused = false;
+	lastDispenserId = 0;
+	on_padViewGenerate_button_clicked();
+	QMessageBox msgBox;
+	const QString title = "Dispensing information";
+	msgBox.setWindowTitle(title);
+	msgBox.setText("Dispensing reseted");
+	msgBox.exec();
+	msgBox.close();
+}
+
 void MainWindow::on_startDispense_button_clicked() {
 	float pxFactor = padParser.pixelConversionFactor;
 	float nozzleDiameter = ui.nozzleDispCombo->currentText().toFloat();
 
+	size_t initialIter = 0;
+	if (dispenserPaused) {
+		dispenserPaused = false;
+		initialIter = lastDispenserId;
+	}
 	std::vector<PadInformation> copy;
 	copy = padParser.padInformationArrayPrint_;
 
@@ -2040,8 +2101,14 @@ void MainWindow::on_startDispense_button_clicked() {
 
 	std::sort(copy.begin(), copy.end(), compareClass());
 
-	for (size_t i = 0; i < copy.size(); i++) {
+	for (size_t i = initialIter; i < copy.size(); i++) {
 
+		if (dispenserPaused) {
+			lastDispenserId = i;
+			qnode.sendTask(pap_common::PLACER, pap_common::GOTO,
+					currentPosition.x, currentPosition.y, 45.0);
+			return;
+		}
 		std::vector<dispenseInfo> dispInfo = dispenserPlanner.planDispensing(
 				copy[i], nozzleDiameter);
 
@@ -2076,14 +2143,15 @@ void MainWindow::on_startDispense_button_clicked() {
 			if (!timer->isActive()) {
 				return;
 			}
-			//ROS_INFO("Print: X %f Y %f X2 %f Y2 %f",dispInfo[j].xPos *pxFactor ,(padParser.height_-dispInfo[j].yPos)*pxFactor,dispInfo[j].xPos2*pxFactor,(padParser.height_-dispInfo[j].yPos2)*pxFactor);
-
 		}
 		scenePads_.addEllipse((copy[i].rect.y()) * pxFactor - 1.0,
 				padParser.heightPixel_ - (copy[i].rect.x() * pxFactor), 1, 1,
 				QPen(Qt::green, 2, Qt::SolidLine));
 
 	}
+	ROS_INFO("Dispensing finished....");
+	qnode.sendTask(pap_common::PLACER, pap_common::GOTO, currentPosition.x,
+			currentPosition.y, 45.0);
 }
 
 void MainWindow::dispenseSinglePad(QPointF point) {
@@ -2235,7 +2303,9 @@ void MainWindow::on_calibrateTapeButton_clicked(void) {
 				calibratedTapes.append(tape_nr);
 				calibrateTape(tape_nr, componentVector.at(i).width,
 						componentVector.at(i).length);
-				ROS_INFO("Index : %d Width: %f Height: %f",tape_nr,componentVector.at(i).width,componentVector.at(i).length);
+				ROS_INFO("Index : %d Width: %f Height: %f", tape_nr,
+						componentVector.at(i).width,
+						componentVector.at(i).length);
 			}
 		}
 	}
@@ -2291,15 +2361,14 @@ void MainWindow::calibrateTape(int tapeNumber, float componentWidth,
 
 	Offset temp = TapeOffsetTable[tapeNumber];
 	temp.x += 109;
-    temp.y += 261;
+	temp.y += 261;
 	temp.z = 20.1;
 	qnode.sendTask(pap_common::PLACER, pap_common::GOTO, temp.x, temp.y,
 			temp.z);
 
 	QEventLoop loopPos;
 	QTimer *timerPos = new QTimer(this);
-	connect(&qnode, SIGNAL(positionGotoReached()),
-			&loopPos, SLOT(quit()));
+	connect(&qnode, SIGNAL(positionGotoReached()), &loopPos, SLOT(quit()));
 	connect(timerPos, SIGNAL(timeout()), &loopPos, SLOT(quit()));
 	timerPos->setSingleShot(true);
 	timerPos->start(20000);

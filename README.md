@@ -6,12 +6,13 @@
 
 Johan:
  
-* Tape Calibration: Goto correct tape position (Lookup table)
+* CHECKED Tape Calibration: Goto state in placer (for tape position,manual control)
 * CHECKED LED-Controller: Test new LED functions: Slider for dimming, blinking, color selection
-* CHECKED  Dispenser-Planner: Sort dispenser tasks due to distances
-* CHECKED  Dispenser-Planner: Check middle points of dispenser planning
+* CHECKED Dispenser-Planner: Sort dispenser tasks due to distances
+* CHECKED Dispenser-Planner: Check middle points of dispenser planning
 * Dispenser-Planner: Modify dispenser height
-* Dispenser-Planner: Pause-Button, Exclude-Function
+* CHECKED Dispenser-Planner: Pause-Button, Exclude-Function
+* CHECKED Implement GUI for slot selection
 
 Nikolas:
 

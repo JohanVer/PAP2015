@@ -175,6 +175,7 @@ public Q_SLOTS:
     void on_startTipFinder_Button_clicked();
     void on_bottomLEDButton_clicked();
     void gotoPad(QPointF padPos);
+    void deletePad(QPointF padPos);
     void calibrateTape(int tapeNumber, float componentWidth,
     		float componentHeight);
     tapeCalibrationValue calculatePosOfTapePart(int numOfTape, int numOfPart);
@@ -199,6 +200,8 @@ public Q_SLOTS:
     //Dispense button
 
     void on_startDispense_button_clicked();
+    void on_stopDispense_button_clicked();
+    void on_resetDispense_button_clicked();
     void dispenseSinglePad(QPointF point);
 
     void on_goToPCBButton_clicked();
@@ -267,6 +270,9 @@ private:
     QPointF padPosition_;
     GerberPadParser padParser;
     int id_;
+
+    bool dispenserPaused;
+    int lastDispenserId;
 
     std::vector<tapeCalibrationValue> tapeCalibrationValues;
 

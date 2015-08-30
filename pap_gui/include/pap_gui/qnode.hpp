@@ -124,7 +124,7 @@ public:
 	void resetStepper();
 	void setLEDTask(int LEDnumber);
 	void resetLEDTask(int LEDnumber);
-	void sendPcbImage(QImage* image,visualization_msgs::MarkerArray *markerList);
+	void sendPcbImage(visualization_msgs::MarkerArray *markerList);
 	void setBottomLEDTask();
 	void resetBottomLEDTask();
 	void LEDTask(int task, int data);

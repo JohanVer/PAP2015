@@ -19,9 +19,7 @@ GerberPadParser::GerberPadParser() {
 	differenceAngle_ = 0.0;
 
 	// Initial Transform for simulation
-	transTransformIntoRobot_.setOrigin(
-			tf::Vector3(300.0, 150.0,
-					0.0));
+	transTransformIntoRobot_.setOrigin(tf::Vector3(300.0, 150.0, 0.0));
 	transTransformIntoRobot_.setRotation(tf::Quaternion(0, 0, 0, 1));
 }
 
@@ -387,7 +385,7 @@ QRectF GerberPadParser::renderImage(QGraphicsScene* scene, int width,
 				- ((padInfo.rect.y() + padInfo.rect.height() / 2.0)
 						* pixelConversionFactor);
 
-		ROS_INFO("X: %f", upperCornerPadX);
+		//ROS_INFO("X: %f", upperCornerPadX);
 		pad.setX(upperCornerPadX);
 		pad.setY(upperCornerPadY);	// + pcbSizeY);
 
@@ -396,8 +394,8 @@ QRectF GerberPadParser::renderImage(QGraphicsScene* scene, int width,
 		pad.setHeight(
 				(unsigned int) (padInfo.rect.height() * pixelConversionFactor));
 
-		ROS_INFO("X: %f Y: %f W: %f H: %f", pad.x(), pad.y(), pad.width(),
-				pad.height());
+		//ROS_INFO("X: %f Y: %f W: %f H: %f", pad.x(), pad.y(), pad.width(),
+		//		pad.height());
 		printedRects.push_back(pad);
 		QGraphicsRectItem *rect = new QGraphicsRectItem(pad.x(), pad.y(),
 				pad.width(), pad.height());
@@ -410,7 +408,7 @@ QRectF GerberPadParser::renderImage(QGraphicsScene* scene, int width,
 		rect->setTransformOriginPoint(padInfo.rect.x() * pixelConversionFactor,
 				(double) height - (padInfo.rect.y() * pixelConversionFactor));
 		rect->setRotation(padInfo.rotation);
-		ROS_INFO("ROTATION: %f", padInfo.rotation);
+		//ROS_INFO("ROTATION: %f", padInfo.rotation);
 		scene->addItem(rect);
 		//scene->addEllipse(padInfo.rect.x()*pixelConversionFactor,heightPixel_-(padInfo.rect.y()*pixelConversionFactor),1,1,QPen(Qt::blue, 1, Qt::SolidLine));
 	}
@@ -428,6 +426,16 @@ int GerberPadParser::searchId(QPointF position, int height) {
 		}
 	}
 	return -1;
+}
+
+void GerberPadParser::deleteEntry(int index) {
+	if (index < padInformationArray_.size())
+		padInformationArray_.erase(padInformationArray_.begin() + index);
+	if (index < printedRects.size())
+		printedRects.erase(printedRects.begin() + index);
+	if (index < padInformationArrayPrint_.size())
+		padInformationArrayPrint_.erase(
+				padInformationArrayPrint_.begin() + index);
 }
 
 visualization_msgs::MarkerArray* GerberPadParser::getMarkerList(void) {
@@ -486,17 +494,20 @@ visualization_msgs::MarkerArray* GerberPadParser::getMarkerList(void) {
 }
 
 float GerberPadParser::calibratePads(QPointF local1, QPointF local2,
-		QPointF global1, QPointF global2) {
+		QPointF global1, QPointF global2, bool simulationMode) {
 
 	ROS_INFO("In calibration routine!");
 	// Local = Robot reference coordinate system
 	// Global = PCB coordinate system
-
 	float fixedAngle = atan2(global2.y() - global1.y(),
 			global2.x() - global1.x());
 	float cvAngle = atan2(local2.y() - local1.y(), local2.x() - local1.x());
 
-	differenceAngle_ = fixedAngle - cvAngle;
+	if (simulationMode) {
+		differenceAngle_ = 0.0;
+	} else {
+		differenceAngle_ = fixedAngle - cvAngle;
+	}
 	ROS_INFO("Calibration : Difference Angle %f",
 			differenceAngle_*(180.0/M_PI));
 
