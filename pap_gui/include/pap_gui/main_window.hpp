@@ -187,6 +187,7 @@ public Q_SLOTS:
     void setFiducialPads(int number, float x, float y);
     void initFiducialTable(void);
     void signalPosition(float x,float y);
+    void tipToggled(int tipSelect, bool status);
     void sendGotoFiducial(int indexOfFiducial);
     void on_inputPad_Button_clicked();
     void on_padViewSetSize_button_clicked();
@@ -205,7 +206,7 @@ public Q_SLOTS:
     void dispenseSinglePad(QPointF point);
 
     void on_goToPCBButton_clicked();
-    void updatePlacementData();
+    void updatePlacementData(componentEntry &singleComponentIn);
 
     void keyPressEvent(QKeyEvent *e);
     void keyReleaseEvent(QKeyEvent *e);

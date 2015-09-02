@@ -122,6 +122,10 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent) :
 	QObject::connect(&qnode, SIGNAL(statusUpdated(int)), this,
 			SLOT(statusUpdated(int)));
 
+	// Tip status
+	QObject::connect(&qnode, SIGNAL(tipToggled(int,bool)), this,
+			SLOT(tipToggled(int,bool)));
+
 	// Placer status
 	QObject::connect(&qnode, SIGNAL(placerStatusUpdated(int, int)), this,
 			SLOT(placerStatusUpdated(int, int)));
@@ -292,7 +296,7 @@ void MainWindow::on_setCompBoxNrButton_clicked() {
 				if (componentVector[i].box != -1) {
 					test.index = componentVector[i].box;
 					// The character number shall be restricted to 5
-					test.name = componentVector[i].value.substr(0,5);
+					test.name = componentVector[i].value.substr(0, 5);
 					w.nameList.push_back(test);
 				}
 			}
@@ -823,8 +827,9 @@ void MainWindow::on_startSinglePlacementButton_clicked() {
 		msgBox.exec();
 		msgBox.close();
 	} else {
-		updatePlacementData();
-		qnode.sendTask(pap_common::PLACER, pap_common::PLACECOMPONENT, placementData);
+		updatePlacementData(singleComponent);
+		qnode.sendTask(pap_common::PLACER, pap_common::PLACECOMPONENT,
+				placementData);
 	}
 
 }
@@ -835,17 +840,20 @@ void MainWindow::on_goToPCBButton_clicked() {
 }
 
 // Package that is going to be sent to placeController
-void MainWindow::updatePlacementData() {
+void MainWindow::updatePlacementData(componentEntry &singleComponentIn) {
 
-	ROS_INFO("placerInfo - before: x%f, y=%f", singleComponent.posX,
-			singleComponent.posY);
-	padParser.transformComponent(&singleComponent);
-	ROS_INFO("placerInfo - after: x%f, y=%f", singleComponent.posX,
-			singleComponent.posY);
+	componentEntry entryToTransform;
+	entryToTransform = singleComponentIn;
+
+	ROS_INFO("placerInfo - before: x%f, y=%f", entryToTransform.posX,
+			entryToTransform.posY);
+	padParser.transformComponent(&entryToTransform);
+	ROS_INFO("placerInfo - after: x%f, y=%f", entryToTransform.posX,
+			entryToTransform.posY);
 
 	// Is it a tape?
-	if ((singleComponent.box >= 67) && (singleComponent.box <= 86)) {
-		unsigned int tape_nr = singleComponent.box - 67;
+	if ((entryToTransform.box >= 67) && (entryToTransform.box <= 86)) {
+		unsigned int tape_nr = entryToTransform.box - 67;
 		tapeCalibrationValue tapePartPos = calculatePosOfTapePart(tape_nr,
 				tapeCompCounter[tape_nr]);
 		placementData.tapeX = tapePartPos.x;
@@ -858,13 +866,13 @@ void MainWindow::updatePlacementData() {
 		placementData.tapeRot = 0.0;
 	}
 
-	placementData.destX = singleComponent.posX;
-	placementData.destY = singleComponent.posY;
-	placementData.box = singleComponent.box;
-	placementData.height = singleComponent.height;
-	placementData.length = singleComponent.length;
-	placementData.width = singleComponent.width;
-	placementData.rotation = singleComponent.rotation;
+	placementData.destX = entryToTransform.posX;
+	placementData.destY = entryToTransform.posY;
+	placementData.box = entryToTransform.box;
+	placementData.height = entryToTransform.height;
+	placementData.length = entryToTransform.length;
+	placementData.width = entryToTransform.width;
+	placementData.rotation = entryToTransform.rotation;
 }
 
 void MainWindow::on_placeSingleComponentButton_clicked() {
@@ -1782,6 +1790,23 @@ void MainWindow::signalPosition(float x, float y) {
 	padPosition_.setX(x);
 	padPosition_.setY(y);
 	//ROS_INFO("PadPos: %f %f", padPosition_.x(), padPosition_.y());
+}
+
+void MainWindow::tipToggled(int select, bool status) {
+	if (select == 0) {
+		if (status) {
+			tip1Pos_ = -20.0;
+		} else {
+			tip1Pos_ = 0.0;
+		}
+	} else if (select == 1) {
+		if (status) {
+			tip2Pos_ = -20.0;
+		} else {
+			tip2Pos_ = 0.0;
+		}
+
+	}
 }
 
 void MainWindow::sendGotoFiducial(int indexOfFiducial) {

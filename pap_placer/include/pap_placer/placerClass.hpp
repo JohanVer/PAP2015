@@ -152,6 +152,7 @@ private:
 
 	// These offsets are relative to homing position
 	Offset pcbOriginOffset;
+	float suckingHeight_;
 	Offset cameraBottomOffset;
 
 

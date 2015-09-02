@@ -222,10 +222,27 @@ void QNode::placerStatusCallback(
 		}
 
 	} else if (statusMsg->process == pap_common::INFO) {
-		if (statusMsg->status == pap_common::DISPENSER_FINISHED) {
+		switch (statusMsg->status) {
+		case pap_common::DISPENSER_FINISHED:
 			Q_EMIT dispenserFinished();
-		}
+			break;
 
+		case pap_common::RIGHT_TIP_DOWN:
+			Q_EMIT tipToggled(1,true);
+			break;
+
+		case pap_common::RIGHT_TIP_UP:
+			Q_EMIT tipToggled(1,false);
+			break;
+
+		case pap_common::LEFT_TIP_DOWN:
+			Q_EMIT tipToggled(0,true);
+			break;
+
+		case pap_common::LEFT_TIP_UP:
+			Q_EMIT tipToggled(0,false);
+			break;
+		}
 	} else {
 		int indicator = statusMsg->process;
 		int status = statusMsg->status;
