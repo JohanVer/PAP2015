@@ -824,7 +824,7 @@ void MainWindow::on_startSinglePlacementButton_clicked() {
 		msgBox.close();
 	} else {
 		updatePlacementData();
-		qnode.sendTask(pap_common::PLACER, pap_common::GOTOBOX, placementData);
+		qnode.sendTask(pap_common::PLACER, pap_common::PLACECOMPONENT, placementData);
 	}
 
 }

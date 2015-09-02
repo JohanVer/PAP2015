@@ -20,7 +20,7 @@
 // Top-Camera:
 #define PIXEL_TO_MM_TOP 34.0
 // Bottom-Camera
-#define PIXEL_TO_MM_BOTTOM 25.00
+#define PIXEL_TO_MM_BOTTOM 24.95
 
 #define PIXEL_TO_MM_PCB 33.63
 
