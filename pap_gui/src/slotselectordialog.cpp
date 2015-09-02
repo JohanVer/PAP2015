@@ -29,7 +29,7 @@ const Offset TapeOffsetTable[20] = {	{339.7, -40.0}, {339.7, -51.0}, {339.7, -62
 
 int SlotSelectorDialog::searchId(QPointF position) {
 	Q_EMIT setLed(-1);
-	ros::Duration(0.2).sleep();
+	ros::Duration(0.5).sleep();
 	QPointF convPoint;
 	convPoint.setX(position.x());
 	convPoint.setY(position.y());
@@ -74,6 +74,7 @@ SlotSelectorDialog::SlotSelectorDialog(QWidget *parent) :
 		slot.pos.setY(SmallBoxOffsetTable[i].x);
 		slot.pos.setWidth(10);
 		slot.pos.setHeight(10);
+		slot.index = i;
 		printedSlots_.push_back(slot);
 	}
 
@@ -82,10 +83,12 @@ SlotSelectorDialog::SlotSelectorDialog(QWidget *parent) :
 			slot.pos.setX(TapeOffsetTable[i].y);
 			slot.pos.setY(TapeOffsetTable[i].x);
 			slot.pos.setWidth(5);
+			slot.index = 67+i;
 			slot.pos.setHeight(30);
 			printedSlots_.push_back(slot);
 		}
 	paintSlots();
+	ui->graphicsView->scale(-1, 1);
 }
 
 bool SlotSelectorDialog::getName(int index, std::string* name) {
@@ -108,7 +111,7 @@ void SlotSelectorDialog::paintSlots(void) {
 		SlotInformation slot = printedSlots_[i];
 		QGraphicsRectItem *rect = new QGraphicsRectItem(
 				slot.pos.x(), slot.pos.y(), slot.pos.width(), slot.pos.height());
-		if (getName(i, &partName)) {
+		if (getName(slot.index, &partName)) {
 			nameFound = true;
 			rect->setPen(QPen(Qt::red, 1, Qt::SolidLine));
 			rect->setBrush(Qt::red);
@@ -129,6 +132,10 @@ void SlotSelectorDialog::paintSlots(void) {
 			text->setPos(slot.pos.x()+slot.pos.width(), slot.pos.y());
 			text->scale(-1,1);
 			text->scale(0.2,0.2);
+			if(slot.index >= 67){
+				text->rotate(90);
+				text->setPos(text->pos().x()-5,text->pos().y());
+			}
 			text->setPlainText(partName.c_str());
 			sceneSlots_.addItem(text);
 		}
@@ -136,7 +143,7 @@ void SlotSelectorDialog::paintSlots(void) {
 	ui->graphicsView->setScene(&sceneSlots_);
 	if (!alreadyflipped) {
 		alreadyflipped = true;
-		ui->graphicsView->scale(-1, 1);
+
 	}
 	ui->graphicsView->show();
 }

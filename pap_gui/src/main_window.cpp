@@ -269,7 +269,6 @@ void MainWindow::on_setCompBoxNrButton_2_clicked() {
 }
 
 void MainWindow::on_setCompBoxNrButton_clicked() {
-
 	// Check if table empty
 	if (!componentTableEmpty) {
 
@@ -285,10 +284,27 @@ void MainWindow::on_setCompBoxNrButton_clicked() {
 			msgBox.close();
 
 		} else {
+			SlotSelectorDialog w;
+
+			// Here is a example how to pass occupied slots
+			for (size_t i = 0; i < componentVector.size(); i++) {
+				SlotInformation test;
+				if (componentVector[i].box != -1) {
+					test.index = componentVector[i].box;
+					// The character number shall be restricted to 5
+					test.name = componentVector[i].value.substr(0,5);
+					w.nameList.push_back(test);
+				}
+			}
+			w.paintSlots();
+			// Start slotSelector window
+			connect(&w, SIGNAL(setLed(int)), this,
+					SLOT(setLedFromSelection(int)));
+			w.exec();
 
 			bool ok = false;
-			QInputDialog* inputDialog = new QInputDialog();
-			inputDialog->setOptions(QInputDialog::NoButtons);
+			//QInputDialog* inputDialog = new QInputDialog();
+			//inputDialog->setOptions(QInputDialog::NoButtons);
 
 			/* Get boxNumber input */
 			int currentBox = componentVector.at(currentComponent).box;
@@ -297,9 +313,7 @@ void MainWindow::on_setCompBoxNrButton_clicked() {
 			}
 
 			//int boxNumber = inputDialog->getInt(this, "enter number", "enter number", currentBox, boxNumberMax, boxNumberMin, boxNumberStep, &ok, 0);
-			int boxNumber = inputDialog->getInt(this, "enter number",
-					"enter number", currentBox);
-
+			int boxNumber = w.getIndex();
 			if (boxNumber <= boxNumberMax && boxNumber >= boxNumberMin) {
 				componentVector[currentComponent].box = boxNumber;
 				ui.label_compBox->setText(QString::number(boxNumber));
@@ -2294,7 +2308,7 @@ void MainWindow::on_calibrateTapeButton_clicked(void) {
 
 	// TODO{Niko}: Use these functions in gui and placer node
 	QVector<int> calibratedTapes;
-	for (size_t i = 0; componentVector.size(); i++) {
+	for (size_t i = 0; i < componentVector.size(); i++) {
 		if ((componentVector.at(i).box >= 67)
 				&& (componentVector.at(i).box <= 86)) {
 			ROS_INFO("Calibrated tape: %d", componentVector.at(i).box);
@@ -2309,6 +2323,7 @@ void MainWindow::on_calibrateTapeButton_clicked(void) {
 			}
 		}
 	}
+
 	// EXAMPLE: Get 4th position of component in 1st tape
 	//tapeCalibrationValue positionOfComponent = calculatePosOfTapePart(1,4);
 }
