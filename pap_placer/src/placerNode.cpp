@@ -1,6 +1,5 @@
 #include "ros/ros.h"
 #include "std_msgs/String.h"
-
 #include "pap_common/Task.h"
 #include "pap_common/Status.h"
 #include "pap_common/VisionStatus.h"
@@ -12,34 +11,19 @@
 #include "../../pap_common/include/pap_common/arduino_message_def.h"
 #include "../../pap_common/include/pap_common/vision_message_def.h"
 #include "../../pap_common/include/pap_common/placer_message_def.h"
-
 #include "../../pap_placer/include/pap_placer/placerNode.hpp"
-//#include "../include/pap_placer/placerNode.hpp"
 #include "../include/pap_placer/placerClass.hpp"
-//#include "../../motor_controller/include/motorController/controllerClass.hpp"
 
-#define PICKUPDELAY1 5
-#define PICKUPDELAY2 5
-#define PLACEMENTDELAY1 5
-#define PLACEMENTDELAY2 5
-#define COMPFINDERTIMEOUT 300
-#define MOTORCONTROLLER_TIMEOUT 3000
 
+/* Constant parameter definitions */
 #define posTolerance 0.01 // Deviation of position in mm
 #define DISPENSER_TOLERANCE 0.1
-
+#define MOTORCONTROLLER_TIMEOUT 3000
 #define TIP1_DIAMETER_VISION 20.0
 #define TIP2_DIAMETER_VISION 20.0
 #define DISPENSER_DIAMETER_VISION 1.0
 #define CAMERA_DIAMETER_VISION 11.0
 #define DISPENSER_HEIGHT 22.2 //12,2
-
-int pickupwait_counter, placementwait_counter = 0;
-int componentFinder_counter = 0;
-unsigned int counterMean = 0;
-PlaceController placeController;
-ComponentPlacerData currentComponent;
-controllerStatus motorcontrollerStatus[3];
 
 /* Call back functions */
 void statusCallback(const pap_common::StatusConstPtr& statusMsg);
@@ -68,7 +52,7 @@ void setLEDTask(int LEDnumber);
 void resetLEDTask(int LEDnumber);
 void LEDTask(int task, int data);
 
-void resetProcessVariables();
+/* General local functions */
 void resetMotorState(bool x, bool y, bool z);
 void resetMotorState(int index, bool value);
 void checkIfOverThreshold(int numberOfAxis, float zValue);
@@ -79,31 +63,25 @@ ros::Subscriber visionStatusSubsriber_;
 ros::Subscriber placerTaskSubscriber_;
 ros::Subscriber dispenserTaskSubscriber_;
 
-bool visionEnabled = true;
-bool manualOperation = true;
 
+/* Variable definitions and initializations*/
+bool visionEnabled = true;
 bool placerNodeBusy = false;
 bool positionSend = false;
 bool visionStarted = false;
 int zPosReached = 0;
-
-bool boxCoordinatesSent = false;
-bool componentPickUpStarted = false;
-bool pcbOrigCoordinatesSent = false;
-bool componentPlacementStarted = false;
-bool componentFinderStarted = false;
 bool componentFound = false;
-bool compPickUpCoordinatesSent = false;
-bool bottomCamCoordinatesSent = false;
-bool homingCoordinatesSent = false;
-bool pcbBottomCamCoordinatesSent = false;
 bool cameraPositionReceived = false;
 bool dispensed = false;
-
+unsigned int counterMean = 0;
 bool manualGoto = false;
-
 bool IDLE_called = true;
 int motorcontroller_counter = 0;
+
+PlaceController placeController;
+ComponentPlacerData currentComponent;
+controllerStatus motorcontrollerStatus[3];
+
 enum CALIBRATION_STATE {
 	CAMERA, TIP1, DISPENSER, TIP2
 } calibration_state;
@@ -111,28 +89,13 @@ enum CALIBRATION_STATE {
 enum ERROR_CODE {
 	MOTOR_TIMEOUT,
 	MOTOR_FAILED,
-	MOTOR_ERROR,
-	MOTORFAILED_BOX,
-	MOTORERROR_BOX,
-	MOTORERROR_PICKUPCOOR,
-	MOTORFAILED_PICKUPCOOR,
-	MOTORFAILED_PCB,
-	MOTORERROR_PCB,
-	NOCOMPONENTFOUND,
-	MOTORERROR_HOMING,
-	MOTORFAILED_HOMING,
-	MOTORERROR_BOTTOM,
-	MOTORFAILED_BOTTOM,
-	MOTORERROR_PLACE,
-	MOTORFAILED_PLACE
+	MOTOR_ERROR
 } error_code;
 
 enum STATE {
 	IDLE,
 	CALIBRATE,
 	GOTOPCBORIGIN,
-
-	FINDPADS,
 	GOTOBOX,
 	FINDCOMPONENT,
 	GOTOPICKUPCOOR,
@@ -142,9 +105,7 @@ enum STATE {
 	GOTOPCBCOMP,
 	CHECKCOMPPOSITON,
 	GOTOPLACECOORD,
-	CHECKCOMPONENTPOSITION,
 	STARTPLACEMENT,
-	CHECKCOMPONENTPLACEMENT,
 	GOTOCOORD,
 	HOMING,
 	ERROR,
@@ -152,14 +113,19 @@ enum STATE {
 	DISPENSETASK
 } state, last_state;
 
+
+/******************************************************************************************
+ *  Main function - Implements entire placer state machine
+ ******************************************************************************************/
 int main(int argc, char **argv) {
 
+	// Initialize state machine
 	ros::init(argc, argv, "motorController");
 	if (!ros::master::check()) {
 		ROS_INFO("PlacerNode did not start...");
 		return 0;
 	}
-	ROS_INFO("PlacerNode started...");
+	ROS_INFO("Place controller started");
 
 	ros::NodeHandle n_;
 	task_publisher = n_.advertise<pap_common::Task>("task", 1000);
@@ -178,6 +144,8 @@ int main(int argc, char **argv) {
 	state = IDLE;
 	calibration_state = CAMERA;
 	bool outTolerance = false;
+
+	// Run state machine forever
 	while (ros::ok()) {
 		switch (state) {
 		case IDLE:
@@ -878,6 +846,10 @@ int main(int argc, char **argv) {
 	return 0;
 }
 
+
+/*****************************************************************************
+ * General local functions - Implementation
+ *****************************************************************************/
 void checkIfOverThreshold(int numberOfAxis, float zValue) {
 	if (numberOfAxis == 1) {
 		float diffX = fabs(
@@ -901,8 +873,20 @@ void checkIfOverThreshold(int numberOfAxis, float zValue) {
 	}
 }
 
+void resetMotorState(bool x, bool y, bool z) {
+	motorcontrollerStatus[1].positionReached = x;
+	motorcontrollerStatus[2].positionReached = y;
+	motorcontrollerStatus[3].positionReached = z;
+}
+
+void resetMotorState(int index, bool value) {
+	motorcontrollerStatus[index].positionReached = value;
+}
+
+
+
 /*****************************************************************************
- ** Callback functions for motor status, vision status and placer tasks
+ * Callback functions for motor status, vision status and placer tasks
  *****************************************************************************/
 void statusCallback(const pap_common::StatusConstPtr& statusMsg) {
 
@@ -1067,17 +1051,12 @@ void placerCallback(const pap_common::TaskConstPtr& taskMsg) {
 		case pap_common::GOTOBOX:
 			sendPlacerStatus(pap_common::GOTOBOX_STATE,
 					pap_common::PLACER_IDLE);
-			boxCoordinatesSent = false;
-			compPickUpCoordinatesSent = false;
-			resetProcessVariables();
 			state = GOTOBOX;
 			ROS_INFO("go to box called...");
 			break;
 		case pap_common::PICKUPCOMPONENT:
 			sendPlacerStatus(pap_common::STARTPICKUP_STATE,
 					pap_common::PLACER_IDLE);
-			componentPickUpStarted = false;
-			bottomCamCoordinatesSent = false;
 			state = STARTPICKUP;
 			ROS_INFO("Pick-up component called...");
 			break;
@@ -1091,7 +1070,6 @@ void placerCallback(const pap_common::TaskConstPtr& taskMsg) {
 		case pap_common::PLACEMENT:
 			sendPlacerStatus(pap_common::STARTPLACEMET_STATE,
 					pap_common::PLACER_IDLE);
-			componentPlacementStarted = false;
 			state = STARTPLACEMENT;
 			ROS_INFO("Placement called...");
 			break;
@@ -1103,7 +1081,6 @@ void placerCallback(const pap_common::TaskConstPtr& taskMsg) {
 			break;
 		case pap_common::HOMING:
 			sendPlacerStatus(pap_common::HOMING_STATE, pap_common::PLACER_IDLE);
-			homingCoordinatesSent = false;
 			state = HOMING;
 			break;
 
@@ -1266,27 +1243,3 @@ void LEDTask(int task, int data) {
 	arduinoMsg.data = data;
 	arduino_publisher_.publish(arduinoMsg);
 }
-
-void resetProcessVariables() {
-	boxCoordinatesSent = false;
-	componentPickUpStarted = false;
-	componentPlacementStarted = false;
-	compPickUpCoordinatesSent = false;
-	componentFinderStarted = false;
-	componentFound = false;
-	placerNodeBusy = false;
-	pickupwait_counter = 0;
-	placementwait_counter = 0;
-	componentFinder_counter = 0;
-}
-
-void resetMotorState(bool x, bool y, bool z) {
-	motorcontrollerStatus[1].positionReached = x;
-	motorcontrollerStatus[2].positionReached = y;
-	motorcontrollerStatus[3].positionReached = z;
-}
-
-void resetMotorState(int index, bool value) {
-	motorcontrollerStatus[index].positionReached = value;
-}
-
