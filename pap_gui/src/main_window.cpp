@@ -27,6 +27,7 @@
 #include <QString>
 #include <QFile>
 #include <tf/transform_broadcaster.h>
+#include "../../pap_placer/include/pap_placer/offsetTable.hpp"
 
 /*****************************************************************************
  ** Namespaces
@@ -51,13 +52,13 @@ int boxNumberMin = 0;
 int boxNumberSug = 1;
 float xTapeCalibration, yTapeCalibration, rotTapeCalibration = 0;
 
-const Offset TapeOffsetTable[20] = { { 339.7, -40.0 }, { 339.7, -51.0 }, {
+/*const Offset TapeOffsetTable[20] = { { 339.7, -40.0 }, { 339.7, -51.0 }, {
 		339.7, -62.0 }, { 339.7, -73.0 }, { 339.7, -84.0 }, { 339.7, -95.0 }, {
 		339.7, -106.0 }, { 339.7, -117.0 }, { 339.7, -128.0 },
 		{ 339.7, -139.0 }, { 339.7, -150.0 }, { 339.7, -161.0 },
 		{ 339.7, -172.0 }, { 339.7, -183.0 }, { 339.7, -194.0 },
 		{ 339.7, -205.0 }, { 339.7, -216.0 }, { 339.7, -227.0 },
-		{ 339.7, -238.0 }, { 339.7, -249.0 } };
+		{ 339.7, -238.0 }, { 339.7, -249.0 } };*/
 
 MainWindow::MainWindow(int argc, char** argv, QWidget *parent) :
 		QMainWindow(parent), qnode(argc, argv) {
@@ -222,47 +223,25 @@ void MainWindow::setLedFromSelection(int selection) {
 }
 
 void MainWindow::on_setCompBoxNrButton_2_clicked() {
-	// Create the dialog for selecting the desired box
-	SlotSelectorDialog w;
-
-	// Here is a example how to pass occupied slots
-	SlotInformation test;
-	test.index = 1;
-	// The character number shall be restricted to 5
-	test.name = std::string("100nF");
-	w.nameList.push_back(test);
-	w.paintSlots();
-
-	// Start slotSelector window
-	connect(&w, SIGNAL(setLed(int)), this, SLOT(setLedFromSelection(int)));
-	w.exec();
 
 	if (singleComponentSelected) {
+		// Create the dialog for selecting the desired box
+		SlotSelectorDialog w;
+		SlotInformation test;
+		test.index = 1;
+		test.name = std::string("100nF");
+		w.nameList.push_back(test);
+		w.paintSlots();
 
-		bool ok = false;
-		/*QInputDialog* inputDialog = new QInputDialog();
-		 inputDialog->setOptions(QInputDialog::NoButtons);
-		 */
-		/* Get boxNumber input */
-		int currentBox = singleComponent.box;
-		if (currentBox == -1) {
-			currentBox = 1;
-		}
+		// Start slotSelector window
+		connect(&w, SIGNAL(setLed(int)), this, SLOT(setLedFromSelection(int)));
+		w.exec();
 
-		int boxNumber = w.getIndex(); //inputDialog->getInt(this, "Set new box number",
-		//"Enter new box number:", currentBox);
 
-		if (boxNumber <= boxNumberMax && boxNumber >= boxNumberMin) {
-			singleComponent.box = boxNumber;
-			ui.checkBox_box->setChecked(true);
-			ui.label_compBox_2->setText(QString::number(boxNumber));
+		singleComponent.box = w.getIndex();
+		ui.checkBox_box->setChecked(true);
+		ui.label_compBox_2->setText(QString::number(boxNumber));
 
-		} else {
-			QMessageBox msgBox;
-			msgBox.setText("BoxNumberMin = 0, BoxNumberMax = 59");
-			msgBox.exec();
-			msgBox.close();
-		}
 	} else {
 		QMessageBox msgBox;
 		msgBox.setText("No component information available.");
@@ -831,7 +810,6 @@ void MainWindow::on_startSinglePlacementButton_clicked() {
 		qnode.sendTask(pap_common::PLACER, pap_common::PLACECOMPONENT,
 				placementData);
 	}
-
 }
 
 void MainWindow::on_goToPCBButton_clicked() {

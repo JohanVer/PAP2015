@@ -37,12 +37,12 @@
 #include "CommonDataClasses.hpp"
 
 
-class componentEntry {
+/*class componentEntry {
 public:
 	std::string name, package, side, value;
 	float posX, posY, length, width, height;
-	int box, rotation, pins;
-};
+	int box, rotation, pins, index;
+};*/
 
 class GerberPadParser {
 public:
