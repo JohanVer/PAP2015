@@ -28,7 +28,7 @@ PlaceController::PlaceController() {
 	// Rough offset values - need to be refined
 	pcbOriginOffset.x = 300;
 	pcbOriginOffset.y = 145;
-	pcbOriginOffset.z = 22.0;
+	pcbOriginOffset.z = 25.6;
 	pickUpAreaOffset.x = 109;
 	pickUpAreaOffset.y = 261;
 	pickUpAreaOffset.z = suckingHeight_;
@@ -40,8 +40,8 @@ PlaceController::PlaceController() {
 	tip2Offset.x = -94.08;
 	tip2Offset.y = 64.709;
 	tip2Offset.z = 45;
-	tip1Offset.x = -94.08;
-	tip1Offset.y = -1, 8;
+	tip1Offset.x = -92.98;
+	tip1Offset.y = +1, 8;
 	tip1Offset.z = 45;
 	dispenserTipOffset.x = -53.42;
 	dispenserTipOffset.y = 37, 89;
@@ -157,7 +157,7 @@ Offset PlaceController::getCompPickUpCoordinates() {
 
 	switch (tip) {
 	case LEFT_TIP:
-		temp.x += (tip1Offset.x + camClibrationOffset_.x
+		temp.x += (tip1Offset.x - camClibrationOffset_.x
 				+ tip1ClibrationOffset_.x);
 		temp.y += (tip1Offset.y - camClibrationOffset_.y
 				+ tip1ClibrationOffset_.y);
@@ -216,13 +216,13 @@ Offset PlaceController::getCompPlaceCoordinates() {
 		temp.y = currentComponent.destY + PlaceCorrection.y
 				+ (tip1Offset.y - camClibrationOffset_.y
 						+ tip1ClibrationOffset_.y);
-		temp.z = pcbOriginOffset.z + tip1Offset.z;
+		temp.z = 45.0;//pcbOriginOffset.z + tip1Offset.z;
 		temp.rot = currentComponent.rotation + PlaceCorrection.rot;
 		break;
 	case RIGHT_TIP:
 		temp.x = currentComponent.destX + PlaceCorrection.x + tip2Offset.x;
 		temp.y = currentComponent.destY + PlaceCorrection.y + tip2Offset.y;
-		temp.z = pcbOriginOffset.z + tip2Offset.z;
+		temp.z = 45.0;//pcbOriginOffset.z + tip2Offset.z;
 		temp.rot = currentComponent.rotation + PlaceCorrection.rot;
 		break;
 	}
@@ -231,6 +231,7 @@ Offset PlaceController::getCompPlaceCoordinates() {
 ;
 
 float PlaceController::getCompPlaceHeight() {
+	ROS_INFO("PCBOrigin: %f, CompHeight: %f",pcbOriginOffset.z ,currentComponent.height);
 	return pcbOriginOffset.z + currentComponent.height;
 }
 ;

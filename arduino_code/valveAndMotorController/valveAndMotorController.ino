@@ -140,7 +140,7 @@ void messageCb( const pap_common::ArduinoMsg& arduinoMsg){
     stepper1.step(steps);
   }
   
- /* 
+ /*
   if(arduinoMsg.command == RUNSTEPPER2 ){
     
     int steps = round(arduinoMsg.data/1.8);    // Resolution of 1.8°

@@ -25,8 +25,8 @@
 #define COMPFINDERTIMEOUT 300
 #define MOTORCONTROLLER_TIMEOUT 3000
 
-#define posTolerance 70	// Deviation of position in um
-#define DISPENSER_TOLERANCE 0.01
+#define posTolerance 0.01 // Deviation of position in mm
+#define DISPENSER_TOLERANCE 0.1
 
 #define TIP1_DIAMETER_VISION 20.0
 #define TIP2_DIAMETER_VISION 20.0
@@ -66,6 +66,7 @@ void sendStepperTask(int StepperNumber, int rotationAngle);
 void resetStepper();
 void setLEDTask(int LEDnumber);
 void resetLEDTask(int LEDnumber);
+void LEDTask(int task, int data);
 
 void resetProcessVariables();
 void resetMotorState(bool x, bool y, bool z);
@@ -193,10 +194,13 @@ int main(int argc, char **argv) {
 			sendPlacerStatus(pap_common::IDLE_STATE, pap_common::PLACER_IDLE);
 			sendPlacerStatus(pap_common::CALIBRATION_STATE,
 					pap_common::PLACER_ACTIVE);
-
 			switch (calibration_state) {
 			case CAMERA:
 				if (!positionSend) {
+					LEDTask(pap_common::SETRINGCOLOR, 0);
+					ros::Duration(0.3).sleep();
+					LEDTask(pap_common::RESETBOTTOMLED, 0);
+
 					ROS_INFO("PlacerState: CAMERA");
 					placeController.currentDestination_ =
 							placeController.getBottomCamCoordinates();
@@ -215,6 +219,7 @@ int main(int argc, char **argv) {
 						counterMean = 0;
 						placeController.camClibrationOffset_.x = 0.0;
 						placeController.camClibrationOffset_.y = 0.0;
+						LEDTask(pap_common::SETBOTTOMLED, 0);
 						sendTask(pap_common::VISION, pap_vision::START_VISION);
 						sendTask(pap_common::VISION, pap_vision::SEARCH_CIRCLE,
 						CAMERA_DIAMETER_VISION, 0.0, 0.0);
@@ -223,6 +228,7 @@ int main(int argc, char **argv) {
 					}
 
 					if (cameraPositionReceived) {
+						LEDTask(pap_common::RESETBOTTOMLED, 0);
 						ROS_INFO("Camera: cameraOffsetreceived");
 						sendTask(pap_common::VISION, pap_vision::STOP_VISION);
 						//ros::Duration(1).sleep();
@@ -254,6 +260,7 @@ int main(int argc, char **argv) {
 						counterMean = 0;
 						placeController.dispenserCalibrationOffset_.x = 0.0;
 						placeController.dispenserCalibrationOffset_.y = 0.0;
+						LEDTask(pap_common::SETBOTTOMLED, 0);
 						sendTask(pap_common::VISION, pap_vision::START_VISION);
 						sendTask(pap_common::VISION, pap_vision::SEARCH_CIRCLE,
 						TIP1_DIAMETER_VISION, 0.0, 0.0);
@@ -262,6 +269,7 @@ int main(int argc, char **argv) {
 					}
 
 					if (cameraPositionReceived) {
+						LEDTask(pap_common::RESETBOTTOMLED, 0);
 						sendTask(pap_common::VISION, pap_vision::STOP_VISION);
 						calibration_state = DISPENSER;
 						cameraPositionReceived = false;
@@ -290,6 +298,7 @@ int main(int argc, char **argv) {
 						placeController.dispenserTipOffset.x = 0;
 						placeController.dispenserTipOffset.x = 0;
 						ros::Duration(3).sleep();
+						LEDTask(pap_common::SETBOTTOMLED, 0);
 						sendTask(pap_common::VISION, pap_vision::START_VISION);
 						sendTask(pap_common::VISION, pap_vision::SEARCH_CIRCLE,
 						DISPENSER_DIAMETER_VISION, 0.0, 0.0);
@@ -297,6 +306,7 @@ int main(int argc, char **argv) {
 					}
 
 					if (cameraPositionReceived) {
+						LEDTask(pap_common::RESETBOTTOMLED, 0);
 						sendTask(pap_common::VISION, pap_vision::STOP_VISION);
 						calibration_state = CAMERA;
 						cameraPositionReceived = false;
@@ -324,6 +334,7 @@ int main(int argc, char **argv) {
 				} else {
 					if (!visionStarted) {
 						ros::Duration(3).sleep();
+						LEDTask(pap_common::SETBOTTOMLED, 0);
 						sendTask(pap_common::VISION, pap_vision::START_VISION);
 						sendTask(pap_common::VISION, pap_vision::SEARCH_CIRCLE,
 						TIP2_DIAMETER_VISION, 0.0, 0.0);
@@ -331,6 +342,7 @@ int main(int argc, char **argv) {
 					}
 
 					if (cameraPositionReceived) {
+						LEDTask(pap_common::RESETBOTTOMLED, 0);
 						sendTask(pap_common::VISION, pap_vision::STOP_VISION);
 						calibration_state = CAMERA;
 						cameraPositionReceived = false;
@@ -472,10 +484,12 @@ int main(int argc, char **argv) {
 				if (placeController.selectTip()) {		// Activate tip
 					sendRelaisTask(3, false);			// tip 1
 					sendRelaisTask(6, true);
-					sendPlacerStatus(pap_common::INFO,pap_common::RIGHT_TIP_DOWN);
+					sendPlacerStatus(pap_common::INFO,
+							pap_common::RIGHT_TIP_DOWN);
 				} else {
 					sendRelaisTask(7, true);			// tip 2
-					sendPlacerStatus(pap_common::INFO,pap_common::LEFT_TIP_DOWN);
+					sendPlacerStatus(pap_common::INFO,
+							pap_common::LEFT_TIP_DOWN);
 				}
 				ros::Duration(1).sleep();
 
@@ -502,10 +516,11 @@ int main(int argc, char **argv) {
 				if (placeController.selectTip()) {		// Release tip
 					sendRelaisTask(6, false);
 					sendRelaisTask(3, true);			// Tip 1
-					sendPlacerStatus(pap_common::INFO,pap_common::RIGHT_TIP_UP);
+					sendPlacerStatus(pap_common::INFO,
+							pap_common::RIGHT_TIP_UP);
 				} else {
 					sendRelaisTask(7, false);			// Tip 2
-					sendPlacerStatus(pap_common::INFO,pap_common::LEFT_TIP_UP);
+					sendPlacerStatus(pap_common::INFO, pap_common::LEFT_TIP_UP);
 				}
 				ros::Duration(1).sleep();
 				sendRelaisTask(2, false);				// Turn on vacuum
@@ -515,8 +530,8 @@ int main(int argc, char **argv) {
 				//ros::Duration(1).sleep();		// Wait until cylinder released
 
 				positionSend = false;
-				//IDLE_called = true;
-				state = GOTOPLACECOORD;
+				IDLE_called = true;
+				state = IDLE;
 			}
 			break;
 
@@ -590,10 +605,12 @@ int main(int argc, char **argv) {
 				if (placeController.selectTip()) {
 					sendRelaisTask(3, false);	// Activate left cylinder
 					sendRelaisTask(6, true);
-					sendPlacerStatus(pap_common::INFO,pap_common::RIGHT_TIP_DOWN);
+					sendPlacerStatus(pap_common::INFO,
+							pap_common::RIGHT_TIP_DOWN);
 				} else {
 					sendRelaisTask(7, true);	// Activate right cylinder
-					sendPlacerStatus(pap_common::INFO,pap_common::LEFT_TIP_DOWN);
+					sendPlacerStatus(pap_common::INFO,
+							pap_common::LEFT_TIP_DOWN);
 				}
 				ros::Duration(1).sleep();
 
@@ -620,10 +637,11 @@ int main(int argc, char **argv) {
 				if (placeController.selectTip()) {		// Release tip
 					sendRelaisTask(6, false);
 					sendRelaisTask(3, true);			// Tip 1
-					sendPlacerStatus(pap_common::INFO,pap_common::RIGHT_TIP_UP);
+					sendPlacerStatus(pap_common::INFO,
+							pap_common::RIGHT_TIP_UP);
 				} else {
 					sendRelaisTask(7, false);			// Tip 2
-					sendPlacerStatus(pap_common::INFO,pap_common::LEFT_TIP_UP);
+					sendPlacerStatus(pap_common::INFO, pap_common::LEFT_TIP_UP);
 				}
 				sendPlacerStatus(pap_common::STARTPLACEMET_STATE,
 						pap_common::PLACER_FINISHED);
@@ -661,11 +679,11 @@ int main(int argc, char **argv) {
 			if (fabs(
 					placeController.lastDestination_.x
 							- placeController.currentDestination_.x)
-					> (posTolerance / 1000)
+					> (posTolerance)
 					|| fabs(
 							placeController.lastDestination_.y
 									- placeController.currentDestination_.y)
-							> (posTolerance / 1000)) {
+							> (posTolerance)) {
 				outTolerance = true;
 			} else {
 				outTolerance = false;
@@ -1239,6 +1257,13 @@ void resetLEDTask(int LEDnumber) {
 	pap_common::ArduinoMsg arduinoMsg;
 	arduinoMsg.command = pap_common::RESETLED;
 	arduinoMsg.data = LEDnumber;
+	arduino_publisher_.publish(arduinoMsg);
+}
+
+void LEDTask(int task, int data) {
+	pap_common::ArduinoMsg arduinoMsg;
+	arduinoMsg.command = task;
+	arduinoMsg.data = data;
 	arduino_publisher_.publish(arduinoMsg);
 }
 
