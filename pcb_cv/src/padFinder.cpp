@@ -26,7 +26,7 @@ using namespace cv;
 // SMD Tape
 #define ERODE_ITERATIONS_TAPE_FINDER 1
 #define MIN_AREA_TAPE_FINDER 300
-#define ERROR_PERCENT_SMDTAPE 20.0
+#define ERROR_PERCENT_SMDTAPE 30.0
 
 // Tips
 #define ERROR_PERCENT_TIP 20.0
@@ -335,14 +335,17 @@ smdPart padFinder::findSmallSMD(cv::Mat* input) {
 	return smdFinal;
 }
 
-smdPart padFinder::findSMDTape(cv::Mat* input,bool searchTapeRotation) {
+smdPart padFinder::findSMDTape(cv::Mat* input, bool searchTapeRotation) {
 	std::vector<smdPart> smdObjects;
 	cv::Mat gray;
 	cv::Mat final = input->clone();
 	cv::cvtColor(*input, gray, CV_BGR2GRAY);
-	cv::threshold(gray, gray, 255, 255, CV_THRESH_BINARY | CV_THRESH_OTSU);
-	cv::erode(gray, gray, cv::Mat(), cv::Point(-1, -1),
-	ERODE_ITERATIONS_TAPE_FINDER);
+	//cv::threshold(gray, gray, 255, 255, CV_THRESH_BINARY | CV_THRESH_OTSU);
+
+	cv::adaptiveThreshold(gray, gray, 255, ADAPTIVE_THRESH_GAUSSIAN_C,
+			CV_THRESH_BINARY, 201, 1.0);
+	//cv::erode(gray, gray, cv::Mat(), cv::Point(-1, -1),
+	//ERODE_ITERATIONS_TAPE_FINDER);
 	std::vector<std::vector<cv::Point> > contours;
 	std::vector<std::vector<cv::Point> > contoursSorted;
 	vector<Vec4i> hierarchy;
@@ -376,7 +379,6 @@ smdPart padFinder::findSMDTape(cv::Mat* input,bool searchTapeRotation) {
 			}
 		}
 	}
-
 
 	for (int i = 0; i < contours.size(); i++) {
 		// Sort out circles
@@ -415,9 +417,16 @@ smdPart padFinder::findSMDTape(cv::Mat* input,bool searchTapeRotation) {
 								< ((partWidth_ * partHeight_) / 100.0)
 										* (100.0 + ERROR_PERCENT_SMDTAPE)) {
 
+					// Calculate moments of image
+					Moments mu;
+					mu = moments(contours[i], false);
+					//Calculate mass center
+					Point2f mc;
+					mc = Point2f(mu.m10 / mu.m00, mu.m01 / mu.m00);
+
 					smdPart smd;
-					smd.x = rect.center.x;
-					smd.y = rect.center.y;
+					smd.x = mc.x;//rect.center.x;
+					smd.y = mc.y;//rect.center.y;
 					smd.rot = rect.angle;
 					if (rect.size.height < rect.size.width) {
 						smd.rot = std::fabs(smd.rot);
@@ -427,14 +436,14 @@ smdPart padFinder::findSMDTape(cv::Mat* input,bool searchTapeRotation) {
 					//ROS_INFO("Angle : %f Width: %f Height: %f",rect.angle,rect.size.width,rect.size.height);
 					smdObjects.push_back(smd);
 					//drawRotatedRect(final, rect, CV_RGB(0, 0, 255));
-					cv::drawContours(final, contours, i, CV_RGB(0, 255, 0), 2);
+					//cv::drawContours(final, contours, i, CV_RGB(0, 255, 0), 2);
 				}
 			}
 		}
 	}
 
 	smdPart smdFinal;
-	if(!smdObjects.size()){
+	if (!smdObjects.size()) {
 		return smdFinal;
 	}
 	if (nearestPart(&smdObjects, &smdFinal, input->cols, input->rows)) {
@@ -442,13 +451,12 @@ smdPart padFinder::findSMDTape(cv::Mat* input,bool searchTapeRotation) {
 		smdFinal.x = (smdFinal.x - (input->cols / 2 - 1)) / PIXEL_TO_MM_TOP;
 		smdFinal.y = ((input->rows / 2 - 1) - smdFinal.y) / PIXEL_TO_MM_TOP;
 	}
-
-	/*
-	 cv::imshow("grey", gray);
-	 cv::imshow("input", *input);
-	 cv::imshow("final", final);
-	 cv::waitKey(0);
-	 */
+/*
+	cv::imshow("grey", gray);
+	cv::imshow("input", *input);
+	cv::imshow("final", final);
+	cv::waitKey(0);
+*/
 	*input = final.clone();
 	return smdFinal;
 }
