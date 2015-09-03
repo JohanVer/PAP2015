@@ -143,7 +143,6 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent) :
 			SLOT(changeBackLEDBrightness(int)));
 
 	// Color Combo LED Ring
-
 	connect(ui.ringColorCombo, SIGNAL(activated(int)), this,
 			SLOT(changeRingColor(int)));
 
@@ -173,6 +172,7 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent) :
 	xTapeCalibration = 0.0;
 	yTapeCalibration = 0.0;
 	rotTapeCalibration = 0.0;
+
 	/* Load database */
 	loadDatabaseContent();
 	updateDatabaseTable();
@@ -237,10 +237,12 @@ void MainWindow::on_setCompBoxNrButton_2_clicked() {
 		connect(&w, SIGNAL(setLed(int)), this, SLOT(setLedFromSelection(int)));
 		w.exec();
 
-
-		singleComponent.box = w.getIndex();
+		int current_index = w.getIndex();
+		singleComponent.box = current_index;
+		componentVector[singleComponent.index].box = current_index;
 		ui.checkBox_box->setChecked(true);
-		ui.label_compBox_2->setText(QString::number(boxNumber));
+		ui.label_compBox_2->setText(QString::number(current_index));
+		updateComponentInformation();
 
 	} else {
 		QMessageBox msgBox;
@@ -624,13 +626,8 @@ void MainWindow::on_loadGerberFileButton_clicked() {
 	if (datafile.is_open()) {
 
 		string componentString;
-		//string lineString;
+		int comp_index = 0;
 		while (getline(datafile, componentString)) {
-
-			//QString componentString = QString::fromStdString(lineString);
-			//QRegExp sep1('"');
-			//QRegExp sep2("//");
-			//bool ok;
 
 			/* Filter only component data */
 			if (!(componentString.at(0) == (char) 42)) {
@@ -683,6 +680,9 @@ void MainWindow::on_loadGerberFileButton_clicked() {
 
 				// Set box number of component
 				newComponent.box = -1;
+
+				newComponent.index = comp_index;
+				comp_index++;
 
 				componentVector.append(newComponent);
 				componentCount++;

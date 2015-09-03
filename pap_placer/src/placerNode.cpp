@@ -886,7 +886,7 @@ void resetMotorState(int index, bool value) {
 
 
 /*****************************************************************************
- * Callback functions for motor status, vision status and placer tasks
+ * Callback functions for motor PLACECOMPONENTstatus, vision status and placer tasks
  *****************************************************************************/
 void statusCallback(const pap_common::StatusConstPtr& statusMsg) {
 
@@ -1025,6 +1025,7 @@ void placerCallback(const pap_common::TaskConstPtr& taskMsg) {
 
 		switch (taskMsg->task) {
 		case pap_common::PLACECOMPONENT: {
+
 			ComponentPlacerData tempComponent;
 			tempComponent.destX = taskMsg->data1;
 			tempComponent.destY = taskMsg->data2;
@@ -1041,10 +1042,10 @@ void placerCallback(const pap_common::TaskConstPtr& taskMsg) {
 			if ((tempComponent.box >= 67) && (tempComponent.box <= 86)) {
 				// Its a tape - no GOTOBOX, VISION states needed
 				state = GOTOPICKUPCOOR;
-				ROS_INFO("placer called - GOTOPICKUPCOOR");
+				ROS_INFO("Placer - GOTOPICKUPCOOR");
 			} else {
 				state = GOTOBOX;	// Start placer with state GOTOBOX
-				ROS_INFO("placer called - GOTOBOX");
+				ROS_INFO("Placer - GOTOBOX");
 			}
 		}
 			break;
