@@ -80,7 +80,7 @@ int motorcontroller_counter = 0;
 
 PlaceController placeController;
 ComponentPlacerData currentComponent;
-controllerStatus motorcontrollerStatus[3];
+static controllerStatus motorcontrollerStatus[3];
 
 enum CALIBRATION_STATE {
 	CAMERA, TIP1, DISPENSER, TIP2
