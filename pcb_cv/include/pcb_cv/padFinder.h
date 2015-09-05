@@ -18,7 +18,7 @@
 
 // Conversion factors for pixel to mm
 // Top-Camera:
-#define PIXEL_TO_MM_TOP 34.0
+#define PIXEL_TO_MM_TOP 32.37
 // Bottom-Camera
 #define PIXEL_TO_MM_BOTTOM 24.95
 

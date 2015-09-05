@@ -40,7 +40,7 @@
        <locale language="English" country="Australia"/>
       </property>
       <property name="currentIndex">
-       <number>6</number>
+       <number>2</number>
       </property>
       <widget class="QWidget" name="tab_status">
        <attribute name="title">
@@ -1770,7 +1770,7 @@
           <x>800</x>
           <y>130</y>
           <width>291</width>
-          <height>241</height>
+          <height>261</height>
          </rect>
         </property>
         <property name="title">
@@ -1960,6 +1960,32 @@
            </widget>
           </item>
          </layout>
+        </widget>
+        <widget class="QSlider" name="topBrightnessSlider_2">
+         <property name="geometry">
+          <rect>
+           <x>240</x>
+           <y>200</y>
+           <width>29</width>
+           <height>61</height>
+          </rect>
+         </property>
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="topLedButton">
+         <property name="geometry">
+          <rect>
+           <x>180</x>
+           <y>220</y>
+           <width>61</width>
+           <height>27</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Top Led</string>
+         </property>
         </widget>
        </widget>
        <widget class="QGroupBox" name="groupBox_18">

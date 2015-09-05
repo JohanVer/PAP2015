@@ -76,7 +76,7 @@ Offset PlaceController::getBoxCoordinates() {
 		temp.y += BoxOffsetTable[currentComponent.box].y;
 	} else if ((currentComponent.box >= 67) && (currentComponent.box <= 86)) {
 		// Its a tape
-		temp.x += TapeOffsetTable[currentComponent.box - 67].x;
+		if(TapeOffsetTable[currentComponent.box - 67].x+temp.x < 450.0) temp.x += TapeOffsetTable[currentComponent.box - 67].x; else temp.x = 449.9;
 		temp.y += TapeOffsetTable[currentComponent.box - 67].y;
 	}
 

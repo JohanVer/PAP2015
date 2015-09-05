@@ -19,10 +19,10 @@
 #define posTolerance 0.01 // Deviation of position in mm
 #define DISPENSER_TOLERANCE 0.1
 #define MOTORCONTROLLER_TIMEOUT 3000
-#define TIP1_DIAMETER_VISION 20.0
+#define TIP1_DIAMETER_VISION 17.0
 #define TIP2_DIAMETER_VISION 20.0
-#define DISPENSER_DIAMETER_VISION 1.0
-#define CAMERA_DIAMETER_VISION 11.0
+#define DISPENSER_DIAMETER_VISION 130
+#define CAMERA_DIAMETER_VISION 60.0
 #define DISPENSER_HEIGHT 22.2 //12,2
 
 /* Call back functions */
@@ -491,15 +491,15 @@ int main(int argc, char **argv) {
 					sendPlacerStatus(pap_common::INFO, pap_common::LEFT_TIP_UP);
 				}
 				ros::Duration(1).sleep();
-				sendRelaisTask(2, false);				// Turn on vacuum
-				sendRelaisTask(1, true);
+				//sendRelaisTask(2, false);				// Turn on vacuum
+				//sendRelaisTask(1, true);
 
 				//sendStepperTask(2, (int) destination.rot);	// Turn component
 				//ros::Duration(1).sleep();		// Wait until cylinder released
 
 				positionSend = false;
-				IDLE_called = true;
-				state = IDLE;
+				//IDLE_called = true;
+				state = GOTOPLACECOORD;
 			}
 			break;
 
@@ -974,9 +974,9 @@ void visionStatusCallback(const pap_common::VisionStatusConstPtr& statusMsg) {
 				placeController.tip1ClibrationOffset_.x += xDiff;
 				placeController.tip1ClibrationOffset_.y += yDiff;
 
-				if (counterMean == 50) {
-					placeController.tip1ClibrationOffset_.x /= 50;
-					placeController.tip1ClibrationOffset_.y /= 50;
+				if (counterMean == 10) {
+					placeController.tip1ClibrationOffset_.x /= 10;
+					placeController.tip1ClibrationOffset_.y /= 10;
 					cameraPositionReceived = true;
 					ROS_INFO("Tip1 Calibration Offset: X: %f Y: %f",
 							placeController.tip1ClibrationOffset_.x,

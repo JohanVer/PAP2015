@@ -142,6 +142,9 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent) :
 	connect(ui.backBrightnessSlider, SIGNAL(valueChanged(int)), this,
 			SLOT(changeBackLEDBrightness(int)));
 
+	connect(ui.topBrightnessSlider_2, SIGNAL(valueChanged(int)), this,
+				SLOT(changeTopLEDBrightness(int)));
+
 	// Color Combo LED Ring
 	connect(ui.ringColorCombo, SIGNAL(activated(int)), this,
 			SLOT(changeRingColor(int)));
@@ -1521,6 +1524,10 @@ void MainWindow::changeBackLEDBrightness(int brightness) {
 	qnode.LEDTask(pap_common::SETBRIGHTNESSBACK, brightness);
 }
 
+void MainWindow::changeTopLEDBrightness(int brightness) {
+	qnode.LEDTask(pap_common::SETBRIGHTNESSTOP, brightness);
+}
+
 void MainWindow::changeRingColor(int comboValue) {
 	switch (comboValue) {
 	// Green
@@ -2067,6 +2074,17 @@ void MainWindow::on_bottomLEDButton_clicked() {
 	}
 }
 
+void MainWindow::on_topLedButton_clicked() {
+	static bool topLEDon = false;
+	if (!topLEDon) {
+		qnode.LEDTask(pap_common::SETTOPLED,0);
+		topLEDon = true;
+	} else {
+		qnode.LEDTask(pap_common::RESETTOPLED,0);
+		topLEDon = false;
+	}
+}
+
 struct compareClass {
 	//compareClass(float paramA, float paramB) { this->xPos = paramA; this->yPos = paramB; }
 	bool operator()(PadInformation i, PadInformation j) {
@@ -2378,7 +2396,7 @@ void MainWindow::calibrateTape(int tapeNumber, float componentWidth,
 	// TODO{Johan}: Goto tape with index: tapeNumber
 
 	Offset temp = TapeOffsetTable[tapeNumber];
-	temp.x += 109;
+	temp.x += 108.42;
 	temp.y += 261;
 	temp.z = 20.1;
 	qnode.sendTask(pap_common::PLACER, pap_common::GOTO, temp.x, temp.y,
@@ -2434,6 +2452,7 @@ void MainWindow::calibrateTape(int tapeNumber, float componentWidth,
 	}
 	qnode.sendTask(pap_common::VISION, pap_vision::STOP_VISION);
 
+	ROS_INFO("TapeCal: %f CurrentPos: %f",xTapeCalibration,currentPosition.x);
 	calibrationVal.x = xTapeCalibration + currentPosition.x;
 	calibrationVal.y = yTapeCalibration + currentPosition.y;
 	ros::Duration(1).sleep();
