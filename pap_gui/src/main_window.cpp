@@ -27,6 +27,7 @@
 #include <QString>
 #include <QFile>
 #include <tf/transform_broadcaster.h>
+#include "../../pap_placer/include/pap_placer/offsetTable.hpp"
 
 /*****************************************************************************
  ** Namespaces
@@ -51,13 +52,13 @@ int boxNumberMin = 0;
 int boxNumberSug = 1;
 float xTapeCalibration, yTapeCalibration, rotTapeCalibration = 0;
 
-const Offset TapeOffsetTable[20] = { { 339.7, -40.0 }, { 339.7, -51.0 }, {
+/*const Offset TapeOffsetTable[20] = { { 339.7, -40.0 }, { 339.7, -51.0 }, {
 		339.7, -62.0 }, { 339.7, -73.0 }, { 339.7, -84.0 }, { 339.7, -95.0 }, {
 		339.7, -106.0 }, { 339.7, -117.0 }, { 339.7, -128.0 },
 		{ 339.7, -139.0 }, { 339.7, -150.0 }, { 339.7, -161.0 },
 		{ 339.7, -172.0 }, { 339.7, -183.0 }, { 339.7, -194.0 },
 		{ 339.7, -205.0 }, { 339.7, -216.0 }, { 339.7, -227.0 },
-		{ 339.7, -238.0 }, { 339.7, -249.0 } };
+		{ 339.7, -238.0 }, { 339.7, -249.0 } };*/
 
 MainWindow::MainWindow(int argc, char** argv, QWidget *parent) :
 		QMainWindow(parent), qnode(argc, argv) {
@@ -141,8 +142,10 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent) :
 	connect(ui.backBrightnessSlider, SIGNAL(valueChanged(int)), this,
 			SLOT(changeBackLEDBrightness(int)));
 
-	// Color Combo LED Ring
+	connect(ui.topBrightnessSlider_2, SIGNAL(valueChanged(int)), this,
+				SLOT(changeTopLEDBrightness(int)));
 
+	// Color Combo LED Ring
 	connect(ui.ringColorCombo, SIGNAL(activated(int)), this,
 			SLOT(changeRingColor(int)));
 
@@ -172,6 +175,7 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent) :
 	xTapeCalibration = 0.0;
 	yTapeCalibration = 0.0;
 	rotTapeCalibration = 0.0;
+
 	/* Load database */
 	loadDatabaseContent();
 	updateDatabaseTable();
@@ -222,47 +226,27 @@ void MainWindow::setLedFromSelection(int selection) {
 }
 
 void MainWindow::on_setCompBoxNrButton_2_clicked() {
-	// Create the dialog for selecting the desired box
-	SlotSelectorDialog w;
-
-	// Here is a example how to pass occupied slots
-	SlotInformation test;
-	test.index = 1;
-	// The character number shall be restricted to 5
-	test.name = std::string("100nF");
-	w.nameList.push_back(test);
-	w.paintSlots();
-
-	// Start slotSelector window
-	connect(&w, SIGNAL(setLed(int)), this, SLOT(setLedFromSelection(int)));
-	w.exec();
 
 	if (singleComponentSelected) {
+		// Create the dialog for selecting the desired box
+		SlotSelectorDialog w;
+		SlotInformation test;
+		test.index = 1;
+		test.name = std::string("100nF");
+		w.nameList.push_back(test);
+		w.paintSlots();
 
-		bool ok = false;
-		/*QInputDialog* inputDialog = new QInputDialog();
-		 inputDialog->setOptions(QInputDialog::NoButtons);
-		 */
-		/* Get boxNumber input */
-		int currentBox = singleComponent.box;
-		if (currentBox == -1) {
-			currentBox = 1;
-		}
+		// Start slotSelector window
+		connect(&w, SIGNAL(setLed(int)), this, SLOT(setLedFromSelection(int)));
+		w.exec();
 
-		int boxNumber = w.getIndex(); //inputDialog->getInt(this, "Set new box number",
-		//"Enter new box number:", currentBox);
+		int current_index = w.getIndex();
+		singleComponent.box = current_index;
+		componentVector[singleComponent.index].box = current_index;
+		ui.checkBox_box->setChecked(true);
+		ui.label_compBox_2->setText(QString::number(current_index));
+		updateComponentInformation();
 
-		if (boxNumber <= boxNumberMax && boxNumber >= boxNumberMin) {
-			singleComponent.box = boxNumber;
-			ui.checkBox_box->setChecked(true);
-			ui.label_compBox_2->setText(QString::number(boxNumber));
-
-		} else {
-			QMessageBox msgBox;
-			msgBox.setText("BoxNumberMin = 0, BoxNumberMax = 59");
-			msgBox.exec();
-			msgBox.close();
-		}
 	} else {
 		QMessageBox msgBox;
 		msgBox.setText("No component information available.");
@@ -645,13 +629,8 @@ void MainWindow::on_loadGerberFileButton_clicked() {
 	if (datafile.is_open()) {
 
 		string componentString;
-		//string lineString;
+		int comp_index = 0;
 		while (getline(datafile, componentString)) {
-
-			//QString componentString = QString::fromStdString(lineString);
-			//QRegExp sep1('"');
-			//QRegExp sep2("//");
-			//bool ok;
 
 			/* Filter only component data */
 			if (!(componentString.at(0) == (char) 42)) {
@@ -704,6 +683,9 @@ void MainWindow::on_loadGerberFileButton_clicked() {
 
 				// Set box number of component
 				newComponent.box = -1;
+
+				newComponent.index = comp_index;
+				comp_index++;
 
 				componentVector.append(newComponent);
 				componentCount++;
@@ -831,7 +813,6 @@ void MainWindow::on_startSinglePlacementButton_clicked() {
 		qnode.sendTask(pap_common::PLACER, pap_common::PLACECOMPONENT,
 				placementData);
 	}
-
 }
 
 void MainWindow::on_goToPCBButton_clicked() {
@@ -1543,6 +1524,10 @@ void MainWindow::changeBackLEDBrightness(int brightness) {
 	qnode.LEDTask(pap_common::SETBRIGHTNESSBACK, brightness);
 }
 
+void MainWindow::changeTopLEDBrightness(int brightness) {
+	qnode.LEDTask(pap_common::SETBRIGHTNESSTOP, brightness);
+}
+
 void MainWindow::changeRingColor(int comboValue) {
 	switch (comboValue) {
 	// Green
@@ -2088,6 +2073,17 @@ void MainWindow::on_bottomLEDButton_clicked() {
 	}
 }
 
+void MainWindow::on_topLedButton_clicked() {
+	static bool topLEDon = false;
+	if (!topLEDon) {
+		qnode.LEDTask(pap_common::SETTOPLED,0);
+		topLEDon = true;
+	} else {
+		qnode.LEDTask(pap_common::RESETTOPLED,0);
+		topLEDon = false;
+	}
+}
+
 struct compareClass {
 	//compareClass(float paramA, float paramB) { this->xPos = paramA; this->yPos = paramB; }
 	bool operator()(PadInformation i, PadInformation j) {
@@ -2399,7 +2395,7 @@ void MainWindow::calibrateTape(int tapeNumber, float componentWidth,
 	// TODO{Johan}: Goto tape with index: tapeNumber
 
 	Offset temp = TapeOffsetTable[tapeNumber];
-	temp.x += 109;
+	temp.x += 108.42;
 	temp.y += 261;
 	temp.z = 20.1;
 	qnode.sendTask(pap_common::PLACER, pap_common::GOTO, temp.x, temp.y,
@@ -2455,6 +2451,7 @@ void MainWindow::calibrateTape(int tapeNumber, float componentWidth,
 	}
 	qnode.sendTask(pap_common::VISION, pap_vision::STOP_VISION);
 
+	ROS_INFO("TapeCal: %f CurrentPos: %f",xTapeCalibration,currentPosition.x);
 	calibrationVal.x = xTapeCalibration + currentPosition.x;
 	calibrationVal.y = yTapeCalibration + currentPosition.y;
 	ros::Duration(1).sleep();

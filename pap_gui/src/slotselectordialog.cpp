@@ -1,7 +1,8 @@
 #include "slotselectordialog.h"
 #include "SlotGraphicsView.hpp"
+#include "../../pap_placer/include/pap_placer/offsetTable.hpp"
 
-const Offset SmallBoxOffsetTable[59] =
+/*const Offset SmallBoxOffsetTable[59] =
 		{ { 0.0, 0.0 }, { 16.66, 0.0 }, { 33.32, 0.0 }, { 49.98, 0.0 }, { 66.64,
 				0.0 }, { 83.30, 0.0 }, { 99.96, 0.0 }, { 116.62, 0.0 }, {
 				133.28, 0.0 }, { 149.94, 0.0 }, { 166.60, 0.0 },
@@ -25,7 +26,8 @@ const Offset SmallBoxOffsetTable[59] =
 const Offset TapeOffsetTable[20] = {	{339.7, -40.0}, {339.7, -51.0}, {339.7, -62.0}, {339.7, -73.0}, {339.7, -84.0},
 						{339.7, -95.0}, {339.7, -106.0}, {339.7, -117.0}, {339.7, -128.0}, {339.7, -139.0},
 						{339.7, -150.0}, {339.7, -161.0}, {339.7, -172.0}, {339.7, -183.0}, {339.7, -194.0},
-						{339.7, -205.0}, {339.7, -216.0}, {339.7, -227.0}, {339.7, -238.0}, {339.7, -249.0}};
+						{339.7, -205.0}, {339.7, -216.0}, {339.7, -227.0}, {339.7, -238.0}, {339.7, -249.0}};*/
+
 
 int SlotSelectorDialog::searchId(QPointF position) {
 	Q_EMIT setLed(-1);
@@ -56,9 +58,9 @@ void SlotSelectorDialog::slotPressed(int numberOfFiducial, QPointF padPos) {
 }
 
 int SlotSelectorDialog::getIndex() {
-	if(currentIndex_ > 58){
+	/*if(currentIndex_ > 58){
 		currentIndex_ += 8;
-	}
+	}*/
 	return currentIndex_;
 }
 
@@ -68,12 +70,32 @@ SlotSelectorDialog::SlotSelectorDialog(QWidget *parent) :
 	currentIndex_ = -1;
 	QWidget::connect(&sceneSlots_, SIGNAL(sendMousePoint(int ,QPointF)), this,
 			SLOT(slotPressed(int,QPointF)));
-	for (size_t i = 0; i < 59; i++) {
+	for (size_t i = 0; i < 47; i++) {
 		SlotInformation slot;
-		slot.pos.setX(SmallBoxOffsetTable[i].y);
-		slot.pos.setY(SmallBoxOffsetTable[i].x);
+		slot.pos.setX(BoxOffsetTable[i].y);
+		slot.pos.setY(BoxOffsetTable[i].x);
 		slot.pos.setWidth(10);
 		slot.pos.setHeight(10);
+		slot.index = i;
+		printedSlots_.push_back(slot);
+	}
+
+	for (size_t i = 47; i < 59; i++) {
+			SlotInformation slot;
+			slot.pos.setX(BoxOffsetTable[i].y-3);
+			slot.pos.setY(BoxOffsetTable[i].x);
+			slot.pos.setWidth(15);
+			slot.pos.setHeight(15);
+			slot.index = i;
+			printedSlots_.push_back(slot);
+	}
+
+	for (size_t i = 59; i < 67; i++) {
+		SlotInformation slot;
+		slot.pos.setX(BoxOffsetTable[i].y-4);
+		slot.pos.setY(BoxOffsetTable[i].x);
+		slot.pos.setWidth(20);
+		slot.pos.setHeight(20);
 		slot.index = i;
 		printedSlots_.push_back(slot);
 	}
@@ -126,15 +148,25 @@ void SlotSelectorDialog::paintSlots(void) {
 		}
 		sceneSlots_.addItem(rect);
 
+		// Print box numbers
+		QGraphicsTextItem * text = new QGraphicsTextItem;
+		text->setPos(slot.pos.x()+slot.pos.width(), slot.pos.y());
+		text->scale(-1,1);
+		text->scale(0.2,0.2);
+		text->setDefaultTextColor(Qt::white);
+		text->setPlainText(QString::number(i));
+		sceneSlots_.addItem(text);
+
 		// Print name
 		if (nameFound) {
 			QGraphicsTextItem * text = new QGraphicsTextItem;
-			text->setPos(slot.pos.x()+slot.pos.width(), slot.pos.y());
+			text->setPos(slot.pos.x()+slot.pos.width(), slot.pos.y()+4);
 			text->scale(-1,1);
 			text->scale(0.2,0.2);
+			text->setDefaultTextColor(Qt::white);
 			if(slot.index >= 67){
 				text->rotate(90);
-				text->setPos(text->pos().x()-5,text->pos().y());
+				text->setPos(text->pos().x()-5,text->pos().y()+4);
 			}
 			text->setPlainText(partName.c_str());
 			sceneSlots_.addItem(text);

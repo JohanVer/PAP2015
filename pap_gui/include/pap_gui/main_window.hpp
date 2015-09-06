@@ -158,6 +158,7 @@ public Q_SLOTS:
     void on_ledResetButton_clicked();
     void changeRingLEDBrightness(int brightness);
     void changeBackLEDBrightness(int brightness);
+    void changeTopLEDBrightness(int brightness);
     void changeRingColor(int comboValue);
     void on_blinkBackButton_clicked();
     void on_blinkRingButton_clicked();
@@ -175,6 +176,7 @@ public Q_SLOTS:
     void on_StartStopVision_Button_clicked();
     void on_startTipFinder_Button_clicked();
     void on_bottomLEDButton_clicked();
+    void on_topLedButton_clicked();
     void gotoPad(QPointF padPos);
     void deletePad(QPointF padPos);
     void calibrateTape(int tapeNumber, float componentWidth,

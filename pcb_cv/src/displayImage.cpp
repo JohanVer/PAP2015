@@ -352,7 +352,7 @@ void parseTask(const pap_common::TaskConstPtr& taskMsg) {
 			break;
 
 		case pap_vision::START_TAPE_FINDER:
-			finder.setSize(taskMsg->data1, taskMsg->data2);
+			finder.setSize(taskMsg->data1*1.2, taskMsg->data2*1.15);
 			if (taskMsg->data3 == 1.0) {
 				searchTapeRotation = true;
 			} else {

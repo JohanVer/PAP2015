@@ -11,6 +11,7 @@
 #include <std_msgs/String.h>
 #include <sstream>
 #include "../include/pap_placer/placerClass.hpp"
+#include "../include/pap_placer/offsetTable.hpp"
 
 /*****************************************************************************
  ** Implementation
@@ -29,7 +30,7 @@ PlaceController::PlaceController() {
 	pcbOriginOffset.x = 300;
 	pcbOriginOffset.y = 145;
 	pcbOriginOffset.z = 25.6;
-	pickUpAreaOffset.x = 109;
+	pickUpAreaOffset.x = 108.42;	// + tape_x -> 449.85 = max.x destination
 	pickUpAreaOffset.y = 261;
 	pickUpAreaOffset.z = suckingHeight_;
 	cameraBottomOffset.x = 238.74;
@@ -47,8 +48,6 @@ PlaceController::PlaceController() {
 	dispenserTipOffset.y = 37, 89;
 	dispenserTipOffset.z = 49;
 
-	// 101 , 338 // 600, 336
-
 	// Correction offsets
 	PickUpCorrection.x = 0;
 	PickUpCorrection.y = 0;
@@ -59,51 +58,12 @@ PlaceController::PlaceController() {
 	PlaceCorrection.z = 0;
 	PlaceRotCorrection = 0;
 
-	// selceted Tip for placing current component
+	// Default tip
 	tip = LEFT_TIP;
-}
-;
+};
+
 PlaceController::~PlaceController() {
-
-}
-;
-
-const Offset SmallBoxOffsetTable[59] =
-		{ { 0.0, 0.0 }, { 16.66, 0.0 }, { 33.32, 0.0 }, { 49.98, 0.0 }, { 66.64,
-				0.0 }, { 83.30, 0.0 }, { 99.96, 0.0 }, { 116.62, 0.0 }, {
-				133.28, 0.0 }, { 149.94, 0.0 }, { 166.60, 0.0 },
-				{ 166.60, -14.0 }, { 149.94, -14.0 }, { 133.28, -14.0 }, {
-						116.62, -14.0 }, { 99.96, -14.0 }, { 83.30, -14.0 }, {
-						66.64, -14.0 }, { 49.98, -14.0 }, { 33.32, -14.0 }, {
-						16.66, -14.0 }, { 0, -14.0 }, { 0.0, -28.0 }, { 16.66,
-						-28.0 }, { 33.32, -28.0 }, { 49.98, -28.0 }, { 66.64,
-						-28.0 }, { 66.64, -42.0 }, { 49.98, -42.0 }, { 33.32,
-						-42.0 }, { 16.66, -42.0 }, { 0.0, -42.0 }, { 0, -56.0 },
-				{ 16.66, -56.0 }, { 33.32, -56.0 }, { 49.98, -56.0 }, { 66.64,
-						-56.0 }, { 66.64, -70.0 }, { 49.98, -70.0 }, { 33.32,
-						-70.0 }, { 16.66, -70.0 }, { 0.0, -70.0 }, { 0, -84.0 },
-				{ 16.66, -84.0 }, { 33.32, -84.0 }, { 49.98, -84.0 }, { 66.64,
-						-84.0 }, { 187.65, -2.0 }, { 187.65, -18.6 }, { 187.65,
-						-35.2 }, { 187.65, -51.8 }, { 187.65, -68.4 }, { 187.65,
-						-85 }, { 204.25, -2.0 }, { 204.25, -18.6 }, { 204.25,
-						-35.2 }, { 204.25, -51.8 }, { 204.25, -68.4 }, { 204.25,
-						-85 } };
-
-const Offset MiddleBoxOffsetTable[12] = { { 0.0, 0.0 }, { 0.0, 0.0 },
-		{ 0.0, 0.0 }, { 0.0, 0.0 }, { 0.0, 0.0 }, { 0.0, 0.0 }, { 0.0, 0.0 }, {
-				0.0, 0.0 }, { 0.0, 0.0 }, { 0.0, 0.0 }, { 0.0, 0.0 },
-		{ 0.0, 0.0 } };
-const Offset LargeBoxOffsetTable[8] = { { 0.0, 0.0 }, { 0.0, 0.0 },
-		{ 0.0, 0.0 }, { 0.0, 0.0 }, { 0.0, 0.0 }, { 0.0, 0.0 }, { 0.0, 0.0 }, {
-				0.0, 0.0 } };
-
-const Offset TapeOffsetTable[20] = { { 340, 9, -40.0 }, { 340, 9, -51.0 }, {
-		340, 9, -62.0 }, { 340, 9, -73.0 }, { 340, 9, -84.0 },
-		{ 340, 9, -95.0 }, { 340, 9, -106.0 }, { 340, 9, -117.0 }, { 340, 9,
-				-128.0 }, { 340, 9, -139.0 }, { 340, 9, -150.0 }, { 340, 9,
-				-161.0 }, { 340, 9, -172.0 }, { 340, 9, -183.0 }, { 340, 9,
-				-194.0 }, { 340, 9, -205.0 }, { 340, 9, -216.0 }, { 340, 9,
-				-227.0 }, { 340, 9, -238.0 }, { 340, 9, -249.0 } };
+};
 
 Offset PlaceController::getBoxCoordinates() {
 
@@ -111,43 +71,30 @@ Offset PlaceController::getBoxCoordinates() {
 	temp.x = pickUpAreaOffset.x;
 	temp.y = pickUpAreaOffset.y;
 	temp.z = pickUpAreaOffset.z;
-	if (currentComponent.box < 59) { //47
-		temp.x += SmallBoxOffsetTable[currentComponent.box].x;
-		temp.y += SmallBoxOffsetTable[currentComponent.box].y;
-		//} else if((currentComponent.box >= 47) && (currentComponent.box < 59)) {
-		//temp.x += MiddleBoxOffsetTable[currentComponent.box - 47].x;
-		//temp.y += MiddleBoxOffsetTable[currentComponent.box - 47].y;
-	} else if ((currentComponent.box >= 59) && (currentComponent.box < 67)) {
-		temp.x += LargeBoxOffsetTable[currentComponent.box - 59].x;
-		temp.y += LargeBoxOffsetTable[currentComponent.box - 59].y;
+	if (currentComponent.box < 67) { //47
+		temp.x += BoxOffsetTable[currentComponent.box].x;
+		temp.y += BoxOffsetTable[currentComponent.box].y;
 	} else if ((currentComponent.box >= 67) && (currentComponent.box <= 86)) {
 		// Its a tape
-		temp.x += TapeOffsetTable[currentComponent.box - 67].x;
+		if(TapeOffsetTable[currentComponent.box - 67].x+temp.x < 450.0) temp.x += TapeOffsetTable[currentComponent.box - 67].x; else temp.x = 449.9;
 		temp.y += TapeOffsetTable[currentComponent.box - 67].y;
 	}
 
 	return temp;
-}
-;
+};
 
 Offset PlaceController::getCompPickUpCoordinates() {
 	Offset temp;
 	temp.z = suckingHeight_ + 10.0; // Sucking Height plus 10 mm for safety
 
-	if (currentComponent.box < 59) { //47
+	if (currentComponent.box < 67) {
 		temp.x = pickUpAreaOffset.x
-				+ SmallBoxOffsetTable[currentComponent.box].x
+				+ BoxOffsetTable[currentComponent.box].x
 				+ PickUpCorrection.x;
 		temp.y = pickUpAreaOffset.y
-				+ SmallBoxOffsetTable[currentComponent.box].y
+				+ BoxOffsetTable[currentComponent.box].y
 				+ PickUpCorrection.y;
 		temp.rot = PickUpCorrection.rot;
-		//} else if((currentComponent.box >= 47) && (currentComponent.box < 59)) {
-		//temp.x += MiddleBoxOffsetTable[currentComponent.box - 47].x;
-		//temp.y += MiddleBoxOffsetTable[currentComponent.box - 47].y;
-		//} else if((currentComponent.box >= 59) && (currentComponent.box < 67)) {
-		//temp.x = LargeBoxOffsetTable[currentComponent.box - 59].x;
-		//temp.y = LargeBoxOffsetTable[currentComponent.box - 59].y;
 	} else if ((currentComponent.box >= 67) && (currentComponent.box <= 86)) {
 		// Its a tape
 		temp.x = currentComponent.tapeX;
@@ -308,12 +255,11 @@ int PlaceController::getBoxNumber() {
 // TODO: Choose tip according to component type and position!
 int PlaceController::selectFinder() {
 	return 3;	// Chipfinder = 3, smallFinder = 4, tapeFinder = 5
-}
-;
+};
+
 int PlaceController::selectTip() {
 	return tip;	// Left tip
-}
-;
+};
 
 void PlaceController::updatePlacementData(ComponentPlacerData * data) {
 	currentComponent.box = data->box;
@@ -326,5 +272,4 @@ void PlaceController::updatePlacementData(ComponentPlacerData * data) {
 	currentComponent.tapeX = data->tapeX;
 	currentComponent.tapeY = data->tapeY;
 	currentComponent.tapeRot = data->tapeRot;
-}
-;
+};

@@ -5,7 +5,9 @@
 
 #define LED_PIN   5
 #define BOT_LED_PIN 3
+#define TOP_LED_PIN 10
 #define NUM_LEDS  59
+#define NUM_TOP_LEDS  5
 #define NUM_BOT_LEDS 24
 #define CHIPSET   WS2812B
 
@@ -14,6 +16,7 @@
 
 CRGB leds[NUM_LEDS];
 CRGB bottom_leds[NUM_BOT_LEDS];
+CRGB top_leds[NUM_TOP_LEDS];
 
 void messageCb( const pap_common::ArduinoMsg& arduinoMsg);
 
@@ -28,6 +31,7 @@ int ringColor = 96;
 
 int brightnessRing = 255;
 int brightnessBack = 255;
+int brightnessTop = 255;
 int counter1 = 0;
 int blinkIteration = 0;
 bool down = false;
@@ -49,7 +53,10 @@ enum ARDUINO_TASK {
   BACKLIGHTBLINK = 12,
   SETBRIGHTNESSRING = 13,
   SETBRIGHTNESSBACK = 14,
-  SETRINGCOLOR = 15
+  SETRINGCOLOR = 15,
+  SETTOPLED = 16,
+  RESETTOPLED = 17,
+  SETBRIGHTNESSTOP = 18
 };
 
 enum LED_STATE{
@@ -79,6 +86,20 @@ void messageCb( const pap_common::ArduinoMsg& arduinoMsg){
   if(arduinoMsg.command == RESETBOTTOMLED ){
     for (int i = 0; i < NUM_BOT_LEDS; i++) {
       bottom_leds[i] = CRGB::Black;
+      FastLED.show();
+    } 
+  }
+  
+  if(arduinoMsg.command == SETTOPLED ){
+    for (int i = 0; i < NUM_TOP_LEDS; i++) {
+      top_leds[i].setHSV( 0, 255, brightnessTop);
+      FastLED.show();
+    } 
+  }
+  
+  if(arduinoMsg.command == RESETTOPLED ){
+    for (int i = 0; i < NUM_TOP_LEDS; i++) {
+      top_leds[i] = CRGB::Black;
       FastLED.show();
     } 
   }
@@ -122,6 +143,14 @@ void messageCb( const pap_common::ArduinoMsg& arduinoMsg){
     showRingLeds();
   }
   
+  if(arduinoMsg.command == SETBRIGHTNESSTOP ){
+    brightnessTop = arduinoMsg.data;
+    for (int i = 0; i < NUM_TOP_LEDS; i++) {
+      top_leds[i].setHSV( 0, 255, brightnessTop);
+      FastLED.show();
+    } 
+  }
+  
   if(arduinoMsg.command == SETBRIGHTNESSBACK ){
     brightnessBack = arduinoMsg.data;
   }
@@ -139,7 +168,7 @@ void setup()
   
   FastLED.addLeds<CHIPSET, LED_PIN, RGB>(leds, NUM_LEDS);
   FastLED.addLeds<CHIPSET, BOT_LED_PIN,RGB>(bottom_leds, NUM_BOT_LEDS);
-
+  FastLED.addLeds<CHIPSET, TOP_LED_PIN,RGB>(top_leds, NUM_TOP_LEDS);
   nh.initNode();
   //nh.advertise(statusPublisher);
   nh.subscribe(arduinoMessageSub);
@@ -252,6 +281,10 @@ void resetAllLEDs() {
       bottom_leds[i] = CRGB::Black;
       FastLED.show();
     }   
+    for (int i = 0; i < NUM_TOP_LEDS; i++) {
+      top_leds[i] = CRGB::Black;
+      FastLED.show();
+    } 
 }
 
 
