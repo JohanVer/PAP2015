@@ -1657,10 +1657,9 @@ void MainWindow::setCamera1Point(QPointF point) {
 	float percentageY = (100.0 / (float) ui.camera1->height()) * point.y();
 }
 
-void MainWindow::findQRCode() {
-
+void MainWindow::on_scanQRButton_clicked() {
 	qnode.sendTask(pap_common::VISION, pap_vision::START__QRCODE_FINDER);
-
+/*
 	QEventLoop loop;
 	QTimer *timer = new QTimer(this);
 
@@ -1682,7 +1681,7 @@ void MainWindow::findQRCode() {
 		msgBox.close();
 		return;
 	}
-
+*/
 	//qnode.sendTask(pap_common::VISION, pap_vision::START_PAD_FINDER);
 	// Update component info
 }

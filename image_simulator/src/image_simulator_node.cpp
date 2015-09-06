@@ -69,16 +69,16 @@ int main(int argc, char **argv) {
 			input = cv::imread(string(getenv("PAPRESOURCES")) + "images/Tape0402.png");
 			break;
 
-		case QRCODE:
-			input = cv::imread(string(getenv("PAPRESOURCES")) + "images/Chip.png");
-			break;
-
 		case CIRCLE:
 			input = cv::imread(string(getenv("PAPRESOURCES")) + "images/Chip.png");
 			break;
 
 		case PAD:
 			input = cv::imread(string(getenv("PAPRESOURCES")) + "images/Pad.png");
+			break;
+
+		case QRCODE:
+			input = cv::imread(string(getenv("PAPRESOURCES")) + "images/QRCode.png");
 			break;
 
 		}

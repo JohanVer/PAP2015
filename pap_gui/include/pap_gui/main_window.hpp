@@ -167,6 +167,7 @@ public Q_SLOTS:
     //void initializeBoxPositionVector();
     // Vision
     // Buttons
+    void on_scanQRButton_clicked();
     void on_startChipFinder_Button_clicked();
     void on_startSmallSMDFinder_Button_clicked();
     void on_startTapeFinder_Button_clicked();
@@ -213,8 +214,6 @@ public Q_SLOTS:
 
     void on_calibrationButton_clicked();
     void on_ScanQRCodeButton_clicked();
-    void findQRCode();
-
     //QWizardPage *createIntroPage();
 
     /******************************************

@@ -21,11 +21,12 @@
 #include "../../pap_common/include/pap_common/vision_message_def.h"
 #include "../../pap_common/include/pap_common/task_message_def.h"
 #include <tf/transform_broadcaster.h>
+#include "zbar.h"
 
 char key;
 using namespace std;
 using namespace cv;
-
+using namespace zbar;
 void imageCallback1(const sensor_msgs::ImageConstPtr& msg);
 void imageCallback2(const sensor_msgs::ImageConstPtr& msg);
 void parseTask(const pap_common::TaskConstPtr& taskMsg);
@@ -49,6 +50,8 @@ unsigned int id_counter1, id_counter2 = 0;
 image_transport::Publisher image_pub_;
 image_transport::Publisher image_pub_2;
 
+ImageScanner scanner;
+
 int main(int argc, char **argv) {
 	ros::init(argc, argv, "add_two_ints_server");
 	ros::NodeHandle n;
@@ -71,6 +74,8 @@ int main(int argc, char **argv) {
 	image_pub_ = it_.advertise("camera1", 10);
 	image_pub_2 = it_.advertise("camera2", 10);
 	qr_image_pub_ = it_.advertise("image", 10);
+
+	scanner.set_config(ZBAR_NONE, ZBAR_CFG_ENABLE, 1);
 
 	while (ros::ok()) {
 		ros::spinOnce();
@@ -103,9 +108,52 @@ void imageCallback1(const sensor_msgs::ImageConstPtr& msg) {
 
 			break;
 
-		case QRCODE:
-			// Publish image
-			//qr_image_pub_.publish(out_msg3.toImageMsg());
+		case QRCODE: {
+			cv::Mat gray;
+			std::vector<smdPart> tipObjects;
+			cv::cvtColor(input, gray, CV_BGR2GRAY);
+			cv::Size newSize;
+			newSize.width = 640;
+			newSize.height = 480;
+			cv::resize(gray, gray, newSize);
+			cv::resize(input, input, newSize);
+			int width = gray.cols;
+			int height = gray.rows;
+			uchar *raw = (uchar *) gray.data;
+			// wrap image data
+			Image image(width, height, "Y800", raw, width * height);
+			int n = scanner.scan(image);
+
+			for (Image::SymbolIterator symbol = image.symbol_begin();
+					symbol != image.symbol_end(); ++symbol) {
+				vector<Point> vp;
+				// do something useful with results
+				cout << "decoded " << symbol->get_type_name() << " symbol \""
+						<< symbol->get_data() << '"' << " " << endl;
+				int n = symbol->get_location_size();
+				for (int i = 0; i < n; i++) {
+					vp.push_back(
+							Point(symbol->get_location_x(i),
+									symbol->get_location_y(i)));
+				}
+				RotatedRect r = minAreaRect(vp);
+				Point2f pts[4];
+				r.points(pts);
+				for (int i = 0; i < 4; i++) {
+					line(input, pts[i], pts[(i + 1) % 4], Scalar(255, 0, 0), 1);
+				}
+
+				visionMsg.task = pap_vision::START__QRCODE_FINDER;
+				visionMsg.data1 = r.size.width;
+				visionMsg.data2 = r.size.height;
+				visionMsg.data3 = r.angle;
+				visionMsg.camera = 0;
+				//ROS_INFO("X %f, Y %f", smd.x, smd.y);
+				statusPublisher.publish(visionMsg);
+
+				cout << "Angle: " << r.angle << endl;
+			}
+		}
 			break;
 
 		case CHIP:
@@ -307,8 +355,7 @@ void parseTask(const pap_common::TaskConstPtr& taskMsg) {
 			finder.setSize(taskMsg->data1, taskMsg->data2);
 			if (taskMsg->data3 == 1.0) {
 				searchTapeRotation = true;
-			}
-			else{
+			} else {
 				searchTapeRotation = false;
 			}
 			visionState = TAPE;
