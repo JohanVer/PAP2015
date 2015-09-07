@@ -6,7 +6,7 @@
 #define MOTORSTEPS 200
 
 Stepper stepper1(MOTORSTEPS, A0, A1, A2 ,A3);
-//Stepper stepper2(MOTORSTEPS, 10, 11, 12, 13);
+Stepper stepper2(MOTORSTEPS, A4, A5, 12, 13);
 int previousSteps1 = 0;
 int previousSteps2 = 0;
 
@@ -140,7 +140,7 @@ void messageCb( const pap_common::ArduinoMsg& arduinoMsg){
     stepper1.step(steps);
   }
   
- /*
+
   if(arduinoMsg.command == RUNSTEPPER2 ){
     
     int steps = round(arduinoMsg.data/1.8);    // Resolution of 1.8°
@@ -148,16 +148,16 @@ void messageCb( const pap_common::ArduinoMsg& arduinoMsg){
     if((previousSteps2 + steps) > 100) {
       steps = steps - 200;                     // Rotation = 200 Steps
     }  
-    if((previousSteps2 + steps) < 100) {
+    if((previousSteps2 + steps) < -100) {
       steps = 200 - steps;
     }  
     previousSteps2 = previousSteps2 + steps;   
     stepper2.step(steps);
   } 
-  */
+ 
   if(arduinoMsg.command == RESETSTEPPERS ){
     stepper1.step(-previousSteps1);
-    //stepper2.step(-previousSteps2);
+    stepper2.step(-previousSteps2);
     previousSteps1 = 0;
     previousSteps2 = 0;
   }
@@ -187,7 +187,7 @@ void setup()
   digitalWrite(10, HIGH);
   digitalWrite(11, HIGH);
   stepper1.setSpeed(30); // RPM
-  //stepper2.setSpeed(30);
+  stepper2.setSpeed(30);
   nh.initNode();
   //nh.advertise(statusPublisher);
   nh.subscribe(arduinoMessageSub);

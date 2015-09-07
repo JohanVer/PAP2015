@@ -305,12 +305,12 @@ void QNode::sendRelaisTask(int relaisNumber, bool value) {
 
 void QNode::sendStepperTask(int StepperNumber, int rotationAngle) {
 	pap_common::ArduinoMsg arduinoMsg;
-	if (StepperNumber == 1) {
+	if (StepperNumber == 2) {
 		arduinoMsg.command = pap_common::RUNSTEPPER1;
 		arduinoMsg.data = rotationAngle;
 		arduino_publisher_.publish(arduinoMsg);
 	}
-	if (StepperNumber == 2) {
+	if (StepperNumber == 1) {
 		arduinoMsg.command = pap_common::RUNSTEPPER2;
 		arduinoMsg.data = rotationAngle;
 		arduino_publisher_.publish(arduinoMsg);

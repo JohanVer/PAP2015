@@ -48,15 +48,25 @@ PlaceController::PlaceController() {
 	dispenserTipOffset.y = 37, 89;
 	dispenserTipOffset.z = 49;
 
+	// Calibration offsets - QR Code positions
+	SLOT_QR_Offset_.x = 109.92;
+	SLOT_QR_Offset_.y = 261.008;
+	PCB_QR_Offset_.x = 293.04;
+	PCB_QR_Offset_.y = 133.027;
+	TAPE_QR_Offset_.x = 389.554;
+	TAPE_QR_Offset_.y = 110.429;
+	BottomCam_QR_Offset_.x = 269.69;
+	BottomCam_QR_Offset_.y = -5.0;
+
 	// Correction offsets
 	PickUpCorrection.x = 0;
 	PickUpCorrection.y = 0;
 	PickUpCorrection.z = 0;
-	PickUpRotCorrection = 0;
+	PickUpCorrection.rot = 0.0;
 	PlaceCorrection.x = 0;
 	PlaceCorrection.y = 0;
 	PlaceCorrection.z = 0;
-	PlaceRotCorrection = 0;
+	PlaceCorrection.rot = 0.0;
 
 	// Default tip
 	tip = LEFT_TIP;

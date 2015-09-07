@@ -1407,7 +1407,7 @@ void MainWindow::on_turnLeftTipButton_clicked() {
 	int requestedAngle = ui.rotationAngleLeft->text().toInt(&ok, 10);
 	//float requestedAngle = ui.rotationAngleRight->text().toFloat(&ok);
 	if (ok == true) {
-		qnode.sendStepperTask(2, requestedAngle);
+		qnode.sendStepperTask(1, requestedAngle);
 	} else {
 		QMessageBox msgBox;
 		const QString title = "Conversion failed!";
@@ -1424,7 +1424,7 @@ void MainWindow::on_turnRightTipButton_clicked() {
 	int requestedAngle = ui.rotationAngleRight->text().toInt(&ok, 10);
 	//float requestedAngle = ui.rotationAngleRight->text().toFloat(&ok);
 	if (ok == true) {
-		qnode.sendStepperTask(1, requestedAngle);
+		qnode.sendStepperTask(2, requestedAngle);
 	} else {
 		QMessageBox msgBox;
 		const QString title = "Conversion failed!";
@@ -2367,8 +2367,8 @@ tapeCalibrationValue MainWindow::calculatePosOfTapePart(int numOfTape,
 
 	tf::Point pointToTransform;
 	// This point should be transformed
-	// Distance between components on tape is 1 mm
-	pointToTransform.setX(numOfPart * 1.0);
+	// Distance between comp. on tape is 2 mm (0402 comp.)
+	pointToTransform.setX(numOfPart * 2.0);
 	pointToTransform.setY(0.0);
 	pointToTransform.setZ(0.0);
 

@@ -107,6 +107,9 @@ public:
 	Offset idleCoordinates_;
 	float MovingHeight_;
 
+
+	Offset SLOT_QR_Offset_, PCB_QR_Offset_;
+	Offset TAPE_QR_Offset_, BottomCam_QR_Offset_;
 	Offset camClibrationOffset_;
 	Offset tip1ClibrationOffset_;
 	Offset dispenserCalibrationOffset_;
@@ -158,7 +161,6 @@ private:
 
 	// Correction feedback from vision for pick-up and place
 	Offset PickUpCorrection, PlaceCorrection;
-	int PickUpRotCorrection, PlaceRotCorrection;
 
 	// Current destination coordinates for gotocoord state
 	Offset currentDestination;
