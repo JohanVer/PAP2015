@@ -35,7 +35,12 @@ enum VISION_PROCESS {
 	CHIP, SMALL_SMD, TAPE, PAD, IDLE, CIRCLE, QRCODE
 };
 
+enum VISION_QR_CALIBRATION {
+	NO_CAL, TOP_SLOT, TOP_TAPE, TOP_PCB, BOTTOM_CAM
+};
+
 VISION_PROCESS visionState = IDLE;
+VISION_QR_CALIBRATION qrCalAction = NO_CAL;
 bool visionEnabled, selectPad = false;
 bool searchTapeRotation = false;
 ros::Publisher statusPublisher;
@@ -50,6 +55,11 @@ unsigned int id_counter1, id_counter2 = 0;
 image_transport::Publisher image_pub_;
 image_transport::Publisher image_pub_2;
 
+int calibrationIteration = 0;
+float pxRatioSlot = 0;
+float pxRatioTape = 0;
+float pxRatioPcb = 0;
+float pxRatioBottom = 0;
 ImageScanner scanner;
 
 int main(int argc, char **argv) {
@@ -109,49 +119,112 @@ void imageCallback1(const sensor_msgs::ImageConstPtr& msg) {
 			break;
 
 		case QRCODE: {
-			cv::Mat gray;
-			std::vector<smdPart> tipObjects;
-			cv::cvtColor(input, gray, CV_BGR2GRAY);
-			cv::Size newSize;
-			newSize.width = 640;
-			newSize.height = 480;
-			cv::resize(gray, gray, newSize);
-			cv::resize(input, input, newSize);
-			int width = gray.cols;
-			int height = gray.rows;
-			uchar *raw = (uchar *) gray.data;
-			// wrap image data
-			Image image(width, height, "Y800", raw, width * height);
-			int n = scanner.scan(image);
+			if (cameraSelect == CAMERA_TOP) {
+				cv::Mat gray;
+				std::vector<smdPart> tipObjects;
+				cv::cvtColor(input, gray, CV_BGR2GRAY);
+				cv::Size newSize;
+				newSize.width = 640;
+				newSize.height = 480;
+				cv::resize(gray, gray, newSize);
+				cv::resize(input, input, newSize);
+				int width = gray.cols;
+				int height = gray.rows;
+				uchar *raw = (uchar *) gray.data;
+				// wrap image data
+				Image image(width, height, "Y800", raw, width * height);
+				int n = scanner.scan(image);
 
-			for (Image::SymbolIterator symbol = image.symbol_begin();
-					symbol != image.symbol_end(); ++symbol) {
-				vector<Point> vp;
-				// do something useful with results
-				cout << "decoded " << symbol->get_type_name() << " symbol \""
-						<< symbol->get_data() << '"' << " " << endl;
-				int n = symbol->get_location_size();
-				for (int i = 0; i < n; i++) {
-					vp.push_back(
-							Point(symbol->get_location_x(i),
-									symbol->get_location_y(i)));
+				for (Image::SymbolIterator symbol = image.symbol_begin();
+						symbol != image.symbol_end(); ++symbol) {
+					vector<Point> vp;
+					// do something useful with results
+					cout << "decoded " << symbol->get_type_name()
+							<< " symbol \"" << symbol->get_data() << '"' << " "
+							<< endl;
+					int n = symbol->get_location_size();
+					for (int i = 0; i < n; i++) {
+						vp.push_back(
+								Point(symbol->get_location_x(i),
+										symbol->get_location_y(i)));
+					}
+
+					std::string calName = symbol->get_data();
+					if (calName.size() == 13) {
+						std::string number = calName.substr(calName.size() - 1,
+								1);
+					} else if (calName.size() == 14) {
+						std::string number = calName.substr(calName.size() - 2,
+								2);
+					}
+
+					float calNumber = std::atoi(calName.c_str());
+					ROS_INFO("Cal-Value : %d", calNumber);
+
+					RotatedRect r = minAreaRect(vp);
+					Point2f pts[4];
+					r.points(pts);
+					for (int i = 0; i < 4; i++) {
+						line(input, pts[i], pts[(i + 1) % 4], Scalar(255, 0, 0),
+								1);
+					}
+
+					switch (qrCalAction) {
+					case TOP_SLOT:
+						calibrationIteration += 1;
+						pxRatioSlot += (r.size.width + r.size.height) / 2.0;
+						if (calibrationIteration == 20) {
+							pxRatioSlot = pxRatioSlot / 20.0;
+							pxRatioSlot /= calNumber;
+							ROS_INFO("Slot Pixel Ratio : %f", pxRatioSlot);
+							finder.setPixelRatioSlot(pxRatioSlot);
+							pxRatioSlot = 0;
+							calibrationIteration = 0;
+							visionMsg.task = pap_vision::START__QRCODE_FINDER;
+												statusPublisher.publish(visionMsg);
+							qrCalAction = NO_CAL;
+						}
+						break;
+
+					case TOP_PCB:
+						calibrationIteration += 1;
+						pxRatioPcb += (r.size.width + r.size.height) / 2.0;
+						;
+						if (calibrationIteration == 20) {
+							pxRatioPcb = pxRatioPcb / 20.0;
+							pxRatioPcb /= calNumber;
+							ROS_INFO("Pcb Pixel Ratio : %f", pxRatioPcb);
+							finder.setPixelRatioPcb(pxRatioPcb);
+							pxRatioPcb = 0;
+							calibrationIteration = 0;
+							visionMsg.task = pap_vision::START__QRCODE_FINDER;
+												statusPublisher.publish(visionMsg);
+							qrCalAction = NO_CAL;
+						}
+						break;
+
+					case TOP_TAPE:
+						calibrationIteration += 1;
+						pxRatioTape += (r.size.width + r.size.height) / 2.0;
+						;
+						if (calibrationIteration == 20) {
+							pxRatioTape = pxRatioTape / 20.0;
+							pxRatioTape /= calNumber;
+							ROS_INFO("Tape Pixel Ratio : %f", pxRatioTape);
+							finder.setPixelRatioTape(pxRatioTape);
+							pxRatioTape = 0;
+							calibrationIteration = 0;
+							visionMsg.task = pap_vision::START__QRCODE_FINDER;
+												statusPublisher.publish(visionMsg);
+							qrCalAction = NO_CAL;
+						}
+						break;
+
+					case NO_CAL:
+						break;
+					}
+					cout << "Angle: " << r.angle << endl;
 				}
-				RotatedRect r = minAreaRect(vp);
-				Point2f pts[4];
-				r.points(pts);
-				for (int i = 0; i < 4; i++) {
-					line(input, pts[i], pts[(i + 1) % 4], Scalar(255, 0, 0), 1);
-				}
-
-				visionMsg.task = pap_vision::START__QRCODE_FINDER;
-				visionMsg.data1 = r.size.width;
-				visionMsg.data2 = r.size.height;
-				visionMsg.data3 = r.angle;
-				visionMsg.camera = 0;
-				//ROS_INFO("X %f, Y %f", smd.x, smd.y);
-				statusPublisher.publish(visionMsg);
-
-				cout << "Angle: " << r.angle << endl;
 			}
 		}
 			break;
@@ -293,6 +366,82 @@ void imageCallback2(const sensor_msgs::ImageConstPtr& msg) {
 				statusPublisher.publish(visionMsg);
 			}
 			break;
+
+		case QRCODE:
+			if (cameraSelect == CAMERA_BOTTOM) {
+				cv::Mat gray;
+				std::vector<smdPart> tipObjects;
+				cv::cvtColor(input2, gray, CV_BGR2GRAY);
+				cv::Size newSize;
+				newSize.width = 640;
+				newSize.height = 480;
+				cv::resize(gray, gray, newSize);
+				cv::resize(input2, input2, newSize);
+				int width = gray.cols;
+				int height = gray.rows;
+				uchar *raw = (uchar *) gray.data;
+				// wrap image data
+				Image image(width, height, "Y800", raw, width * height);
+				int n = scanner.scan(image);
+
+				for (Image::SymbolIterator symbol = image.symbol_begin();
+						symbol != image.symbol_end(); ++symbol) {
+					vector<Point> vp;
+					// do something useful with results
+					cout << "decoded " << symbol->get_type_name()
+							<< " symbol \"" << symbol->get_data() << '"' << " "
+							<< endl;
+					int n = symbol->get_location_size();
+					for (int i = 0; i < n; i++) {
+						vp.push_back(
+								Point(symbol->get_location_x(i),
+										symbol->get_location_y(i)));
+					}
+					RotatedRect r = minAreaRect(vp);
+					Point2f pts[4];
+					r.points(pts);
+					for (int i = 0; i < 4; i++) {
+						line(input2, pts[i], pts[(i + 1) % 4],
+								Scalar(255, 0, 0), 1);
+					}
+
+					std::string calName = symbol->get_data();
+					if (calName.size() == 13) {
+						std::string number = calName.substr(calName.size() - 1,
+								1);
+					} else if (calName.size() == 14) {
+						std::string number = calName.substr(calName.size() - 2,
+								2);
+					}
+
+					float calNumber = std::atoi(calName.c_str());
+					ROS_INFO("Cal-Value : %d", calNumber);
+
+					switch (qrCalAction) {
+					case BOTTOM_CAM:
+						calibrationIteration += 1;
+						pxRatioBottom += (r.size.height + r.size.width) / 2.0;
+						if (calibrationIteration == 20) {
+							pxRatioBottom = pxRatioBottom / 20.0;
+							pxRatioBottom = pxRatioBottom / calNumber;
+							ROS_INFO("Bottom Pixel Ratio : %f", pxRatioBottom);
+							finder.setPixelRatioBottom(pxRatioBottom);
+							pxRatioBottom = 0;
+							calibrationIteration = 0;
+							visionMsg.task = pap_vision::START__QRCODE_FINDER;
+												statusPublisher.publish(visionMsg);
+							qrCalAction = NO_CAL;
+						}
+						break;
+
+					case NO_CAL:
+						break;
+					}
+					cout << "Angle: " << r.angle << endl;
+				}
+			}
+			break;
+
 		}
 	} else {
 	}
@@ -352,7 +501,7 @@ void parseTask(const pap_common::TaskConstPtr& taskMsg) {
 			break;
 
 		case pap_vision::START_TAPE_FINDER:
-			finder.setSize(taskMsg->data1*1.2, taskMsg->data2*1.15);
+			finder.setSize(taskMsg->data1 * 1.2, taskMsg->data2 * 1.15);
 			if (taskMsg->data3 == 1.0) {
 				searchTapeRotation = true;
 			} else {
@@ -362,6 +511,8 @@ void parseTask(const pap_common::TaskConstPtr& taskMsg) {
 			break;
 
 		case pap_vision::START__QRCODE_FINDER:
+			qrCalAction = (VISION_QR_CALIBRATION) taskMsg->data1;
+			cameraSelect = taskMsg->data2;
 			visionState = QRCODE;
 			break;
 

@@ -63,10 +63,24 @@ public:
 			int height);
 	void setSize(float width, float height);
 
+	void setPixelRatioSlot(float value){
+		pxRatioSlot = value;
+	}
+	void setPixelRatioTape(float value){
+		pxRatioTape = value;
+	}
+	void setPixelRatioPcb(float value){
+		pxRatioPcb = value;
+	}
+	void setPixelRatioBottom(float value){
+		pxRatioBottom = value;
+	}
 private:
 	// privat
 	int m_eineVariable;
 	bool foundVia;
 	bool repeat;
 	float partWidth_,partHeight_;
+
+	float pxRatioSlot,pxRatioTape,pxRatioPcb,pxRatioBottom;
 };
