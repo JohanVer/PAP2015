@@ -159,7 +159,7 @@ void imageCallback1(const sensor_msgs::ImageConstPtr& msg) {
 					}
 
 					float calNumber = std::atoi(calName.c_str());
-					ROS_INFO("Cal-Value : %d", calNumber);
+					ROS_INFO("Cal-Value : %f", calNumber);
 
 					RotatedRect r = minAreaRect(vp);
 					Point2f pts[4];
@@ -415,7 +415,7 @@ void imageCallback2(const sensor_msgs::ImageConstPtr& msg) {
 					}
 
 					float calNumber = std::atoi(calName.c_str());
-					ROS_INFO("Cal-Value : %d", calNumber);
+					ROS_INFO("Cal-Value : %f", calNumber);
 
 					switch (qrCalAction) {
 					case BOTTOM_CAM:

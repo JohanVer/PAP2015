@@ -249,6 +249,9 @@ smdPart padFinder::findChip(cv::Mat* input, unsigned int camera_select) {
 			smdPart smd;
 			smd.x = rect.center.x;
 			smd.y = rect.center.y;
+			if(smd.rot == -90.0 | smd.rot == 90.0){
+				smd.rot = 0.0;
+			}
 			smd.rot = rect.angle;
 			smdObjects.push_back(smd);
 			cv::drawContours(final, contours, i, CV_RGB(0, 255, 0), 2);

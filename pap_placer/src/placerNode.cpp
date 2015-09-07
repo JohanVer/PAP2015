@@ -1098,22 +1098,22 @@ void placerCallback(const pap_common::TaskConstPtr& taskMsg) {
 }
 
 void dispenserCallback(const pap_common::DispenseTaskConstPtr& taskMsg) {
-	placeController.dispenseTask.xPos = taskMsg->xPos1;
-	//+ placeController.dispenserTipOffset.x
-	//+ placeController.camClibrationOffset_.x
-	//+ placeController.dispenserCalibrationOffset_.x;
-	placeController.dispenseTask.xPos2 = taskMsg->xPos2;
-	//+ placeController.dispenserTipOffset.x
-	//+ placeController.camClibrationOffset_.x
-	//+ placeController.dispenserCalibrationOffset_.x;
-	placeController.dispenseTask.yPos = taskMsg->yPos1;
-	//+ placeController.dispenserTipOffset.y
-	//- placeController.camClibrationOffset_.y
-	//+ placeController.dispenserCalibrationOffset_.y;
-	placeController.dispenseTask.yPos2 = taskMsg->yPos2;
-	//+ placeController.dispenserTipOffset.y
-	//- placeController.camClibrationOffset_.y
-	//+ placeController.dispenserCalibrationOffset_.y;
+	placeController.dispenseTask.xPos = taskMsg->xPos1
+	+ placeController.dispenserTipOffset.x
+	- placeController.camClibrationOffset_.x
+	+ placeController.dispenserCalibrationOffset_.x;
+	placeController.dispenseTask.xPos2 = taskMsg->xPos2
+	+ placeController.dispenserTipOffset.x
+	- placeController.camClibrationOffset_.x
+	+ placeController.dispenserCalibrationOffset_.x;
+	placeController.dispenseTask.yPos = taskMsg->yPos1
+	+ placeController.dispenserTipOffset.y
+	- placeController.camClibrationOffset_.y
+	+ placeController.dispenserCalibrationOffset_.y;
+	placeController.dispenseTask.yPos2 = taskMsg->yPos2
+	+ placeController.dispenserTipOffset.y
+	- placeController.camClibrationOffset_.y
+	+ placeController.dispenserCalibrationOffset_.y;
 	placeController.dispenseTask.velocity = taskMsg->velocity;
 	placeController.dispenseTask.time = taskMsg->waitTime;
 	state = DISPENSETASK;
