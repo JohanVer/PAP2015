@@ -14,15 +14,14 @@
 #include "../../pap_placer/include/pap_placer/placerNode.hpp"
 #include "../include/pap_placer/placerClass.hpp"
 
-
 /* Constant parameter definitions */
 #define posTolerance 0.01 // Deviation of position in mm
 #define DISPENSER_TOLERANCE 0.1
 #define MOTORCONTROLLER_TIMEOUT 3000
-#define TIP1_DIAMETER_VISION 17.0
+#define TIP1_DIAMETER_VISION 17.0 //130
 #define TIP2_DIAMETER_VISION 20.0
 #define DISPENSER_DIAMETER_VISION 130
-#define CAMERA_DIAMETER_VISION 60.0
+#define CAMERA_DIAMETER_VISION 115.0
 #define DISPENSER_HEIGHT 22.2 //12,2
 
 /* Call back functions */
@@ -42,7 +41,8 @@ void sendPlacerStatus(pap_common::PROCESS process,
 		pap_common::PLACER_STATUS status);
 void sendTask(pap_common::DESTINATION destination, pap_common::TASK task,
 		float x, float y, float z, float velx, float vely);
-void sendTask(pap_common::DESTINATION destination, pap_vision::VISION task, int type, int camera);
+void sendTask(pap_common::DESTINATION destination, pap_vision::VISION task,
+		int type, int camera);
 void sendPlacerInfo(int state);
 
 /* Send arduino task funcionts */
@@ -64,7 +64,6 @@ ros::Subscriber visionStatusSubsriber_;
 ros::Subscriber placerTaskSubscriber_;
 ros::Subscriber dispenserTaskSubscriber_;
 
-
 /* Variable definitions and initializations*/
 bool visionEnabled = true;
 bool placerNodeBusy = false;
@@ -73,6 +72,7 @@ bool visionStarted = false;
 int zPosReached = 0;
 bool componentFound = false;
 bool cameraFeedbackReceived = false;
+bool pickUpCompleted = false;
 bool dispensed = false;
 unsigned int counterMean = 0;
 bool manualGoto = false;
@@ -84,15 +84,16 @@ PlaceController placeController;
 ComponentPlacerData currentComponent;
 static controllerStatus motorcontrollerStatus[3];
 
+enum QR_CALIBRATION_PROCESS {
+	GOTO_QR, PICKUP_QR, CAM_QR, RELEASE_QR, GOBACKTO_QR, START_QR_VISION
+} qr_calibration_state;
+
 enum CALIBRATION_STATE {
 	CAMERA, TIP1, DISPENSER, TIP2, BOTTOM_CAM_QR, SLOT_QR, PCB_QR, TAPE_QR
 } calibration_state;
 
 enum ERROR_CODE {
-	MOTOR_TIMEOUT,
-	MOTOR_FAILED,
-	MOTOR_ERROR,
-	TIMEOUT
+	MOTOR_TIMEOUT, MOTOR_FAILED, MOTOR_ERROR, TIMEOUT
 } error_code;
 
 enum STATE {
@@ -114,8 +115,7 @@ enum STATE {
 	ERROR,
 	DISPENSE,
 	DISPENSETASK
-} state, last_state;
-
+} state, last_state, last_qr_state;
 
 /******************************************************************************************
  *  Main function - Implements entire placer state machine
@@ -145,7 +145,7 @@ int main(int argc, char **argv) {
 
 	ros::Rate loop_rate(100);
 	state = IDLE;
-	calibration_state = CAMERA;
+	calibration_state = SLOT_QR;
 	bool outTolerance = false;
 
 	// Run state machine forever
@@ -231,7 +231,11 @@ int main(int argc, char **argv) {
 					state = GOTOCOORD;
 				} else {
 					if (!visionStarted) {
-						ros::Duration(3).sleep();
+						ros::Duration(1).sleep();
+						sendRelaisTask(7, true);			// tip 2
+						sendPlacerStatus(pap_common::INFO,
+								pap_common::LEFT_TIP_DOWN);
+						ros::Duration(1).sleep();
 						counterMean = 0;
 						placeController.dispenserCalibrationOffset_.x = 0.0;
 						placeController.dispenserCalibrationOffset_.y = 0.0;
@@ -244,6 +248,9 @@ int main(int argc, char **argv) {
 					}
 
 					if (cameraFeedbackReceived) {
+						sendRelaisTask(7, false);			// tip 2
+						sendPlacerStatus(pap_common::INFO,
+								pap_common::LEFT_TIP_UP);
 						LEDTask(pap_common::RESETBOTTOMLED, 0);
 						sendTask(pap_common::VISION, pap_vision::STOP_VISION);
 						calibration_state = DISPENSER;
@@ -354,7 +361,8 @@ int main(int argc, char **argv) {
 						ros::Duration(3).sleep();
 						sendTask(pap_common::VISION, pap_vision::START_VISION);
 						// Start QR Code Finder (Arg1: 1 = SLOT, Arg2: 0 = camera top)
-						sendTask(pap_common::VISION, pap_vision::START__QRCODE_FINDER, 1, 0);
+						sendTask(pap_common::VISION,
+								pap_vision::START__QRCODE_FINDER, 1, 0);
 						visionStarted = true;
 					}
 
@@ -370,7 +378,6 @@ int main(int argc, char **argv) {
 					}
 				}
 				break;
-
 
 			case PCB_QR:
 				if (!positionSend) {
@@ -391,8 +398,9 @@ int main(int argc, char **argv) {
 						ROS_INFO("PCB calibration: Vision started");
 						ros::Duration(3).sleep();
 						sendTask(pap_common::VISION, pap_vision::START_VISION);
-						// Start QR Code Finder (Arg1: 1 = SLOT, Arg2: 0 = camera top)
-						sendTask(pap_common::VISION, pap_vision::START__QRCODE_FINDER, 3, 0);
+						// Start QR Code Finder (Arg1: 3 = PCB, Arg2: 0 = camera top)
+						sendTask(pap_common::VISION,
+								pap_vision::START__QRCODE_FINDER, 3, 0);
 						visionStarted = true;
 					}
 
@@ -414,10 +422,7 @@ int main(int argc, char **argv) {
 					ROS_INFO("PlacerState: TAPE_QR");
 					placeController.currentDestination_ =
 							placeController.TAPE_QR_Offset_;
-					ROS_INFO("Go to: x:%f y:%f z:%f",
-							placeController.currentDestination_.x,
-							placeController.currentDestination_.y,
-							placeController.currentDestination_.z);
+					placeController.currentDestination_.z += 0.8;
 					timeoutValue = 500;
 					positionSend = true;
 					last_state = state;
@@ -429,7 +434,8 @@ int main(int argc, char **argv) {
 						ros::Duration(3).sleep();
 						sendTask(pap_common::VISION, pap_vision::START_VISION);
 						// Start QR Code Finder (Arg1: 2= TAPE, Arg2: 0 = camera top)
-						sendTask(pap_common::VISION, pap_vision::START__QRCODE_FINDER, 2, 0);
+						sendTask(pap_common::VISION,
+								pap_vision::START__QRCODE_FINDER, 2, 0);
 						visionStarted = true;
 					}
 
@@ -437,7 +443,7 @@ int main(int argc, char **argv) {
 						sendTask(pap_common::VISION, pap_vision::STOP_VISION);
 						//IDLE_called = true;
 						//state = IDLE;
-						calibration_state = TAPE_QR;
+						calibration_state = BOTTOM_CAM_QR;
 						timeoutValue = 500;
 						cameraFeedbackReceived = false;
 						positionSend = false;
@@ -447,6 +453,75 @@ int main(int argc, char **argv) {
 				break;
 
 			case BOTTOM_CAM_QR:
+				switch (qr_calibration_state) {
+				case GOTO_QR:
+					ROS_INFO("PlacerState: CAM_QR");
+					placeController.currentDestination_ =
+							placeController.BottomCam_QR_Offset_;
+					timeoutValue = 500;
+					last_state = state;
+					state = GOTOCOORD;
+					qr_calibration_state = PICKUP_QR;
+					break;
+				case PICKUP_QR:
+					placeController.pickRelQR_ = true;
+					last_qr_state = state;
+					timeoutValue = 500;
+					state = STARTPICKUP;
+					qr_calibration_state = CAM_QR;
+					break;
+				case CAM_QR:
+					ROS_INFO("PlacerState: CAM_QR");
+					placeController.currentDestination_ =
+							placeController.getTip1Coordinates();
+					placeController.currentDestination_.z += 1.0;
+					timeoutValue = 500;
+					last_state = state;
+					state = GOTOCOORD;
+					qr_calibration_state = START_QR_VISION;
+
+					break;
+
+				case START_QR_VISION:
+					ros::Duration(2.0).sleep();
+					sendRelaisTask(7, true);			// tip 2
+					sendPlacerStatus(pap_common::INFO,
+							pap_common::LEFT_TIP_DOWN);
+					ros::Duration(2.0).sleep();
+					cameraFeedbackReceived = false;
+					LEDTask(pap_common::SETBOTTOMLED, 0);
+					sendTask(pap_common::VISION, pap_vision::START_VISION);
+					// Start QR Code Finder (Arg1: 4=CAM, Arg2: 1 = camera bottom)
+					sendTask(pap_common::VISION,
+							pap_vision::START__QRCODE_FINDER, 4, 1);
+					qr_calibration_state = GOBACKTO_QR;
+					break;
+				case GOBACKTO_QR:
+					if (cameraFeedbackReceived) {
+						sendRelaisTask(7, false);			// tip 2
+						sendPlacerStatus(pap_common::INFO,
+								pap_common::LEFT_TIP_UP);
+						LEDTask(pap_common::RESETBOTTOMLED, 0);
+						sendTask(pap_common::VISION, pap_vision::STOP_VISION);
+						ROS_INFO("PlacerState: CAM_QR");
+						placeController.currentDestination_ =
+								placeController.BottomCam_QR_Offset_;
+						timeoutValue = 500;
+						last_state = state;
+						state = GOTOCOORD;
+						qr_calibration_state = RELEASE_QR;
+						cameraFeedbackReceived = false;
+					}
+					break;
+				case RELEASE_QR:
+					placeController.pickRelQR_ = true;
+					timeoutValue = 500;
+					state = STARTPLACEMENT;
+					calibration_state = SLOT_QR;
+					qr_calibration_state = GOTO_QR;
+					break;
+				}
+
 				break;
 			}
 			break;
@@ -471,7 +546,7 @@ int main(int argc, char **argv) {
 			}
 			break;
 
-			// Send coordinates to motor controller and wait until position reached
+			// Send coordinates to motor last_statecontroller and wait until position reached
 		case GOTOBOX:
 
 			sendPlacerStatus(pap_common::IDLE_STATE, pap_common::PLACER_IDLE);
@@ -617,14 +692,21 @@ int main(int argc, char **argv) {
 					sendPlacerStatus(pap_common::INFO, pap_common::LEFT_TIP_UP);
 				}
 				ros::Duration(1).sleep();
-				int rotation = (int) placeController.getCompPickUpCoordinates().rot;
-				sendStepperTask((placeController.selectTip()+1), rotation);	// Turn component
-				ROS_INFO("Placer - Rotation: rot:%d", rotation);
-				ros::Duration(1).sleep();
-
+				if (!placeController.pickRelQR_) {
+					int rotation =
+							(int) placeController.getCompPickUpCoordinates().rot;
+					sendStepperTask((placeController.selectTip() + 1),
+							rotation);	// Turn component
+					ROS_INFO("Placer - Rotation: rot:%d", rotation);
+					ros::Duration(1).sleep();
+					//IDLE_called = true;
+					state = IDLE; //GOTOPLACECOORD;
+				} else {
+					placeController.pickRelQR_ = false;
+					state = last_qr_state;
+				}
 				positionSend = false;
-				//IDLE_called = true;
-				state = IDLE; //GOTOPLACECOORD;
+
 			}
 			break;
 
@@ -718,7 +800,7 @@ int main(int argc, char **argv) {
 				last_state = state;
 				state = GOTOCOORD;
 			} else {
-				sendRelaisTask(2, false);				// Turn off vacuum
+				sendRelaisTask(2, false);		// Turn off vacuum
 				sendRelaisTask(1, true);
 				if (placeController.selectTip()) {
 					sendRelaisTask(5, false);	// Tip 1
@@ -738,6 +820,10 @@ int main(int argc, char **argv) {
 				}
 				sendPlacerStatus(pap_common::STARTPLACEMET_STATE,
 						pap_common::PLACER_FINISHED);
+				if (placeController.pickRelQR_) {
+					placeController.pickRelQR_ = false;
+				}
+
 				positionSend = false;
 				IDLE_called = true;
 				state = IDLE;
@@ -969,7 +1055,7 @@ int main(int argc, char **argv) {
 		loop_rate.sleep();
 	}
 
-	if(timeoutValue >= 0) {
+	if (timeoutValue >= 0) {
 		timeoutValue -= 1;
 	} else {
 		error_code = TIMEOUT;
@@ -978,7 +1064,6 @@ int main(int argc, char **argv) {
 
 	return 0;
 }
-
 
 /*****************************************************************************
  * General local functions - Implementation
@@ -1015,8 +1100,6 @@ void resetMotorState(bool x, bool y, bool z) {
 void resetMotorState(int index, bool value) {
 	motorcontrollerStatus[index].positionReached = value;
 }
-
-
 
 /*****************************************************************************
  * Callback functions for motor PLACECOMPONENTstatus, vision status and placer tasks
@@ -1075,7 +1158,8 @@ void visionStatusCallback(const pap_common::VisionStatusConstPtr& statusMsg) {
 
 		if (!(xDiff == 0 && yDiff == 0) && !componentFound) {
 			placeController.setPickUpCorrectionOffset(xDiff, yDiff, rotDiff);
-			ROS_INFO("correction offset: x:%f y:%f, rot:%f", xDiff, yDiff, rotDiff);
+			ROS_INFO("correction offset: x:%f y:%f, rot:%f", xDiff, yDiff,
+					rotDiff);
 			cameraFeedbackReceived = true;
 		}
 		break;
@@ -1111,9 +1195,9 @@ void visionStatusCallback(const pap_common::VisionStatusConstPtr& statusMsg) {
 				placeController.tip1ClibrationOffset_.x += xDiff;
 				placeController.tip1ClibrationOffset_.y += yDiff;
 
-				if (counterMean == 10) {
-					placeController.tip1ClibrationOffset_.x /= 10;
-					placeController.tip1ClibrationOffset_.y /= 10;
+				if (counterMean == 50) {
+					placeController.tip1ClibrationOffset_.x /= 50;
+					placeController.tip1ClibrationOffset_.y /= 50;
 					cameraFeedbackReceived = true;
 					ROS_INFO("Tip1 Calibration Offset: X: %f Y: %f",
 							placeController.tip1ClibrationOffset_.x,
@@ -1211,12 +1295,20 @@ void placerCallback(const pap_common::TaskConstPtr& taskMsg) {
 			state = STARTPLACEMENT;
 			ROS_INFO("Placement called...");
 			break;
-		case pap_common::CALIBRATION:
-			sendPlacerStatus(pap_common::CALIBRATION_STATE,
-					pap_common::PLACER_IDLE);
+
+		case pap_common::CALIBRATION_OFFSET:
 			state = CALIBRATE;
+			calibration_state = CAMERA;
+
 			ROS_INFO("Calibration started...");
 			break;
+
+		case pap_common::CALIBRATION_RATIO:
+			state = CALIBRATE;
+			calibration_state = SLOT_QR;
+			ROS_INFO("Calibration started...");
+			break;
+
 		case pap_common::HOMING:
 			sendPlacerStatus(pap_common::HOMING_STATE, pap_common::PLACER_IDLE);
 			state = HOMING;
@@ -1235,22 +1327,22 @@ void placerCallback(const pap_common::TaskConstPtr& taskMsg) {
 }
 
 void dispenserCallback(const pap_common::DispenseTaskConstPtr& taskMsg) {
-	placeController.dispenseTask.xPos = taskMsg->xPos1
-	+ placeController.dispenserTipOffset.x
-	- placeController.camClibrationOffset_.x
-	+ placeController.dispenserCalibrationOffset_.x;
-	placeController.dispenseTask.xPos2 = taskMsg->xPos2
-	+ placeController.dispenserTipOffset.x
-	- placeController.camClibrationOffset_.x
-	+ placeController.dispenserCalibrationOffset_.x;
-	placeController.dispenseTask.yPos = taskMsg->yPos1
-	+ placeController.dispenserTipOffset.y
-	- placeController.camClibrationOffset_.y
-	+ placeController.dispenserCalibrationOffset_.y;
-	placeController.dispenseTask.yPos2 = taskMsg->yPos2
-	+ placeController.dispenserTipOffset.y
-	- placeController.camClibrationOffset_.y
-	+ placeController.dispenserCalibrationOffset_.y;
+	placeController.dispenseTask.xPos = taskMsg->xPos1;
+	//+ placeController.dispenserTipOffset.x
+	//- placeController.camClibrationOffset_.x
+	//+ placeController.dispenserCalibrationOffset_.x;
+	placeController.dispenseTask.xPos2 = taskMsg->xPos2;
+	//+ placeController.dispenserTipOffset.x
+	//- placeController.camClibrationOffset_.x
+	//+ placeController.dispenserCalibrationOffset_.x;
+	placeController.dispenseTask.yPos = taskMsg->yPos1;
+	//+ placeController.dispenserTipOffset.y
+	//- placeController.camClibrationOffset_.y
+	//+ placeController.dispenserCalibrationOffset_.y;
+	placeController.dispenseTask.yPos2 = taskMsg->yPos2;
+	//+ placeController.dispenserTipOffset.y
+	//- placeController.camClibrationOffset_.y
+	//+ placeController.dispenserCalibrationOffset_.y;
 	placeController.dispenseTask.velocity = taskMsg->velocity;
 	placeController.dispenseTask.time = taskMsg->waitTime;
 	state = DISPENSETASK;
@@ -1309,9 +1401,9 @@ void sendTask(pap_common::DESTINATION destination, pap_common::TASK task,
 	task_publisher.publish(taskMsg);
 }
 
-
 // QR Code type: 1=SLOT, 2=TAPE, 3=PCB, 4=BottomCam
-void sendTask(pap_common::DESTINATION destination, pap_vision::VISION task, int type, int camera) {
+void sendTask(pap_common::DESTINATION destination, pap_vision::VISION task,
+		int type, int camera) {
 	pap_common::Task taskMsg;
 	taskMsg.destination = destination;
 	taskMsg.task = task;
@@ -1354,12 +1446,12 @@ void sendRelaisTask(int relaisNumber, bool value) {
 
 void sendStepperTask(int StepperNumber, int rotationAngle) {
 	pap_common::ArduinoMsg arduinoMsg;
-	if (StepperNumber == 1) {
+	if (StepperNumber == 2) {
 		arduinoMsg.command = pap_common::RUNSTEPPER1;
 		arduinoMsg.data = rotationAngle;
 		arduino_publisher_.publish(arduinoMsg);
 	}
-	if (StepperNumber == 2) {
+	if (StepperNumber == 1) {
 		arduinoMsg.command = pap_common::RUNSTEPPER2;
 		arduinoMsg.data = rotationAngle;
 		arduino_publisher_.publish(arduinoMsg);

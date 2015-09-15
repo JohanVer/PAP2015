@@ -1643,7 +1643,7 @@ void MainWindow::setCamera1Point(QPointF point) {
 }
 
 void MainWindow::on_scanQRButton_clicked() {
-	qnode.sendTask(pap_common::VISION, pap_vision::START__QRCODE_FINDER);
+	qnode.sendTask(pap_common::VISION, pap_vision::START__QRCODE_FINDER, 0, 1, 0);
 /*
 	QEventLoop loop;
 	QTimer *timer = new QTimer(this);
@@ -1923,9 +1923,14 @@ void MainWindow::deletePad(QPointF padPos) {
 	on_padViewGenerate_button_clicked();
 }
 
-void MainWindow::on_calibrationButton_clicked() {
+void MainWindow::on_calibrationButton_offsets_clicked() {
 	ui.tab_manager->setCurrentIndex(1);
-	qnode.sendTask(pap_common::PLACER, pap_common::CALIBRATION);
+	qnode.sendTask(pap_common::PLACER, pap_common::CALIBRATION_OFFSET);
+}
+
+void MainWindow::on_calibrationButton_ratios_clicked() {
+	ui.tab_manager->setCurrentIndex(1);
+	qnode.sendTask(pap_common::PLACER, pap_common::CALIBRATION_RATIO);
 }
 
 void MainWindow::on_calcOrientation_Button_clicked() {
@@ -2368,8 +2373,8 @@ tapeCalibrationValue MainWindow::calculatePosOfTapePart(int numOfTape,
 	tf::Point pointToTransform;
 	// This point should be transformed
 	// Distance between comp. on tape is 2 mm (0402 comp.)
-	pointToTransform.setX(numOfPart * 2.0);
-	pointToTransform.setY(0.0);
+	pointToTransform.setX(0.0);
+	pointToTransform.setY(numOfPart * 2.0);
 	pointToTransform.setZ(0.0);
 
 	// This rotates the component to the tape orientation
@@ -2482,6 +2487,9 @@ void MainWindow::calibrateTape(int tapeNumber, float componentWidth,
 		return;
 	}
 	calibrationVal.rot = rotTapeCalibration;
+	if(calibrationVal.rot == -90 || calibrationVal.rot == 90) {
+		calibrationVal.rot = 0;
+	}
 	qnode.sendTask(pap_common::VISION, pap_vision::STOP_VISION);
 	ROS_INFO("Tape Calibration: Got x: %f y: %f rot: %f", calibrationVal.x,
 			calibrationVal.y, calibrationVal.rot);

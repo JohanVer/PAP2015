@@ -214,7 +214,8 @@ public Q_SLOTS:
     void keyPressEvent(QKeyEvent *e);
     void keyReleaseEvent(QKeyEvent *e);
 
-    void on_calibrationButton_clicked();
+    void on_calibrationButton_offsets_clicked();
+    void on_calibrationButton_ratios_clicked();
     void on_ScanQRCodeButton_clicked();
     //QWizardPage *createIntroPage();
 

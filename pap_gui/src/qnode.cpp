@@ -183,6 +183,7 @@ void QNode::sendTask(pap_common::DESTINATION destination,
 	taskMsg.task = task;
 	task_publisher.publish(taskMsg);
 }
+
 void QNode::sendTask(pap_common::DESTINATION destination,
 		pap_vision::VISION task) {
 	pap_common::Task taskMsg;

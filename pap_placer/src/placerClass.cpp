@@ -25,38 +25,43 @@ PlaceController::PlaceController() {
 
 	// Height for sucking a component (normal chip, not a tape)
 	suckingHeight_ = 20.2;
+	largeBoxHeight_ = 18.2;
 
 	// Rough offset values - need to be refined
 	pcbOriginOffset.x = 300;
 	pcbOriginOffset.y = 145;
-	pcbOriginOffset.z = 25.6;
+	pcbOriginOffset.z = 27.0;//25.6;
 	pickUpAreaOffset.x = 108.42;	// + tape_x -> 449.85 = max.x destination
 	pickUpAreaOffset.y = 261;
 	pickUpAreaOffset.z = suckingHeight_;
 	cameraBottomOffset.x = 238.74;
 	cameraBottomOffset.y = 195.21;
-	cameraBottomOffset.z = 13;
+	cameraBottomOffset.z = 23.17-5; //13;
 
 	// Offsets relative to camera
 	tip2Offset.x = -94.08;
 	tip2Offset.y = 64.709;
-	tip2Offset.z = 45;
-	tip1Offset.x = -92.98;
-	tip1Offset.y = +1, 8;
-	tip1Offset.z = 45;
+	tip2Offset.z = 45+15;
+	tip1Offset.x = -93,817;
+	tip1Offset.y = 1,788;
+	tip1Offset.z = 45+15;
 	dispenserTipOffset.x = -53.42;
-	dispenserTipOffset.y = 37, 89;
+	dispenserTipOffset.y = 37.89;
 	dispenserTipOffset.z = 49;
 
 	// Calibration offsets - QR Code positions
 	SLOT_QR_Offset_.x = 109.92;
 	SLOT_QR_Offset_.y = 261.008;
+	SLOT_QR_Offset_.z = pickUpAreaOffset.z;
 	PCB_QR_Offset_.x = 293.04;
 	PCB_QR_Offset_.y = 133.027;
+	PCB_QR_Offset_.z = pcbOriginOffset.z;
 	TAPE_QR_Offset_.x = 389.554;
 	TAPE_QR_Offset_.y = 110.429;
-	BottomCam_QR_Offset_.x = 269.69;
-	BottomCam_QR_Offset_.y = -5.0;
+	TAPE_QR_Offset_.z = pickUpAreaOffset.z;
+	BottomCam_QR_Offset_.x = 292.09;
+	BottomCam_QR_Offset_.y = 259.35;
+	BottomCam_QR_Offset_.z = 20.15;
 
 	// Correction offsets
 	PickUpCorrection.x = 0;
@@ -70,6 +75,8 @@ PlaceController::PlaceController() {
 
 	// Default tip
 	tip = LEFT_TIP;
+
+	pickRelQR_ = false;
 };
 
 PlaceController::~PlaceController() {
@@ -129,6 +136,10 @@ Offset PlaceController::getCompPickUpCoordinates() {
 ;
 
 float PlaceController::getCompSuckingHeight() {
+	if(pickRelQR_){
+		return largeBoxHeight_;
+	}
+
 	if ((currentComponent.box >= 67) && (currentComponent.box <= 86)) {
 		return pickUpAreaOffset.z;
 	} else {
@@ -188,6 +199,10 @@ Offset PlaceController::getCompPlaceCoordinates() {
 ;
 
 float PlaceController::getCompPlaceHeight() {
+	if(pickRelQR_){
+		return largeBoxHeight_;
+	}
+
 	ROS_INFO("PCBOrigin: %f, CompHeight: %f",pcbOriginOffset.z ,currentComponent.height);
 	return pcbOriginOffset.z + currentComponent.height;
 }

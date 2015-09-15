@@ -426,29 +426,29 @@ smdPart padFinder::findSMDTape(cv::Mat* input, bool searchTapeRotation) {
 			} else {
 				//ROS_INFO("Tape size : %f Des size: %f",rectConvertedArea,(partWidth_ * partHeight_));
 				if ((!isBorderTouched(rect)
-						&& rect.size.width / pxRatioSlot
+						&& rect.size.width / pxRatioTape
 								> ((partWidth_) / 100.0)
 										* (100.0 - ERROR_PERCENT_SMDTAPE)
-						&& rect.size.width / pxRatioSlot
+						&& rect.size.width / pxRatioTape
 								< ((partWidth_) / 100.0)
 										* (100.0 + ERROR_PERCENT_SMDTAPE)
-						&& rect.size.height / pxRatioSlot
+						&& rect.size.height / pxRatioTape
 								> ((partHeight_) / 100.0)
 										* (100.0 - ERROR_PERCENT_SMDTAPE)
-						&& rect.size.height / pxRatioSlot
+						&& rect.size.height / pxRatioTape
 								< ((partHeight_) / 100.0)
 										* (100.0 + ERROR_PERCENT_SMDTAPE))
 						|| (!isBorderTouched(rect)
-								&& rect.size.height / pxRatioSlot
+								&& rect.size.height / pxRatioTape
 										> ((partWidth_) / 100.0)
 												* (100.0 - ERROR_PERCENT_SMDTAPE)
-								&& rect.size.height / pxRatioSlot
+								&& rect.size.height / pxRatioTape
 										< ((partWidth_) / 100.0)
 												* (100.0 + ERROR_PERCENT_SMDTAPE)
-								&& rect.size.width / pxRatioSlot
+								&& rect.size.width / pxRatioTape
 										> ((partHeight_) / 100.0)
 												* (100.0 - ERROR_PERCENT_SMDTAPE)
-								&& rect.size.width / pxRatioSlot
+								&& rect.size.width / pxRatioTape
 										< ((partHeight_) / 100.0)
 												* (100.0 + ERROR_PERCENT_SMDTAPE)))
 
@@ -519,8 +519,8 @@ smdPart padFinder::findSMDTape(cv::Mat* input, bool searchTapeRotation) {
 	}
 	if (nearestPart(&smdObjects, &smdFinal, input->cols, input->rows)) {
 		circle(final, Point2f(smdFinal.x, smdFinal.y), 5, CV_RGB(0, 0, 255), 3);
-		smdFinal.x = (smdFinal.x - (input->cols / 2 - 1)) / pxRatioSlot;
-		smdFinal.y = ((input->rows / 2 - 1) - smdFinal.y) / pxRatioSlot;
+		smdFinal.x = (smdFinal.x - (input->cols / 2 - 1)) / pxRatioTape;
+		smdFinal.y = ((input->rows / 2 - 1) - smdFinal.y) / pxRatioTape;
 	}
 
 	*input = final.clone();

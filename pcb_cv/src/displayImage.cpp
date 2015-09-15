@@ -150,15 +150,15 @@ void imageCallback1(const sensor_msgs::ImageConstPtr& msg) {
 					}
 
 					std::string calName = symbol->get_data();
+					std::string number;
+					ROS_INFO("calNAME length: %d", calName.size());
 					if (calName.size() == 13) {
-						std::string number = calName.substr(calName.size() - 1,
-								1);
+						number = calName.substr(calName.size() - 1);
 					} else if (calName.size() == 14) {
-						std::string number = calName.substr(calName.size() - 2,
-								2);
+						number = calName.substr(calName.size() - 2);
 					}
 
-					float calNumber = std::atoi(calName.c_str());
+					float calNumber = std::atoi(number.c_str());
 					ROS_INFO("Cal-Value : %f", calNumber);
 
 					RotatedRect r = minAreaRect(vp);
@@ -181,7 +181,7 @@ void imageCallback1(const sensor_msgs::ImageConstPtr& msg) {
 							pxRatioSlot = 0;
 							calibrationIteration = 0;
 							visionMsg.task = pap_vision::START__QRCODE_FINDER;
-												statusPublisher.publish(visionMsg);
+							statusPublisher.publish(visionMsg);
 							qrCalAction = NO_CAL;
 						}
 						break;
@@ -198,7 +198,7 @@ void imageCallback1(const sensor_msgs::ImageConstPtr& msg) {
 							pxRatioPcb = 0;
 							calibrationIteration = 0;
 							visionMsg.task = pap_vision::START__QRCODE_FINDER;
-												statusPublisher.publish(visionMsg);
+							statusPublisher.publish(visionMsg);
 							qrCalAction = NO_CAL;
 						}
 						break;
@@ -215,7 +215,7 @@ void imageCallback1(const sensor_msgs::ImageConstPtr& msg) {
 							pxRatioTape = 0;
 							calibrationIteration = 0;
 							visionMsg.task = pap_vision::START__QRCODE_FINDER;
-												statusPublisher.publish(visionMsg);
+							statusPublisher.publish(visionMsg);
 							qrCalAction = NO_CAL;
 						}
 						break;
@@ -406,15 +406,15 @@ void imageCallback2(const sensor_msgs::ImageConstPtr& msg) {
 					}
 
 					std::string calName = symbol->get_data();
+					std::string number;
+					ROS_INFO("calNAME length: %d", calName.size());
 					if (calName.size() == 13) {
-						std::string number = calName.substr(calName.size() - 1,
-								1);
+						number = calName.substr(calName.size() - 1);
 					} else if (calName.size() == 14) {
-						std::string number = calName.substr(calName.size() - 2,
-								2);
+						number = calName.substr(calName.size() - 2);
 					}
 
-					float calNumber = std::atoi(calName.c_str());
+					float calNumber = std::atoi(number.c_str());
 					ROS_INFO("Cal-Value : %f", calNumber);
 
 					switch (qrCalAction) {
@@ -429,7 +429,7 @@ void imageCallback2(const sensor_msgs::ImageConstPtr& msg) {
 							pxRatioBottom = 0;
 							calibrationIteration = 0;
 							visionMsg.task = pap_vision::START__QRCODE_FINDER;
-												statusPublisher.publish(visionMsg);
+							statusPublisher.publish(visionMsg);
 							qrCalAction = NO_CAL;
 						}
 						break;

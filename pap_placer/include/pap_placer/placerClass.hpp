@@ -106,7 +106,7 @@ public:
 	Offset currentDestination_, lastDestination_;
 	Offset idleCoordinates_;
 	float MovingHeight_;
-
+	bool pickRelQR_;
 
 	Offset SLOT_QR_Offset_, PCB_QR_Offset_;
 	Offset TAPE_QR_Offset_, BottomCam_QR_Offset_;
@@ -155,7 +155,7 @@ private:
 
 	// These offsets are relative to homing position
 	Offset pcbOriginOffset;
-	float suckingHeight_;
+	float suckingHeight_, largeBoxHeight_;
 	Offset cameraBottomOffset;
 
 
