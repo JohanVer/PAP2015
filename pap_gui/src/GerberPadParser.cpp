@@ -561,10 +561,10 @@ void GerberPadParser::rotatePads(void) {
 		padInformationArray_[i].rotation = padInformationArray_[i].rotation
 				- (differenceAngle_ * (180.0 / M_PI));
 		/*ROS_INFO("After X: %f Y: %f Width: %f Height %f",
-				padInformationArray_[i].rect.x(),
-				padInformationArray_[i].rect.y(),
-				padInformationArray_[i].rect.width(),
-				padInformationArray_[i].rect.height());*/
+		 padInformationArray_[i].rect.x(),
+		 padInformationArray_[i].rect.y(),
+		 padInformationArray_[i].rect.width(),
+		 padInformationArray_[i].rect.height());*/
 	}
 
 	ROS_INFO("Calibration: Transformed %d pads...",
@@ -603,8 +603,12 @@ void GerberPadParser::transformComponent(componentEntry *componentInformation) {
 
 	tf::Point pointToTransform;
 	// This point should be transformed
-	pointToTransform.setX(componentInformation->posX);
-	pointToTransform.setY(componentInformation->posY);
+	if (bottomLayer_) {
+		pointToTransform.setX(height_ - componentInformation->posY);
+	} else {
+		pointToTransform.setX(componentInformation->posY);
+	}
+	pointToTransform.setY(componentInformation->posX);
 	pointToTransform.setZ(0.0);
 
 	pointToTransform = transformIntoGlobalPoint_ * pointToTransform;

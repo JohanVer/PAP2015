@@ -18,10 +18,10 @@
 #define posTolerance 0.01 // Deviation of position in mm
 #define DISPENSER_TOLERANCE 0.1
 #define MOTORCONTROLLER_TIMEOUT 3000
-#define TIP1_DIAMETER_VISION 17.0 //130
+#define TIP1_DIAMETER_VISION 15.0 //130
 #define TIP2_DIAMETER_VISION 20.0
 #define DISPENSER_DIAMETER_VISION 130
-#define CAMERA_DIAMETER_VISION 115.0
+#define CAMERA_DIAMETER_VISION 165.0
 #define DISPENSER_HEIGHT 22.2 //12,2
 
 /* Call back functions */
@@ -89,7 +89,7 @@ enum QR_CALIBRATION_PROCESS {
 } qr_calibration_state;
 
 enum CALIBRATION_STATE {
-	CAMERA, TIP1, DISPENSER, TIP2, BOTTOM_CAM_QR, SLOT_QR, PCB_QR, TAPE_QR
+	CAMERA, TIP1, DISPENSER, TIP2, BOTTOM_CAM_QR, SLOT_QR, PCB_QR, TAPE_QR, CORRECTED_CAMERA, CORRECTED_TIP1
 } calibration_state;
 
 enum ERROR_CODE {
@@ -167,6 +167,7 @@ int main(int argc, char **argv) {
 			sendPlacerStatus(pap_common::CALIBRATION_STATE,
 					pap_common::PLACER_ACTIVE);
 			switch (calibration_state) {
+
 			case CAMERA:
 				if (!positionSend) {
 					LEDTask(pap_common::SETRINGCOLOR, 0);
@@ -190,8 +191,8 @@ int main(int argc, char **argv) {
 						ROS_INFO("Camera: Vision started");
 						ros::Duration(3).sleep();
 						counterMean = 0;
-						placeController.camClibrationOffset_.x = 0.0;
-						placeController.camClibrationOffset_.y = 0.0;
+						placeController.camClibrationOffset_.x = 0.0;	//needed ??
+						placeController.camClibrationOffset_.y = 0.0;	//needed ??
 						LEDTask(pap_common::SETBOTTOMLED, 0);
 						sendTask(pap_common::VISION, pap_vision::START_VISION);
 						sendTask(pap_common::VISION, pap_vision::SEARCH_CIRCLE,
@@ -207,7 +208,7 @@ int main(int argc, char **argv) {
 						//ros::Duration(1).sleep();
 						//IDLE_called = true;
 						//state = IDLE;
-						calibration_state = TIP1;
+						calibration_state = CORRECTED_CAMERA;
 						timeoutValue = 500;
 						cameraFeedbackReceived = false;
 						positionSend = false;
@@ -216,6 +217,28 @@ int main(int argc, char **argv) {
 				}
 				break;
 
+			case CORRECTED_CAMERA:
+				if (!positionSend) {
+					ROS_INFO("PlacerState: CORRECTED_CAMERA");
+					placeController.currentDestination_ =
+							placeController.getBottomCamCoordinates();
+					ROS_INFO("Go to: x:%f y:%f z:%f",
+							placeController.currentDestination_.x,
+							placeController.currentDestination_.y,
+							placeController.currentDestination_.z);
+					timeoutValue = 500;
+					positionSend = true;
+					last_state = state;
+					state = GOTOCOORD;
+				} else {
+					IDLE_called = true;
+					ros::Duration(5).sleep();
+					//state = IDLE;
+					calibration_state = TIP1;
+					timeoutValue = 500;
+					positionSend = false;
+				}
+				break;
 			case TIP1:
 				if (!positionSend) {
 					ROS_INFO("PlacerState: TIP1 ");
@@ -248,20 +271,42 @@ int main(int argc, char **argv) {
 					}
 
 					if (cameraFeedbackReceived) {
-						sendRelaisTask(7, false);			// tip 2
-						sendPlacerStatus(pap_common::INFO,
-								pap_common::LEFT_TIP_UP);
 						LEDTask(pap_common::RESETBOTTOMLED, 0);
 						sendTask(pap_common::VISION, pap_vision::STOP_VISION);
-						calibration_state = DISPENSER;
+						calibration_state = CORRECTED_TIP1;
 						timeoutValue = 500;
 						cameraFeedbackReceived = false;
 						positionSend = false;
 						visionStarted = false;
-						//IDLE_called = true;
-						//state = IDLE;
+
 					}
 				}
+				break;
+			case CORRECTED_TIP1:
+				if (!positionSend) {
+					ROS_INFO("PlacerState: CORRECTED_TIP1");
+					placeController.currentDestination_ =
+							placeController.getTip1Coordinates();
+					ROS_INFO("Go to: x:%f y:%f z:%f",
+							placeController.currentDestination_.x,
+							placeController.currentDestination_.y,
+							placeController.currentDestination_.z);
+					timeoutValue = 500;
+					positionSend = true;
+					last_state = state;
+					state = GOTOCOORD;
+				} else {
+					ros::Duration(5).sleep();
+					sendRelaisTask(7, false);			// tip 2
+					sendPlacerStatus(pap_common::INFO,
+							pap_common::LEFT_TIP_UP);
+					calibration_state = SLOT_QR;
+					IDLE_called = true;
+					state = IDLE;
+					timeoutValue = 500;
+					positionSend = false;
+				}
+				break;
 				break;
 			case DISPENSER:
 				if (!positionSend) {
@@ -700,7 +745,7 @@ int main(int argc, char **argv) {
 					ROS_INFO("Placer - Rotation: rot:%d", rotation);
 					ros::Duration(1).sleep();
 					//IDLE_called = true;
-					state = IDLE; //GOTOPLACECOORD;
+					state = GOTOPLACECOORD; //GOTOPLACECOORD;
 				} else {
 					placeController.pickRelQR_ = false;
 					state = last_qr_state;
@@ -765,8 +810,8 @@ int main(int argc, char **argv) {
 				state = GOTOCOORD;
 			} else {
 				positionSend = false;
-				//IDLE_called = true;
-				state = STARTPLACEMENT;
+				IDLE_called = true;
+				state = IDLE;
 			}
 			break;
 
@@ -1213,7 +1258,7 @@ void visionStatusCallback(const pap_common::VisionStatusConstPtr& statusMsg) {
 					placeController.dispenserCalibrationOffset_.x /= 50;
 					placeController.dispenserCalibrationOffset_.y /= 50;
 					cameraFeedbackReceived = true;
-					ROS_INFO("Tip1 Calibration Offset: X: %f Y: %f",
+					ROS_INFO("Dispenser Calibration Offset: X: %f Y: %f",
 							placeController.dispenserCalibrationOffset_.x,
 							placeController.dispenserCalibrationOffset_.y);
 				}
@@ -1346,7 +1391,7 @@ void dispenserCallback(const pap_common::DispenseTaskConstPtr& taskMsg) {
 	placeController.dispenseTask.velocity = taskMsg->velocity;
 	placeController.dispenseTask.time = taskMsg->waitTime;
 	state = DISPENSETASK;
-	ROS_INFO("Dispensing...");
+	//ROS_INFO("Dispensing...");
 }
 
 /*****************************************************************************

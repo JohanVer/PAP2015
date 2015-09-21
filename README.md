@@ -16,9 +16,9 @@ Johan:
 
 Nikolas:
 
-* Placer-Planner: Implement possibility to choose a tape
-* Placer-Planner: Use the functions "calibrateTape" and "positionOfComponent"
-* Placer-Planner: Check the parsed positions (after the point there are only zeros)
+* CHECKED Placer-Planner: Implement possibility to choose a tape
+* CHECKED Placer-Planner: Use the functions "calibrateTape" and "positionOfComponent"
+* CHECKED Placer-Planner: Check the parsed positions (after the point there are only zeros)
 * Placer-Planner: Implement the second nozzle
 * Placer-Planner: Implement complete (all parts with one click magic) assembling of smd parts
 * Placer-Planner: Test the part rotation procedure (does the system rotate the part in the right direction?)

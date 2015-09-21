@@ -34,8 +34,8 @@ PlaceController::PlaceController() {
 	pickUpAreaOffset.x = 108.42;	// + tape_x -> 449.85 = max.x destination
 	pickUpAreaOffset.y = 261;
 	pickUpAreaOffset.z = suckingHeight_;
-	cameraBottomOffset.x = 238.74;
-	cameraBottomOffset.y = 195.21;
+	cameraBottomOffset.x = 239.15; //238.74+1.0;
+	cameraBottomOffset.y = 195.65; //195.21+1.0;
 	cameraBottomOffset.z = 23.17-5; //13;
 
 	// Offsets relative to camera
@@ -72,6 +72,8 @@ PlaceController::PlaceController() {
 	PlaceCorrection.y = 0;
 	PlaceCorrection.z = 0;
 	PlaceCorrection.rot = 0.0;
+	camClibrationOffset_.x = 0.0;
+	camClibrationOffset_.y = 0.0;
 
 	// Default tip
 	tip = LEFT_TIP;
@@ -122,9 +124,9 @@ Offset PlaceController::getCompPickUpCoordinates() {
 	switch (tip) {
 	case LEFT_TIP:
 		temp.x += (tip1Offset.x - camClibrationOffset_.x
-				+ tip1ClibrationOffset_.x);
+				+ tip1ClibrationOffset_.x +0.532 );
 		temp.y += (tip1Offset.y - camClibrationOffset_.y
-				+ tip1ClibrationOffset_.y);
+				+ tip1ClibrationOffset_.y -0.374);
 		break;
 	case RIGHT_TIP:
 		temp.x += tip2Offset.x;
@@ -156,14 +158,16 @@ void PlaceController::setPickUpCorrectionOffset(float xDiff, float yDiff,
 }
 
 Offset PlaceController::getBottomCamCoordinates() {
-	return cameraBottomOffset;
+	Offset temp;
+	temp.x = cameraBottomOffset.x + camClibrationOffset_.x;
+	temp.y = cameraBottomOffset.y + camClibrationOffset_.y;
+	temp.z = cameraBottomOffset.z;
+	return temp;
 }
-;
 
 Offset PlaceController::getPCBCalibCoordinates() {
 	return pcbOriginOffset;
 }
-;
 
 Offset PlaceController::getPCBCompCoordinates() {
 	Offset temp;
@@ -222,8 +226,8 @@ void PlaceController::setBottomCamCorrectionOffset(float xDiff, float yDiff) {
 
 Offset PlaceController::getTip1Coordinates() {
 	Offset tip1Coordinate;
-	tip1Coordinate.x = cameraBottomOffset.x + tip1Offset.x;
-	tip1Coordinate.y = cameraBottomOffset.y + tip1Offset.y;
+	tip1Coordinate.x = cameraBottomOffset.x + tip1Offset.x + tip1ClibrationOffset_.x;
+	tip1Coordinate.y = cameraBottomOffset.y + tip1Offset.y + tip1ClibrationOffset_.y;
 	tip1Coordinate.z = tip1Offset.z;
 	return tip1Coordinate;
 }
