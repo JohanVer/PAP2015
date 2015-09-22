@@ -18,10 +18,10 @@
 #define posTolerance 0.01 // Deviation of position in mm
 #define DISPENSER_TOLERANCE 0.1
 #define MOTORCONTROLLER_TIMEOUT 3000
-#define TIP1_DIAMETER_VISION 15.0 //130
+#define TIP1_DIAMETER_VISION 20.0 //130
 #define TIP2_DIAMETER_VISION 20.0
 #define DISPENSER_DIAMETER_VISION 130
-#define CAMERA_DIAMETER_VISION 165.0
+#define CAMERA_DIAMETER_VISION 210.0//165.0
 #define DISPENSER_HEIGHT 22.2 //12,2
 
 /* Call back functions */
@@ -262,7 +262,7 @@ int main(int argc, char **argv) {
 						counterMean = 0;
 						placeController.dispenserCalibrationOffset_.x = 0.0;
 						placeController.dispenserCalibrationOffset_.y = 0.0;
-						LEDTask(pap_common::SETBOTTOMLED, 0);
+						//LEDTask(pap_common::SETBOTTOMLED, 0);
 						sendTask(pap_common::VISION, pap_vision::START_VISION);
 						sendTask(pap_common::VISION, pap_vision::SEARCH_CIRCLE,
 						TIP1_DIAMETER_VISION, 0.0, 0.0);
@@ -271,7 +271,7 @@ int main(int argc, char **argv) {
 					}
 
 					if (cameraFeedbackReceived) {
-						LEDTask(pap_common::RESETBOTTOMLED, 0);
+						//LEDTask(pap_common::RESETBOTTOMLED, 0);
 						sendTask(pap_common::VISION, pap_vision::STOP_VISION);
 						calibration_state = CORRECTED_TIP1;
 						timeoutValue = 500;
@@ -441,7 +441,7 @@ int main(int argc, char **argv) {
 
 					if (!visionStarted) {
 						ROS_INFO("PCB calibration: Vision started");
-						ros::Duration(3).sleep();
+						ros::Duration(1).sleep();
 						sendTask(pap_common::VISION, pap_vision::START_VISION);
 						// Start QR Code Finder (Arg1: 3 = PCB, Arg2: 0 = camera top)
 						sendTask(pap_common::VISION,
@@ -476,7 +476,7 @@ int main(int argc, char **argv) {
 
 					if (!visionStarted) {
 						ROS_INFO("Tape calibration: Vision started");
-						ros::Duration(3).sleep();
+						ros::Duration(1).sleep();
 						sendTask(pap_common::VISION, pap_vision::START_VISION);
 						// Start QR Code Finder (Arg1: 2= TAPE, Arg2: 0 = camera top)
 						sendTask(pap_common::VISION,
@@ -532,7 +532,7 @@ int main(int argc, char **argv) {
 					sendRelaisTask(7, true);			// tip 2
 					sendPlacerStatus(pap_common::INFO,
 							pap_common::LEFT_TIP_DOWN);
-					ros::Duration(2.0).sleep();
+					ros::Duration(1).sleep();
 					cameraFeedbackReceived = false;
 					LEDTask(pap_common::SETBOTTOMLED, 0);
 					sendTask(pap_common::VISION, pap_vision::START_VISION);
@@ -740,8 +740,8 @@ int main(int argc, char **argv) {
 				if (!placeController.pickRelQR_) {
 					int rotation =
 							(int) placeController.getCompPickUpCoordinates().rot;
-					sendStepperTask((placeController.selectTip() + 1),
-							rotation);	// Turn component
+					//sendStepperTask((placeController.selectTip() + 1),
+					//		rotation);	// Turn component
 					ROS_INFO("Placer - Rotation: rot:%d", rotation);
 					ros::Duration(1).sleep();
 					//IDLE_called = true;

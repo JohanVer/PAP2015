@@ -1806,7 +1806,8 @@ void MainWindow::sendGotoFiducial(int indexOfFiducial) {
 		float x = ui.fiducialTable->item(indexOfFiducial, 2)->text().toFloat();
 		float y = ui.fiducialTable->item(indexOfFiducial, 3)->text().toFloat();
 		ROS_INFO("Goto position x: %f y: %f", x, y);
-		qnode.sendTask(pap_common::CONTROLLER, pap_common::COORD, x, y, 22.0);
+		//qnode.sendTask(pap_common::CONTROLLER, pap_common::COORD, x, y, 22.0);
+		qnode.sendTask(pap_common::PLACER, pap_common::GOTO, x, y, 22.0);
 	}
 }
 
@@ -1913,7 +1914,8 @@ void MainWindow::gotoPad(QPointF padPos) {
 	float x = padParser.padInformationArray_[id_].rect.x();
 	float y = padParser.padInformationArray_[id_].rect.y();
 	ROS_INFO("Goto position x: %f y: %f", x, y);
-	qnode.sendTask(pap_common::CONTROLLER, pap_common::COORD, x, y, 22);
+	//qnode.sendTask(pap_common::CONTROLLER, pap_common::COORD, x, y, 22);
+	qnode.sendTask(pap_common::PLACER, pap_common::GOTO, x, y, 22.0);
 	//}
 }
 

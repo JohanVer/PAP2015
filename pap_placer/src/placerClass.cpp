@@ -34,20 +34,20 @@ PlaceController::PlaceController() {
 	pickUpAreaOffset.x = 108.42;	// + tape_x -> 449.85 = max.x destination
 	pickUpAreaOffset.y = 261;
 	pickUpAreaOffset.z = suckingHeight_;
-	cameraBottomOffset.x = 239.15; //238.74+1.0;
+	cameraBottomOffset.x = 237.6; //239.15; //238.74+1.0;
 	cameraBottomOffset.y = 195.65; //195.21+1.0;
-	cameraBottomOffset.z = 23.17-5; //13;
+	cameraBottomOffset.z = 23.17-15; //13;
 
 	// Offsets relative to camera
 	tip2Offset.x = -94.08;
 	tip2Offset.y = 64.709;
-	tip2Offset.z = 45+15;
-	tip1Offset.x = -93,817;
-	tip1Offset.y = 1,788;
-	tip1Offset.z = 45+15;
+	tip2Offset.z = 45+15-10;
+	tip1Offset.x = -92,817; //-93,817;
+	tip1Offset.y = 2,598;
+	tip1Offset.z = 45+15-10;
 	dispenserTipOffset.x = -53.42;
 	dispenserTipOffset.y = 37.89;
-	dispenserTipOffset.z = 49;
+	dispenserTipOffset.z = 49-10;
 
 	// Calibration offsets - QR Code positions
 	SLOT_QR_Offset_.x = 109.92;
@@ -72,8 +72,12 @@ PlaceController::PlaceController() {
 	PlaceCorrection.y = 0;
 	PlaceCorrection.z = 0;
 	PlaceCorrection.rot = 0.0;
+
 	camClibrationOffset_.x = 0.0;
 	camClibrationOffset_.y = 0.0;
+	tip1ClibrationOffset_.x = 0.0;
+	tip1ClibrationOffset_.y = 0.0;
+
 
 	// Default tip
 	tip = LEFT_TIP;
@@ -182,20 +186,20 @@ Offset PlaceController::getCompPlaceCoordinates() {
 	Offset temp;
 	switch (tip) {
 	case LEFT_TIP:
-		temp.x = currentComponent.destX + PlaceCorrection.x
-				+ (tip1Offset.x + camClibrationOffset_.x
-						+ tip1ClibrationOffset_.x);
-		temp.y = currentComponent.destY + PlaceCorrection.y
+		temp.x = currentComponent.destX
+				+ (tip1Offset.x - camClibrationOffset_.x
+						+ tip1ClibrationOffset_.x) + 0.7;
+		temp.y = currentComponent.destY
 				+ (tip1Offset.y - camClibrationOffset_.y
-						+ tip1ClibrationOffset_.y);
-		temp.z = 45.0;//pcbOriginOffset.z + tip1Offset.z;
-		temp.rot = currentComponent.rotation + PlaceCorrection.rot;
+						+ tip1ClibrationOffset_.y) - 0.4;
+		temp.z = 45.0;
+		temp.rot = currentComponent.rotation;
 		break;
 	case RIGHT_TIP:
-		temp.x = currentComponent.destX + PlaceCorrection.x + tip2Offset.x;
-		temp.y = currentComponent.destY + PlaceCorrection.y + tip2Offset.y;
-		temp.z = 45.0;//pcbOriginOffset.z + tip2Offset.z;
-		temp.rot = currentComponent.rotation + PlaceCorrection.rot;
+		temp.x = currentComponent.destX + tip2Offset.x;
+		temp.y = currentComponent.destY + tip2Offset.y;
+		temp.z = 45.0;
+		temp.rot = currentComponent.rotation;
 		break;
 	}
 	return temp;
@@ -212,11 +216,14 @@ float PlaceController::getCompPlaceHeight() {
 }
 ;
 
+
+// NOT USED!
 void PlaceController::setPlaceCorrectionOffset(float xDiff, float yDiff,
 		float rotDiff) {
 	PlaceCorrection.x = xDiff;
 	PlaceCorrection.y = yDiff;
 	PlaceCorrection.rot = rotDiff;
+	ROS_INFO("Placer - Place correction: x: %f y: %f", xDiff, yDiff);
 }
 
 void PlaceController::setBottomCamCorrectionOffset(float xDiff, float yDiff) {
