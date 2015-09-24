@@ -272,7 +272,15 @@ void MainWindow::on_setCompBoxNrButton_clicked() {
 			msgBox.close();
 
 		} else {
+
+
 			SlotSelectorDialog w;
+
+			// Check first, that all components are found in the database
+			// make sure componentVector is not empty!
+			// Pass entire component vector to Slot Dialog
+			w.generatePartList(&componentVector);
+
 
 			// Here is a example how to pass occupied slots
 			for (size_t i = 0; i < componentVector.size(); i++) {
@@ -881,6 +889,8 @@ void MainWindow::on_placeSingleComponentButton_clicked() {
 }
 
 void MainWindow::on_startPlacementButton_clicked() {
+
+
 
 	if (componentTableEmpty) {
 		QMessageBox msgBox;
