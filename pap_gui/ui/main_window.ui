@@ -40,7 +40,7 @@
        <locale language="English" country="Australia"/>
       </property>
       <property name="currentIndex">
-       <number>2</number>
+       <number>4</number>
       </property>
       <widget class="QWidget" name="tab_status">
        <attribute name="title">
@@ -2203,7 +2203,7 @@
              </font>
             </property>
             <property name="text">
-             <string>Box number:</string>
+             <string>Slot:</string>
             </property>
            </widget>
           </item>
@@ -2371,7 +2371,7 @@
           <item>
            <widget class="QPushButton" name="setCompBoxNrButton">
             <property name="text">
-             <string>Set box number</string>
+             <string>Slot Wizard</string>
             </property>
            </widget>
           </item>

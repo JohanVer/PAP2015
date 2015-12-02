@@ -52,13 +52,6 @@ int boxNumberMin = 0;
 int boxNumberSug = 1;
 float xTapeCalibration, yTapeCalibration, rotTapeCalibration = 0;
 
-/*const Offset TapeOffsetTable[20] = { { 339.7, -40.0 }, { 339.7, -51.0 }, {
-		339.7, -62.0 }, { 339.7, -73.0 }, { 339.7, -84.0 }, { 339.7, -95.0 }, {
-		339.7, -106.0 }, { 339.7, -117.0 }, { 339.7, -128.0 },
-		{ 339.7, -139.0 }, { 339.7, -150.0 }, { 339.7, -161.0 },
-		{ 339.7, -172.0 }, { 339.7, -183.0 }, { 339.7, -194.0 },
-		{ 339.7, -205.0 }, { 339.7, -216.0 }, { 339.7, -227.0 },
-		{ 339.7, -238.0 }, { 339.7, -249.0 } };*/
 
 MainWindow::MainWindow(int argc, char** argv, QWidget *parent) :
 		QMainWindow(parent), qnode(argc, argv) {
@@ -233,19 +226,19 @@ void MainWindow::on_setCompBoxNrButton_2_clicked() {
 		SlotInformation test;
 		test.index = 1;
 		test.name = std::string("100nF");
-		w.nameList.push_back(test);
-		w.paintSlots();
+		//w.nameList.push_back(test);
+		//w.paintSlots();
 
 		// Start slotSelector window
-		connect(&w, SIGNAL(setLed(int)), this, SLOT(setLedFromSelection(int)));
-		w.exec();
+		//connect(&w, SIGNAL(setLed(int)), this, SLOT(setLedFromSelection(int)));
+		//w.exec();
 
-		int current_index = w.getIndex();
+		/*int current_index = w.getIndex();
 		singleComponent.box = current_index;
 		componentVector[singleComponent.index].box = current_index;
 		ui.checkBox_box->setChecked(true);
 		ui.label_compBox_2->setText(QString::number(current_index));
-		updateComponentInformation();
+		updateComponentInformation();*/
 
 	} else {
 		QMessageBox msgBox;
@@ -263,53 +256,42 @@ void MainWindow::on_setCompBoxNrButton_clicked() {
 		/* Get current component */
 		int currentComponent = ui.tableWidget->currentRow();
 
-		/* If no component selected */
-		if (currentComponent == -1) {
-
-			QMessageBox msgBox;
-			msgBox.setText("Please select a component.");
-			msgBox.exec();
-			msgBox.close();
-
-		} else {
-
-
-			SlotSelectorDialog w;
+			SlotSelectorDialog slotWizard;
 
 			// Check first, that all components are found in the database
-			// make sure componentVector is not empty!
+
 			// Pass entire component vector to Slot Dialog
-			w.generatePartList(&componentVector);
+			slotWizard.generatePartList(&componentVector);
 
 
-			// Here is a example how to pass occupied slots
+			/* Here is a example how to pass occupied slots
 			for (size_t i = 0; i < componentVector.size(); i++) {
 				SlotInformation test;
 				if (componentVector[i].box != -1) {
 					test.index = componentVector[i].box;
 					// The character number shall be restricted to 5
 					test.name = componentVector[i].value.substr(0, 5);
-					w.nameList.push_back(test);
+					slotWizard.nameList.push_back(test);
 				}
-			}
-			w.paintSlots();
+			}*/
+			slotWizard.paintSlots();
 			// Start slotSelector window
-			connect(&w, SIGNAL(setLed(int)), this,
+			connect(&slotWizard, SIGNAL(setLed(int)), this,
 					SLOT(setLedFromSelection(int)));
-			w.exec();
+			slotWizard.exec();
 
-			bool ok = false;
+			/*bool ok = false;*/
 			//QInputDialog* inputDialog = new QInputDialog();
 			//inputDialog->setOptions(QInputDialog::NoButtons);
 
-			/* Get boxNumber input */
+			/* Get boxNumber input
 			int currentBox = componentVector.at(currentComponent).box;
 			if (currentBox == -1) {
 				currentBox = boxNumberSug;
-			}
+			}*/
 
 			//int boxNumber = inputDialog->getInt(this, "enter number", "enter number", currentBox, boxNumberMax, boxNumberMin, boxNumberStep, &ok, 0);
-			int boxNumber = w.getIndex();
+			/*int boxNumber = slotWizard.getIndex();
 			if (boxNumber <= boxNumberMax && boxNumber >= boxNumberMin) {
 				componentVector[currentComponent].box = boxNumber;
 				ui.label_compBox->setText(QString::number(boxNumber));
@@ -321,13 +303,13 @@ void MainWindow::on_setCompBoxNrButton_clicked() {
 				msgBox.exec();
 				msgBox.close();
 
-			}
-		}
-		/* If table empty */
+			}*/
+
+	/* If table empty */
 	} else {
 		QMessageBox msgBox;
 		msgBox.setText(
-				"Component table empty. Please select gerber file first.");
+				"Component table empty. Please load gerber file first.");
 		msgBox.exec();
 		msgBox.close();
 	}

@@ -47,18 +47,18 @@ public:
 	int getIndex();
 	void paintSlots(void);
 	void generatePartList(QVector<componentEntry> *componentVector);
-	void updatePartTable(void);
-	bool getName(int index, std::string* name);
+	void updateTable();
+	void getName(int index, std::string* package, std::string* value);
 	bool slotUsed(int slotNumber);
 	//void on_partTable_clicked();
 	void updatePartEntry(int updatedPartID);
 	void updateComponentVector();
-
-	std::vector<SlotInformation> nameList;
-	std::vector<PartEntry> partList;
+	void updateMissingPartList();
 
 private:
-
+	std::vector<SlotInformation> nameList;
+	std::vector<PartEntry> partList, missingPartList;
+	bool missingPartListActive;
 
 Q_SIGNALS:
 	void setSlotIndex(int indexOfSlot);
@@ -66,6 +66,11 @@ Q_SIGNALS:
 
 public Q_SLOTS:
 	void slotPressed(int numberOfFiducial, QPointF padPos);
+	void resetSlotButton_clicked();
+	void mergeButton_clicked();
+	void showAllPartsButton_clicked();
+	void showMissingPartsButton_clicked();
+	void buttonBox_clicked(QAbstractButton*);
 
 private:
 	Ui::SlotSelectorDialog *ui;
