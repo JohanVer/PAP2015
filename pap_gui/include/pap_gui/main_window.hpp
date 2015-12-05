@@ -44,20 +44,9 @@
 #include "DispenserPlanner.hpp"
 #include <tf/transform_broadcaster.h>
 #include <algorithm>
-/*
-class componentEntry {
-public:
-	string name, package, side, value;
-	float posX, posY, length, width, height;
-	int box, rotation, pins;
-};*/
+//#include "DatabaseClass.hpp"
+#include "CommonDataClasses.hpp"
 
-class databaseEntry {
-public:
-	QString package;
-	float length, width, height;
-	int pins;
-};
 
 
 class tapeCalibrationValue {
@@ -219,7 +208,9 @@ public Q_SLOTS:
     void on_ScanQRCodeButton_clicked();
 
     //QWizardPage *createIntroPage();
-
+    void updatePackageList();
+    void updateMissingPackageList();
+    void updateMissingPackageTable();
 
     /******************************************
     ** Manual connections
@@ -234,8 +225,11 @@ private:
 	bool alreadyFlipped_;
 
 	// Pick and place data structures
-	QVector<componentEntry> componentVector;
+	QVector<componentEntry> componentList;
+	QVector<string> packageList;
+	QVector<string> missingPackageList;
 	QVector<databaseEntry> databaseVector;
+	//DatabaseClass database;
 	ComponentPlacerData placementData;
 	componentEntry singleComponent;
 	int tapeCompCounter[20];

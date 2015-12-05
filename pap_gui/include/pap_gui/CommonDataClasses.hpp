@@ -10,6 +10,25 @@
 
 #include <string>
 #include <QRectF>
+#include <QString>
+
+class databaseEntry {
+public:
+	QString package;
+	float length, width, height;
+	int pins;
+};
+
+class PartEntry{
+public:
+	std::string package, value;
+	int count, slot;
+	PartEntry(){
+		count = 0;
+		slot = 0;
+	}
+};
+
 
 
 class componentEntry {

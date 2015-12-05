@@ -28,6 +28,7 @@
 #include <QFile>
 #include <tf/transform_broadcaster.h>
 #include "../../pap_placer/include/pap_placer/offsetTable.hpp"
+#include "../include/pap_gui/DatabaseClass.hpp"
 
 /*****************************************************************************
  ** Namespaces
@@ -170,8 +171,11 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent) :
 	rotTapeCalibration = 0.0;
 
 	/* Load database */
+	//database.load();
+	//database.getAll(&databaseVector);
 	loadDatabaseContent();
 	updateDatabaseTable();
+
 	initFiducialTable();
 	initPadTable(1);
 	id_ = 0;
@@ -192,6 +196,8 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent) :
 	}
 
 }
+
+
 
 MainWindow::~MainWindow() {
 }
@@ -235,7 +241,7 @@ void MainWindow::on_setCompBoxNrButton_2_clicked() {
 
 		/*int current_index = w.getIndex();
 		singleComponent.box = current_index;
-		componentVector[singleComponent.index].box = current_index;
+		componentList[singleComponent.index].box = current_index;
 		ui.checkBox_box->setChecked(true);
 		ui.label_compBox_2->setText(QString::number(current_index));
 		updateComponentInformation();*/
@@ -256,36 +262,40 @@ void MainWindow::on_setCompBoxNrButton_clicked() {
 		/* Get current component */
 		int currentComponent = ui.tableWidget->currentRow();
 
-			SlotSelectorDialog slotWizard;
-
 			// Check first, that all components are found in the database
-
-			// Pass entire component vector to Slot Dialog
-			slotWizard.generatePartList(&componentVector);
-
+			if (missingPackageList.isEmpty()) {
+				SlotSelectorDialog slotWizard;
+				// Pass entire component vector to Slot Dialog and execute dialog
+				slotWizard.generatePartList(&componentList);
+				slotWizard.paintSlots();
+				connect(&slotWizard, SIGNAL(setLed(int)), this,
+						SLOT(setLedFromSelection(int)));
+				slotWizard.exec();
+			} else {
+				QMessageBox msgBox;
+				msgBox.setText("There are still packages missing in the database.");
+				msgBox.exec();
+				msgBox.close();
+			}
 
 			/* Here is a example how to pass occupied slots
-			for (size_t i = 0; i < componentVector.size(); i++) {
+			for (size_t i = 0; i < componentList.size(); i++) {
 				SlotInformation test;
-				if (componentVector[i].box != -1) {
-					test.index = componentVector[i].box;
+				if (componentList[i].box != -1) {
+					test.index = componentList[i].box;
 					// The character number shall be restricted to 5
-					test.name = componentVector[i].value.substr(0, 5);
+					test.name = componentList[i].value.substr(0, 5);
 					slotWizard.nameList.push_back(test);
 				}
 			}*/
-			slotWizard.paintSlots();
-			// Start slotSelector window
-			connect(&slotWizard, SIGNAL(setLed(int)), this,
-					SLOT(setLedFromSelection(int)));
-			slotWizard.exec();
+
 
 			/*bool ok = false;*/
 			//QInputDialog* inputDialog = new QInputDialog();
 			//inputDialog->setOptions(QInputDialog::NoButtons);
 
 			/* Get boxNumber input
-			int currentBox = componentVector.at(currentComponent).box;
+			int currentBox = componentList.at(currentComponent).box;
 			if (currentBox == -1) {
 				currentBox = boxNumberSug;
 			}*/
@@ -293,7 +303,7 @@ void MainWindow::on_setCompBoxNrButton_clicked() {
 			//int boxNumber = inputDialog->getInt(this, "enter number", "enter number", currentBox, boxNumberMax, boxNumberMin, boxNumberStep, &ok, 0);
 			/*int boxNumber = slotWizard.getIndex();
 			if (boxNumber <= boxNumberMax && boxNumber >= boxNumberMin) {
-				componentVector[currentComponent].box = boxNumber;
+				componentList[currentComponent].box = boxNumber;
 				ui.label_compBox->setText(QString::number(boxNumber));
 				boxNumberSug++;
 
@@ -314,6 +324,61 @@ void MainWindow::on_setCompBoxNrButton_clicked() {
 		msgBox.close();
 	}
 }
+
+void MainWindow::loadDatabaseContent() {
+
+	std::fstream databaseFile;
+	std::string fileName = std::string(getenv("PAPRESOURCES"))
+			+ "database/database.txt";
+	databaseFile.open(fileName.c_str(),
+			std::fstream::in | std::fstream::out | std::fstream::app);
+
+	/* ok, proceed  */
+	if (databaseFile.is_open()) {
+
+		std::string lineString;
+		while (getline(databaseFile, lineString)) {
+
+			QString componentString = QString::fromStdString(lineString);
+			QRegExp sep(",");
+			bool ok;
+
+			/* Filter only valid database entries */
+			if (!(componentString.at(0) == (char) 42)) {
+
+				databaseEntry newDatabaseEntry;
+				newDatabaseEntry.package = componentString.section(sep, 0, 0);
+				newDatabaseEntry.length =
+						componentString.section(sep, 1, 1).toFloat(&ok);
+				newDatabaseEntry.width =
+						componentString.section(sep, 2, 2).toFloat(&ok);
+				newDatabaseEntry.height =
+						componentString.section(sep, 3, 3).toFloat(&ok);
+				newDatabaseEntry.pins =
+						componentString.section(sep, 4, 4).toInt(&ok);
+				/*qDebug() << newDatabaseEntry.package << " "
+				 << newDatabaseEntry.length << " "
+				 << newDatabaseEntry.width << " "
+				 << newDatabaseEntry.height << " "
+				 << newDatabaseEntry.pins;*/
+				databaseVector.append(newDatabaseEntry);
+			}
+		}
+
+	} else {
+		qDebug() << "Could not open database!";
+	}
+
+	databaseFile.close();
+
+	if (databaseVector.isEmpty()) {
+		QMessageBox msgBox;
+		msgBox.setText("No database found or not able to read database.");
+		msgBox.exec();
+		msgBox.close();
+	}
+}
+
 
 void MainWindow::updateSingleComponentInformation() {
 
@@ -386,15 +451,15 @@ void MainWindow::updateComponentInformation() {
 	} else {
 
 		ui.label_compName->setText(
-				componentVector.at(currentComp).name.c_str());
+				componentList.at(currentComp).name.c_str());
 		ui.label_compValue->setText(
-				componentVector.at(currentComp).value.c_str());
+				componentList.at(currentComp).value.c_str());
 		ui.label_compPackage->setText(
-				componentVector.at(currentComp).package.c_str());
+				componentList.at(currentComp).package.c_str());
 
 		int packageID = -1;
 		for (int i = 0; i < databaseVector.size(); i++) {
-			string currentPackage = componentVector.at(currentComp).package;
+			string currentPackage = componentList.at(currentComp).package;
 
 			if (databaseVector.at(i).package
 					== QString::fromStdString(currentPackage)) {
@@ -412,12 +477,12 @@ void MainWindow::updateComponentInformation() {
 			ui.label_compLength->setText(
 					QString::number(databaseVector.at(packageID).length, 'f',
 							2));
-			componentVector[currentComp].length =
+			componentList[currentComp].length =
 					databaseVector.at(packageID).length;
 			ui.label_compWidth->setText(
 					QString::number(databaseVector.at(packageID).width, 'f',
 							2));
-			componentVector[currentComp].width =
+			componentList[currentComp].width =
 					databaseVector.at(packageID).width;
 			ui.label_compHeight->setText(
 					QString::number(databaseVector.at(packageID).height, 'f',
@@ -427,20 +492,20 @@ void MainWindow::updateComponentInformation() {
 		}
 
 		ui.label_compPos->setText(
-				QString::number(componentVector.at(currentComp).posX, 'f', 2)
+				QString::number(componentList.at(currentComp).posX, 'f', 2)
 						+ " / "
-						+ QString::number(componentVector.at(currentComp).posY,
+						+ QString::number(componentList.at(currentComp).posY,
 								'f', 2));
 		ui.label_compOrient->setText(
-				QString::number(componentVector.at(currentComp).rotation));
+				QString::number(componentList.at(currentComp).rotation));
 		ui.label_compSide->setText(
-				componentVector.at(currentComp).side.c_str());
+				componentList.at(currentComp).side.c_str());
 
-		if (componentVector.at(currentComp).box == -1) {
+		if (componentList.at(currentComp).box == -1) {
 			ui.label_compBox->setText("unknown");
 		} else {
 			ui.label_compBox->setText(
-					QString::number(componentVector.at(currentComp).box));
+					QString::number(componentList.at(currentComp).box));
 		}
 	}
 }
@@ -451,14 +516,17 @@ void MainWindow::on_tableWidget_clicked() {
 
 void MainWindow::on_clearTableButton_clicked() {
 
-	if (componentTableEmpty) {						// Table already empty
+	/* Table already empty */
+	if (componentTableEmpty) {
 		QMessageBox msgBox;
 		msgBox.setText("No content to delete.");
 		msgBox.exec();
 		msgBox.close();
-	} else {										// Clear table
-		while (!componentVector.isEmpty()) {
-			componentVector.remove(0);
+
+	/* Clear table */
+	} else {
+		while (!componentList.isEmpty()) {
+			componentList.remove(0);
 		}
 		updateComponentTable();
 		updateComponentInformation();
@@ -484,10 +552,10 @@ void MainWindow::on_compOrientButton_clicked() {
 		inputDialog->setOptions(QInputDialog::NoButtons);
 
 		/* Get boxNumber input */
-		int currentRotation = componentVector.at(currentComponent).rotation;
+		int currentRotation = componentList.at(currentComponent).rotation;
 		int rotation = inputDialog->getInt(this, "Change component orientation",
 				"Enter component orientation:", currentRotation);
-		componentVector[currentComponent].rotation = rotation;
+		componentList[currentComponent].rotation = rotation;
 		ui.label_compOrient->setText(QString::number(rotation));
 	}
 }
@@ -512,17 +580,15 @@ void MainWindow::on_compPackageButton_clicked() {
 
 		/* Get boxNumber input */
 		QString currentPackage = QString::fromStdString(
-				componentVector.at(currentComponent).package);
-		//string currentPackage = componentVector.at(currentComponent).package;
-		//string package = inputDialog->getText(this, "Enter", "Enter", currentPackage);
-
+				componentList.at(currentComponent).package);
 		QString text = inputDialog->getText(this, "Change package",
 				"Enter new package:", QLineEdit::Normal, currentPackage, &ok);
-
 		if (ok && !text.isEmpty()) {
 			ui.label_compPackage->setText(text);
-			componentVector[currentComponent].package = text.toStdString();
+			componentList[currentComponent].package = text.toStdString();
 		}
+		updateMissingPackageList();
+		updateMissingPackageTable();
 	}
 }
 
@@ -538,70 +604,21 @@ void MainWindow::on_compDeleteButton_clicked() {
 		msgBox.close();
 
 	} else { /* Delete component from vector */
-		componentVector.remove(currentComp);
+		componentList.remove(currentComp);
 		updateComponentTable();
 		updateComponentInformation();
 	}
-}
 
-void MainWindow::loadDatabaseContent() {
-
-	std::fstream databaseFile;
-	std::string fileName = std::string(getenv("PAPRESOURCES"))
-			+ "database/database.txt";
-	databaseFile.open(fileName.c_str(),
-			std::fstream::in | std::fstream::out | std::fstream::app);
-
-	/* ok, proceed  */
-	if (databaseFile.is_open()) {
-
-		string lineString;
-		while (getline(databaseFile, lineString)) {
-
-			QString componentString = QString::fromStdString(lineString);
-			QRegExp sep(",");
-			bool ok;
-
-			/* Filter only valid database entries */
-			if (!(componentString.at(0) == (char) 42)) {
-
-				databaseEntry newDatabaseEntry;
-				newDatabaseEntry.package = componentString.section(sep, 0, 0);
-				newDatabaseEntry.length =
-						componentString.section(sep, 1, 1).toFloat(&ok);
-				newDatabaseEntry.width =
-						componentString.section(sep, 2, 2).toFloat(&ok);
-				newDatabaseEntry.height =
-						componentString.section(sep, 3, 3).toFloat(&ok);
-				newDatabaseEntry.pins =
-						componentString.section(sep, 4, 4).toInt(&ok);
-				/*qDebug() << newDatabaseEntry.package << " "
-				 << newDatabaseEntry.length << " "
-				 << newDatabaseEntry.width << " "
-				 << newDatabaseEntry.height << " "
-				 << newDatabaseEntry.pins;*/
-				databaseVector.append(newDatabaseEntry);
-			}
-		}
-
-	} else {
-		qDebug() << "Could not open database!";
-	}
-
-	databaseFile.close();
-
-	if (databaseVector.isEmpty()) {
-		QMessageBox msgBox;
-		msgBox.setText("No database found or not able to read database.");
-		msgBox.exec();
-		msgBox.close();
-	}
+	updateMissingPackageList();
+	updateMissingPackageTable();
 }
 
 void MainWindow::on_loadGerberFileButton_clicked() {
 
 	/* Clear component vector and reset component number*/
-	componentVector.clear();
+	componentList.clear();
+	packageList.clear();
+	missingPackageList.clear();
 	componentCount = 0;
 
 	//get a filename to open
@@ -609,7 +626,7 @@ void MainWindow::on_loadGerberFileButton_clicked() {
 			tr("Open Gerber file"), "/home", tr("Text Files (*.txt *.csv)"));
 	std::cout << "Got filename: " << gerberFile.toStdString() << std::endl;
 
-	/* Load gerber file and add new components to vector */
+	/* Load gerber file and add components to componentList */
 	std::fstream datafile;
 	const char *filename = gerberFile.toLatin1().data();
 	datafile.open(filename,
@@ -677,7 +694,7 @@ void MainWindow::on_loadGerberFileButton_clicked() {
 				newComponent.index = comp_index;
 				comp_index++;
 
-				componentVector.append(newComponent);
+				componentList.append(newComponent);
 				componentCount++;
 			}
 		}
@@ -692,18 +709,104 @@ void MainWindow::on_loadGerberFileButton_clicked() {
 		componentTableEmpty = false;
 		updateComponentTable();
 	}
+
+	/* Check if components in database */
+	updatePackageList();
+	updateMissingPackageList();
+
+	/*QMessageBox msgBox;
+	msgBox.setText("In database missing components:" + databaseMissingList.size());
+	msgBox.exec();
+	msgBox.close();*/
+
+}
+
+void MainWindow::updatePackageList() {
+	bool inPackageList;
+
+	/* Iterate over all components*/
+	for (size_t i = 0; i < componentList.size(); i++) {
+
+		inPackageList = false;
+		for (size_t k = 0; k < packageList.size(); k++) {
+			/* Check if package already in List */
+			if (componentList.at(i).package.compare(packageList.at(k)) == 0) {
+				inPackageList = true;
+				break;
+			}
+		}
+
+		/* If package not yet in packageList, add it */
+		if (!inPackageList) {
+			packageList.push_back(componentList.at(i).package);
+		}
+	}
+}
+
+void MainWindow::updateMissingPackageList() {
+	bool inDatabase;
+
+	/* Iterate over all parts */
+	for (size_t i=0; i < packageList.size(); i++) {
+
+		inDatabase = false;
+		for (size_t k=0; k < databaseVector.size(); k++) {
+			/* Check if part is in database */
+			if (packageList.at(i).compare(databaseVector.at(k).package.toStdString()) == 0) {
+				inDatabase = true;
+				break;
+			}
+		}
+
+		/* If part is not in database -> add */
+		if (!inDatabase) {
+			missingPackageList.push_back(packageList.at(i));
+		}
+	}
+
+	updateMissingPackageTable();
+}
+
+void MainWindow::updateMissingPackageTable() {
+
+	/* Set size of table */
+	ui.missingPackageTableWidget->setRowCount(missingPackageList.size());
+	ui.missingPackageTableWidget->setColumnCount(1);
+
+	// Set labels
+	QStringList hLabels, vLabels;
+	hLabels << "Package";
+	for (int i = 1; i < missingPackageList.size(); i++) {
+		vLabels << QString::number(i);
+	}
+	ui.missingPackageTableWidget->setHorizontalHeaderLabels(hLabels);
+	ui.missingPackageTableWidget->setVerticalHeaderLabels(vLabels);
+
+	// Set content
+	for (int i = 0; i < ui.missingPackageTableWidget->rowCount(); i++) {
+		ui.missingPackageTableWidget->setItem(i, 0,
+				new QTableWidgetItem(missingPackageList.at(i).c_str()));
+	}
+
+	// Table settings
+	ui.missingPackageTableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
+	ui.missingPackageTableWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
+	ui.missingPackageTableWidget->setSizePolicy(QSizePolicy::Expanding,
+			QSizePolicy::Maximum);
+	ui.missingPackageTableWidget->horizontalHeader()->setResizeMode(QHeaderView::Stretch);
+	ui.missingPackageTableWidget->show();
 }
 
 void MainWindow::updateComponentTable() {
 
 	// Set size of table
-	ui.tableWidget->setRowCount(componentVector.size());
+	ui.tableWidget->setRowCount(componentList.size());
 	ui.tableWidget->setColumnCount(3);
 
 	// Set labels
 	QStringList hLabels, vLabels;
 	hLabels << "Name" << "Value" << "Package";
-	for (int i = 1; i < componentVector.size(); i++) {
+	for (int i = 1; i < componentList.size(); i++) {
 		vLabels << QString::number(i);
 	}
 	ui.tableWidget->setHorizontalHeaderLabels(hLabels);
@@ -713,11 +816,11 @@ void MainWindow::updateComponentTable() {
 	for (int i = 0; i < ui.tableWidget->rowCount(); i++) {
 
 		ui.tableWidget->setItem(i, 0,
-				new QTableWidgetItem((componentVector.at(i).name).c_str()));
+				new QTableWidgetItem((componentList.at(i).name).c_str()));
 		ui.tableWidget->setItem(i, 1,
-				new QTableWidgetItem((componentVector.at(i).value).c_str()));
+				new QTableWidgetItem((componentList.at(i).value).c_str()));
 		ui.tableWidget->setItem(i, 2,
-				new QTableWidgetItem((componentVector.at(i).package).c_str()));
+				new QTableWidgetItem((componentList.at(i).package).c_str()));
 
 	}
 
@@ -733,8 +836,8 @@ void MainWindow::updateComponentTable() {
 	ui.tableWidget->show();
 
 	// Set number of components
-	ui.label_compTotal->setText(QString::number(componentVector.size()));
-	ui.label_compLeft->setText(QString::number(componentVector.size()));
+	ui.label_compTotal->setText(QString::number(componentList.size()));
+	ui.label_compLeft->setText(QString::number(componentList.size()));
 }
 
 void MainWindow::updateDatabaseTable() {
@@ -746,7 +849,7 @@ void MainWindow::updateDatabaseTable() {
 	// Set labels
 	QStringList hLabels, vLabels;
 	hLabels << "Package" << "Length" << "Width" << "Height" << "# of Pins";
-	for (int i = 1; i < componentVector.size(); i++) {
+	for (int i = 1; i < componentList.size(); i++) {
 		vLabels << QString::number(i);
 	}
 	ui.packageTableWidget->setHorizontalHeaderLabels(hLabels);
@@ -856,7 +959,7 @@ void MainWindow::on_placeSingleComponentButton_clicked() {
 		msgBox.close();
 	} else {
 
-		singleComponent = componentVector.at(currentComp);
+		singleComponent = componentList.at(currentComp);
 		updateSingleComponentInformation();
 		singleComponentSelected = true;
 
@@ -872,8 +975,7 @@ void MainWindow::on_placeSingleComponentButton_clicked() {
 
 void MainWindow::on_startPlacementButton_clicked() {
 
-
-
+	/* Check if there are components to place */
 	if (componentTableEmpty) {
 		QMessageBox msgBox;
 		msgBox.setText(
@@ -882,6 +984,25 @@ void MainWindow::on_startPlacementButton_clicked() {
 		msgBox.close();
 	} else {
 
+		/* Check if all slots are set */
+		for (size_t i=0; i < componentList.size(); i++) {
+			if (componentList.at(i).box == -1) {
+				QMessageBox msgBox;
+				msgBox.setText("Please set all slots first.");
+				msgBox.exec();
+				msgBox.close();
+				return;
+			}
+		}
+
+		/* Do a single placement process for each component */
+		/* Iterate over all components */
+		for (size_t k=0; k < componentList.size(); k++) {
+			// Update placement data with current component
+			// Logic - which component is placed first?
+
+			// Update placement info in gui: missing components, placer status etc.
+		}
 	}
 }
 
@@ -1368,7 +1489,6 @@ void MainWindow::on_valveToggle6_clicked(bool check) {
 		valve6Active_ = false;
 	}
 }
-
 void MainWindow::on_valveToggle7_clicked(bool check) {
 	if (!valve7Active_) {
 		qnode.sendRelaisTask(9, true);
@@ -1380,7 +1500,6 @@ void MainWindow::on_valveToggle7_clicked(bool check) {
 		valve7Active_ = false;
 	}
 }
-
 void MainWindow::on_valveToggle8_clicked(bool check) {
 	if (!valve8Active_) {
 		qnode.sendRelaisTask(10, true);
@@ -1392,7 +1511,6 @@ void MainWindow::on_valveToggle8_clicked(bool check) {
 		valve8Active_ = false;
 	}
 }
-
 void MainWindow::on_turnLeftTipButton_clicked() {
 	// Get angle from line edit
 	bool ok;
@@ -2327,18 +2445,18 @@ void MainWindow::on_calibrateTapeButton_clicked(void) {
 
 	// TODO{Niko}: Use these functions in gui and placer node
 	QVector<int> calibratedTapes;
-	for (size_t i = 0; i < componentVector.size(); i++) {
-		if ((componentVector.at(i).box >= 67)
-				&& (componentVector.at(i).box <= 86)) {
-			ROS_INFO("Calibrated tape: %d", componentVector.at(i).box);
-			int tape_nr = componentVector.at(i).box - 67;
+	for (size_t i = 0; i < componentList.size(); i++) {
+		if ((componentList.at(i).box >= 67)
+				&& (componentList.at(i).box <= 86)) {
+			ROS_INFO("Calibrated tape: %d", componentList.at(i).box);
+			int tape_nr = componentList.at(i).box - 67;
 			if (calibratedTapes.indexOf(tape_nr) == -1) {
 				calibratedTapes.append(tape_nr);
-				calibrateTape(tape_nr, componentVector.at(i).width,
-						componentVector.at(i).length);
+				calibrateTape(tape_nr, componentList.at(i).width,
+						componentList.at(i).length);
 				ROS_INFO("Index : %d Width: %f Height: %f", tape_nr,
-						componentVector.at(i).width,
-						componentVector.at(i).length);
+						componentList.at(i).width,
+						componentList.at(i).length);
 			}
 		}
 	}

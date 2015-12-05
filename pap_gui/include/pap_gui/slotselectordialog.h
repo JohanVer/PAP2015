@@ -27,15 +27,6 @@ public:
 	}
 };
 
-class PartEntry{
-public:
-	std::string package, value;
-	int count, slot;
-	PartEntry(){
-		count = 0;
-		slot = 0;
-	}
-};
 
 class SlotSelectorDialog: public QDialog {
 Q_OBJECT
@@ -70,6 +61,7 @@ public Q_SLOTS:
 	void mergeButton_clicked();
 	void showAllPartsButton_clicked();
 	void showMissingPartsButton_clicked();
+	void autoSlotSelectButton_clicked();
 	void buttonBox_clicked(QAbstractButton*);
 
 private:

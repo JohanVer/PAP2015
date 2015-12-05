@@ -70,7 +70,7 @@ file(GLOB_RECURSE QT_SOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} FOLLOW_SYMLINK
 # Binaries
 ##############################################################################
 
-add_executable(pap_gui ${QT_SOURCES} ${QT_RESOURCES_CPP} ${uis_h} ${qt_srcs}  ${QT_FORMS_HPP} ${QT_MOC_HPP} src/MyContextMenuTable.cpp src/GerberPadParser.cpp src/SlotGraphicsView.cpp src/PadView.cpp src/slotselectordialog.cpp)
+add_executable(pap_gui ${QT_SOURCES} ${QT_RESOURCES_CPP} ${uis_h} ${qt_srcs}  ${QT_FORMS_HPP} ${QT_MOC_HPP} src/MyContextMenuTable.cpp src/GerberPadParser.cpp src/SlotGraphicsView.cpp src/PadView.cpp src/slotselectordialog.cpp src/DatabaseClass.cpp)
 target_link_libraries(pap_gui ${QT_LIBRARIES} ${catkin_LIBRARIES})
 install(TARGETS pap_gui RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 

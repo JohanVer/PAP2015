@@ -17,7 +17,7 @@
    </sizepolicy>
   </property>
   <property name="windowTitle">
-   <string>Slot Setup Assistent</string>
+   <string>Slot Wizard</string>
   </property>
   <widget class="QDialogButtonBox" name="buttonBox">
    <property name="geometry">

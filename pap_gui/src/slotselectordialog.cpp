@@ -20,6 +20,8 @@ SlotSelectorDialog::SlotSelectorDialog(QWidget *parent) :
 			SLOT(showAllPartsButton_clicked()));
 	QWidget::connect(ui->showMissingPartsButton, SIGNAL(pressed()), this,
 			SLOT(showMissingPartsButton_clicked()));
+	QWidget::connect(ui->autoSlotSelectButton, SIGNAL(pressed()), this,
+				SLOT(autoSlotSelectButton_clicked()));
 
 	// Setup slot sizes/positions using offsetTable
 	for (size_t i = 0; i < 47; i++) {
@@ -104,6 +106,37 @@ void SlotSelectorDialog::buttonBox_clicked(QAbstractButton* button) {
 	 ROS_INFO("cancel button pressed");
 	 }
 	 */
+}
+
+void SlotSelectorDialog::autoSlotSelectButton_clicked() {
+	ROS_INFO("autoSelect pressed");
+	// Update missing part List
+	missingPartListActive = true;
+	updateMissingPartList();
+
+	// Iterate over missingPartList
+	for (size_t i=0; i < missingPartList.size(); i++) {
+
+		/* Get package information */
+		float length, width;
+		//getPackageInfo(missingPartList.at(i).package, &length, &width);
+		int amount = missingPartList.at(i).count;
+
+		/* 1. Small boxes *
+		if () {
+
+		/* 2. Middle boxes *
+		} else if () {
+
+
+		/* 3. Large boxes *
+		} else {
+
+		}*/
+	}
+
+	updateMissingPartList();
+
 }
 
 void SlotSelectorDialog::slotPressed(int numberOfFiducial, QPointF padPos) {
@@ -272,26 +305,24 @@ void SlotSelectorDialog::generatePartList(
 
 // TODO: Sort by values within each type of package
 
-	/*Print usedSlots_ */
+	/*Print usedSlots_
 	for (int i = 0; i < 88; i++) {
 		if (usedSlots_[i] == true) {
 			ROS_INFO("usedSlot: %d: true \n", i);
 		} else {
 			ROS_INFO("usedSlot: %d: false \n", i);
 		}
-	}
+	}*/
 
 	updateTable();
 }
 
 bool SlotSelectorDialog::slotUsed(int slotNumber) {
 
-	/* Slot number not valid */
+	/* Slot number not valid or used */
 	if (slotNumber > 86) {
 		return true;
-	}
-	/* Slot already used */
-	else if (usedSlots_[slotNumber]) {
+	} else if (usedSlots_[slotNumber]) {
 		return true;
 	}
 	return false;
