@@ -30,7 +30,6 @@
 #include "../../pap_placer/include/pap_placer/offsetTable.hpp"
 #include "../include/pap_gui/DatabaseClass.hpp"
 
-
 /*****************************************************************************
  ** Namespaces
  *****************************************************************************/
@@ -44,7 +43,6 @@ using namespace std;
  ** Implementation [MainWindow]
  *****************************************************************************/
 
-bool componentTableEmpty = true;
 bool singleComponentSelected = false;
 bool placementProcessRunning = false;
 bool bottomLEDon = false;
@@ -53,7 +51,6 @@ int boxNumberMax = 86;
 int boxNumberMin = 0;
 int boxNumberSug = 1;
 float xTapeCalibration, yTapeCalibration, rotTapeCalibration = 0;
-
 
 MainWindow::MainWindow(int version, int argc, char** argv, QWidget *parent) :
 		QMainWindow(parent), qnode(argc, argv) {
@@ -138,7 +135,7 @@ MainWindow::MainWindow(int version, int argc, char** argv, QWidget *parent) :
 			SLOT(changeBackLEDBrightness(int)));
 
 	connect(ui.topBrightnessSlider_2, SIGNAL(valueChanged(int)), this,
-				SLOT(changeTopLEDBrightness(int)));
+			SLOT(changeTopLEDBrightness(int)));
 
 	// Color Combo LED Ring
 	connect(ui.ringColorCombo, SIGNAL(activated(int)), this,
@@ -196,16 +193,14 @@ MainWindow::MainWindow(int version, int argc, char** argv, QWidget *parent) :
 		placerStatusUpdated(i, pap_common::PLACER_IDLE);
 	}
 
-	if (version == 1) {			// User Version
+	// Disable developer tabs if user version selected
+	if (version == 1) {
 		ui.tab_manager->setTabEnabled(0, false);
 		ui.tab_manager->setTabEnabled(1, false);
 		ui.tab_manager->setTabEnabled(2, false);
 		ui.tab_manager->setCurrentIndex(3);
 	}
-
 }
-
-
 
 MainWindow::~MainWindow() {
 }
@@ -213,420 +208,15 @@ MainWindow::~MainWindow() {
 /********************************************************************"*********
  ** Implementation [Slots]
  *****************************************************************************/
-
-void MainWindow::on_scanPCBButton_clicked() {
-
-	// Go with camera 1 to PCB fence
-
-	// take picture / start stitching process
-
-	// store image
-}
-
-void MainWindow::setLedFromSelection(int selection) {
-	if (selection != -1) {
-		ROS_INFO("Set led number %d", selection);
-		qnode.setLEDTask(selection);
-	} else {
-		qnode.LEDTask(pap_common::RESETALLLED, 0);
-	}
-}
-
-void MainWindow::on_setCompBoxNrButton_2_clicked() {
-
-	if (singleComponentSelected) {
-		// Create the dialog for selecting the desired box
-		SlotSelectorDialog w;
-		SlotInformation test;
-		test.index = 1;
-		test.name = std::string("100nF");
-		//w.nameList.push_back(test);
-		//w.paintSlots();
-
-		// Start slotSelector window
-		//connect(&w, SIGNAL(setLed(int)), this, SLOT(setLedFromSelection(int)));
-		//w.exec();
-
-		/*int current_index = w.getIndex();
-		singleComponent.box = current_index;
-		componentList[singleComponent.index].box = current_index;
-		ui.checkBox_box->setChecked(true);
-		ui.label_compBox_2->setText(QString::number(current_index));
-		updateComponentInformation();*/
-
-	} else {
-		QMessageBox msgBox;
-		msgBox.setText("No component information available.");
-		msgBox.exec();
-		msgBox.close();
-	}
-	qnode.LEDTask(pap_common::RESETALLLED, 0);
-}
-
-void MainWindow::on_setCompBoxNrButton_clicked() {
-	// Check if table empty
-	if (!componentTableEmpty) {
-
-		/* Get current component */
-		int currentComponent = ui.tableWidget->currentRow();
-
-			// Check first, that all components are found in the database
-			if (missingPackageList.isEmpty()) {
-				SlotSelectorDialog slotWizard;
-				// Pass entire component vector to Slot Dialog and execute dialog
-				slotWizard.generatePartList(&componentList);
-				slotWizard.paintSlots();
-				connect(&slotWizard, SIGNAL(setLed(int)), this,
-						SLOT(setLedFromSelection(int)));
-				slotWizard.exec();
-			} else {
-				QMessageBox msgBox;
-				msgBox.setText("There are still packages missing in the database.");
-				msgBox.exec();
-				msgBox.close();
-			}
-
-			/* Here is a example how to pass occupied slots
-			for (size_t i = 0; i < componentList.size(); i++) {
-				SlotInformation test;
-				if (componentList[i].box != -1) {
-					test.index = componentList[i].box;
-					// The character number shall be restricted to 5
-					test.name = componentList[i].value.substr(0, 5);
-					slotWizard.nameList.push_back(test);
-				}
-			}*/
-
-
-			/*bool ok = false;*/
-			//QInputDialog* inputDialog = new QInputDialog();
-			//inputDialog->setOptions(QInputDialog::NoButtons);
-
-			/* Get boxNumber input
-			int currentBox = componentList.at(currentComponent).box;
-			if (currentBox == -1) {
-				currentBox = boxNumberSug;
-			}*/
-
-			//int boxNumber = inputDialog->getInt(this, "enter number", "enter number", currentBox, boxNumberMax, boxNumberMin, boxNumberStep, &ok, 0);
-			/*int boxNumber = slotWizard.getIndex();
-			if (boxNumber <= boxNumberMax && boxNumber >= boxNumberMin) {
-				componentList[currentComponent].box = boxNumber;
-				ui.label_compBox->setText(QString::number(boxNumber));
-				boxNumberSug++;
-
-			} else {
-				QMessageBox msgBox;
-				msgBox.setText("BoxNumberMin = 1, BoxNumberMax = 50");
-				msgBox.exec();
-				msgBox.close();
-
-			}*/
-
-	/* If table empty */
-	} else {
-		QMessageBox msgBox;
-		msgBox.setText(
-				"Component table empty. Please load gerber file first.");
-		msgBox.exec();
-		msgBox.close();
-	}
-}
-
-void MainWindow::loadDatabaseContent() {
-
-	std::fstream databaseFile;
-	std::string fileName = std::string(getenv("PAPRESOURCES"))
-			+ "database/database.txt";
-	databaseFile.open(fileName.c_str(),
-			std::fstream::in | std::fstream::out | std::fstream::app);
-
-	/* ok, proceed  */
-	if (databaseFile.is_open()) {
-
-		std::string lineString;
-		while (getline(databaseFile, lineString)) {
-
-			QString componentString = QString::fromStdString(lineString);
-			QRegExp sep(",");
-			bool ok;
-
-			/* Filter only valid database entries */
-			if (!(componentString.at(0) == (char) 42)) {
-
-				databaseEntry newDatabaseEntry;
-				newDatabaseEntry.package = componentString.section(sep, 0, 0);
-				newDatabaseEntry.length =
-						componentString.section(sep, 1, 1).toFloat(&ok);
-				newDatabaseEntry.width =
-						componentString.section(sep, 2, 2).toFloat(&ok);
-				newDatabaseEntry.height =
-						componentString.section(sep, 3, 3).toFloat(&ok);
-				newDatabaseEntry.pins =
-						componentString.section(sep, 4, 4).toInt(&ok);
-				/*qDebug() << newDatabaseEntry.package << " "
-				 << newDatabaseEntry.length << " "
-				 << newDatabaseEntry.width << " "
-				 << newDatabaseEntry.height << " "
-				 << newDatabaseEntry.pins;*/
-				databaseVector.append(newDatabaseEntry);
-			}
-		}
-
-	} else {
-		qDebug() << "Could not open database!";
-	}
-
-	databaseFile.close();
-
-	if (databaseVector.isEmpty()) {
-		QMessageBox msgBox;
-		msgBox.setText("No database found or not able to read database.");
-		msgBox.exec();
-		msgBox.close();
-	}
-}
-
-
-void MainWindow::updateSingleComponentInformation() {
-
-	ui.label_compName_2->setText(singleComponent.name.c_str());
-	ui.label_compValue_2->setText(singleComponent.value.c_str());
-	ui.label_compPackage_2->setText(singleComponent.package.c_str());
-
-	// Check if package exsists in database
-	int packageID = -1;
-	for (int i = 0; i < databaseVector.size(); i++) {
-		string currentPackage = singleComponent.package;
-
-		if (databaseVector.at(i).package
-				== QString::fromStdString(currentPackage)) {
-			packageID = i;
-			break;
-		}
-	}
-
-	if (packageID == -1) {		// Package not found
-		ui.label_compLength_2->setText("not found");
-		ui.label_compWidth_2->setText("not found");
-		ui.label_compHeight_2->setText("not found");
-		ui.label_compPins_2->setText("not found");
-	} else {					// Package found
-		ui.label_compLength_2->setText(
-				QString::number(databaseVector.at(packageID).length, 'f', 2));
-		singleComponent.length = databaseVector.at(packageID).length;
-		ui.label_compWidth_2->setText(
-				QString::number(databaseVector.at(packageID).width, 'f', 2));
-		singleComponent.width = databaseVector.at(packageID).width;
-		ui.label_compHeight_2->setText(
-				QString::number(databaseVector.at(packageID).height, 'f', 2));
-		singleComponent.height = databaseVector.at(packageID).height;
-		ui.label_compPins_2->setText(
-				QString::number(databaseVector.at(packageID).pins));
-	}
-
-	ui.label_compPos_2->setText(
-			QString::number(singleComponent.posX, 'f', 2) + " / "
-					+ QString::number(singleComponent.posY, 'f', 2));
-	ui.label_compOrient_2->setText(QString::number(singleComponent.rotation));
-	ui.label_compSide_2->setText(singleComponent.side.c_str());
-
-	if (singleComponent.box == -1) {
-		ui.label_compBox_2->setText("unknown");
-	} else {
-		ui.label_compBox_2->setText(QString::number(singleComponent.box));
-	}
-
-}
-
-void MainWindow::updateComponentInformation() {
-
-	int currentComp = ui.tableWidget->currentRow();
-
-	if (currentComp == -1) {
-		ui.label_compName->setText("-");
-		ui.label_compValue->setText("-");
-		ui.label_compPackage->setText("-");
-		ui.label_compLength->setText("-");
-		ui.label_compWidth->setText("-");
-		ui.label_compHeight->setText("-");
-		ui.label_compPins->setText("-");
-		ui.label_compPos->setText("-");
-		ui.label_compOrient->setText("-");
-		ui.label_compSide->setText("-");
-		ui.label_compBox->setText("-");
-
-	} else {
-
-		ui.label_compName->setText(
-				componentList.at(currentComp).name.c_str());
-		ui.label_compValue->setText(
-				componentList.at(currentComp).value.c_str());
-		ui.label_compPackage->setText(
-				componentList.at(currentComp).package.c_str());
-
-		int packageID = -1;
-		for (int i = 0; i < databaseVector.size(); i++) {
-			string currentPackage = componentList.at(currentComp).package;
-
-			if (databaseVector.at(i).package
-					== QString::fromStdString(currentPackage)) {
-				packageID = i;
-				break;
-			}
-		}
-
-		if (packageID == -1) {		// Package not found
-			ui.label_compLength->setText("not found");
-			ui.label_compWidth->setText("not found");
-			ui.label_compHeight->setText("not found");
-			ui.label_compPins->setText("not found");
-		} else {					// Package found
-			ui.label_compLength->setText(
-					QString::number(databaseVector.at(packageID).length, 'f',
-							2));
-			componentList[currentComp].length =
-					databaseVector.at(packageID).length;
-			ui.label_compWidth->setText(
-					QString::number(databaseVector.at(packageID).width, 'f',
-							2));
-			componentList[currentComp].width =
-					databaseVector.at(packageID).width;
-			ui.label_compHeight->setText(
-					QString::number(databaseVector.at(packageID).height, 'f',
-							2));
-			ui.label_compPins->setText(
-					QString::number(databaseVector.at(packageID).pins));
-		}
-
-		ui.label_compPos->setText(
-				QString::number(componentList.at(currentComp).posX, 'f', 2)
-						+ " / "
-						+ QString::number(componentList.at(currentComp).posY,
-								'f', 2));
-		ui.label_compOrient->setText(
-				QString::number(componentList.at(currentComp).rotation));
-		ui.label_compSide->setText(
-				componentList.at(currentComp).side.c_str());
-
-		if (componentList.at(currentComp).box == -1) {
-			ui.label_compBox->setText("unknown");
-		} else {
-			ui.label_compBox->setText(
-					QString::number(componentList.at(currentComp).box));
-		}
-	}
-}
-
-void MainWindow::on_tableWidget_clicked() {
-	updateComponentInformation();
-}
-
-void MainWindow::on_clearTableButton_clicked() {
-
-	/* Table already empty */
-	if (componentTableEmpty) {
-		QMessageBox msgBox;
-		msgBox.setText("No content to delete.");
-		msgBox.exec();
-		msgBox.close();
-
-	/* Clear table */
-	} else {
-		while (!componentList.isEmpty()) {
-			componentList.remove(0);
-		}
-		updateComponentTable();
-		updateComponentInformation();
-	}
-}
-
-void MainWindow::on_compOrientButton_clicked() {
-
-	/* Get current component */
-	int currentComponent = ui.tableWidget->currentRow();
-
-	/* If no component selected */
-	if (currentComponent == -1) {
-		QMessageBox msgBox;
-		msgBox.setText("Please select a component.");
-		msgBox.exec();
-		msgBox.close();
-
-	} else {
-
-		bool ok = false;
-		QInputDialog* inputDialog = new QInputDialog();
-		inputDialog->setOptions(QInputDialog::NoButtons);
-
-		/* Get boxNumber input */
-		int currentRotation = componentList.at(currentComponent).rotation;
-		int rotation = inputDialog->getInt(this, "Change component orientation",
-				"Enter component orientation:", currentRotation);
-		componentList[currentComponent].rotation = rotation;
-		ui.label_compOrient->setText(QString::number(rotation));
-	}
-}
-
-void MainWindow::on_compPackageButton_clicked() {
-
-	/* Get current component */
-	int currentComponent = ui.tableWidget->currentRow();
-
-	/* If no component selected */
-	if (currentComponent == -1) {
-		QMessageBox msgBox;
-		msgBox.setText("Please select a component.");
-		msgBox.exec();
-		msgBox.close();
-
-	} else {
-
-		bool ok = false;
-		QInputDialog* inputDialog = new QInputDialog();
-		inputDialog->setOptions(QInputDialog::NoButtons);
-
-		/* Get boxNumber input */
-		QString currentPackage = QString::fromStdString(
-				componentList.at(currentComponent).package);
-		QString text = inputDialog->getText(this, "Change package",
-				"Enter new package:", QLineEdit::Normal, currentPackage, &ok);
-		if (ok && !text.isEmpty()) {
-			ui.label_compPackage->setText(text);
-			componentList[currentComponent].package = text.toStdString();
-		}
-		updateMissingPackageList();
-		updateMissingPackageTable();
-	}
-}
-
-void MainWindow::on_compDeleteButton_clicked() {
-
-	/* Get current component */
-	int currentComp = ui.tableWidget->currentRow();
-
-	if (currentComp == -1) {
-		QMessageBox msgBox;
-		msgBox.setText("No component selected.");
-		msgBox.exec();
-		msgBox.close();
-
-	} else { /* Delete component from vector */
-		componentList.remove(currentComp);
-		updateComponentTable();
-		updateComponentInformation();
-	}
-
-	updateMissingPackageList();
-	updateMissingPackageTable();
-}
-
 void MainWindow::on_loadGerberFileButton_clicked() {
 
 	/* Clear component vector and reset component number*/
 	componentList.clear();
 	packageList.clear();
 	missingPackageList.clear();
+	updateMissingPackageList();
+	updateComponentTable();
+	updateComponentInformation();
 	componentCount = 0;
 
 	//get a filename to open
@@ -712,25 +302,427 @@ void MainWindow::on_loadGerberFileButton_clicked() {
 	}
 
 	datafile.close();
-
-	if (componentCount != 0) {
-		componentTableEmpty = false;
-		updateComponentTable();
-	}
+	updateComponentTable();
 
 	/* Check if components in database */
 	updatePackageList();
 	updateMissingPackageList();
 
-	/*QMessageBox msgBox;
-	msgBox.setText("In database missing components:" + databaseMissingList.size());
-	msgBox.exec();
-	msgBox.close();*/
+	if (!missingPackageList.isEmpty()) {
+		QMessageBox msgBox;
+		QString message =
+				QString(
+						"There are %1 unknown packages which are needed to perform a complete PCB placement.").arg(
+						missingPackageList.size());
+		msgBox.setText(message);
+		msgBox.exec();
+		msgBox.close();
 
+		/* Jump to database tab and show missing packages*/
+		ui.tab_manager->setCurrentIndex(5);
+	}
+}
+
+void MainWindow::on_clearTableButton_clicked() {
+
+	componentCount = 0;
+	componentList.clear();
+	packageList.clear();
+	missingPackageList.clear();
+	updateMissingPackageList();
+	updateComponentTable();
+	updateComponentInformation();
+}
+
+void MainWindow::on_startSlotWizard_clicked() {
+
+	// Check if table empty
+	if (!componentList.isEmpty()) {
+
+		// All types of components need to be known
+		if (missingPackageList.isEmpty()) {
+			SlotSelectorDialog slotWizard;
+			// Pass entire component vector to Slot Dialog and execute dialog
+			slotWizard.generatePartList(&componentList);
+			slotWizard.paintSlots();
+			connect(&slotWizard, SIGNAL(setLed(int)), this,
+					SLOT(setLedFromSelection(int)));
+			slotWizard.exec();
+		} else {
+			QMessageBox msgBox;
+			QString message =
+					QString(
+							"There are still %1 unknown packages which are needed to perform a complete PCB placement.").arg(
+							missingPackageList.size());
+			msgBox.setText(message);
+			msgBox.exec();
+			msgBox.close();
+		}
+
+	} else {
+		QMessageBox msgBox;
+		msgBox.setText("Component table empty. Please load gerber file first.");
+		msgBox.exec();
+		msgBox.close();
+	}
+}
+
+void MainWindow::on_compOrientButton_clicked() {
+
+	/* Get current component */
+	int currentComponent = ui.tableWidget->currentRow();
+
+	/* If no component selected */
+	if (currentComponent == -1) {
+		QMessageBox msgBox;
+		msgBox.setText("Please select a component.");
+		msgBox.exec();
+		msgBox.close();
+
+	} else {
+
+		bool ok = false;
+		QInputDialog* inputDialog = new QInputDialog();
+		inputDialog->setOptions(QInputDialog::NoButtons);
+
+		/* Get boxNumber input */
+		int currentRotation = componentList.at(currentComponent).rotation;
+		int rotation = inputDialog->getInt(this, "Change component orientation",
+				"Enter component orientation:", currentRotation);
+		componentList[currentComponent].rotation = rotation;
+		ui.label_compOrient->setText(QString::number(rotation));
+	}
+}
+
+void MainWindow::on_compPackageButton_clicked() {
+
+	/* Get current component */
+	int currentComponent = ui.tableWidget->currentRow();
+
+	/* If no component selected */
+	if (currentComponent == -1) {
+		QMessageBox msgBox;
+		msgBox.setText("Please select a component.");
+		msgBox.exec();
+		msgBox.close();
+
+	} else {
+
+		bool ok = false;
+		QInputDialog* inputDialog = new QInputDialog();
+		inputDialog->setOptions(QInputDialog::NoButtons);
+
+		/* Get boxNumber input */
+		QString currentPackage = QString::fromStdString(
+				componentList.at(currentComponent).package);
+		QString text = inputDialog->getText(this, "Change package",
+				"Enter new package:", QLineEdit::Normal, currentPackage, &ok);
+		if (ok && !text.isEmpty()) {
+			ui.label_compPackage->setText(text);
+			componentList[currentComponent].package = text.toStdString();
+		}
+		updateComponentTable();
+		updateMissingPackageList();
+		updateMissingPackageTable();
+	}
+}
+
+
+
+
+
+void MainWindow::on_mergeButton_clicked(){
+
+	int database_package = ui.packageTableWidget->currentRow();
+	int missing_package = ui.missingPackageTableWidget->currentRow();
+	int replaceCounter = 0;
+
+	if(database_package == -1) {
+		QMessageBox msgBox;
+		msgBox.setText("No package from database selected.");
+		msgBox.exec();
+		msgBox.close();
+	} else if(missing_package == -1){
+		QMessageBox msgBox;
+		msgBox.setText("No missing package selected.");
+		msgBox.exec();
+		msgBox.close();
+	} else {
+
+		QString databasePackage = databaseVector.at(database_package).package;
+		QString missingPackage = QString::fromStdString(missingPackageList.at(missing_package));
+		QString message = QString("To replace package '%1' by '%2' click yes.").arg(missingPackage).arg(databasePackage);
+
+		QMessageBox::StandardButton reply;
+		reply = QMessageBox::question(this, "Check replacement", message,
+									QMessageBox::Yes|QMessageBox::No);
+		if (reply == QMessageBox::Yes) {
+			// Replace missing package by the given database package.
+			for(size_t i=0; i < componentList.size(); i++) {
+				if(componentList.at(i).package.compare(missingPackageList.at(missing_package)) == 0) {
+					componentList[i].package = databasePackage.toStdString();
+					replaceCounter++;
+				}
+			}
+			updateComponentTable();
+			updateComponentInformation();
+			updateMissingPackageList();
+			updateMissingPackageTable();
+			ROS_INFO("%d components have been replaced.", replaceCounter);
+		}
+	}
+}
+
+
+
+
+
+
+void MainWindow::setLedFromSelection(int selection) {
+	if (selection != -1) {
+		ROS_INFO("Set led number %d", selection);
+		qnode.setLEDTask(selection);
+	} else {
+		qnode.LEDTask(pap_common::RESETALLLED, 0);
+	}
+}
+
+void MainWindow::on_setCompBoxNrButton_2_clicked() {
+
+	if (singleComponentSelected) {
+		// Create the dialog for selecting the desired box
+		SlotSelectorDialog w;
+		SlotInformation test;
+		test.index = 1;
+		test.name = std::string("100nF");
+		//w.nameList.push_back(test);
+		//w.paintSlots();
+
+		// Start slotSelector window
+		//connect(&w, SIGNAL(setLed(int)), this, SLOT(setLedFromSelection(int)));
+		//w.exec();
+
+		/*int current_index = w.getIndex();
+		 singleComponent.box = current_index;
+		 componentList[singleComponent.index].box = current_index;
+		 ui.checkBox_box->setChecked(true);
+		 ui.label_compBox_2->setText(QString::number(current_index));
+		 updateComponentInformation();*/
+
+	} else {
+		QMessageBox msgBox;
+		msgBox.setText("No component information available.");
+		msgBox.exec();
+		msgBox.close();
+	}
+	qnode.LEDTask(pap_common::RESETALLLED, 0);
+}
+
+void MainWindow::loadDatabaseContent() {
+
+	std::fstream databaseFile;
+	std::string fileName = std::string(getenv("PAPRESOURCES"))
+			+ "database/database.txt";
+	databaseFile.open(fileName.c_str(),
+			std::fstream::in | std::fstream::out | std::fstream::app);
+
+	/* ok, proceed  */
+	if (databaseFile.is_open()) {
+
+		std::string lineString;
+		while (getline(databaseFile, lineString)) {
+
+			QString componentString = QString::fromStdString(lineString);
+			QRegExp sep(",");
+			bool ok;
+
+			/* Filter only valid database entries */
+			if (!(componentString.at(0) == (char) 42)) {
+
+				databaseEntry newDatabaseEntry;
+				newDatabaseEntry.package = componentString.section(sep, 0, 0);
+				newDatabaseEntry.length =
+						componentString.section(sep, 1, 1).toFloat(&ok);
+				newDatabaseEntry.width =
+						componentString.section(sep, 2, 2).toFloat(&ok);
+				newDatabaseEntry.height =
+						componentString.section(sep, 3, 3).toFloat(&ok);
+				newDatabaseEntry.pins =
+						componentString.section(sep, 4, 4).toInt(&ok);
+				databaseVector.append(newDatabaseEntry);
+			}
+		}
+
+	} else {
+		qDebug() << "Could not open database!";
+	}
+
+	databaseFile.close();
+
+	if (databaseVector.isEmpty()) {
+		QMessageBox msgBox;
+		msgBox.setText("No database found or not able to read database.");
+		msgBox.exec();
+		msgBox.close();
+	}
+}
+
+void MainWindow::updateSingleComponentInformation() {
+
+	ui.label_compName_2->setText(singleComponent.name.c_str());
+	ui.label_compValue_2->setText(singleComponent.value.c_str());
+	ui.label_compPackage_2->setText(singleComponent.package.c_str());
+
+	// Check if package exsists in database
+	int packageID = -1;
+	for (int i = 0; i < databaseVector.size(); i++) {
+		string currentPackage = singleComponent.package;
+
+		if (databaseVector.at(i).package
+				== QString::fromStdString(currentPackage)) {
+			packageID = i;
+			break;
+		}
+	}
+
+	if (packageID == -1) {		// Package not found
+		ui.label_compLength_2->setText("not found");
+		ui.label_compWidth_2->setText("not found");
+		ui.label_compHeight_2->setText("not found");
+		ui.label_compPins_2->setText("not found");
+	} else {					// Package found
+		ui.label_compLength_2->setText(
+				QString::number(databaseVector.at(packageID).length, 'f', 2));
+		singleComponent.length = databaseVector.at(packageID).length;
+		ui.label_compWidth_2->setText(
+				QString::number(databaseVector.at(packageID).width, 'f', 2));
+		singleComponent.width = databaseVector.at(packageID).width;
+		ui.label_compHeight_2->setText(
+				QString::number(databaseVector.at(packageID).height, 'f', 2));
+		singleComponent.height = databaseVector.at(packageID).height;
+		ui.label_compPins_2->setText(
+				QString::number(databaseVector.at(packageID).pins));
+	}
+
+	ui.label_compPos_2->setText(
+			QString::number(singleComponent.posX, 'f', 2) + " / "
+					+ QString::number(singleComponent.posY, 'f', 2));
+	ui.label_compOrient_2->setText(QString::number(singleComponent.rotation));
+	ui.label_compSide_2->setText(singleComponent.side.c_str());
+
+	if (singleComponent.box == -1) {
+		ui.label_compBox_2->setText("unknown");
+	} else {
+		ui.label_compBox_2->setText(QString::number(singleComponent.box));
+	}
+
+}
+
+void MainWindow::updateComponentInformation() {
+
+	int currentComp = ui.tableWidget->currentRow();
+
+	if (currentComp == -1) {
+		ui.label_compName->setText("-");
+		ui.label_compValue->setText("-");
+		ui.label_compPackage->setText("-");
+		ui.label_compLength->setText("-");
+		ui.label_compWidth->setText("-");
+		ui.label_compHeight->setText("-");
+		ui.label_compPins->setText("-");
+		ui.label_compPos->setText("-");
+		ui.label_compOrient->setText("-");
+		ui.label_compSide->setText("-");
+		ui.label_compBox->setText("-");
+
+	} else {
+
+		ui.label_compName->setText(componentList.at(currentComp).name.c_str());
+		ui.label_compValue->setText(
+				componentList.at(currentComp).value.c_str());
+		ui.label_compPackage->setText(
+				componentList.at(currentComp).package.c_str());
+
+		int packageID = -1;
+		for (int i = 0; i < databaseVector.size(); i++) {
+			string currentPackage = componentList.at(currentComp).package;
+
+			if (databaseVector.at(i).package
+					== QString::fromStdString(currentPackage)) {
+				packageID = i;
+				break;
+			}
+		}
+
+		if (packageID == -1) {		// Package not found
+			ui.label_compLength->setText("not found");
+			ui.label_compWidth->setText("not found");
+			ui.label_compHeight->setText("not found");
+			ui.label_compPins->setText("not found");
+		} else {					// Package found
+			ui.label_compLength->setText(
+					QString::number(databaseVector.at(packageID).length, 'f',
+							2));
+			componentList[currentComp].length =
+					databaseVector.at(packageID).length;
+			ui.label_compWidth->setText(
+					QString::number(databaseVector.at(packageID).width, 'f',
+							2));
+			componentList[currentComp].width =
+					databaseVector.at(packageID).width;
+			ui.label_compHeight->setText(
+					QString::number(databaseVector.at(packageID).height, 'f',
+							2));
+			ui.label_compPins->setText(
+					QString::number(databaseVector.at(packageID).pins));
+		}
+
+		ui.label_compPos->setText(
+				QString::number(componentList.at(currentComp).posX, 'f', 2)
+						+ " / "
+						+ QString::number(componentList.at(currentComp).posY,
+								'f', 2));
+		ui.label_compOrient->setText(
+				QString::number(componentList.at(currentComp).rotation));
+		ui.label_compSide->setText(componentList.at(currentComp).side.c_str());
+
+		if (componentList.at(currentComp).box == -1) {
+			ui.label_compBox->setText("unknown");
+		} else {
+			ui.label_compBox->setText(
+					QString::number(componentList.at(currentComp).box));
+		}
+	}
+}
+
+void MainWindow::on_tableWidget_clicked() {
+	updateComponentInformation();
+}
+
+void MainWindow::on_compDeleteButton_clicked() {
+
+	/* Get current component */
+	int currentComp = ui.tableWidget->currentRow();
+
+	if (currentComp == -1) {
+		QMessageBox msgBox;
+		msgBox.setText("No component selected.");
+		msgBox.exec();
+		msgBox.close();
+
+	} else { /* Delete component from vector */
+		componentList.remove(currentComp);
+		updateComponentTable();
+		updateComponentInformation();
+	}
+
+	updateMissingPackageList();
+	updateMissingPackageTable();
 }
 
 void MainWindow::updatePackageList() {
 	bool inPackageList;
+	packageList.clear();
 
 	/* Iterate over all components*/
 	for (size_t i = 0; i < componentList.size(); i++) {
@@ -752,15 +744,18 @@ void MainWindow::updatePackageList() {
 }
 
 void MainWindow::updateMissingPackageList() {
+	updatePackageList();
 	bool inDatabase;
+	missingPackageList.clear();
 
 	/* Iterate over all parts */
-	for (size_t i=0; i < packageList.size(); i++) {
+	for (size_t i = 0; i < packageList.size(); i++) {
 
 		inDatabase = false;
-		for (size_t k=0; k < databaseVector.size(); k++) {
+		for (size_t k = 0; k < databaseVector.size(); k++) {
 			/* Check if part is in database */
-			if (packageList.at(i).compare(databaseVector.at(k).package.toStdString()) == 0) {
+			if (packageList.at(i).compare(
+					databaseVector.at(k).package.toStdString()) == 0) {
 				inDatabase = true;
 				break;
 			}
@@ -771,7 +766,7 @@ void MainWindow::updateMissingPackageList() {
 			missingPackageList.push_back(packageList.at(i));
 		}
 	}
-
+	ROS_INFO("Missing package list size: %d", missingPackageList.size());
 	updateMissingPackageTable();
 }
 
@@ -797,11 +792,14 @@ void MainWindow::updateMissingPackageTable() {
 	}
 
 	// Table settings
-	ui.missingPackageTableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
-	ui.missingPackageTableWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
+	ui.missingPackageTableWidget->setSelectionMode(
+			QAbstractItemView::SingleSelection);
+	ui.missingPackageTableWidget->setSelectionBehavior(
+			QAbstractItemView::SelectRows);
 	ui.missingPackageTableWidget->setSizePolicy(QSizePolicy::Expanding,
 			QSizePolicy::Maximum);
-	ui.missingPackageTableWidget->horizontalHeader()->setResizeMode(QHeaderView::Stretch);
+	ui.missingPackageTableWidget->horizontalHeader()->setResizeMode(
+			QHeaderView::Stretch);
 	ui.missingPackageTableWidget->show();
 }
 
@@ -984,16 +982,15 @@ void MainWindow::on_placeSingleComponentButton_clicked() {
 void MainWindow::on_startPlacementButton_clicked() {
 
 	/* Check if there are components to place */
-	if (componentTableEmpty) {
+	if (componentList.isEmpty()) {
 		QMessageBox msgBox;
-		msgBox.setText(
-				"Component table empty. Please select gerber file first.");
+		msgBox.setText("Component table empty. Please load gerber file first.");
 		msgBox.exec();
 		msgBox.close();
 	} else {
 
 		/* Check if all slots are set */
-		for (size_t i=0; i < componentList.size(); i++) {
+		for (size_t i = 0; i < componentList.size(); i++) {
 			if (componentList.at(i).box == -1) {
 				QMessageBox msgBox;
 				msgBox.setText("Please set all slots first.");
@@ -1005,7 +1002,7 @@ void MainWindow::on_startPlacementButton_clicked() {
 
 		/* Do a single placement process for each component */
 		/* Iterate over all components */
-		for (size_t k=0; k < componentList.size(); k++) {
+		for (size_t k = 0; k < componentList.size(); k++) {
 			// Update placement data with current component
 			// Logic - which component is placed first?
 
@@ -1761,30 +1758,31 @@ void MainWindow::setCamera1Point(QPointF point) {
 }
 
 void MainWindow::on_scanQRButton_clicked() {
-	qnode.sendTask(pap_common::VISION, pap_vision::START__QRCODE_FINDER, 0, 1, 0);
-/*
-	QEventLoop loop;
-	QTimer *timer = new QTimer(this);
+	qnode.sendTask(pap_common::VISION, pap_vision::START__QRCODE_FINDER, 0, 1,
+			0);
+	/*
+	 QEventLoop loop;
+	 QTimer *timer = new QTimer(this);
 
-	//connect(&qnode, SIGNAL(signalPosition(float,float)), &loop, SLOT(quit()));
-	connect(timer, SIGNAL(timeout()), &loop, SLOT(quit()));
-	timer->setSingleShot(true);
-	timer->start(1000);
+	 //connect(&qnode, SIGNAL(signalPosition(float,float)), &loop, SLOT(quit()));
+	 connect(timer, SIGNAL(timeout()), &loop, SLOT(quit()));
+	 timer->setSingleShot(true);
+	 timer->start(1000);
 
-	loop.exec(); //blocks untill either signalPosition or timeout was fired
+	 loop.exec(); //blocks untill either signalPosition or timeout was fired
 
-	// Is timeout ocurred?
-	if (!timer->isActive()) {
-		//qnode.sendTask(pap_common::VISION, pap_vision::START_PAD_FINDER);
-		QMessageBox msgBox;
-		const QString title = "No QR Code detected";
-		msgBox.setWindowTitle(title);
-		msgBox.setText("No QR Code found within the last 5 seconds");
-		msgBox.exec();
-		msgBox.close();
-		return;
-	}
-*/
+	 // Is timeout ocurred?
+	 if (!timer->isActive()) {
+	 //qnode.sendTask(pap_common::VISION, pap_vision::START_PAD_FINDER);
+	 QMessageBox msgBox;
+	 const QString title = "No QR Code detected";
+	 msgBox.setWindowTitle(title);
+	 msgBox.setText("No QR Code found within the last 5 seconds");
+	 msgBox.exec();
+	 msgBox.close();
+	 return;
+	 }
+	 */
 	//qnode.sendTask(pap_common::VISION, pap_vision::START_PAD_FINDER);
 	// Update component info
 }
@@ -2201,10 +2199,10 @@ void MainWindow::on_bottomLEDButton_clicked() {
 void MainWindow::on_topLedButton_clicked() {
 	static bool topLEDon = false;
 	if (!topLEDon) {
-		qnode.LEDTask(pap_common::SETTOPLED,0);
+		qnode.LEDTask(pap_common::SETTOPLED, 0);
 		topLEDon = true;
 	} else {
-		qnode.LEDTask(pap_common::RESETTOPLED,0);
+		qnode.LEDTask(pap_common::RESETTOPLED, 0);
 		topLEDon = false;
 	}
 }
@@ -2463,8 +2461,7 @@ void MainWindow::on_calibrateTapeButton_clicked(void) {
 				calibrateTape(tape_nr, componentList.at(i).width,
 						componentList.at(i).length);
 				ROS_INFO("Index : %d Width: %f Height: %f", tape_nr,
-						componentList.at(i).width,
-						componentList.at(i).length);
+						componentList.at(i).width, componentList.at(i).length);
 			}
 		}
 	}
@@ -2576,7 +2573,7 @@ void MainWindow::calibrateTape(int tapeNumber, float componentWidth,
 	}
 	qnode.sendTask(pap_common::VISION, pap_vision::STOP_VISION);
 
-	ROS_INFO("TapeCal: %f CurrentPos: %f",xTapeCalibration,currentPosition.x);
+	ROS_INFO("TapeCal: %f CurrentPos: %f", xTapeCalibration, currentPosition.x);
 	calibrationVal.x = xTapeCalibration + currentPosition.x;
 	calibrationVal.y = yTapeCalibration + currentPosition.y;
 	ros::Duration(1).sleep();
@@ -2607,7 +2604,7 @@ void MainWindow::calibrateTape(int tapeNumber, float componentWidth,
 		return;
 	}
 	calibrationVal.rot = rotTapeCalibration;
-	if(calibrationVal.rot == -90 || calibrationVal.rot == 90) {
+	if (calibrationVal.rot == -90 || calibrationVal.rot == 90) {
 		calibrationVal.rot = 0;
 	}
 	qnode.sendTask(pap_common::VISION, pap_vision::STOP_VISION);

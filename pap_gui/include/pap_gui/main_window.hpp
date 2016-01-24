@@ -45,7 +45,6 @@
 #include "DispenserPlanner.hpp"
 #include <tf/transform_broadcaster.h>
 #include <algorithm>
-//#include "DatabaseClass.hpp"
 #include "CommonDataClasses.hpp"
 
 
@@ -123,10 +122,18 @@ public Q_SLOTS:
     void releaseyManNeg();
     void releasezManNeg();
 
+    // Complete PCB Tab
+    void on_startSlotWizard_clicked();
+
+    // Single Component Tab
+
+
+
+
     void on_loadGerberFileButton_clicked();
     void on_startPlacementButton_clicked();
     void on_pausePlacementButton_clicked();
-    void on_setCompBoxNrButton_clicked();
+
     void on_compOrientButton_clicked();
     void on_clearTableButton_clicked();
     void on_tableWidget_clicked();
@@ -140,7 +147,6 @@ public Q_SLOTS:
     void on_placeSingleComponentButton_clicked();
     void on_compPackageButton_clicked();
     void updateSingleComponentInformation();
-    void on_scanPCBButton_clicked();
     void on_setCompBoxNrButton_2_clicked();
     void on_setLEDButton_clicked();
     void setLedFromSelection(int);
@@ -212,6 +218,11 @@ public Q_SLOTS:
     void updatePackageList();
     void updateMissingPackageList();
     void updateMissingPackageTable();
+    //void on_missingPackageTableWidget_clicked();
+    //void on_packageTableWidget_clicked();
+    void on_mergeButton_clicked();
+
+
 
     /******************************************
     ** Manual connections
@@ -225,11 +236,18 @@ private:
 	bool bottomLayer_;
 	bool alreadyFlipped_;
 
-	// Pick and place data structures
+    QDialogButtonBox *buttonBox;
+    QPushButton *moreButton;
+
+	// List of all components that need to be placed
 	QVector<componentEntry> componentList;
+	// List of all types of components/packages used in componentlist
 	QVector<string> packageList;
+	// List of all unkown/missing packages used in packageList
 	QVector<string> missingPackageList;
+	// List of all packages in database
 	QVector<databaseEntry> databaseVector;
+
 	//DatabaseClass database;
 	ComponentPlacerData placementData;
 	componentEntry singleComponent;

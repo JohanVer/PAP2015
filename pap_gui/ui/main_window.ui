@@ -40,7 +40,7 @@
        <locale language="English" country="Australia"/>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>5</number>
       </property>
       <widget class="QWidget" name="tab_status">
        <attribute name="title">
@@ -341,8 +341,8 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>98</width>
-           <height>28</height>
+           <width>100</width>
+           <height>30</height>
           </rect>
          </property>
          <attribute name="label">
@@ -432,8 +432,8 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>98</width>
-           <height>28</height>
+           <width>100</width>
+           <height>30</height>
           </rect>
          </property>
          <attribute name="label">
@@ -501,8 +501,8 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>98</width>
-           <height>28</height>
+           <width>100</width>
+           <height>30</height>
           </rect>
          </property>
          <attribute name="label">
@@ -527,8 +527,8 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>98</width>
-           <height>28</height>
+           <width>100</width>
+           <height>30</height>
           </rect>
          </property>
          <attribute name="label">
@@ -579,8 +579,8 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>98</width>
-           <height>28</height>
+           <width>100</width>
+           <height>30</height>
           </rect>
          </property>
          <attribute name="label">
@@ -2364,12 +2364,12 @@
            <x>205</x>
            <y>30</y>
            <width>152</width>
-           <height>201</height>
+           <height>251</height>
           </rect>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_23">
           <item>
-           <widget class="QPushButton" name="setCompBoxNrButton">
+           <widget class="QPushButton" name="startSlotWizard">
             <property name="text">
              <string>Slot Wizard</string>
             </property>
@@ -3132,13 +3132,6 @@
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_31">
           <item>
-           <widget class="QPushButton" name="scanPCBButton">
-            <property name="text">
-             <string>Scan PCB</string>
-            </property>
-           </widget>
-          </item>
-          <item>
            <widget class="QPushButton" name="pushButton_15">
             <property name="text">
              <string>Set comp. position</string>
@@ -3817,8 +3810,8 @@
          <rect>
           <x>40</x>
           <y>50</y>
-          <width>481</width>
-          <height>481</height>
+          <width>491</width>
+          <height>531</height>
          </rect>
         </property>
         <property name="title">
@@ -3830,7 +3823,7 @@
            <x>0</x>
            <y>30</y>
            <width>481</width>
-           <height>441</height>
+           <height>471</height>
           </rect>
          </property>
         </widget>
@@ -3853,7 +3846,7 @@
          <rect>
           <x>560</x>
           <y>50</y>
-          <width>181</width>
+          <width>171</width>
           <height>231</height>
          </rect>
         </property>
@@ -3878,7 +3871,7 @@
           <rect>
            <x>9</x>
            <y>30</y>
-           <width>161</width>
+           <width>151</width>
            <height>181</height>
           </rect>
          </property>
@@ -3939,8 +3932,8 @@
          <rect>
           <x>560</x>
           <y>290</y>
-          <width>181</width>
-          <height>241</height>
+          <width>171</width>
+          <height>271</height>
          </rect>
         </property>
         <property name="title">
@@ -3964,9 +3957,22 @@
           <rect>
            <x>10</x>
            <y>30</y>
-           <width>161</width>
-           <height>201</height>
+           <width>151</width>
+           <height>181</height>
           </rect>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="mergeButton">
+         <property name="geometry">
+          <rect>
+           <x>30</x>
+           <y>220</y>
+           <width>111</width>
+           <height>31</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Replace</string>
          </property>
         </widget>
        </widget>
