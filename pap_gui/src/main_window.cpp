@@ -30,6 +30,7 @@
 #include "../../pap_placer/include/pap_placer/offsetTable.hpp"
 #include "../include/pap_gui/DatabaseClass.hpp"
 
+
 /*****************************************************************************
  ** Namespaces
  *****************************************************************************/
@@ -54,7 +55,7 @@ int boxNumberSug = 1;
 float xTapeCalibration, yTapeCalibration, rotTapeCalibration = 0;
 
 
-MainWindow::MainWindow(int argc, char** argv, QWidget *parent) :
+MainWindow::MainWindow(int version, int argc, char** argv, QWidget *parent) :
 		QMainWindow(parent), qnode(argc, argv) {
 	ui.setupUi(this); // Calling this incidentally connects all ui's triggers to on_...() callbacks in this class.
 	ui.centralwidget->setMouseTracking(true);
@@ -193,6 +194,13 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent) :
 
 	for (int i = 1; i <= 7; i++) {
 		placerStatusUpdated(i, pap_common::PLACER_IDLE);
+	}
+
+	if (version == 1) {			// User Version
+		ui.tab_manager->setTabEnabled(0, false);
+		ui.tab_manager->setTabEnabled(1, false);
+		ui.tab_manager->setTabEnabled(2, false);
+		ui.tab_manager->setCurrentIndex(3);
 	}
 
 }

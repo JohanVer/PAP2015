@@ -16,6 +16,7 @@
 #include <QtGui/QMainWindow>
 #include "ui_main_window.h"
 #include "slotselectordialog.h"
+#include "versionSelectorDialog.h"
 #include "qnode.hpp"
 #include "pap_common/Task.h"
 #include "../../../pap_common/include/pap_common/vision_message_def.h"
@@ -78,7 +79,7 @@ class MainWindow : public QMainWindow {
 Q_OBJECT
 
 public:
-	MainWindow(int argc, char** argv, QWidget *parent = 0);
+	MainWindow(int verions, int argc, char** argv, QWidget *parent = 0);
 	~MainWindow();
 
 	void ReadSettings(); // Load up qt program settings at startup

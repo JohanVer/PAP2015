@@ -146,10 +146,10 @@
   <widget class="QPushButton" name="mergeButton">
    <property name="geometry">
     <rect>
-     <x>770</x>
-     <y>540</y>
+     <x>620</x>
+     <y>580</y>
      <width>131</width>
-     <height>27</height>
+     <height>51</height>
     </rect>
    </property>
    <property name="text">
@@ -198,9 +198,9 @@
   <widget class="QWidget" name="horizontalLayoutWidget">
    <property name="geometry">
     <rect>
-     <x>720</x>
-     <y>590</y>
-     <width>181</width>
+     <x>760</x>
+     <y>580</y>
+     <width>121</width>
      <height>51</height>
     </rect>
    </property>
@@ -252,7 +252,7 @@
   <widget class="QPushButton" name="mergeButton_2">
    <property name="geometry">
     <rect>
-     <x>920</x>
+     <x>770</x>
      <y>540</y>
      <width>131</width>
      <height>27</height>
@@ -268,7 +268,7 @@
      <x>920</x>
      <y>510</y>
      <width>131</width>
-     <height>27</height>
+     <height>61</height>
     </rect>
    </property>
    <property name="text">
