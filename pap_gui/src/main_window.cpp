@@ -29,6 +29,7 @@
 #include <tf/transform_broadcaster.h>
 #include "../../pap_placer/include/pap_placer/offsetTable.hpp"
 #include "../include/pap_gui/DatabaseClass.hpp"
+#include "../include/pap_gui/packageDialog.hpp"
 
 /*****************************************************************************
  ** Namespaces
@@ -206,7 +207,7 @@ MainWindow::~MainWindow() {
 }
 
 /********************************************************************"*********
- ** Implementation [Slots]
+ ** Implementation "Complete PCB"-Tab
  *****************************************************************************/
 void MainWindow::on_loadGerberFileButton_clicked() {
 
@@ -428,10 +429,10 @@ void MainWindow::on_compPackageButton_clicked() {
 }
 
 
-
-
-
-void MainWindow::on_mergeButton_clicked(){
+/********************************************************************"*********
+ ** Implementation "Package Database"-Tab
+ *****************************************************************************/
+void MainWindow::on_replaceButton_clicked() {
 
 	int database_package = ui.packageTableWidget->currentRow();
 	int missing_package = ui.missingPackageTableWidget->currentRow();
@@ -451,7 +452,7 @@ void MainWindow::on_mergeButton_clicked(){
 
 		QString databasePackage = databaseVector.at(database_package).package;
 		QString missingPackage = QString::fromStdString(missingPackageList.at(missing_package));
-		QString message = QString("To replace package '%1' by '%2' click yes.").arg(missingPackage).arg(databasePackage);
+		QString message = QString("To replace package '%1' by '%2'n click yes.").arg(missingPackage).arg(databasePackage);
 
 		QMessageBox::StandardButton reply;
 		reply = QMessageBox::question(this, "Check replacement", message,
@@ -473,7 +474,14 @@ void MainWindow::on_mergeButton_clicked(){
 	}
 }
 
-
+void MainWindow::on_addPackageButton_clicked() {
+	PackageDialog* packageDialog = new PackageDialog();
+	packageDialog->exec();
+	databaseVector.append(packageDialog->newEntry);
+	updateDatabaseTable();
+	updateMissingPackageList();
+	updateMissingPackageTable();
+}
 
 
 

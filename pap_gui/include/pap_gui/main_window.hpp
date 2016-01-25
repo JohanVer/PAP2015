@@ -46,6 +46,7 @@
 #include <tf/transform_broadcaster.h>
 #include <algorithm>
 #include "CommonDataClasses.hpp"
+#include "packageDialog.hpp"
 
 
 
@@ -218,9 +219,9 @@ public Q_SLOTS:
     void updatePackageList();
     void updateMissingPackageList();
     void updateMissingPackageTable();
-    //void on_missingPackageTableWidget_clicked();
-    //void on_packageTableWidget_clicked();
-    void on_mergeButton_clicked();
+
+    void on_replaceButton_clicked();
+    void on_addPackageButton_clicked();
 
 
 
@@ -235,9 +236,6 @@ private:
 	QNode qnode;
 	bool bottomLayer_;
 	bool alreadyFlipped_;
-
-    QDialogButtonBox *buttonBox;
-    QPushButton *moreButton;
 
 	// List of all components that need to be placed
 	QVector<componentEntry> componentList;

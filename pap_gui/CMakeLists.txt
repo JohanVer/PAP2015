@@ -52,12 +52,12 @@ file(GLOB QT_RESOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} resources/*.qrc)
 file(GLOB_RECURSE QT_MOC RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} FOLLOW_SYMLINKS include/pap_gui/*.hpp)
 
 set(qt_srcs
-      src/versionSelectorDialog.cpp src/slotselectordialog.cpp src/main_window.cpp)
+      src/versionSelectorDialog.cpp src/packageDialog.cpp src/slotselectordialog.cpp src/main_window.cpp)
 set(qt_hdrs
-      include/pap_gui/slotselectordialog.h include/pap_gui/versionSelectorDialog.h include/pap_gui/main_window.hpp)
+      include/pap_gui/slotselectordialog.h include/pap_gui/versionSelectorDialog.h include/pap_gui/packageDialog.hpp include/pap_gui/main_window.hpp)
 qt4_automoc(${qt_srcs})
 QT4_ADD_RESOURCES(QT_RESOURCES_CPP ${QT_RESOURCES})
-QT4_WRAP_UI(QT_FORMS_HPP ${QT_FORMS} ui/main_window.ui ui/slotselectordialog.ui ui/versionSelectorDialog.ui)
+QT4_WRAP_UI(QT_FORMS_HPP ${QT_FORMS} ui/main_window.ui ui/slotselectordialog.ui ui/versionSelectorDialog.ui ui/packageDialog.ui)
 QT4_WRAP_CPP(QT_MOC_HPP ${QT_MOC} ${qt_hdrs})
 
 ##############################################################################
@@ -70,7 +70,7 @@ file(GLOB_RECURSE QT_SOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} FOLLOW_SYMLINK
 # Binaries
 ##############################################################################
 
-add_executable(pap_gui ${QT_SOURCES} ${QT_RESOURCES_CPP} ${uis_h} ${qt_srcs}  ${QT_FORMS_HPP} ${QT_MOC_HPP} src/MyContextMenuTable.cpp src/GerberPadParser.cpp src/SlotGraphicsView.cpp src/PadView.cpp src/slotselectordialog.cpp src/DatabaseClass.cpp src/versionSelectorDialog.cpp)
+add_executable(pap_gui ${QT_SOURCES} ${QT_RESOURCES_CPP} ${uis_h} ${qt_srcs}  ${QT_FORMS_HPP} ${QT_MOC_HPP} src/MyContextMenuTable.cpp src/GerberPadParser.cpp src/SlotGraphicsView.cpp src/PadView.cpp src/slotselectordialog.cpp src/DatabaseClass.cpp src/versionSelectorDialog.cpp src/packageDialog.cpp)
 target_link_libraries(pap_gui ${QT_LIBRARIES} ${catkin_LIBRARIES})
 install(TARGETS pap_gui RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 

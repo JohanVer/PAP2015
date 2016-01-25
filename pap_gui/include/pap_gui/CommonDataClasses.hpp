@@ -17,6 +17,12 @@ public:
 	QString package;
 	float length, width, height;
 	int pins;
+	databaseEntry(){
+		length = 0.0;
+		width = 0.0;
+		height = 0.0;
+		pins = 0;
+	}
 };
 
 class PartEntry{
