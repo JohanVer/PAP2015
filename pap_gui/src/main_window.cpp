@@ -475,13 +475,46 @@ void MainWindow::on_replaceButton_clicked() {
 }
 
 void MainWindow::on_addPackageButton_clicked() {
-	PackageDialog* packageDialog = new PackageDialog();
+	PackageDialog* packageDialog = new PackageDialog(&databaseVector, -1);
 	packageDialog->exec();
-	databaseVector.append(packageDialog->newEntry);
 	updateDatabaseTable();
 	updateMissingPackageList();
 	updateMissingPackageTable();
 }
+
+void MainWindow::on_editPackageButton_clicked() {
+
+	int current_package = ui.packageTableWidget->currentRow();
+	if(current_package != -1) {
+		PackageDialog* packageDialog = new PackageDialog(&databaseVector, current_package);
+		packageDialog->exec();
+		updateDatabaseTable();
+		updateMissingPackageList();
+		updateMissingPackageTable();
+	} else {
+		QMessageBox msgBox;
+		msgBox.setText("No package selected.");
+		msgBox.exec();
+		msgBox.close();
+	}
+}
+
+void MainWindow::on_deletePackageButton_clicked() {
+
+	int current_package = ui.packageTableWidget->currentRow();
+	if(current_package != -1) {
+		databaseVector.remove(current_package);
+		updateDatabaseTable();
+		updateMissingPackageList();
+		updateMissingPackageTable();
+	} else {
+		QMessageBox msgBox;
+		msgBox.setText("No package selected.");
+		msgBox.exec();
+		msgBox.close();
+	}
+}
+
 
 
 

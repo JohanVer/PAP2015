@@ -43,13 +43,6 @@
       </widget>
      </item>
      <item>
-      <widget class="QLabel" name="label">
-       <property name="text">
-        <string>Height</string>
-       </property>
-      </widget>
-     </item>
-     <item>
       <widget class="QLabel" name="label_4">
        <property name="text">
         <string>Length</string>
@@ -60,6 +53,13 @@
       <widget class="QLabel" name="label_5">
        <property name="text">
         <string>Width</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="label">
+       <property name="text">
+        <string>Height</string>
        </property>
       </widget>
      </item>
@@ -86,16 +86,20 @@
       <widget class="QLineEdit" name="nameLine"/>
      </item>
      <item>
-      <widget class="QLineEdit" name="heightLine"/>
-     </item>
-     <item>
       <widget class="QLineEdit" name="lengthLine"/>
      </item>
      <item>
       <widget class="QLineEdit" name="widthLine"/>
      </item>
      <item>
-      <widget class="QLineEdit" name="pinsLine"/>
+      <widget class="QLineEdit" name="heightLine"/>
+     </item>
+     <item>
+      <widget class="QLineEdit" name="pinsLine">
+       <property name="inputMethodHints">
+        <set>Qt::ImhNone</set>
+       </property>
+      </widget>
      </item>
     </layout>
    </widget>

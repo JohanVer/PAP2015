@@ -222,6 +222,8 @@ public Q_SLOTS:
 
     void on_replaceButton_clicked();
     void on_addPackageButton_clicked();
+    void on_editPackageButton_clicked();
+    void on_deletePackageButton_clicked();
 
 
 
