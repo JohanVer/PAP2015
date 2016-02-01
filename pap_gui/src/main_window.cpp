@@ -342,13 +342,11 @@ void MainWindow::on_startSlotWizard_clicked() {
 
 		// All types of components need to be known
 		if (missingPackageList.isEmpty()) {
-			SlotSelectorDialog slotWizard;
-			// Pass entire component vector to Slot Dialog and execute dialog
-			slotWizard.generatePartList(&componentList);
-			slotWizard.paintSlots();
+			SlotSelectorDialog slotWizard(&componentList, &databaseVector);
 			connect(&slotWizard, SIGNAL(setLed(int)), this,
 					SLOT(setLedFromSelection(int)));
 			slotWizard.exec();
+			updateComponentInformation();
 		} else {
 			QMessageBox msgBox;
 			QString message =
@@ -532,10 +530,10 @@ void MainWindow::on_setCompBoxNrButton_2_clicked() {
 
 	if (singleComponentSelected) {
 		// Create the dialog for selecting the desired box
-		SlotSelectorDialog w;
-		SlotInformation test;
-		test.index = 1;
-		test.name = std::string("100nF");
+		//SlotSelectorDialog w;
+		//SlotInformation test;
+		//test.index = 1;
+		//test.name = std::string("100nF");
 		//w.nameList.push_back(test);
 		//w.paintSlots();
 

@@ -143,19 +143,6 @@
     <bool>true</bool>
    </property>
   </widget>
-  <widget class="QPushButton" name="mergeButton">
-   <property name="geometry">
-    <rect>
-     <x>620</x>
-     <y>580</y>
-     <width>131</width>
-     <height>51</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Merge part</string>
-   </property>
-  </widget>
   <widget class="QPushButton" name="showAllPartsButton">
    <property name="geometry">
     <rect>
@@ -188,78 +175,11 @@
      <x>770</x>
      <y>510</y>
      <width>131</width>
-     <height>27</height>
+     <height>61</height>
     </rect>
    </property>
    <property name="text">
-    <string>Reset slot</string>
-   </property>
-  </widget>
-  <widget class="QWidget" name="horizontalLayoutWidget">
-   <property name="geometry">
-    <rect>
-     <x>760</x>
-     <y>580</y>
-     <width>121</width>
-     <height>51</height>
-    </rect>
-   </property>
-   <layout class="QHBoxLayout" name="horizontalLayout">
-    <item>
-     <layout class="QVBoxLayout" name="verticalLayout">
-      <item>
-       <widget class="QLabel" name="label_6">
-        <property name="text">
-         <string>Merge:</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QLabel" name="label_5">
-        <property name="text">
-         <string>into :</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </item>
-    <item>
-     <layout class="QVBoxLayout" name="verticalLayout_2">
-      <item>
-       <widget class="QLabel" name="label_merge1">
-        <property name="text">
-         <string/>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QLabel" name="label_merge2">
-        <property name="text">
-         <string/>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </item>
-   </layout>
-  </widget>
-  <widget class="QPushButton" name="mergeButton_2">
-   <property name="geometry">
-    <rect>
-     <x>770</x>
-     <y>540</y>
-     <width>131</width>
-     <height>27</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Reset all slots</string>
+    <string>Reset pkg slot</string>
    </property>
   </widget>
   <widget class="QPushButton" name="autoSlotSelectButton">

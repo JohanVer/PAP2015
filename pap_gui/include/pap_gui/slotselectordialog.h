@@ -32,45 +32,44 @@ class SlotSelectorDialog: public QDialog {
 Q_OBJECT
 
 public:
-	explicit SlotSelectorDialog(QWidget *parent = 0);
+	explicit SlotSelectorDialog(QVector<componentEntry>* packageList, QVector<databaseEntry>* databaseVector, QWidget *parent = 0);
 	~SlotSelectorDialog();
-	int searchId(QPointF position);
-	int getIndex();
-	void paintSlots(void);
-	void generatePartList(QVector<componentEntry> *componentVector);
-	void updateTable();
-	void getName(int index, std::string* package, std::string* value);
-	bool slotUsed(int slotNumber);
-	//void on_partTable_clicked();
-	void updatePartEntry(int updatedPartID);
-	void updateComponentVector();
-	void updateMissingPartList();
 
-private:
-	std::vector<SlotInformation> nameList;
-	std::vector<PartEntry> partList, missingPartList;
-	bool missingPartListActive;
+public Q_SLOTS:
+	void slotPressed(int numberOfFiducial, QPointF padPos);
+	void on_resetSlotButton_clicked();
+	void on_showAllPartsButton_clicked();
+	void on_showMissingPartsButton_clicked();
+	void on_autoSlotSelectButton_clicked();
+	void on_buttonBox_clicked(QAbstractButton*);
 
 Q_SIGNALS:
 	void setSlotIndex(int indexOfSlot);
 	void setLed(int indexOfSlot);
 
-public Q_SLOTS:
-	void slotPressed(int numberOfFiducial, QPointF padPos);
-	void resetSlotButton_clicked();
-	void mergeButton_clicked();
-	void showAllPartsButton_clicked();
-	void showMissingPartsButton_clicked();
-	void autoSlotSelectButton_clicked();
-	void buttonBox_clicked(QAbstractButton*);
-
 private:
+	int searchId(QPointF position);
+	void getName(int index, std::string* package, std::string* value);
+	void paintSlots(void);
+	void updateTable();
+	void updatePartEntry(int updatedPartID);
+	void updateComponentVector();
+	void updateMissingPartList();
+	void generatePartList();
+	void getCompDimensions(std::string package, std::string value,  float *length, float *width);
+	bool slotUsed(int slotNumber);
+	void setSlot(int compIndex, int slot);
+
 	Ui::SlotSelectorDialog *ui;
 	SlotGraphicsScene sceneSlots_;
-	std::vector<SlotInformation> printedSlots_;
 	bool usedSlots_[87];
-	int currentIndex_;
+	std::vector<PartEntry> partList, missingPartList;
+	bool missingPartListActive;
+	std::vector<SlotInformation> printedSlots_;
 	QVector<componentEntry> *componentVector_;
+	QVector<databaseEntry>* databaseVector_;
+	float safetyFactor;
+
 };
 
 #endif // SLOTSELECTORDIALOG_H

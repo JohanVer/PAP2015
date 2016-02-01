@@ -2,28 +2,12 @@
 #include "SlotGraphicsView.hpp"
 #include "../../pap_placer/include/pap_placer/offsetTable.hpp"
 
-SlotSelectorDialog::SlotSelectorDialog(QWidget *parent) :
+SlotSelectorDialog::SlotSelectorDialog(QVector<componentEntry>* packageList, QVector<databaseEntry>* database, QWidget *parent) :
 		QDialog(parent), ui(new Ui::SlotSelectorDialog) {
 	ui->setupUi(this);
-	currentIndex_ = -1;
 	QWidget::connect(&sceneSlots_, SIGNAL(sendMousePoint(int ,QPointF)), this,
 			SLOT(slotPressed(int,QPointF)));
 
-	QObject::connect(ui->buttonBox, SIGNAL(clicked(QAbstractButton*)), this,
-			SLOT(buttonBox_clicked(QAbstractButton*)));
-
-	QWidget::connect(ui->mergeButton, SIGNAL(pressed()), this,
-			SLOT(mergeButton_clicked()));
-	QWidget::connect(ui->resetSlotButton, SIGNAL(pressed()), this,
-			SLOT(resetSlotButton_clicked()));
-	QWidget::connect(ui->showAllPartsButton, SIGNAL(pressed()), this,
-			SLOT(showAllPartsButton_clicked()));
-	QWidget::connect(ui->showMissingPartsButton, SIGNAL(pressed()), this,
-			SLOT(showMissingPartsButton_clicked()));
-	QWidget::connect(ui->autoSlotSelectButton, SIGNAL(pressed()), this,
-				SLOT(autoSlotSelectButton_clicked()));
-
-	// Setup slot sizes/positions using offsetTable
 	for (size_t i = 0; i < 47; i++) {
 		SlotInformation slot;
 		slot.pos.setX(BoxOffsetTable[i].y);
@@ -64,12 +48,12 @@ SlotSelectorDialog::SlotSelectorDialog(QWidget *parent) :
 		printedSlots_.push_back(slot);
 	}
 
-	for (size_t i = 0; i < 88; i++) {
-		usedSlots_[i] = false;
-	}
-
-	/* Full part list active at beginning */
+	for (size_t i = 0; i < 88; i++) { usedSlots_[i] = false;}
+	componentVector_ = packageList;
+	databaseVector_ = database;
 	missingPartListActive = false;
+	safetyFactor = 0.8;
+	generatePartList();
 	paintSlots();
 	ui->graphicsView->scale(-1.5, 1.5);
 }
@@ -97,46 +81,15 @@ int SlotSelectorDialog::searchId(QPointF position) {
 	return -1;
 }
 
-void SlotSelectorDialog::buttonBox_clicked(QAbstractButton* button) {
+void SlotSelectorDialog::on_buttonBox_clicked(QAbstractButton* button) {
 
-	/*
-	 if (ui->buttonBox->button(QDialogButtonBox::Apply) == button) {
-	 ROS_INFO("ok button pressed");
-	 } else if (ui->buttonBox->button(QDialogButtonBox::Abort) == button) {
-	 ROS_INFO("cancel button pressed");
-	 }
-	 */
-}
-
-void SlotSelectorDialog::autoSlotSelectButton_clicked() {
-	ROS_INFO("autoSelect pressed");
-	// Update missing part List
-	missingPartListActive = true;
-	updateMissingPartList();
-
-	// Iterate over missingPartList
-	for (size_t i=0; i < missingPartList.size(); i++) {
-
-		/* Get package information */
-		float length, width;
-		//getPackageInfo(missingPartList.at(i).package, &length, &width);
-		int amount = missingPartList.at(i).count;
-
-		/* 1. Small boxes *
-		if () {
-
-		/* 2. Middle boxes *
-		} else if () {
-
-
-		/* 3. Large boxes *
-		} else {
-
-		}*/
+	if (ui->buttonBox->button(QDialogButtonBox::Ok) == (QPushButton*)button) {
+		// Save slots!
+		updateComponentVector();
+	} else {
+		// Discard slot selection (don't update componentVector)
+		this->close();
 	}
-
-	updateMissingPartList();
-
 }
 
 void SlotSelectorDialog::slotPressed(int numberOfFiducial, QPointF padPos) {
@@ -165,9 +118,6 @@ void SlotSelectorDialog::slotPressed(int numberOfFiducial, QPointF padPos) {
 		}
 	}
 
-	ROS_INFO("selected row: %d", ui->partTable->currentRow());
-	ROS_INFO("actual row: %d", currentPartIndex);
-
 	/* If not -> full list, index correct */
 	if (slotUsed(id)) {
 		QMessageBox msgBox;
@@ -194,11 +144,12 @@ void SlotSelectorDialog::slotPressed(int numberOfFiducial, QPointF padPos) {
 void SlotSelectorDialog::updateComponentVector() {
 
 	bool inPartList;
-	ROS_INFO("internalCompVector size: %d", componentVector_->size());
+	// Iterate over entire component vector
 	for (size_t i = 0; i < componentVector_->size(); i++) {
-
 		inPartList = false;
+		//Find its slot in partList
 		for (size_t k = 0; k < partList.size(); k++) {
+			//Update slot of current component if in partList
 			if (componentVector_->at(i).package == partList.at(k).package
 					&& componentVector_->at(i).value == partList.at(k).value) {
 				inPartList = true;
@@ -206,13 +157,13 @@ void SlotSelectorDialog::updateComponentVector() {
 				break;
 			}
 		}
+		// Component not in partList - now slot known
 		if (!inPartList) {
-			(*componentVector_)[i].box = -1;
+				(*componentVector_)[i].box = -1;
 		}
 	}
 }
 
-/* Updated slot of the given updatedPartID in table */
 void SlotSelectorDialog::updatePartEntry(int updatedPartID) {
 	if (partList.at(updatedPartID).slot == -1) {
 		ui->partTable->setItem(updatedPartID, 2, new QTableWidgetItem("-"));
@@ -230,41 +181,31 @@ void SlotSelectorDialog::updatePartEntry(int updatedPartID) {
 	}
 }
 
-int SlotSelectorDialog::getIndex() {
-	return currentIndex_;
-}
-
 bool sort_value(const PartEntry& element1, const PartEntry& element2) {
 	return element1.value < element2.value;
 }
 
 bool sort_package(const PartEntry& element1, const PartEntry& element2) {
 	return element1.package < element2.package;
-
 }
 
-void SlotSelectorDialog::generatePartList(
-		QVector<componentEntry> *componentVector) {
+void SlotSelectorDialog::generatePartList() {
 
-// Set pointer to component vector
-	componentVector_ = componentVector;
 	bool inPartList;
-
 	/* Iterate over all components*/
-	for (size_t i = 0; i < componentVector->size(); i++) {
-
+	for (size_t i = 0; i < componentVector_->size(); i++) {
 		inPartList = false;
 		/* Store each type once, with its amount */
 		for (size_t k = 0; k < partList.size(); k++) {
 
 			/* Components equal if same package and value */
-			if (componentVector->at(i).package == partList.at(k).package
-					&& componentVector->at(i).value == partList.at(k).value) {
+			if (componentVector_->at(i).package == partList.at(k).package
+					&& componentVector_->at(i).value == partList.at(k).value) {
 
-				/* If equal-increment count, add slot to component vector */
+				/* Increment count, add slot to component vector ??????can this happen???*/
 				inPartList = true;
 				partList.at(k).count++;
-				(*componentVector)[i].box = partList.at(k).slot;
+				(*componentVector_)[i].box = partList.at(k).slot;
 				break;
 			}
 		}
@@ -274,12 +215,13 @@ void SlotSelectorDialog::generatePartList(
 
 			/* New entry with package, value and count*/
 			PartEntry partEntry;
-			partEntry.package = componentVector->at(i).package;
-			partEntry.value = componentVector->at(i).value;
+			partEntry.package = componentVector_->at(i).package;
+			partEntry.value = componentVector_->at(i).value;
 			partEntry.count = 1;
 
 			/* Check if component slot/box already set */
-			int compSlotGiven = componentVector->at(i).box;
+			int compSlotGiven = componentVector_->at(i).box;
+
 			if (compSlotGiven == -1) {
 				partEntry.slot = -1;
 			} else {
@@ -287,7 +229,7 @@ void SlotSelectorDialog::generatePartList(
 				if (slotUsed(compSlotGiven)) {
 					/* Reset part and component slot/box value */
 					partEntry.slot = -1;
-					(*componentVector)[i].box = -1;
+					(*componentVector_)[i].box = -1;
 
 				} else {
 					/* Slot free, use it */
@@ -300,20 +242,8 @@ void SlotSelectorDialog::generatePartList(
 	}
 
 	/* Sort part list */
-//std::sort(partList.begin(), partList.end(), sort_value);
+	//std::sort(partList.begin(), partList.end(), sort_value);
 	std::sort(partList.begin(), partList.end(), sort_package);
-
-// TODO: Sort by values within each type of package
-
-	/*Print usedSlots_
-	for (int i = 0; i < 88; i++) {
-		if (usedSlots_[i] == true) {
-			ROS_INFO("usedSlot: %d: true \n", i);
-		} else {
-			ROS_INFO("usedSlot: %d: false \n", i);
-		}
-	}*/
-
 	updateTable();
 }
 
@@ -337,11 +267,9 @@ void SlotSelectorDialog::updateTable() {
 		list = &partList;
 	}
 
-// Set size of table
+	// Set size of table and labels
 	ui->partTable->setRowCount((*list).size());
 	ui->partTable->setColumnCount(4);
-
-// Set labels
 	QStringList hLabels, vLabels;
 	hLabels << "Package" << "Value" << "Slot" << "#";
 	for (int i = 1; i < (*list).size(); i++) {
@@ -366,15 +294,10 @@ void SlotSelectorDialog::updateTable() {
 
 		ui->partTable->setItem(i, 3,
 				new QTableWidgetItem(QString::number((*list).at(i).count)));
-
-		ROS_INFO("%s, %s, %d\n", ((*list).at(i).package).c_str(),
-				((*list).at(i).value).c_str(), (*list).at(i).slot);
 	}
 
-// Table settings
-
 	/*BE CAREFUL: This changes table order - but vector stays the same! Wrong indices!!*/
-//ui->partTable->sortItems(0, Qt::AscendingOrder);
+	//ui->partTable->sortItems(0, Qt::AscendingOrder);
 	ui->partTable->setSelectionMode(QAbstractItemView::SingleSelection);
 	ui->partTable->setSelectionBehavior(QAbstractItemView::SelectRows);
 	ui->partTable->setSizePolicy(QSizePolicy::Expanding,
@@ -383,9 +306,8 @@ void SlotSelectorDialog::updateTable() {
 	ui->partTable->show();
 }
 
-void SlotSelectorDialog::resetSlotButton_clicked() {
+void SlotSelectorDialog::on_resetSlotButton_clicked() {
 	int currentPart = ui->partTable->currentRow();
-
 	if (currentPart == -1) {
 		QMessageBox msgBox;
 		msgBox.setText("No part selected.");
@@ -399,15 +321,13 @@ void SlotSelectorDialog::resetSlotButton_clicked() {
 	}
 }
 
-void SlotSelectorDialog::showAllPartsButton_clicked() {
-	ROS_INFO("missingPartListActive = false");
+void SlotSelectorDialog::on_showAllPartsButton_clicked() {
 	ui->resetSlotButton->setEnabled(true);
 	missingPartListActive = false;
 	updateTable();
 }
 
-void SlotSelectorDialog::showMissingPartsButton_clicked() {
-	ROS_INFO("missingPartListActive = true");
+void SlotSelectorDialog::on_showMissingPartsButton_clicked() {
 	ui->resetSlotButton->setEnabled(false);
 	missingPartListActive = true;
 	updateMissingPartList();
@@ -421,44 +341,6 @@ void SlotSelectorDialog::updateMissingPartList() {
 			missingPartList.push_back(partList.at(i));
 		}
 	}
-}
-
-void SlotSelectorDialog::mergeButton_clicked() {
-	int currentPart = ui->partTable->currentRow();
-
-	if (currentPart == -1) {
-		QMessageBox msgBox;
-		msgBox.setText("No part selected.");
-		msgBox.exec();
-		msgBox.close();
-	} else {
-		/*  */
-		if (ui->mergeButton->text() == "Merge part") {
-			ui->label_merge1->setText("currentPart");
-			ui->mergeButton->setText("merge into");
-			return;
-		} else {
-			/* Merge comp1 into comp2*/
-			int comp1 = ui->label_merge1->text().toInt();
-			int comp2 = currentPart; //ui->label_merge2->text();
-
-			// Update partList
-			partList[currentPart].count += partList[comp1].count;
-
-			// Erase comp1
-			std::vector<PartEntry> partList_temp;
-			for (int i = 0; i < partList.size(); i++) {
-				if (i != comp1) {
-					partList_temp.push_back(partList.at(i));
-				}
-			}
-			partList.clear();
-			partList = partList_temp;
-
-			ui->mergeButton->setText("Merge part");
-		}
-	}
-
 }
 
 void SlotSelectorDialog::getName(int SlotIndex, std::string* package,
@@ -528,7 +410,111 @@ void SlotSelectorDialog::paintSlots(void) {
 	ui->graphicsView->show();
 }
 
+void SlotSelectorDialog::on_autoSlotSelectButton_clicked() {
+	// Update missing part List
+	missingPartListActive = true;
+	updateMissingPartList();
+
+	bool allFound = true;
+	// Iterate over missingPartList
+	for (size_t part_index=0; part_index < missingPartList.size(); part_index++) {
+
+		/* Get package information */
+		float length, width;
+		getCompDimensions(missingPartList.at(part_index).package, missingPartList.at(part_index).value, &length, &width);
+		int compNumber = missingPartList.at(part_index).count;
+		float totCompArea = length * width * compNumber;
+		ROS_INFO("Part: %d number: length:%.2f, width:%.2f, #:%d -> totSize: %.2f", part_index, length, width, compNumber, totCompArea);
+		/* First try: Small boxes */
+		if (totCompArea < safetyFactor * 1.00) {
+			for (size_t i = 0; i < 47; i++) {
+				if(usedSlots_[i] == false){
+					ROS_INFO("Comp: %d -> slot: %d", part_index, i);
+					setSlot(part_index, i);
+					break;
+				}
+			}
+
+		/* Second try: Middle boxes */
+		} else if (totCompArea < safetyFactor * 2.25) {
+			for (size_t i = 47; i < 59; i++) {
+				if(usedSlots_[i] == false){
+					ROS_INFO("Comp: %d -> slot: %d", part_index, i);
+					setSlot(part_index, i);
+					break;
+				}
+			}
+
+		/* Third try: Large boxes */
+		} else if (totCompArea < safetyFactor * 4.00){
+			for (size_t i = 59; i < 67; i++) {
+				if(usedSlots_[i] == false){
+					ROS_INFO("Comp: %d -> slot: %d", part_index, i);
+					setSlot(part_index, i);
+					//ROS_INFO("Updated partList slot: %d", i);
+					//ROS_INFO("Updated usedSlot: %d",usedSlots_[i]);
+					break;
+				}
+			}
+		} else {
+
+			allFound = false;
+		}
+	}
+
+	if(!allFound){
+		updateMissingPartList();
+		QMessageBox msgBox;
+		msgBox.setText("There parts left that don't fit into any slot!");
+		msgBox.exec();
+		msgBox.close();
+	} else {
+		missingPartListActive = false;
+	}
+	updateTable();
+	paintSlots();
+}
+
+void SlotSelectorDialog::setSlot(int compIndex, int slot) {
+
+	int index = compIndex;
+	if (missingPartListActive) {
+		/* Search for actual index in full list */
+		for (size_t i = 0; i < partList.size(); i++) {
+			if (partList[i].package == missingPartList[index].package
+					&& partList[i].value
+							== missingPartList[index].value) {
+				index = i;
+				break;
+			}
+		}
+	}
+
+
+	/* Update partList & used slots */
+	partList[index].slot = slot;
+	usedSlots_[slot] = true;
+
+	ROS_INFO("Updated partList slot: %d", slot);
+	ROS_INFO("Updated usedSlot: %d",usedSlots_[index]);
+}
+
+void SlotSelectorDialog::getCompDimensions(std::string package, std::string value,  float *length, float *width) {
+	QString qPackage = QString::fromStdString(package);
+	QString qValue = QString::fromStdString(value);
+
+	for (size_t i = 0; i < databaseVector_->size(); i++) {
+		// Compare value missing!!!!
+		if (databaseVector_->at(i).package.compare(qPackage) == 0) {
+			(*length) = databaseVector_->at(i).length;
+			(*width) = databaseVector_->at(i).width;
+			break;
+		}
+	}
+}
+
 SlotSelectorDialog::~SlotSelectorDialog() {
-	updateComponentVector();
+	missingPartList.clear();
+	partList.clear();
 	delete ui;
 }
