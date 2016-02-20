@@ -158,8 +158,6 @@ int main(int argc, char **argv) {
 	calibration_state = SLOT_QR;
 	bool outTolerance = false;
 
-	ros::Duration(3).sleep();
-
 	// Run state machine forever
 	while (ros::ok()) {
 		switch (state) {
@@ -1343,6 +1341,12 @@ void placerCallback(const pap_common::TaskConstPtr& taskMsg) {
 		}
 			break;
 
+		case pap_common::IDLE: {
+			ROS_INFO("Placer: Idle called.");
+			IDLE_called = true;
+			state = IDLE;
+		}
+			break;
 		case pap_common::STOP: {
 			ROS_INFO("Placer: Stop called.");
 			completePlacement = false;

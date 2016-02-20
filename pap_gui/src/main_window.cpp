@@ -43,7 +43,6 @@ using namespace std;
  ** Implementation [MainWindow]
  *****************************************************************************/
 
-bool singleComponentSelected = false;
 bool bottomLEDon = false;
 int componentCount = 0;
 float xTapeCalibration, yTapeCalibration, rotTapeCalibration = 0;
@@ -189,11 +188,13 @@ MainWindow::MainWindow(int version, int argc, char** argv, QWidget *parent) :
 
 	// Disable developer tabs if user version selected
 	if (version == 1) {
-		ui.tab_manager->setTabEnabled(0, false);
-		ui.tab_manager->setTabEnabled(1, false);
-		ui.tab_manager->setTabEnabled(2, false);
-		ui.tab_manager->setCurrentIndex(3);
+		ui.tab_manager->setTabEnabled(3, false);
+		ui.tab_manager->setTabEnabled(4, false);
+		ui.tab_manager->setTabEnabled(5, false);
+		ui.tab_manager->setCurrentIndex(0);
 		on_button_connect_clicked(true);
+		ros::Duration(1).sleep();
+		qnode.sendTask(pap_common::PLACER, pap_common::IDLE);
 	} else {
 		// Show Ros status dockwidget
 		ui.dock_status->show();
@@ -317,7 +318,7 @@ void MainWindow::on_loadGerberFileButton_clicked() {
 		msgBox.close();
 
 		/* Jump to database tab and show missing packages*/
-		ui.tab_manager->setCurrentIndex(5);
+		ui.tab_manager->setCurrentIndex(2);
 	}
 }
 
@@ -369,7 +370,7 @@ void MainWindow::on_compDeleteButton_clicked() {
 	int currentComp = ui.tableWidget->currentRow();
 	if (currentComp == -1) {
 		QMessageBox msgBox;
-		msgBox.setText("No component selected.");
+		msgBox.setText("Please select a component.");
 		msgBox.exec();
 		msgBox.close();
 	} else { /* Delete component from list */
@@ -594,19 +595,6 @@ void MainWindow::on_deletePackageButton_clicked() {
 /********************************************************************"*********
  ** Implementation "Single Component"-Tab
  *****************************************************************************/
-void MainWindow::on_startSinglePlacementButton_clicked() {
-
-	if (singleComponent.box == -1) {
-		QMessageBox msgBox;
-		msgBox.setText("Please set box number first.");
-		msgBox.exec();
-		msgBox.close();
-	} else {
-		updatePlacementData(singleComponent);
-		qnode.sendTask(pap_common::PLACER, pap_common::PLACECOMPONENT,
-				placementData);
-	}
-}
 
 void MainWindow::setLedFromSelection(int selection) {
 	if (selection != -1) {
@@ -615,37 +603,6 @@ void MainWindow::setLedFromSelection(int selection) {
 	} else {
 		qnode.LEDTask(pap_common::RESETALLLED, 0);
 	}
-}
-
-void MainWindow::on_setCompBoxNrButton_2_clicked() {
-
-	if (singleComponentSelected) {
-		// Create the dialog for selecting the desired box
-		//SlotSelectorDialog w;
-		//SlotInformation test;
-		//test.index = 1;
-		//test.name = std::string("100nF");
-		//w.nameList.push_back(test);
-		//w.paintSlots();
-
-		// Start slotSelector window
-		//connect(&w, SIGNAL(setLed(int)), this, SLOT(setLedFromSelection(int)));
-		//w.exec();
-
-		/*int current_index = w.getIndex();
-		 singleComponent.box = current_index;
-		 componentList[singleComponent.index].box = current_index;
-		 ui.checkBox_box->setChecked(true);
-		 ui.label_compBox_2->setText(QString::number(current_index));
-		 updateComponentInformation();*/
-
-	} else {
-		QMessageBox msgBox;
-		msgBox.setText("No component information available.");
-		msgBox.exec();
-		msgBox.close();
-	}
-	qnode.LEDTask(pap_common::RESETALLLED, 0);
 }
 
 void MainWindow::loadDatabaseContent() {
@@ -699,56 +656,6 @@ void MainWindow::loadDatabaseContent() {
 	}
 }
 
-void MainWindow::updateSingleComponentInformation() {
-
-	ui.label_compName_2->setText(singleComponent.name.c_str());
-	ui.label_compValue_2->setText(singleComponent.value.c_str());
-	ui.label_compPackage_2->setText(singleComponent.package.c_str());
-
-	// Check if package exsists in database
-	int packageID = -1;
-	for (int i = 0; i < databaseVector.size(); i++) {
-		string currentPackage = singleComponent.package;
-
-		if (databaseVector.at(i).package
-				== QString::fromStdString(currentPackage)) {
-			packageID = i;
-			break;
-		}
-	}
-
-	if (packageID == -1) {		// Package not found
-		ui.label_compLength_2->setText("not found");
-		ui.label_compWidth_2->setText("not found");
-		ui.label_compHeight_2->setText("not found");
-		ui.label_compPins_2->setText("not found");
-	} else {					// Package found
-		ui.label_compLength_2->setText(
-				QString::number(databaseVector.at(packageID).length, 'f', 2));
-		singleComponent.length = databaseVector.at(packageID).length;
-		ui.label_compWidth_2->setText(
-				QString::number(databaseVector.at(packageID).width, 'f', 2));
-		singleComponent.width = databaseVector.at(packageID).width;
-		ui.label_compHeight_2->setText(
-				QString::number(databaseVector.at(packageID).height, 'f', 2));
-		singleComponent.height = databaseVector.at(packageID).height;
-		ui.label_compPins_2->setText(
-				QString::number(databaseVector.at(packageID).pins));
-	}
-
-	ui.label_compPos_2->setText(
-			QString::number(singleComponent.posX, 'f', 2) + " / "
-					+ QString::number(singleComponent.posY, 'f', 2));
-	ui.label_compOrient_2->setText(QString::number(singleComponent.rotation));
-	ui.label_compSide_2->setText(singleComponent.side.c_str());
-
-	if (singleComponent.box == -1) {
-		ui.label_compBox_2->setText("unknown");
-	} else {
-		ui.label_compBox_2->setText(QString::number(singleComponent.box));
-	}
-
-}
 
 void MainWindow::updateComponentInformation() {
 
@@ -1063,17 +970,19 @@ void MainWindow::on_placeSingleComponentButton_clicked() {
 		msgBox.close();
 	} else {
 
-		singleComponent = componentList.at(currentComp);
-		updateSingleComponentInformation();
-		singleComponentSelected = true;
-
-		ui.checkBox_position->setChecked(true);
-		ui.checkBox_orientation->setChecked(true);
-		if (singleComponent.box != -1) {
-			ui.checkBox_box->setChecked(true);
+/////////////////// CHANGE //////////////////////////////
+		if (singleComponent.box == -1) {
+			QMessageBox msgBox;
+			msgBox.setText("Please set box number first.");
+			msgBox.exec();
+			msgBox.close();
+		} else {
+			updatePlacementData(singleComponent);
+			qnode.sendTask(pap_common::PLACER, pap_common::PLACECOMPONENT,
+					placementData);
 		}
-
-		ui.tab_manager->setCurrentIndex(4);
+		singleComponent = componentList.at(currentComp);
+		//updateSingleComponentInformation();
 	}
 }
 
@@ -1334,29 +1243,23 @@ void MainWindow::placerStatusUpdated(int state, int status) {
 	switch (state) {
 	case 1:
 		ui.label_indicator1->setPixmap(statePixmap);
-		ui.label_indicator1_2->setPixmap(statePixmap);
 		break;
 	case 2:
 		break;
 	case 3:
 		ui.label_indicator3->setPixmap(statePixmap);
-		ui.label_indicator3_2->setPixmap(statePixmap);
 		break;
 	case 4:
 		ui.label_indicator4->setPixmap(statePixmap);
-		ui.label_indicator4_2->setPixmap(statePixmap);
 		break;
 	case 5:
 		ui.label_indicator5->setPixmap(statePixmap);
-		ui.label_indicator5_2->setPixmap(statePixmap);
 		break;
 	case 6:
 		ui.label_indicator6->setPixmap(statePixmap);
-		ui.label_indicator6_2->setPixmap(statePixmap);
 		break;
 	case 7:
 		ui.label_indicator7->setPixmap(statePixmap);
-		ui.label_indicator7_2->setPixmap(statePixmap);
 		break;
 /*
 	case pap_common::INFO:
@@ -1845,7 +1748,7 @@ void MainWindow::on_scanQRButton_clicked() {
 	 QEventLoop loop;
 	 QTimer *timer = new QTimer(this);
 
-	 //connect(&qnode, SIGNAL(signalPosition(float,float)), &loop, SLOT(quit()));
+	 //connect(&qnode, SIGNAL(signalPosition(float,float)), &compOrientButton_2loop, SLOT(quit()));
 	 connect(timer, SIGNAL(timeout()), &loop, SLOT(quit()));
 	 timer->setSingleShot(true);
 	 timer->start(1000);

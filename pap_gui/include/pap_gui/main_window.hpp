@@ -152,8 +152,6 @@ public Q_SLOTS:
     void updateDatabaseTable();
     void on_placeSingleComponentButton_clicked();
 
-    void updateSingleComponentInformation();
-    void on_setCompBoxNrButton_2_clicked();
     void on_setLEDButton_clicked();
     void setLedFromSelection(int);
     void on_resetLEDButton_clicked();
@@ -166,8 +164,6 @@ public Q_SLOTS:
     void on_blinkRingButton_clicked();
     void on_calibrateTapeButton_clicked(void);
 
-    void on_startSinglePlacementButton_clicked();
-    //void initializeBoxPositionVector();
     // Vision
     // Buttons
     void on_scanQRButton_clicked();
