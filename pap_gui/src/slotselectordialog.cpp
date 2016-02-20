@@ -424,12 +424,10 @@ void SlotSelectorDialog::on_autoSlotSelectButton_clicked() {
 		getCompDimensions(missingPartList.at(part_index).package, missingPartList.at(part_index).value, &length, &width);
 		int compNumber = missingPartList.at(part_index).count;
 		float totCompArea = length * width * compNumber;
-		ROS_INFO("Part: %d number: length:%.2f, width:%.2f, #:%d -> totSize: %.2f", part_index, length, width, compNumber, totCompArea);
 		/* First try: Small boxes */
 		if (totCompArea < safetyFactor * 1.00) {
 			for (size_t i = 0; i < 47; i++) {
 				if(usedSlots_[i] == false){
-					ROS_INFO("Comp: %d -> slot: %d", part_index, i);
 					setSlot(part_index, i);
 					break;
 				}
@@ -439,7 +437,6 @@ void SlotSelectorDialog::on_autoSlotSelectButton_clicked() {
 		} else if (totCompArea < safetyFactor * 2.25) {
 			for (size_t i = 47; i < 59; i++) {
 				if(usedSlots_[i] == false){
-					ROS_INFO("Comp: %d -> slot: %d", part_index, i);
 					setSlot(part_index, i);
 					break;
 				}
@@ -449,10 +446,7 @@ void SlotSelectorDialog::on_autoSlotSelectButton_clicked() {
 		} else if (totCompArea < safetyFactor * 4.00){
 			for (size_t i = 59; i < 67; i++) {
 				if(usedSlots_[i] == false){
-					ROS_INFO("Comp: %d -> slot: %d", part_index, i);
 					setSlot(part_index, i);
-					//ROS_INFO("Updated partList slot: %d", i);
-					//ROS_INFO("Updated usedSlot: %d",usedSlots_[i]);
 					break;
 				}
 			}
@@ -490,13 +484,9 @@ void SlotSelectorDialog::setSlot(int compIndex, int slot) {
 		}
 	}
 
-
 	/* Update partList & used slots */
 	partList[index].slot = slot;
 	usedSlots_[slot] = true;
-
-	ROS_INFO("Updated partList slot: %d", slot);
-	ROS_INFO("Updated usedSlot: %d",usedSlots_[index]);
 }
 
 void SlotSelectorDialog::getCompDimensions(std::string package, std::string value,  float *length, float *width) {

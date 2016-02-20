@@ -123,22 +123,27 @@ public Q_SLOTS:
     void releaseyManNeg();
     void releasezManNeg();
 
+
+
     // Complete PCB Tab
+    void on_loadGerberFileButton_clicked();
+    void on_clearTableButton_clicked();
+
     void on_startSlotWizard_clicked();
+    void on_compDeleteButton_clicked();
+    void on_compOrientButton_clicked();
+    void on_compPackageButton_clicked();
+
+    void on_startPlacementButton_clicked();
+    void on_stopPlacementButton_clicked();
+
+    bool emptySlots();
+
+    void on_tableWidget_clicked();
 
     // Single Component Tab
 
 
-
-
-    void on_loadGerberFileButton_clicked();
-    void on_startPlacementButton_clicked();
-    void on_pausePlacementButton_clicked();
-
-    void on_compOrientButton_clicked();
-    void on_clearTableButton_clicked();
-    void on_tableWidget_clicked();
-    void on_compDeleteButton_clicked();
     void on_turnLeftTipButton_clicked();
     void on_turnRightTipButton_clicked();
     void updateComponentTable();
@@ -146,7 +151,7 @@ public Q_SLOTS:
     void loadDatabaseContent();
     void updateDatabaseTable();
     void on_placeSingleComponentButton_clicked();
-    void on_compPackageButton_clicked();
+
     void updateSingleComponentInformation();
     void on_setCompBoxNrButton_2_clicked();
     void on_setLEDButton_clicked();
@@ -213,13 +218,12 @@ public Q_SLOTS:
 
     void on_calibrationButton_offsets_clicked();
     void on_calibrationButton_ratios_clicked();
-    void on_ScanQRCodeButton_clicked();
 
-    //QWizardPage *createIntroPage();
     void updatePackageList();
     void updateMissingPackageList();
     void updateMissingPackageTable();
 
+    // "Package Database"-Tab functions
     void on_replaceButton_clicked();
     void on_addPackageButton_clicked();
     void on_editPackageButton_clicked();
@@ -260,16 +264,9 @@ private:
 	QGraphicsScene scene_, scene2_;
 	DispenserPlanner dispenserPlanner;
 
-
 	// Structures for holding the rendered image of the pcb
 	QPixmap renderedPadsPixmap;
 	graphicsScene scenePads_;
-
-	// Placement process indiactors
-	/*QPixmap indicatorClearPixmap;
-	QPixmap indicatorActivePixmap;
-	QPixmap indicatorFinishedPixmap;
-	QPixmap indicatorErrorPixmap;*/
 
 	// Variables of the valves
 	bool valve1Active_;
@@ -292,9 +289,10 @@ private:
     bool dispenserPaused;
     int lastDispenserId;
 
+    bool completePlacementRunning;
+    int componentIndicator;
+
     std::vector<tapeCalibrationValue> tapeCalibrationValues;
-
-
 };
 
 }  // namespace pap_gui

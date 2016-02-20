@@ -8,7 +8,6 @@
 /*****************************************************************************
  ** Includes
  *****************************************************************************/
-
 #include <QtGui>
 #include <QPixmap>
 #include <QPainter>
@@ -45,12 +44,8 @@ using namespace std;
  *****************************************************************************/
 
 bool singleComponentSelected = false;
-bool placementProcessRunning = false;
 bool bottomLEDon = false;
 int componentCount = 0;
-int boxNumberMax = 86;
-int boxNumberMin = 0;
-int boxNumberSug = 1;
 float xTapeCalibration, yTapeCalibration, rotTapeCalibration = 0;
 
 MainWindow::MainWindow(int version, int argc, char** argv, QWidget *parent) :
@@ -120,11 +115,7 @@ MainWindow::MainWindow(int version, int argc, char** argv, QWidget *parent) :
 	QObject::connect(&qnode, SIGNAL(tipToggled(int,bool)), this,
 			SLOT(tipToggled(int,bool)));
 
-	// Placer status
-	QObject::connect(&qnode, SIGNAL(placerStatusUpdated(int, int)), this,
-			SLOT(placerStatusUpdated(int, int)));
-
-	// QR code scanner
+	// Placer status / QR Code scanner
 	QObject::connect(&qnode, SIGNAL(placerStatusUpdated(int, int)), this,
 			SLOT(placerStatusUpdated(int, int)));
 
@@ -145,8 +136,6 @@ MainWindow::MainWindow(int version, int argc, char** argv, QWidget *parent) :
 	connect(ui.xManPos, SIGNAL(released()), this, SLOT(releasexManPos()));
 	connect(ui.xManNeg, SIGNAL(released()), this, SLOT(releasexManNeg()));
 	connect(ui.YManPos, SIGNAL(released()), this, SLOT(releaseyManPos()));
-	// Show Ros status dockwidget
-	ui.dock_status->show();
 
 	connect(ui.YManNeg, SIGNAL(released()), this, SLOT(releaseyManNeg()));
 	connect(ui.ZManPos, SIGNAL(released()), this, SLOT(releasezManPos()));
@@ -164,6 +153,9 @@ MainWindow::MainWindow(int version, int argc, char** argv, QWidget *parent) :
 
 	tip1Pos_ = 0.0;
 	tip2Pos_ = 0.0;
+
+	completePlacementRunning = false;
+	componentIndicator = 0;
 
 	xTapeCalibration = 0.0;
 	yTapeCalibration = 0.0;
@@ -190,6 +182,7 @@ MainWindow::MainWindow(int version, int argc, char** argv, QWidget *parent) :
 		tapeCompCounter[i] = 0;
 	}
 
+	// Init placer status
 	for (int i = 1; i <= 7; i++) {
 		placerStatusUpdated(i, pap_common::PLACER_IDLE);
 	}
@@ -200,6 +193,10 @@ MainWindow::MainWindow(int version, int argc, char** argv, QWidget *parent) :
 		ui.tab_manager->setTabEnabled(1, false);
 		ui.tab_manager->setTabEnabled(2, false);
 		ui.tab_manager->setCurrentIndex(3);
+		on_button_connect_clicked(true);
+	} else {
+		// Show Ros status dockwidget
+		ui.dock_status->show();
 	}
 }
 
@@ -366,6 +363,24 @@ void MainWindow::on_startSlotWizard_clicked() {
 	}
 }
 
+void MainWindow::on_compDeleteButton_clicked() {
+
+	/* Get current component */
+	int currentComp = ui.tableWidget->currentRow();
+	if (currentComp == -1) {
+		QMessageBox msgBox;
+		msgBox.setText("No component selected.");
+		msgBox.exec();
+		msgBox.close();
+	} else { /* Delete component from list */
+		componentList.remove(currentComp);
+		updateComponentTable();
+		updateComponentInformation();
+	}
+	updateMissingPackageList();
+	updateMissingPackageTable();
+}
+
 void MainWindow::on_compOrientButton_clicked() {
 
 	/* Get current component */
@@ -426,6 +441,64 @@ void MainWindow::on_compPackageButton_clicked() {
 	}
 }
 
+void MainWindow::on_startPlacementButton_clicked() {
+
+	// Components to place?
+	if (componentList.isEmpty()) {
+		QMessageBox msgBox;
+		msgBox.setText("Component table empty. Please load gerber file first.");
+		msgBox.exec();
+		msgBox.close();
+		return;
+	}
+	// Missing packages?
+	updateMissingPackageList();
+	if (!missingPackageList.isEmpty()) {
+		QMessageBox msgBox;
+		QString message = QString("There are still %1 unknown packages.").arg(
+				missingPackageList.size());
+		msgBox.setText(message);
+		msgBox.exec();
+		msgBox.close();
+		return;
+	}
+	// Missing slots?
+	if (emptySlots()) {
+		QMessageBox msgBox;
+		msgBox.setText("There are still components without assigned slot.");
+		msgBox.exec();
+		msgBox.close();
+		return;
+	}
+	// Start placement process
+	if (!completePlacementRunning) {
+		completePlacementRunning = true;
+		componentIndicator = 0;
+		updatePlacementData(componentList[componentIndicator]);
+		qnode.sendTask(pap_common::PLACER, pap_common::COMPLETEPLACEMENT,
+				placementData);
+		ui.label_compLeft->setText(QString::number(componentList.size()-componentIndicator));
+		ui.label_currentComp->setText(QString::fromStdString(componentList.at(componentIndicator).name));
+	} else {
+		QMessageBox msgBox;
+		msgBox.setText("Placement process already running - stop first.");
+		msgBox.exec();
+		msgBox.close();
+	}
+}
+
+bool MainWindow::emptySlots() {
+	for (size_t k = 0; k < componentList.size(); k++) {
+		if (componentList.at(k).box == -1)
+			return true;
+	}
+	return false;
+}
+
+void MainWindow::on_stopPlacementButton_clicked() {
+	// Placer will stop/home once current comp placed
+	qnode.sendTask(pap_common::PLACER, pap_common::STOP);
+}
 
 /********************************************************************"*********
  ** Implementation "Package Database"-Tab
@@ -436,12 +509,12 @@ void MainWindow::on_replaceButton_clicked() {
 	int missing_package = ui.missingPackageTableWidget->currentRow();
 	int replaceCounter = 0;
 
-	if(database_package == -1) {
+	if (database_package == -1) {
 		QMessageBox msgBox;
 		msgBox.setText("No package from database selected.");
 		msgBox.exec();
 		msgBox.close();
-	} else if(missing_package == -1){
+	} else if (missing_package == -1) {
 		QMessageBox msgBox;
 		msgBox.setText("No missing package selected.");
 		msgBox.exec();
@@ -449,16 +522,20 @@ void MainWindow::on_replaceButton_clicked() {
 	} else {
 
 		QString databasePackage = databaseVector.at(database_package).package;
-		QString missingPackage = QString::fromStdString(missingPackageList.at(missing_package));
-		QString message = QString("To replace package '%1' by '%2'n click yes.").arg(missingPackage).arg(databasePackage);
+		QString missingPackage = QString::fromStdString(
+				missingPackageList.at(missing_package));
+		QString message =
+				QString("To replace package '%1' by '%2'n click yes.").arg(
+						missingPackage).arg(databasePackage);
 
 		QMessageBox::StandardButton reply;
 		reply = QMessageBox::question(this, "Check replacement", message,
-									QMessageBox::Yes|QMessageBox::No);
+				QMessageBox::Yes | QMessageBox::No);
 		if (reply == QMessageBox::Yes) {
 			// Replace missing package by the given database package.
-			for(size_t i=0; i < componentList.size(); i++) {
-				if(componentList.at(i).package.compare(missingPackageList.at(missing_package)) == 0) {
+			for (size_t i = 0; i < componentList.size(); i++) {
+				if (componentList.at(i).package.compare(
+						missingPackageList.at(missing_package)) == 0) {
 					componentList[i].package = databasePackage.toStdString();
 					replaceCounter++;
 				}
@@ -473,7 +550,8 @@ void MainWindow::on_replaceButton_clicked() {
 }
 
 void MainWindow::on_addPackageButton_clicked() {
-	PackageDialog* packageDialog = new PackageDialog(&databaseVector, -1);
+	int missing_package = ui.missingPackageTableWidget->currentRow();
+	PackageDialog* packageDialog = new PackageDialog(&databaseVector, &missingPackageList, missing_package);
 	packageDialog->exec();
 	updateDatabaseTable();
 	updateMissingPackageList();
@@ -483,8 +561,8 @@ void MainWindow::on_addPackageButton_clicked() {
 void MainWindow::on_editPackageButton_clicked() {
 
 	int current_package = ui.packageTableWidget->currentRow();
-	if(current_package != -1) {
-		PackageDialog* packageDialog = new PackageDialog(&databaseVector, current_package);
+	if (current_package != -1) {
+		PackageDialog* packageDialog = new PackageDialog(&databaseVector, NULL, current_package);
 		packageDialog->exec();
 		updateDatabaseTable();
 		updateMissingPackageList();
@@ -500,7 +578,7 @@ void MainWindow::on_editPackageButton_clicked() {
 void MainWindow::on_deletePackageButton_clicked() {
 
 	int current_package = ui.packageTableWidget->currentRow();
-	if(current_package != -1) {
+	if (current_package != -1) {
 		databaseVector.remove(current_package);
 		updateDatabaseTable();
 		updateMissingPackageList();
@@ -513,9 +591,22 @@ void MainWindow::on_deletePackageButton_clicked() {
 	}
 }
 
+/********************************************************************"*********
+ ** Implementation "Single Component"-Tab
+ *****************************************************************************/
+void MainWindow::on_startSinglePlacementButton_clicked() {
 
-
-
+	if (singleComponent.box == -1) {
+		QMessageBox msgBox;
+		msgBox.setText("Please set box number first.");
+		msgBox.exec();
+		msgBox.close();
+	} else {
+		updatePlacementData(singleComponent);
+		qnode.sendTask(pap_common::PLACER, pap_common::PLACECOMPONENT,
+				placementData);
+	}
+}
 
 void MainWindow::setLedFromSelection(int selection) {
 	if (selection != -1) {
@@ -593,14 +684,16 @@ void MainWindow::loadDatabaseContent() {
 		}
 
 	} else {
-		qDebug() << "Could not open database!";
+		QMessageBox msgBox;
+		msgBox.setText("Could not open database!");
+		msgBox.exec();
+		msgBox.close();
 	}
 
 	databaseFile.close();
-
 	if (databaseVector.isEmpty()) {
 		QMessageBox msgBox;
-		msgBox.setText("No database found or not able to read database.");
+		msgBox.setText("Empty database.");
 		msgBox.exec();
 		msgBox.close();
 	}
@@ -735,28 +828,8 @@ void MainWindow::updateComponentInformation() {
 }
 
 void MainWindow::on_tableWidget_clicked() {
+
 	updateComponentInformation();
-}
-
-void MainWindow::on_compDeleteButton_clicked() {
-
-	/* Get current component */
-	int currentComp = ui.tableWidget->currentRow();
-
-	if (currentComp == -1) {
-		QMessageBox msgBox;
-		msgBox.setText("No component selected.");
-		msgBox.exec();
-		msgBox.close();
-
-	} else { /* Delete component from vector */
-		componentList.remove(currentComp);
-		updateComponentTable();
-		updateComponentInformation();
-	}
-
-	updateMissingPackageList();
-	updateMissingPackageTable();
 }
 
 void MainWindow::updatePackageList() {
@@ -805,7 +878,6 @@ void MainWindow::updateMissingPackageList() {
 			missingPackageList.push_back(packageList.at(i));
 		}
 	}
-	ROS_INFO("Missing package list size: %d", missingPackageList.size());
 	updateMissingPackageTable();
 }
 
@@ -939,19 +1011,6 @@ void MainWindow::updateDatabaseTable() {
 /*************************************************************************************************************
  ** Placement control buttons
  **************************************************************************************************************/
-void MainWindow::on_startSinglePlacementButton_clicked() {
-
-	if (singleComponent.box == -1) {
-		QMessageBox msgBox;
-		msgBox.setText("Please set box number first.");
-		msgBox.exec();
-		msgBox.close();
-	} else {
-		updatePlacementData(singleComponent);
-		qnode.sendTask(pap_common::PLACER, pap_common::PLACECOMPONENT,
-				placementData);
-	}
-}
 
 void MainWindow::on_goToPCBButton_clicked() {
 	ui.tab_manager->setCurrentIndex(1);
@@ -1015,51 +1074,6 @@ void MainWindow::on_placeSingleComponentButton_clicked() {
 		}
 
 		ui.tab_manager->setCurrentIndex(4);
-	}
-}
-
-void MainWindow::on_startPlacementButton_clicked() {
-
-	/* Check if there are components to place */
-	if (componentList.isEmpty()) {
-		QMessageBox msgBox;
-		msgBox.setText("Component table empty. Please load gerber file first.");
-		msgBox.exec();
-		msgBox.close();
-	} else {
-
-		/* Check if all slots are set */
-		for (size_t i = 0; i < componentList.size(); i++) {
-			if (componentList.at(i).box == -1) {
-				QMessageBox msgBox;
-				msgBox.setText("Please set all slots first.");
-				msgBox.exec();
-				msgBox.close();
-				return;
-			}
-		}
-
-		/* Do a single placement process for each component */
-		/* Iterate over all components */
-		for (size_t k = 0; k < componentList.size(); k++) {
-			// Update placement data with current component
-			// Logic - which component is placed first?
-
-			// Update placement info in gui: missing components, placer status etc.
-		}
-	}
-}
-
-void MainWindow::on_pausePlacementButton_clicked() {
-
-	if (!placementProcessRunning) {
-		QMessageBox msgBox;
-		msgBox.setText(
-				"Component table empty. Please select Gerber file first.");
-		msgBox.exec();
-		msgBox.close();
-	} else {
-
 	}
 }
 
@@ -1266,11 +1280,33 @@ void MainWindow::releasezManNeg() {
 			(float) pap_common::ZMOTOR, 0.0, 0.0);
 }
 
-void MainWindow::placerStatusUpdated(int indicator, int state) {
+void MainWindow::placerStatusUpdated(int state, int status) {
 
-	QPixmap indicatorPixmap(QSize(20, 20));
-	indicatorPixmap.fill(Qt::transparent);
-	QPainter p(&indicatorPixmap);
+	ROS_INFO("PlacerStatusUpdated: %d, %d !!", state, status);
+
+	// Complete placement - send next component
+	if (state == pap_common::PLACECOMPONENT_STATE
+			&& status == pap_common::PLACER_FINISHED
+			&& completePlacementRunning) {
+		if (componentIndicator < componentList.size()) {
+			componentIndicator++;
+			updatePlacementData(componentList[componentIndicator]);
+			qnode.sendTask(pap_common::PLACER, pap_common::COMPLETEPLACEMENT,
+					placementData);
+			ui.label_compLeft->setText(QString::number(componentList.size()-componentIndicator));
+			ui.label_currentComp->setText(QString::fromStdString(componentList.at(componentIndicator).name));
+		} else {
+			// no more components - stop placer (Homing)
+			qnode.sendTask(pap_common::PLACER, pap_common::HOMING);
+			completePlacementRunning = false;
+			ui.label_currentComp->setText("-");
+			ui.label_compLeft->setText(QString::number(0));
+		}
+	}
+
+	QPixmap statePixmap(QSize(20, 20));
+	statePixmap.fill(Qt::transparent);
+	QPainter p(&statePixmap);
 	p.setRenderHint(QPainter::Antialiasing, true);
 	QPen pen(Qt::black, 1);
 	p.setPen(pen);
@@ -1279,15 +1315,15 @@ void MainWindow::placerStatusUpdated(int indicator, int state) {
 	QBrush brushYellow(Qt::yellow);
 	QBrush brushRed(Qt::red);
 
-	switch (state) {
+	switch (status) {
 	case pap_common::PLACER_IDLE:
 		p.setBrush(brushWhite);
 		break;
 	case pap_common::PLACER_ACTIVE:
-		p.setBrush(brushYellow);
+		p.setBrush(brushGreen);
 		break;
 	case pap_common::PLACER_FINISHED:
-		p.setBrush(brushGreen);
+		p.setBrush(brushYellow);
 		break;
 	case pap_common::PLACER_ERROR:
 		p.setBrush(brushRed);
@@ -1295,30 +1331,36 @@ void MainWindow::placerStatusUpdated(int indicator, int state) {
 
 	p.drawEllipse(5, 5, 10, 10);
 
-	switch (indicator) {
+	switch (state) {
 	case 1:
-		ui.label_indicator1->setPixmap(indicatorPixmap);
+		ui.label_indicator1->setPixmap(statePixmap);
+		ui.label_indicator1_2->setPixmap(statePixmap);
 		break;
 	case 2:
-		ui.label_indicator2->setPixmap(indicatorPixmap);
 		break;
 	case 3:
-		ui.label_indicator3->setPixmap(indicatorPixmap);
+		ui.label_indicator3->setPixmap(statePixmap);
+		ui.label_indicator3_2->setPixmap(statePixmap);
 		break;
 	case 4:
-		ui.label_indicator4->setPixmap(indicatorPixmap);
+		ui.label_indicator4->setPixmap(statePixmap);
+		ui.label_indicator4_2->setPixmap(statePixmap);
 		break;
 	case 5:
-		ui.label_indicator5->setPixmap(indicatorPixmap);
+		ui.label_indicator5->setPixmap(statePixmap);
+		ui.label_indicator5_2->setPixmap(statePixmap);
 		break;
 	case 6:
-		ui.label_indicator6->setPixmap(indicatorPixmap);
+		ui.label_indicator6->setPixmap(statePixmap);
+		ui.label_indicator6_2->setPixmap(statePixmap);
 		break;
 	case 7:
-		ui.label_indicator7->setPixmap(indicatorPixmap);
+		ui.label_indicator7->setPixmap(statePixmap);
+		ui.label_indicator7_2->setPixmap(statePixmap);
 		break;
-	case 8:
-		switch (state) {
+/*
+	case pap_common::INFO:
+		switch (status) {
 		case 1:
 			ui.label_Info->setText("IDLE");
 			break;
@@ -1365,7 +1407,7 @@ void MainWindow::placerStatusUpdated(int indicator, int state) {
 			ui.label_Info->setText("STARTPLACEMENT");
 			break;
 			break;
-		}
+		}*/
 	}
 }
 
@@ -1824,10 +1866,6 @@ void MainWindow::on_scanQRButton_clicked() {
 	 */
 	//qnode.sendTask(pap_common::VISION, pap_vision::START_PAD_FINDER);
 	// Update component info
-}
-
-void MainWindow::on_ScanQRCodeButton_clicked() {
-
 }
 
 void MainWindow::setFiducial(QPointF point) {

@@ -79,6 +79,7 @@ bool manualGoto = false;
 bool IDLE_called = true;
 int motorcontroller_counter = 0;
 int timeoutValue = 500;
+bool completePlacement = false;
 
 PlaceController placeController;
 ComponentPlacerData currentComponent;
@@ -89,7 +90,16 @@ enum QR_CALIBRATION_PROCESS {
 } qr_calibration_state;
 
 enum CALIBRATION_STATE {
-	CAMERA, TIP1, DISPENSER, TIP2, BOTTOM_CAM_QR, SLOT_QR, PCB_QR, TAPE_QR, CORRECTED_CAMERA, CORRECTED_TIP1
+	CAMERA,
+	TIP1,
+	DISPENSER,
+	TIP2,
+	BOTTOM_CAM_QR,
+	SLOT_QR,
+	PCB_QR,
+	TAPE_QR,
+	CORRECTED_CAMERA,
+	CORRECTED_TIP1
 } calibration_state;
 
 enum ERROR_CODE {
@@ -109,7 +119,7 @@ enum STATE {
 	GOTOPCBCOMP,
 	CHECKCOMPPOSITON,
 	GOTOPLACECOORD,
-	STARTPLACEMENT,
+	PLACECOMPONENT,
 	GOTOCOORD,
 	HOMING,
 	ERROR,
@@ -148,6 +158,8 @@ int main(int argc, char **argv) {
 	calibration_state = SLOT_QR;
 	bool outTolerance = false;
 
+	ros::Duration(3).sleep();
+
 	// Run state machine forever
 	while (ros::ok()) {
 		switch (state) {
@@ -155,21 +167,20 @@ int main(int argc, char **argv) {
 			timeoutValue = 500;
 			if (IDLE_called) {
 				ROS_INFO("PlacerState: IDLE");
-				sendPlacerInfo(IDLE);
+				sendPlacerStatus(pap_common::IDLE_STATE,pap_common::PLACER_ACTIVE);
 				IDLE_called = false;
 			}
-			sendPlacerStatus(pap_common::IDLE_STATE, pap_common::PLACER_ACTIVE);
 			break;
 
 		case CALIBRATE:
-			//ROS_INFO("PlacerState: CALIBRATE");
-			sendPlacerStatus(pap_common::IDLE_STATE, pap_common::PLACER_IDLE);
-			sendPlacerStatus(pap_common::CALIBRATION_STATE,
-					pap_common::PLACER_ACTIVE);
-			switch (calibration_state) {
 
+			switch (calibration_state) {
 			case CAMERA:
 				if (!positionSend) {
+					ROS_INFO("PlacerState: CALIBRATE");
+					sendPlacerStatus(pap_common::IDLE_STATE, pap_common::PLACER_IDLE);
+					sendPlacerStatus(pap_common::CALIBRATION_STATE, pap_common::PLACER_ACTIVE);
+
 					LEDTask(pap_common::SETRINGCOLOR, 0);
 					ros::Duration(0.3).sleep();
 					LEDTask(pap_common::RESETBOTTOMLED, 0);
@@ -191,8 +202,8 @@ int main(int argc, char **argv) {
 						ROS_INFO("Camera: Vision started");
 						ros::Duration(3).sleep();
 						counterMean = 0;
-						placeController.camClibrationOffset_.x = 0.0;	//needed ??
-						placeController.camClibrationOffset_.y = 0.0;	//needed ??
+						placeController.camClibrationOffset_.x = 0.0;//needed ??
+						placeController.camClibrationOffset_.y = 0.0;//needed ??
 						LEDTask(pap_common::SETBOTTOMLED, 0);
 						sendTask(pap_common::VISION, pap_vision::START_VISION);
 						sendTask(pap_common::VISION, pap_vision::SEARCH_CIRCLE,
@@ -298,8 +309,7 @@ int main(int argc, char **argv) {
 				} else {
 					ros::Duration(5).sleep();
 					sendRelaisTask(7, false);			// tip 2
-					sendPlacerStatus(pap_common::INFO,
-							pap_common::LEFT_TIP_UP);
+					sendPlacerStatus(pap_common::INFO, pap_common::LEFT_TIP_UP);
 					calibration_state = SLOT_QR;
 					IDLE_called = true;
 					state = IDLE;
@@ -561,7 +571,7 @@ int main(int argc, char **argv) {
 				case RELEASE_QR:
 					placeController.pickRelQR_ = true;
 					timeoutValue = 500;
-					state = STARTPLACEMENT;
+					state = PLACECOMPONENT;
 					calibration_state = SLOT_QR;
 					qr_calibration_state = GOTO_QR;
 					break;
@@ -815,10 +825,10 @@ int main(int argc, char **argv) {
 			}
 			break;
 
-		case STARTPLACEMENT:
-			ROS_INFO("PlacerState: STARTPLACEMENT");
+		case PLACECOMPONENT:
+			ROS_INFO("PlacerState: PLACECOMPONENT");
 			sendPlacerStatus(pap_common::IDLE_STATE, pap_common::PLACER_IDLE);
-			sendPlacerStatus(pap_common::STARTPLACEMET_STATE,
+			sendPlacerStatus(pap_common::PLACECOMPONENT_STATE,
 					pap_common::PLACER_ACTIVE);
 
 			if (!positionSend) {
@@ -863,27 +873,34 @@ int main(int argc, char **argv) {
 					sendRelaisTask(7, false);			// Tip 2
 					sendPlacerStatus(pap_common::INFO, pap_common::LEFT_TIP_UP);
 				}
-				sendPlacerStatus(pap_common::STARTPLACEMET_STATE,
+
+				// Indicates placement finished & if complPlacement gui send new data and restarts process
+				sendPlacerStatus(pap_common::PLACECOMPONENT_STATE,
 						pap_common::PLACER_FINISHED);
 				if (placeController.pickRelQR_) {
 					placeController.pickRelQR_ = false;
 				}
 
 				positionSend = false;
-				IDLE_called = true;
-				state = IDLE;
+
+				// Distinguish single/complete placement
+				if (completePlacement) {
+					// Go to idle and wait for next component infos
+					IDLE_called = true;
+					state = IDLE;
+				} else {
+					state = HOMING;
+				}
 			}
 			break;
 
 		case HOMING:
-			sendPlacerStatus(pap_common::IDLE_STATE, pap_common::PLACER_IDLE);
-			sendPlacerStatus(pap_common::HOMING_STATE,
-					pap_common::PLACER_ACTIVE);
 
 			if (!positionSend) {
 				placeController.currentDestination_ =
 						placeController.idleCoordinates_;
 				ROS_INFO("PlacerState: HOMING");
+				sendPlacerStatus(pap_common::HOMING_STATE, pap_common::PLACER_ACTIVE);
 				ROS_INFO("Go to: x:%f y:%f z:%f",
 						placeController.currentDestination_.x,
 						placeController.currentDestination_.y,
@@ -1276,85 +1293,113 @@ void visionStatusCallback(const pap_common::VisionStatusConstPtr& statusMsg) {
 
 void placerCallback(const pap_common::TaskConstPtr& taskMsg) {
 
-	switch (taskMsg->destination) {
-	case pap_common::PLACER: {
-		ComponentPlacerData tempComponent;
-		tempComponent.destX = taskMsg->data1;
-		tempComponent.destY = taskMsg->data2;
-		tempComponent.box = taskMsg->box;
-		tempComponent.height = taskMsg->height;
-		tempComponent.length = taskMsg->length;
-		tempComponent.width = taskMsg->width;
-		tempComponent.rotation = taskMsg->data3;
-		placeController.updatePlacementData(&tempComponent);
-	}
 
-		switch (taskMsg->task) {
-		case pap_common::PLACECOMPONENT: {
+
+	switch (taskMsg->destination) {
+
+	case pap_common::PLACER: {
+
+		if (taskMsg->task == pap_common::SINGLEPLACEMENT
+				|| taskMsg->task == pap_common::COMPLETEPLACEMENT
+				|| taskMsg->task == pap_common::PLACECOMPONENT) {
 
 			ComponentPlacerData tempComponent;
 			tempComponent.destX = taskMsg->data1;
 			tempComponent.destY = taskMsg->data2;
+			tempComponent.rotation = taskMsg->data3;
 			tempComponent.box = taskMsg->box;
 			tempComponent.height = taskMsg->height;
 			tempComponent.length = taskMsg->length;
 			tempComponent.width = taskMsg->width;
-			tempComponent.rotation = taskMsg->data3;
 			tempComponent.tapeX = taskMsg->velX;
 			tempComponent.tapeY = taskMsg->velY;
 			tempComponent.tapeRot = taskMsg->velZ;
 			placeController.updatePlacementData(&tempComponent);
-
 			if ((tempComponent.box >= 67) && (tempComponent.box <= 86)) {
 				// Its a tape - no GOTOBOX, VISION states needed
 				state = GOTOPICKUPCOOR;
 				ROS_INFO("Placer - GOTOPICKUPCOOR");
 			} else {
-				state = GOTOBOX;	// Start placer with state GOTOBOX
+				// Start placer with state GOTOBOX
+				state = GOTOBOX;
 				ROS_INFO("Placer - GOTOBOX");
 			}
 		}
+
+		switch (taskMsg->task) {
+
+		// Need to make sure placement data is set correctly!!!
+		case pap_common::SINGLEPLACEMENT: {
+			ROS_INFO("Placer: SinglePlacement called.");
+			completePlacement = false;
+		}
 			break;
-		case pap_common::GOTOBOX:
+
+		case pap_common::COMPLETEPLACEMENT: {
+			ROS_INFO("Placer: CompletePlacement called.");
+			/*sendPlacerStatus(pap_common::PLACECOMPONENT_STATE,
+					pap_common::PLACER_FINISHED);*/
+			completePlacement = true;
+		}
+			break;
+
+		case pap_common::STOP: {
+			ROS_INFO("Placer: Stop called.");
+			completePlacement = false;
+		}
+			break;
+
+		case pap_common::PLACECOMPONENT: {
+			ROS_INFO("Placer: PlaceComponent called.");
+			completePlacement = false;
+		}
+			break;
+
+		case pap_common::GOTOBOX: {
+			ROS_INFO("Placer: gotobox called.");
 			sendPlacerStatus(pap_common::GOTOBOX_STATE,
 					pap_common::PLACER_IDLE);
 			state = GOTOBOX;
-			ROS_INFO("go to box called...");
+		}
 			break;
-		case pap_common::PICKUPCOMPONENT:
+
+		case pap_common::PICKUPCOMPONENT: {
 			sendPlacerStatus(pap_common::STARTPICKUP_STATE,
 					pap_common::PLACER_IDLE);
 			state = STARTPICKUP;
 			ROS_INFO("Pick-up component called...");
+		}
 			break;
 
-		case pap_common::GOTOPCB:
+		case pap_common::GOTOPCB: {
+			ROS_INFO("Placer: gotoPCB called.");
 			sendPlacerStatus(pap_common::GOTOPCBCOMP_STATE,
 					pap_common::PLACER_IDLE);
 			state = GOTOPCBORIGIN;
+		}
 			break;
 
 		case pap_common::PLACEMENT:
-			sendPlacerStatus(pap_common::STARTPLACEMET_STATE,
+			ROS_INFO("Placer: Placement called.");
+			sendPlacerStatus(pap_common::PLACECOMPONENT_STATE,
 					pap_common::PLACER_IDLE);
-			state = STARTPLACEMENT;
-			ROS_INFO("Placement called...");
+			state = PLACECOMPONENT;
 			break;
 
 		case pap_common::CALIBRATION_OFFSET:
+			ROS_INFO("Placer: Calibration called.");
 			state = CALIBRATE;
 			calibration_state = CAMERA;
-
-			ROS_INFO("Calibration started...");
 			break;
 
 		case pap_common::CALIBRATION_RATIO:
+			ROS_INFO("Placer: Calibration_ratio called.");
 			state = CALIBRATE;
 			calibration_state = SLOT_QR;
-			ROS_INFO("Calibration started...");
 			break;
 
 		case pap_common::HOMING:
+			ROS_INFO("Placer: Homing called.");
 			sendPlacerStatus(pap_common::HOMING_STATE, pap_common::PLACER_IDLE);
 			state = HOMING;
 			break;
@@ -1368,6 +1413,7 @@ void placerCallback(const pap_common::TaskConstPtr& taskMsg) {
 			manualGoto = true;
 			break;
 		}
+	}
 	}
 }
 
@@ -1471,8 +1517,6 @@ void sendPlacerInfo(int state) {
 	statusMsg.status = state;
 	placerStatus_publisher_.publish(statusMsg);
 }
-
-//void sendPlacerInfo()
 
 /*****************************************************************************
  ** Send arduino taks functions

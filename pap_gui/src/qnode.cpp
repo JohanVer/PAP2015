@@ -217,11 +217,11 @@ void QNode::sendTask(pap_common::DESTINATION destination, pap_common::TASK task,
 
 void QNode::placerStatusCallback(
 		const pap_common::PlacerStatusConstPtr& statusMsg) {
+
 	if (statusMsg->process == pap_common::GOTO_STATE) {
 		if (statusMsg->status == pap_common::PLACER_FINISHED) {
 			Q_EMIT positionGotoReached();
 		}
-
 	} else if (statusMsg->process == pap_common::INFO) {
 		switch (statusMsg->status) {
 		case pap_common::DISPENSER_FINISHED:

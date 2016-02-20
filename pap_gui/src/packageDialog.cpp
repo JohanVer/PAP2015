@@ -1,16 +1,26 @@
 #include "packageDialog.hpp"
 #include <QDialogButtonBox>
 #include <QMessageBox>
+#include <stdio.h>
+#include <stdlib.h>
 
-PackageDialog::PackageDialog(QVector<databaseEntry> *database, int package, QWidget *parent) :
+
+PackageDialog::PackageDialog(QVector<databaseEntry> *database, QVector<std::string> *missingPackageList, int package, QWidget *parent) :
 		QDialog(parent), ui(new Ui::PackageDialog) {
 
 	ui->setupUi(this);
 	databaseVector = database;
 	packageNum = package;
+	editPackage = false;
 
-	// Init lineEdits with given values
-	if(package != -1) {
+	// Add a new package - name given by missingPackageList
+	if(missingPackageList != NULL && package != -1) {
+		ui->nameLine->setText(QString::fromStdString(missingPackageList->at(package)));
+	}
+
+	// Edit an existing package
+	if(missingPackageList == NULL) {
+		editPackage = true;
 		ui->nameLine->setText(database->at(package).package);
 		ui->lengthLine->setText(QString::number(database->at(package).length));
 		ui->heightLine->setText(QString::number(database->at(package).height));
@@ -32,8 +42,15 @@ void PackageDialog::on_buttonBox_clicked(QAbstractButton* button) {
         // Check if all inputs are valid
         if(package.length() > 3 && length > 0 && height > 0 && width > 0 && pins > 0){
 
-        	// Add a new package
-        	if(packageNum == -1) {
+            // Edit given package
+        	if(editPackage) {
+        		(*databaseVector)[packageNum].package = package;
+        		(*databaseVector)[packageNum].length = length;
+        		(*databaseVector)[packageNum].height = height;
+        		(*databaseVector)[packageNum].width = width;
+        		(*databaseVector)[packageNum].pins = pins;
+            // Add a new package
+        	} else {
         		databaseEntry newEntry;
             	newEntry.package = package;
             	newEntry.length = length;
@@ -41,13 +58,6 @@ void PackageDialog::on_buttonBox_clicked(QAbstractButton* button) {
             	newEntry.width = width;
             	newEntry.pins = pins;
             	databaseVector->append(newEntry);
-            // Edit given package
-        	} else {
-        		(*databaseVector)[packageNum].package = package;
-        		(*databaseVector)[packageNum].length = length;
-        		(*databaseVector)[packageNum].height = height;
-        		(*databaseVector)[packageNum].width = width;
-        		(*databaseVector)[packageNum].pins = pins;
         	}
         } else {
     		QMessageBox msgBox;

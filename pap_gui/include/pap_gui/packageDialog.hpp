@@ -16,7 +16,7 @@ class PackageDialog: public QDialog {
 	Q_OBJECT
 
 public:
-	explicit PackageDialog(QVector<databaseEntry> *database, int package, QWidget *parent = 0);
+	explicit PackageDialog(QVector<databaseEntry> *database, QVector<std::string> *missingPackageList, int package, QWidget *parent = 0);
 	~PackageDialog();
 
 public Q_SLOTS:
@@ -26,6 +26,7 @@ private:
 	Ui::PackageDialog *ui;
 	QVector<databaseEntry> *databaseVector;
 	int packageNum;
+	bool editPackage;
 };
 
 #endif // PACKAGEDIALOG_H

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1478</width>
-    <height>704</height>
+    <height>750</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -2149,9 +2149,9 @@
        <widget class="QGroupBox" name="groupBox_4">
         <property name="geometry">
          <rect>
-          <x>430</x>
-          <y>270</y>
-          <width>361</width>
+          <x>600</x>
+          <y>60</y>
+          <width>191</width>
           <height>321</height>
          </rect>
         </property>
@@ -2161,7 +2161,7 @@
         <widget class="QWidget" name="verticalLayoutWidget_9">
          <property name="geometry">
           <rect>
-           <x>10</x>
+           <x>0</x>
            <y>30</y>
            <width>92</width>
            <height>271</height>
@@ -2358,79 +2358,6 @@
           <enum>Qt::Vertical</enum>
          </property>
         </widget>
-        <widget class="QWidget" name="verticalLayoutWidget_6">
-         <property name="geometry">
-          <rect>
-           <x>205</x>
-           <y>30</y>
-           <width>152</width>
-           <height>251</height>
-          </rect>
-         </property>
-         <layout class="QVBoxLayout" name="verticalLayout_23">
-          <item>
-           <widget class="QPushButton" name="startSlotWizard">
-            <property name="text">
-             <string>Slot Wizard</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="compOrientButton">
-            <property name="text">
-             <string>Change orientation</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="compPackageButton">
-            <property name="text">
-             <string>Change package</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <spacer name="verticalSpacer_6">
-            <property name="orientation">
-             <enum>Qt::Vertical</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>20</width>
-              <height>40</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item>
-           <widget class="QPushButton" name="compDeleteButton">
-            <property name="text">
-             <string>Delete component</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <spacer name="verticalSpacer_5">
-            <property name="orientation">
-             <enum>Qt::Vertical</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>20</width>
-              <height>40</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item>
-           <widget class="QPushButton" name="placeSingleComponentButton">
-            <property name="text">
-             <string>Place single comp.</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
         <widget class="Line" name="line">
          <property name="geometry">
           <rect>
@@ -2447,7 +2374,7 @@
         <widget class="QWidget" name="verticalLayoutWidget_7">
          <property name="geometry">
           <rect>
-           <x>110</x>
+           <x>100</x>
            <y>30</y>
            <width>91</width>
            <height>271</height>
@@ -2553,37 +2480,11 @@
           </item>
          </layout>
         </widget>
-        <widget class="Line" name="line_6">
-         <property name="geometry">
-          <rect>
-           <x>0</x>
-           <y>300</y>
-           <width>351</width>
-           <height>16</height>
-          </rect>
-         </property>
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-        </widget>
-       </widget>
-       <widget class="QPushButton" name="startPlacementButton">
-        <property name="geometry">
-         <rect>
-          <x>820</x>
-          <y>110</y>
-          <width>141</width>
-          <height>51</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string>Start placement</string>
-        </property>
        </widget>
        <widget class="QLabel" name="label_8">
         <property name="geometry">
          <rect>
-          <x>40</x>
+          <x>30</x>
           <y>10</y>
           <width>271</width>
           <height>31</height>
@@ -2601,38 +2502,25 @@
          <string>Pick and place - Complete PCB</string>
         </property>
        </widget>
-       <widget class="QPushButton" name="pausePlacementButton">
-        <property name="geometry">
-         <rect>
-          <x>820</x>
-          <y>170</y>
-          <width>141</width>
-          <height>51</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string>Pause placement</string>
-        </property>
-       </widget>
        <widget class="QGroupBox" name="groupBox_3">
         <property name="geometry">
          <rect>
-          <x>430</x>
-          <y>50</y>
-          <width>301</width>
+          <x>20</x>
+          <y>420</y>
+          <width>211</width>
           <height>201</height>
          </rect>
         </property>
         <property name="title">
-         <string>Placement overview</string>
+         <string>Placement Overview</string>
         </property>
         <widget class="Line" name="line_2">
          <property name="geometry">
           <rect>
            <x>0</x>
-           <y>20</y>
-           <width>289</width>
-           <height>3</height>
+           <y>10</y>
+           <width>431</width>
+           <height>16</height>
           </rect>
          </property>
          <property name="orientation">
@@ -2645,21 +2533,21 @@
            <x>0</x>
            <y>30</y>
            <width>111</width>
-           <height>141</height>
+           <height>121</height>
           </rect>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_21">
           <item>
-           <widget class="QLabel" name="label_33">
+           <widget class="QLabel" name="label_36">
             <property name="text">
-             <string>Status:</string>
+             <string>Placement:</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QLabel" name="label_36">
+           <widget class="QLabel" name="label_28">
             <property name="text">
-             <string>Process:</string>
+             <string>Current comp.:</string>
             </property>
            </widget>
           </item>
@@ -2677,13 +2565,6 @@
             </property>
            </widget>
           </item>
-          <item>
-           <widget class="QLabel" name="label_28">
-            <property name="text">
-             <string>Current comp.:</string>
-            </property>
-           </widget>
-          </item>
          </layout>
         </widget>
         <widget class="QWidget" name="verticalLayoutWidget_12">
@@ -2692,21 +2573,21 @@
            <x>110</x>
            <y>30</y>
            <width>101</width>
-           <height>141</height>
+           <height>121</height>
           </rect>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_25">
           <item>
-           <widget class="QLabel" name="label_42">
+           <widget class="QLabel" name="label_45">
             <property name="text">
-             <string>Ok</string>
+             <string>Not running</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QLabel" name="label_45">
+           <widget class="QLabel" name="label_currentComp">
             <property name="text">
-             <string>Not running</string>
+             <string>-</string>
             </property>
            </widget>
           </item>
@@ -2724,53 +2605,20 @@
             </property>
            </widget>
           </item>
-          <item>
-           <widget class="QLabel" name="label_41">
-            <property name="text">
-             <string>-</string>
-            </property>
-           </widget>
-          </item>
          </layout>
         </widget>
-       </widget>
-       <widget class="QWidget" name="verticalLayoutWidget_5">
-        <property name="geometry">
-         <rect>
-          <x>40</x>
-          <y>70</y>
-          <width>194</width>
-          <height>71</height>
-         </rect>
-        </property>
-        <layout class="QVBoxLayout" name="verticalLayout_22">
-         <item>
-          <widget class="QPushButton" name="loadGerberFileButton">
-           <property name="text">
-            <string>Load Gerber File</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="clearTableButton">
-           <property name="text">
-            <string>Clear table</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
        </widget>
        <widget class="QGroupBox" name="groupBox_5">
         <property name="geometry">
          <rect>
-          <x>40</x>
-          <y>270</y>
-          <width>359</width>
+          <x>220</x>
+          <y>60</y>
+          <width>341</width>
           <height>321</height>
          </rect>
         </property>
         <property name="title">
-         <string>Component table</string>
+         <string>Component Table</string>
         </property>
         <widget class="Line" name="line_3">
          <property name="geometry">
@@ -2788,26 +2636,253 @@
         <widget class="QTableWidget" name="tableWidget">
          <property name="geometry">
           <rect>
-           <x>5</x>
+           <x>0</x>
            <y>31</y>
            <width>341</width>
            <height>271</height>
           </rect>
          </property>
         </widget>
-        <widget class="Line" name="line_15">
+       </widget>
+       <widget class="QGroupBox" name="groupBox_21">
+        <property name="geometry">
+         <rect>
+          <x>600</x>
+          <y>420</y>
+          <width>191</width>
+          <height>311</height>
+         </rect>
+        </property>
+        <property name="title">
+         <string>Placement Status</string>
+        </property>
+        <widget class="Line" name="line_24">
          <property name="geometry">
           <rect>
            <x>0</x>
-           <y>300</y>
-           <width>351</width>
-           <height>16</height>
+           <y>10</y>
+           <width>301</width>
+           <height>20</height>
           </rect>
          </property>
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
          </property>
         </widget>
+        <widget class="QWidget" name="verticalLayoutWidget_33">
+         <property name="geometry">
+          <rect>
+           <x>0</x>
+           <y>30</y>
+           <width>141</width>
+           <height>201</height>
+          </rect>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_52">
+          <item>
+           <widget class="QLabel" name="label_24">
+            <property name="text">
+             <string>IDLE</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_81">
+            <property name="text">
+             <string>Go to comp. box</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_82">
+            <property name="text">
+             <string>Pick-up component</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_83">
+            <property name="text">
+             <string>Go to PCB</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_84">
+            <property name="text">
+             <string>Place component</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_85">
+            <property name="text">
+             <string>Homing</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+        <widget class="QWidget" name="verticalLayoutWidget_34">
+         <property name="geometry">
+          <rect>
+           <x>140</x>
+           <y>30</y>
+           <width>31</width>
+           <height>201</height>
+          </rect>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_53">
+          <item>
+           <widget class="QLabel" name="label_indicator1_2">
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_indicator3_2">
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_indicator4_2">
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_indicator5_2">
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_indicator6_2">
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_indicator7_2">
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </widget>
+       <widget class="QWidget" name="verticalLayoutWidget_6">
+        <property name="geometry">
+         <rect>
+          <x>30</x>
+          <y>90</y>
+          <width>155</width>
+          <height>251</height>
+         </rect>
+        </property>
+        <layout class="QVBoxLayout" name="verticalLayout_23">
+         <item>
+          <widget class="QPushButton" name="loadGerberFileButton">
+           <property name="text">
+            <string>Load Gerber File</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="clearTableButton">
+           <property name="text">
+            <string>Clear Table</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="verticalSpacer_6">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>40</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QPushButton" name="startSlotWizard">
+           <property name="text">
+            <string>Slot Wizard</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="compDeleteButton">
+           <property name="text">
+            <string>Delete Component</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="compOrientButton">
+           <property name="text">
+            <string>Change Orientation</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="compPackageButton">
+           <property name="text">
+            <string>Change Package</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+       <widget class="QPushButton" name="startPlacementButton">
+        <property name="geometry">
+         <rect>
+          <x>330</x>
+          <y>440</y>
+          <width>158</width>
+          <height>61</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Start placement</string>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="stopPlacementButton">
+        <property name="geometry">
+         <rect>
+          <x>330</x>
+          <y>510</y>
+          <width>158</width>
+          <height>61</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Stop placement</string>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="placeSingleComponentButton">
+        <property name="geometry">
+         <rect>
+          <x>330</x>
+          <y>580</y>
+          <width>158</width>
+          <height>61</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Place single comp.</string>
+        </property>
        </widget>
       </widget>
       <widget class="QWidget" name="tab_3">
@@ -3482,13 +3557,6 @@
            </widget>
           </item>
           <item>
-           <widget class="QLabel" name="label_14">
-            <property name="text">
-             <string>Calibration</string>
-            </property>
-           </widget>
-          </item>
-          <item>
            <widget class="QLabel" name="label_77">
             <property name="text">
              <string>Go to comp. box</string>
@@ -3537,13 +3605,6 @@
          <layout class="QVBoxLayout" name="verticalLayout_48">
           <item>
            <widget class="QLabel" name="label_indicator1">
-            <property name="text">
-             <string/>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLabel" name="label_indicator2">
             <property name="text">
              <string/>
             </property>
@@ -3637,6 +3698,32 @@
           <string>Start placement</string>
          </property>
         </widget>
+       </widget>
+       <widget class="QLabel" name="label_14">
+        <property name="geometry">
+         <rect>
+          <x>510</x>
+          <y>390</y>
+          <width>139</width>
+          <height>24</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Calibration</string>
+        </property>
+       </widget>
+       <widget class="QLabel" name="label_indicator2">
+        <property name="geometry">
+         <rect>
+          <x>600</x>
+          <y>390</y>
+          <width>29</width>
+          <height>24</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
        </widget>
       </widget>
       <widget class="QWidget" name="tab_4">
