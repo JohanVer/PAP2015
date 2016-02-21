@@ -107,8 +107,9 @@ void imageCallback1(const sensor_msgs::ImageConstPtr& msg) {
 		//cv::imshow("view", input);
 		//cv::waitKey(30);
 	} catch (cv_bridge::Exception& e) {
-		ROS_ERROR("Could not convert from '%s' to 'bgr8'.",
-				msg->encoding.c_str());
+		ROS_ERROR("displayImage: Could not convert image");
+		//ROS_ERROR("Could not convert from '%s' to 'bgr8'.",
+		//		msg->encoding.c_str());
 		return;
 	}
 
@@ -151,7 +152,7 @@ void imageCallback1(const sensor_msgs::ImageConstPtr& msg) {
 
 					std::string calName = symbol->get_data();
 					std::string number;
-					ROS_INFO("calNAME length: %d", calName.size());
+					//ROS_INFO("calNAME length: %d", calName.size());
 					if (calName.size() == 13) {
 						number = calName.substr(calName.size() - 1);
 					} else if (calName.size() == 14) {
@@ -323,8 +324,9 @@ void imageCallback2(const sensor_msgs::ImageConstPtr& msg) {
 	try {
 		input2 = cv_bridge::toCvShare(msg, "bgr8")->image;
 	} catch (cv_bridge::Exception& e) {
-		ROS_ERROR("Could not convert from '%s' to 'bgr8'.",
-				msg->encoding.c_str());
+		ROS_ERROR("displayImage: Could not convert image");
+		//ROS_ERROR("Could not convert from '%s' to 'bgr8'.",
+		//		msg->encoding.c_str());
 		return;
 	}
 	id_counter2++;
@@ -407,7 +409,7 @@ void imageCallback2(const sensor_msgs::ImageConstPtr& msg) {
 
 					std::string calName = symbol->get_data();
 					std::string number;
-					ROS_INFO("calNAME length: %d", calName.size());
+					//ROS_INFO("calNAME length: %d", calName.size());
 					if (calName.size() == 13) {
 						number = calName.substr(calName.size() - 1);
 					} else if (calName.size() == 14) {

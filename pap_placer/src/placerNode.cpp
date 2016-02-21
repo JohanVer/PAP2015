@@ -166,6 +166,14 @@ int main(int argc, char **argv) {
 			if (IDLE_called) {
 				ROS_INFO("PlacerState: IDLE");
 				sendPlacerStatus(pap_common::IDLE_STATE,pap_common::PLACER_ACTIVE);
+				// Keep state indicators to see error state
+				if(last_state != ERROR) {
+					sendPlacerStatus(pap_common::GOTOBOX_STATE,pap_common::PLACER_FINISHED);
+					sendPlacerStatus(pap_common::STARTPICKUP_STATE,pap_common::PLACER_FINISHED);
+					sendPlacerStatus(pap_common::GOTOPCBCOMP_STATE,pap_common::PLACER_FINISHED);
+					sendPlacerStatus(pap_common::PLACECOMPONENT_STATE,pap_common::PLACER_FINISHED);
+					sendPlacerStatus(pap_common::HOMING_STATE,pap_common::PLACER_FINISHED);
+				}
 				IDLE_called = false;
 			}
 			break;
@@ -601,12 +609,11 @@ int main(int argc, char **argv) {
 
 			// Send coordinates to motor last_statecontroller and wait until position reached
 		case GOTOBOX:
-
-			sendPlacerStatus(pap_common::IDLE_STATE, pap_common::PLACER_IDLE);
-			sendPlacerStatus(pap_common::GOTOBOX_STATE,
-					pap_common::PLACER_ACTIVE);
-
 			if (!positionSend) {
+				ROS_INFO("Placerstate: GOTOBOX");
+				sendPlacerStatus(pap_common::IDLE_STATE, pap_common::PLACER_IDLE);
+				sendPlacerStatus(pap_common::GOTOBOX_STATE, pap_common::PLACER_ACTIVE);
+
 				setLEDTask(placeController.getBoxNumber());
 				placeController.currentDestination_ =
 						placeController.getBoxCoordinates();
@@ -619,6 +626,7 @@ int main(int argc, char **argv) {
 				state = GOTOCOORD;
 			} else {
 				if (!visionStarted) {
+					ROS_INFO("Placerstate: GOTOBOX - Vision started");
 					sendTask(pap_common::VISION, pap_vision::START_VISION);
 					float length = placeController.getComponentLenth();
 					float width = placeController.getComponentWidth();
@@ -641,7 +649,7 @@ int main(int argc, char **argv) {
 
 				if (cameraFeedbackReceived) {
 					sendTask(pap_common::VISION, pap_vision::STOP_VISION);
-					ROS_INFO("Got feedback from vision for chip correction...");
+					ROS_INFO("Placerstate: GOTOBOX - Got feedback from vision for chip correction...");
 					cameraFeedbackReceived = false;
 					positionSend = false;
 					visionStarted = false;
@@ -652,6 +660,7 @@ int main(int argc, char **argv) {
 			break;
 
 		case GOTOPICKUPCOOR:
+			ROS_INFO("Placerstate: GOTOPICKUPCOOR");
 			if (!positionSend) {
 				placeController.currentDestination_ =
 						placeController.getCompPickUpCoordinates();
@@ -696,11 +705,7 @@ int main(int argc, char **argv) {
 		case STARTPICKUP:
 			if (!positionSend) {
 				ROS_INFO("PlacerState: STARTPICKUP");
-				sendPlacerStatus(pap_common::IDLE_STATE,
-						pap_common::PLACER_IDLE);
-				sendPlacerStatus(pap_common::STARTPICKUP_STATE,
-						pap_common::PLACER_ACTIVE);
-
+				sendPlacerStatus(pap_common::STARTPICKUP_STATE, pap_common::PLACER_ACTIVE);
 				ros::Duration(1).sleep();
 
 				if (placeController.selectTip()) {		// Activate tip
@@ -717,7 +722,6 @@ int main(int argc, char **argv) {
 
 				placeController.currentDestination_.z =
 						placeController.getCompSuckingHeight();
-				ROS_INFO("PlacerState: STARTPICKUP");
 				ROS_INFO("Go to: x:%f y:%f z:%f",
 						placeController.currentDestination_.x,
 						placeController.currentDestination_.y,
@@ -801,14 +805,11 @@ int main(int argc, char **argv) {
 			break;
 
 		case GOTOPLACECOORD:
-			sendPlacerStatus(pap_common::IDLE_STATE, pap_common::PLACER_IDLE);
-			sendPlacerStatus(pap_common::GOTOPCBCOMP_STATE,
-					pap_common::PLACER_ACTIVE);
-
 			if (!positionSend) {
+				ROS_INFO("PlacerState: GOTOPLACECOORD");
+				sendPlacerStatus(pap_common::GOTOPCBCOMP_STATE, pap_common::PLACER_ACTIVE);
 				placeController.currentDestination_ =
 						placeController.getCompPlaceCoordinates();
-				ROS_INFO("PlacerState: GOTOPLACECOORD");
 				ROS_INFO("Go to: x:%f y:%f z:%f",
 						placeController.currentDestination_.x,
 						placeController.currentDestination_.y,
@@ -824,12 +825,10 @@ int main(int argc, char **argv) {
 			break;
 
 		case PLACECOMPONENT:
-			ROS_INFO("PlacerState: PLACECOMPONENT");
-			sendPlacerStatus(pap_common::IDLE_STATE, pap_common::PLACER_IDLE);
-			sendPlacerStatus(pap_common::PLACECOMPONENT_STATE,
-					pap_common::PLACER_ACTIVE);
-
 			if (!positionSend) {
+				ROS_INFO("PlacerState: PLACECOMPONENT");
+				sendPlacerStatus(pap_common::PLACECOMPONENT_STATE, pap_common::PLACER_ACTIVE);
+
 				if (placeController.selectTip()) {
 					sendRelaisTask(3, false);	// Activate left cylinder
 					sendRelaisTask(6, true);
@@ -895,10 +894,11 @@ int main(int argc, char **argv) {
 		case HOMING:
 
 			if (!positionSend) {
-				placeController.currentDestination_ =
-						placeController.idleCoordinates_;
 				ROS_INFO("PlacerState: HOMING");
 				sendPlacerStatus(pap_common::HOMING_STATE, pap_common::PLACER_ACTIVE);
+
+				placeController.currentDestination_ =
+						placeController.idleCoordinates_;
 				ROS_INFO("Go to: x:%f y:%f z:%f",
 						placeController.currentDestination_.x,
 						placeController.currentDestination_.y,
@@ -926,7 +926,7 @@ int main(int argc, char **argv) {
 				outTolerance = true;
 			} else {
 				outTolerance = false;
-				//ROS_INFO("In Tolerance");
+				//ROS_INFO("Placer: In Tolerance");
 			}
 			if (!placerNodeBusy) {
 				//ROS_INFO("lastX: %f", placeController.lastDestination_.x);
@@ -1005,8 +1005,6 @@ int main(int argc, char **argv) {
 			} else if (motorcontrollerStatus[1].error
 					|| motorcontrollerStatus[2].error
 					|| motorcontrollerStatus[3].error) {
-				sendPlacerStatus(pap_common::GOTOBOX_STATE,
-						pap_common::PLACER_ERROR);
 				error_code = MOTOR_ERROR;
 				state = ERROR;
 				break;
@@ -1014,8 +1012,6 @@ int main(int argc, char **argv) {
 			} else if (motorcontrollerStatus[1].failed
 					|| motorcontrollerStatus[2].failed
 					|| motorcontrollerStatus[3].failed) {
-				sendPlacerStatus(pap_common::GOTOBOX_STATE,
-						pap_common::PLACER_ERROR);
 				error_code = MOTOR_FAILED;
 				state = ERROR;
 				break;
@@ -1060,7 +1056,6 @@ int main(int argc, char **argv) {
 				ROS_INFO("PlacerState: GOTOCOORD: x=%f y=%f z=%f",
 						placeController.dispenseTask.xPos2,
 						placeController.dispenseTask.yPos2, DISPENSER_HEIGHT);
-
 				motorcontroller_counter = 0;
 				placerNodeBusy = true;
 			}
@@ -1078,8 +1073,6 @@ int main(int argc, char **argv) {
 			} else if (motorcontrollerStatus[1].error
 					|| motorcontrollerStatus[2].error
 					|| motorcontrollerStatus[3].error) {
-				sendPlacerStatus(pap_common::GOTOBOX_STATE,
-						pap_common::PLACER_ERROR);
 				error_code = MOTOR_ERROR;
 				state = ERROR;
 				break;
@@ -1087,8 +1080,6 @@ int main(int argc, char **argv) {
 			} else if (motorcontrollerStatus[1].failed
 					|| motorcontrollerStatus[2].failed
 					|| motorcontrollerStatus[3].failed) {
-				sendPlacerStatus(pap_common::GOTOBOX_STATE,
-						pap_common::PLACER_ERROR);
 				error_code = MOTOR_FAILED;
 				state = ERROR;
 				break;
@@ -1106,6 +1097,24 @@ int main(int argc, char **argv) {
 		case ERROR:
 			// Stop and publish error code
 			ROS_INFO("PlacerState: ERROR %d", error_code);
+			switch(last_state) {
+			case GOTOBOX:
+				sendPlacerStatus(pap_common::GOTOBOX_STATE, pap_common::PLACER_ERROR);
+				break;
+			case STARTPICKUP:
+				sendPlacerStatus(pap_common::STARTPICKUP_STATE, pap_common::PLACER_ERROR);
+				break;
+			case GOTOPLACECOORD:
+				sendPlacerStatus(pap_common::GOTOPCBCOMP_STATE, pap_common::PLACER_ERROR);
+				break;
+			case PLACECOMPONENT:
+				sendPlacerStatus(pap_common::PLACECOMPONENT_STATE, pap_common::PLACER_ERROR);
+				break;
+			case HOMING:
+				sendPlacerStatus(pap_common::HOMING_STATE, pap_common::PLACER_ERROR);
+				break;
+			}
+			last_state =state;
 			IDLE_called = true;
 			state = IDLE;
 			break;
@@ -1316,11 +1325,8 @@ void placerCallback(const pap_common::TaskConstPtr& taskMsg) {
 			if ((tempComponent.box >= 67) && (tempComponent.box <= 86)) {
 				// Its a tape - no GOTOBOX, VISION states needed
 				state = GOTOPICKUPCOOR;
-				ROS_INFO("Placer - GOTOPICKUPCOOR");
 			} else {
-				// Start placer with state GOTOBOX
 				state = GOTOBOX;
-				ROS_INFO("Placer - GOTOBOX");
 			}
 		}
 

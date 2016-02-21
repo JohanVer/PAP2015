@@ -589,7 +589,7 @@
           <item>
            <widget class="QLabel" name="label_81">
             <property name="text">
-             <string>Go to comp. box</string>
+             <string>Go to slot</string>
             </property>
            </widget>
           </item>

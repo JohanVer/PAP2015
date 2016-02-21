@@ -249,7 +249,7 @@ void MainWindow::on_loadGerberFileButton_clicked() {
 						componentString.size() - pos1);
 
 				// Be careful - neglecting one position!!!
-				pos1 = componentString.find('//');
+				pos1 = componentString.find("//");
 				newComponent.value = componentString.substr(0, pos1);
 				componentString = componentString.substr(pos1 + 2,
 						componentString.size() - pos1);
@@ -2472,7 +2472,6 @@ void MainWindow::sendTransforms(double x, double y, double z, double nozzle_1,
 
 void MainWindow::on_calibrateTapeButton_clicked(void) {
 
-	// TODO{Niko}: Use these functions in gui and placer node
 	QVector<int> calibratedTapes;
 	for (size_t i = 0; i < componentList.size(); i++) {
 		if ((componentList.at(i).box >= 67)
@@ -2488,7 +2487,6 @@ void MainWindow::on_calibrateTapeButton_clicked(void) {
 			}
 		}
 	}
-
 	// EXAMPLE: Get 4th position of component in 1st tape
 	//tapeCalibrationValue positionOfComponent = calculatePosOfTapePart(1,4);
 }
