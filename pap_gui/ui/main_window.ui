@@ -478,7 +478,7 @@
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_25">
           <item>
-           <widget class="QLabel" name="label_45">
+           <widget class="QLabel" name="label_placement">
             <property name="text">
              <string>Not running</string>
             </property>

@@ -87,6 +87,7 @@ public:
 
 	void closeEvent(QCloseEvent *event); // Overloaded function
 	void showNoMasterMessage();
+	void showSelectCompMessage();
 
 public Q_SLOTS:
 	/******************************************
@@ -250,7 +251,6 @@ private:
 
 	//DatabaseClass database;
 	ComponentPlacerData placementData;
-	componentEntry singleComponent;
 	int tapeCompCounter[20];
 
 	// Current position
@@ -286,6 +286,7 @@ private:
     int lastDispenserId;
 
     bool completePlacementRunning;
+    bool singlePlacementRunning;
     int componentIndicator;
 
     std::vector<tapeCalibrationValue> tapeCalibrationValues;

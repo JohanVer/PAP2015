@@ -154,6 +154,7 @@ MainWindow::MainWindow(int version, int argc, char** argv, QWidget *parent) :
 	tip2Pos_ = 0.0;
 
 	completePlacementRunning = false;
+	singlePlacementRunning = false;
 	componentIndicator = 0;
 
 	xTapeCalibration = 0.0;
@@ -193,6 +194,7 @@ MainWindow::MainWindow(int version, int argc, char** argv, QWidget *parent) :
 		ui.tab_manager->setTabEnabled(5, false);
 		ui.tab_manager->setCurrentIndex(0);
 		on_button_connect_clicked(true);
+		ui.dock_status->hide();
 		ros::Duration(1).sleep();
 		qnode.sendTask(pap_common::PLACER, pap_common::IDLE);
 	} else {
@@ -369,10 +371,7 @@ void MainWindow::on_compDeleteButton_clicked() {
 	/* Get current component */
 	int currentComp = ui.tableWidget->currentRow();
 	if (currentComp == -1) {
-		QMessageBox msgBox;
-		msgBox.setText("Please select a component.");
-		msgBox.exec();
-		msgBox.close();
+		showSelectCompMessage();
 	} else { /* Delete component from list */
 		componentList.remove(currentComp);
 		updateComponentTable();
@@ -389,11 +388,7 @@ void MainWindow::on_compOrientButton_clicked() {
 
 	/* If no component selected */
 	if (currentComponent == -1) {
-		QMessageBox msgBox;
-		msgBox.setText("Please select a component.");
-		msgBox.exec();
-		msgBox.close();
-
+		showSelectCompMessage();
 	} else {
 
 		bool ok = false;
@@ -416,11 +411,7 @@ void MainWindow::on_compPackageButton_clicked() {
 
 	/* If no component selected */
 	if (currentComponent == -1) {
-		QMessageBox msgBox;
-		msgBox.setText("Please select a component.");
-		msgBox.exec();
-		msgBox.close();
-
+		showSelectCompMessage();
 	} else {
 
 		bool ok = false;
@@ -452,17 +443,7 @@ void MainWindow::on_startPlacementButton_clicked() {
 		msgBox.close();
 		return;
 	}
-	// Missing packages?
-	updateMissingPackageList();
-	if (!missingPackageList.isEmpty()) {
-		QMessageBox msgBox;
-		QString message = QString("There are still %1 unknown packages.").arg(
-				missingPackageList.size());
-		msgBox.setText(message);
-		msgBox.exec();
-		msgBox.close();
-		return;
-	}
+	// Do not need to check if package known -> if not no slot can be assigned.
 	// Missing slots?
 	if (emptySlots()) {
 		QMessageBox msgBox;
@@ -472,14 +453,29 @@ void MainWindow::on_startPlacementButton_clicked() {
 		return;
 	}
 	// Start placement process
-	if (!completePlacementRunning) {
-		completePlacementRunning = true;
-		componentIndicator = 0;
-		updatePlacementData(componentList[componentIndicator]);
-		qnode.sendTask(pap_common::PLACER, pap_common::COMPLETEPLACEMENT,
-				placementData);
-		ui.label_compLeft->setText(QString::number(componentList.size()-componentIndicator));
-		ui.label_currentComp->setText(QString::fromStdString(componentList.at(componentIndicator).name));
+	if (!completePlacementRunning && !singlePlacementRunning) {
+		QMessageBox msgBox;
+		QString message =
+				QString(
+						"You are about to start a complete placement process with %1 components. Please make sure all components are in their corresponding slots.\n\nClick yes to start process.").arg(
+						componentList.size());
+		msgBox.setWindowTitle("Confirm to start placement");
+		msgBox.setText(message);
+		msgBox.setStandardButtons(QMessageBox::Yes);
+		msgBox.addButton(QMessageBox::No);
+		msgBox.setDefaultButton(QMessageBox::No);
+		if (msgBox.exec() == QMessageBox::Yes) {
+			completePlacementRunning = true;
+			componentIndicator = 0;
+			updatePlacementData(componentList[componentIndicator]);
+			qnode.sendTask(pap_common::PLACER, pap_common::COMPLETEPLACEMENT,
+					placementData);
+			ui.label_compLeft->setText(
+					QString::number(componentList.size() - componentIndicator));
+			ui.label_currentComp->setText(
+					QString::fromStdString(
+							componentList.at(componentIndicator).name));
+		}
 	} else {
 		QMessageBox msgBox;
 		msgBox.setText("Placement process already running - stop first.");
@@ -499,6 +495,7 @@ bool MainWindow::emptySlots() {
 void MainWindow::on_stopPlacementButton_clicked() {
 	// Placer will stop/home once current comp placed
 	qnode.sendTask(pap_common::PLACER, pap_common::STOP);
+	componentIndicator = -1;
 }
 
 /********************************************************************"*********
@@ -545,14 +542,15 @@ void MainWindow::on_replaceButton_clicked() {
 			updateComponentInformation();
 			updateMissingPackageList();
 			updateMissingPackageTable();
-			ROS_INFO("%d components have been replaced.", replaceCounter);
+			ROS_INFO("GUI: %d components have been replaced.", replaceCounter);
 		}
 	}
 }
 
 void MainWindow::on_addPackageButton_clicked() {
 	int missing_package = ui.missingPackageTableWidget->currentRow();
-	PackageDialog* packageDialog = new PackageDialog(&databaseVector, &missingPackageList, missing_package);
+	PackageDialog* packageDialog = new PackageDialog(&databaseVector,
+			&missingPackageList, missing_package);
 	packageDialog->exec();
 	updateDatabaseTable();
 	updateMissingPackageList();
@@ -563,7 +561,8 @@ void MainWindow::on_editPackageButton_clicked() {
 
 	int current_package = ui.packageTableWidget->currentRow();
 	if (current_package != -1) {
-		PackageDialog* packageDialog = new PackageDialog(&databaseVector, NULL, current_package);
+		PackageDialog* packageDialog = new PackageDialog(&databaseVector, NULL,
+				current_package);
 		packageDialog->exec();
 		updateDatabaseTable();
 		updateMissingPackageList();
@@ -592,13 +591,9 @@ void MainWindow::on_deletePackageButton_clicked() {
 	}
 }
 
-/********************************************************************"*********
- ** Implementation "Single Component"-Tab
- *****************************************************************************/
-
 void MainWindow::setLedFromSelection(int selection) {
 	if (selection != -1) {
-		ROS_INFO("Set led number %d", selection);
+		ROS_INFO("GUI: Set led number %d", selection);
 		qnode.setLEDTask(selection);
 	} else {
 		qnode.LEDTask(pap_common::RESETALLLED, 0);
@@ -655,7 +650,6 @@ void MainWindow::loadDatabaseContent() {
 		msgBox.close();
 	}
 }
-
 
 void MainWindow::updateComponentInformation() {
 
@@ -735,7 +729,6 @@ void MainWindow::updateComponentInformation() {
 }
 
 void MainWindow::on_tableWidget_clicked() {
-
 	updateComponentInformation();
 }
 
@@ -930,10 +923,10 @@ void MainWindow::updatePlacementData(componentEntry &singleComponentIn) {
 	componentEntry entryToTransform;
 	entryToTransform = singleComponentIn;
 
-	ROS_INFO("placerInfo - before: x%f, y=%f", entryToTransform.posX,
+	ROS_INFO("GUI: placerInfo - before: x%f, y=%f", entryToTransform.posX,
 			entryToTransform.posY);
 	padParser.transformComponent(&entryToTransform);
-	ROS_INFO("placerInfo - after: x%f, y=%f", entryToTransform.posX,
+	ROS_INFO("GUI: placerInfo - after: x%f, y=%f", entryToTransform.posX,
 			entryToTransform.posY);
 
 	// Is it a tape?
@@ -963,27 +956,68 @@ void MainWindow::updatePlacementData(componentEntry &singleComponentIn) {
 void MainWindow::on_placeSingleComponentButton_clicked() {
 
 	int currentComp = ui.tableWidget->currentRow();
+
+	// No component selected
 	if (currentComp == -1) {
+		showSelectCompMessage();
+		return;
+	}
+	// Do not need to check if package known -> if not no slot can be assigned!
+
+	// Missing slots?
+	if (componentList.at(currentComp).box == -1) {
 		QMessageBox msgBox;
-		msgBox.setText("Please select a component.");
+		msgBox.setText("Please assign slot first.");
 		msgBox.exec();
 		msgBox.close();
-	} else {
-
-/////////////////// CHANGE //////////////////////////////
-		if (singleComponent.box == -1) {
-			QMessageBox msgBox;
-			msgBox.setText("Please set box number first.");
-			msgBox.exec();
-			msgBox.close();
-		} else {
-			updatePlacementData(singleComponent);
-			qnode.sendTask(pap_common::PLACER, pap_common::PLACECOMPONENT,
-					placementData);
-		}
-		singleComponent = componentList.at(currentComp);
-		//updateSingleComponentInformation();
+		return;
 	}
+
+	// Start placement process
+	if (!completePlacementRunning && !singlePlacementRunning) {
+		QMessageBox msgBox;
+		QString message =
+				QString(
+						"You are about to start a single placement process. Please make sure component %1 is in slot %2. \n\nClick yes to start process.").arg(
+						QString::fromStdString(
+								componentList.at(currentComp).name)).arg(
+						componentList.at(currentComp).box);
+		msgBox.setWindowTitle("Confirm to start placement");
+		msgBox.setText(message);
+		msgBox.setStandardButtons(QMessageBox::Yes);
+		msgBox.addButton(QMessageBox::No);
+		msgBox.setDefaultButton(QMessageBox::No);
+		if (msgBox.exec() == QMessageBox::Yes) {
+			ROS_INFO("GUI: Placement started");
+			singlePlacementRunning = true;
+			updatePlacementData(componentList[currentComp]);
+			qnode.sendTask(pap_common::PLACER, pap_common::SINGLEPLACEMENT,
+					placementData);
+			ui.label_placement->setText("Running");
+			ui.label_compLeft->setText(QString::number(1));
+			ui.label_currentComp->setText(
+					QString::fromStdString(componentList.at(currentComp).name));
+		} else {
+			ROS_INFO("GUI: Nothing happend");
+		}
+	} else {
+		QMessageBox msgBox;
+		msgBox.setText("Another placement process has not finished yet.");
+		msgBox.exec();
+		msgBox.close();
+	}
+}
+
+/*
+ void MainWindow::showMessage(){
+
+ }*/
+
+void MainWindow::showSelectCompMessage() {
+	QMessageBox msgBox;
+	msgBox.setText("No component selected.");
+	msgBox.exec();
+	msgBox.close();
 }
 
 void MainWindow::showNoMasterMessage() {
@@ -992,11 +1026,6 @@ void MainWindow::showNoMasterMessage() {
 	msgBox.exec();
 	close();
 }
-
-/*
- * These triggers whenever the button is clicked, regardless of whether it
- * is already checked or not.
- */
 
 void MainWindow::on_button_connect_clicked(bool check) {
 	if (ui.checkbox_use_environment->isChecked()) {
@@ -1115,7 +1144,7 @@ void MainWindow::on_startHoming_clicked(bool check) {
 }
 
 void MainWindow::on_switchCurrent_clicked(bool check) {
-	ROS_INFO("Sending current switch command...");
+	ROS_INFO("GUI: Sending current switch command...");
 	qnode.sendTask(pap_common::CONTROLLER, pap_common::CURRENT);
 }
 
@@ -1191,26 +1220,40 @@ void MainWindow::releasezManNeg() {
 
 void MainWindow::placerStatusUpdated(int state, int status) {
 
-	ROS_INFO("PlacerStatusUpdated: %d, %d !!", state, status);
+	ROS_INFO("GUI: placerStatusUpdated: %d, %d !!", state, status);
 
 	// Complete placement - send next component
 	if (state == pap_common::PLACECOMPONENT_STATE
 			&& status == pap_common::PLACER_FINISHED
 			&& completePlacementRunning) {
-		if (componentIndicator < componentList.size()) {
+		if (componentIndicator < componentList.size()
+				&& componentIndicator != -1) {
 			componentIndicator++;
 			updatePlacementData(componentList[componentIndicator]);
 			qnode.sendTask(pap_common::PLACER, pap_common::COMPLETEPLACEMENT,
 					placementData);
-			ui.label_compLeft->setText(QString::number(componentList.size()-componentIndicator));
-			ui.label_currentComp->setText(QString::fromStdString(componentList.at(componentIndicator).name));
+			ui.label_compLeft->setText(
+					QString::number(componentList.size() - componentIndicator));
+			ui.label_currentComp->setText(
+					QString::fromStdString(
+							componentList.at(componentIndicator).name));
 		} else {
 			// no more components - stop placer (Homing)
 			qnode.sendTask(pap_common::PLACER, pap_common::HOMING);
 			completePlacementRunning = false;
+			ui.label_placement->setText("Finished");
 			ui.label_currentComp->setText("-");
 			ui.label_compLeft->setText(QString::number(0));
 		}
+	}
+
+	if (state == pap_common::PLACECOMPONENT_STATE
+			&& status == pap_common::PLACER_FINISHED
+			&& singlePlacementRunning) {
+		singlePlacementRunning = false;
+		ui.label_placement->setText("Finished");
+		ui.label_currentComp->setText("-");
+		ui.label_compLeft->setText(QString::number(0));
 	}
 
 	QPixmap statePixmap(QSize(20, 20));
@@ -1261,56 +1304,56 @@ void MainWindow::placerStatusUpdated(int state, int status) {
 	case 7:
 		ui.label_indicator7->setPixmap(statePixmap);
 		break;
-/*
-	case pap_common::INFO:
-		switch (status) {
-		case 1:
-			ui.label_Info->setText("IDLE");
-			break;
-		case 2:
-			ui.label_Info->setText("CALIBRATE");
-			break;
-		case 3:
-			ui.label_Info->setText("GOTOPCBORIGIN");
-			break;
-		case 4:
-			ui.label_Info->setText("FINDPADS");
-			break;
-		case 5:
-			ui.label_Info->setText("GOTOBOX");
-			break;
-		case 6:
-			ui.label_Info->setText("FINDCOMPONENT");
-			break;
-		case 7:
-			ui.label_Info->setText("GOTOPICKUPCOOR");
-			break;
-		case 8:
-			ui.label_Info->setText("STARTPICKUP");
-			break;
-		case 9:
-			ui.label_Info->setText("GOTOBOTTOMCAM");
-			break;
-		case 10:
-			ui.label_Info->setText("CHECKCOMPONENTPICKUP");
-			break;
-		case 11:
-			ui.label_Info->setText("GOTOPCBCOMP");
-			break;
-		case 12:
-			ui.label_Info->setText("CHECKCOMPPOSITON");
-			break;
-		case 13:
-			ui.label_Info->setText("GOTOPLACECOORD");
-			break;
-		case 14:
-			ui.label_Info->setText("CHECKCOMPONENTPOSITION");
-			break;
-		case 15:
-			ui.label_Info->setText("STARTPLACEMENT");
-			break;
-			break;
-		}*/
+		/*
+		 case pap_common::INFO:
+		 switch (status) {
+		 case 1:
+		 ui.label_Info->setText("IDLE");
+		 break;
+		 case 2:
+		 ui.label_Info->setText("CALIBRATE");
+		 break;
+		 case 3:
+		 ui.label_Info->setText("GOTOPCBORIGIN");
+		 break;
+		 case 4:
+		 ui.label_Info->setText("FINDPADS");
+		 break;
+		 case 5:
+		 ui.label_Info->setText("GOTOBOX");
+		 break;
+		 case 6:
+		 ui.label_Info->setText("FINDCOMPONENT");
+		 break;
+		 case 7:
+		 ui.label_Info->setText("GOTOPICKUPCOOR");
+		 break;
+		 case 8:
+		 ui.label_Info->setText("STARTPICKUP");
+		 break;
+		 case 9:
+		 ui.label_Info->setText("GOTOBOTTOMCAM");
+		 break;
+		 case 10:
+		 ui.label_Info->setText("CHECKCOMPONENTPICKUP");
+		 break;
+		 case 11:
+		 ui.label_Info->setText("GOTOPCBCOMP");
+		 break;
+		 case 12:
+		 ui.label_Info->setText("CHECKCOMPPOSITON");
+		 break;
+		 case 13:
+		 ui.label_Info->setText("GOTOPLACECOORD");
+		 break;
+		 case 14:
+		 ui.label_Info->setText("CHECKCOMPONENTPOSITION");
+		 break;
+		 case 15:
+		 ui.label_Info->setText("STARTPLACEMENT");
+		 break;
+		 break;
+		 }*/
 	}
 }
 
@@ -1869,7 +1912,7 @@ void MainWindow::setFiducialPads(int number, float x, float y) {
 void MainWindow::signalPosition(float x, float y) {
 	padPosition_.setX(x);
 	padPosition_.setY(y);
-	//ROS_INFO("PadPos: %f %f", padPosition_.x(), padPosition_.y());
+	//ROS_INFO("GUI: PadPos: %f %f", padPosition_.x(), padPosition_.y());
 }
 
 void MainWindow::tipToggled(int select, bool status) {
@@ -1901,7 +1944,7 @@ void MainWindow::sendGotoFiducial(int indexOfFiducial) {
 		}
 		float x = ui.fiducialTable->item(indexOfFiducial, 2)->text().toFloat();
 		float y = ui.fiducialTable->item(indexOfFiducial, 3)->text().toFloat();
-		ROS_INFO("Goto position x: %f y: %f", x, y);
+		ROS_INFO("GUI: Goto position x: %f y: %f", x, y);
 		//qnode.sendTask(pap_common::CONTROLLER, pap_common::COORD, x, y, 22.0);
 		qnode.sendTask(pap_common::PLACER, pap_common::GOTO, x, y, 22.0);
 	}
@@ -2000,16 +2043,16 @@ void MainWindow::padPressed(int numberOfFiducial, QPointF padPos) {
 }
 
 void MainWindow::gotoPad(QPointF padPos) {
-	ROS_INFO("Goto Pad....");
+	ROS_INFO("GUI: Goto Pad....");
 	id_ = padParser.searchId(padPos, ui.padView_Image->width() - 20);
-	ROS_INFO("ID: %d", id_);
+	ROS_INFO("GUI: ID: %d", id_);
 	//if (qnode.getStatus()[0].positionReached
 	//		&& qnode.getStatus()[1].positionReached
 	//	&& qnode.getStatus()[2].positionReached) {
 
 	float x = padParser.padInformationArray_[id_].rect.x();
 	float y = padParser.padInformationArray_[id_].rect.y();
-	ROS_INFO("Goto position x: %f y: %f", x, y);
+	ROS_INFO("GUI: Goto position x: %f y: %f", x, y);
 	//qnode.sendTask(pap_common::CONTROLLER, pap_common::COORD, x, y, 22);
 	qnode.sendTask(pap_common::PLACER, pap_common::GOTO, x, y, 22.0);
 	//}
@@ -2037,7 +2080,7 @@ void MainWindow::on_calcOrientation_Button_clicked() {
 	float xCamera = 0.0;
 	float yCamera = 0.0;
 	if (qnode.fakePadPos_) {
-		ROS_INFO("Simulation active: I will fake the pad positions...");
+		ROS_INFO("GUI: Simulation active: I will fake the pad positions...");
 		xCamera = 180.0;
 		yCamera = 140.0;
 
@@ -2084,12 +2127,12 @@ void MainWindow::keyPressEvent(QKeyEvent *e) {
 	case Qt::Key_S:
 		qnode.sendTask(pap_common::CONTROLLER, pap_common::MANUAL,
 				(float) pap_common::XMOTOR, (float) pap_common::FORWARD, 0.0);
-		//ROS_INFO("Pressed down xmotor");
+		//ROS_INFO("GUI: Pressed down xmotor");
 		break;
 	case Qt::Key_W:
 		qnode.sendTask(pap_common::CONTROLLER, pap_common::MANUAL,
 				(float) pap_common::XMOTOR, (float) pap_common::BACKWARD, 0.0);
-		//ROS_INFO("Pressed up xmotor");
+		//ROS_INFO("GUI: Pressed up xmotor");
 		break;
 	case Qt::Key_A:
 		qnode.sendTask(pap_common::CONTROLLER, pap_common::MANUAL,
@@ -2286,7 +2329,7 @@ void MainWindow::on_startDispense_button_clicked() {
 				QPen(Qt::green, 2, Qt::SolidLine));
 
 	}
-	ROS_INFO("Dispensing finished....");
+	ROS_INFO("GUI: Dispensing finished....");
 	qnode.sendTask(pap_common::PLACER, pap_common::GOTO, currentPosition.x,
 			currentPosition.y, 45.0);
 }
@@ -2326,7 +2369,7 @@ void MainWindow::dispenseSinglePad(QPointF point) {
 			if (!timer->isActive()) {
 				return;
 			}
-			//ROS_INFO("Print: X %f Y %f X2 %f Y2 %f",dispInfo[j].xPos *pxFactor ,(padParser.height_-dispInfo[j].yPos)*pxFactor,dispInfo[j].xPos2*pxFactor,(padParser.height_-dispInfo[j].yPos2)*pxFactor);
+			//ROS_INFO(" GUI: Print: X %f Y %f X2 %f Y2 %f",dispInfo[j].xPos *pxFactor ,(padParser.height_-dispInfo[j].yPos)*pxFactor,dispInfo[j].xPos2*pxFactor,(padParser.height_-dispInfo[j].yPos2)*pxFactor);
 		}
 	} else {
 		ROS_ERROR("No pad selected...");
@@ -2434,13 +2477,13 @@ void MainWindow::on_calibrateTapeButton_clicked(void) {
 	for (size_t i = 0; i < componentList.size(); i++) {
 		if ((componentList.at(i).box >= 67)
 				&& (componentList.at(i).box <= 86)) {
-			ROS_INFO("Calibrated tape: %d", componentList.at(i).box);
+			ROS_INFO("GUI: Calibrated tape: %d", componentList.at(i).box);
 			int tape_nr = componentList.at(i).box - 67;
 			if (calibratedTapes.indexOf(tape_nr) == -1) {
 				calibratedTapes.append(tape_nr);
 				calibrateTape(tape_nr, componentList.at(i).width,
 						componentList.at(i).length);
-				ROS_INFO("Index : %d Width: %f Height: %f", tape_nr,
+				ROS_INFO("GUI: Index : %d Width: %f Height: %f", tape_nr,
 						componentList.at(i).width, componentList.at(i).length);
 			}
 		}
@@ -2487,7 +2530,7 @@ tapeCalibrationValue MainWindow::calculatePosOfTapePart(int numOfTape,
 	out.y = pointToTransform.y() + tapeCalibrationValues[indexInVector].y;
 	out.rot = tapeCalibrationValues[indexInVector].rot;
 
-	ROS_INFO("Calculated Pos of part in Tape: x %f y %f rot %f", out.x, out.y,
+	ROS_INFO("GUI: Calculated Pos of part in Tape: x %f y %f rot %f", out.x, out.y,
 			out.rot);
 	return out;
 }
@@ -2553,7 +2596,7 @@ void MainWindow::calibrateTape(int tapeNumber, float componentWidth,
 	}
 	qnode.sendTask(pap_common::VISION, pap_vision::STOP_VISION);
 
-	ROS_INFO("TapeCal: %f CurrentPos: %f", xTapeCalibration, currentPosition.x);
+	ROS_INFO("GUI: TapeCal: %f CurrentPos: %f", xTapeCalibration, currentPosition.x);
 	calibrationVal.x = xTapeCalibration + currentPosition.x;
 	calibrationVal.y = yTapeCalibration + currentPosition.y;
 	ros::Duration(1).sleep();
@@ -2588,7 +2631,7 @@ void MainWindow::calibrateTape(int tapeNumber, float componentWidth,
 		calibrationVal.rot = 0;
 	}
 	qnode.sendTask(pap_common::VISION, pap_vision::STOP_VISION);
-	ROS_INFO("Tape Calibration: Got x: %f y: %f rot: %f", calibrationVal.x,
+	ROS_INFO(" GUI: Tape Calibration: Got x: %f y: %f rot: %f", calibrationVal.x,
 			calibrationVal.y, calibrationVal.rot);
 	tapeCalibrationValues.push_back(calibrationVal);
 }

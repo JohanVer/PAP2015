@@ -50,7 +50,7 @@ bool QNode::init() {
 	ros::start(); // explicitly needed since our nodehandle is going out of scope.
 	ros::NodeHandle n_;
 	if (n_.getParam("/fakePadPos", fakePadPos_)) {
-		ROS_INFO("Param: %d", fakePadPos_);
+		ROS_INFO("GUI: Param: %d", fakePadPos_);
 	}
 	image_transport::ImageTransport it_(n_);
 	// Add your ros communications here.
@@ -397,7 +397,7 @@ void QNode::visionStatusCallback(
 }
 
 void QNode::qrCodeCallback(const std_msgs::StringConstPtr& qrMsg) {
-	ROS_INFO("QR Code message received");
+	ROS_INFO("GUI: QR Code message received");
 //QString qrCode = &qrMsg;
 //Q_EMIT
 }
