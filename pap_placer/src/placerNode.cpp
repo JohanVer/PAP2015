@@ -168,11 +168,11 @@ int main(int argc, char **argv) {
 				sendPlacerStatus(pap_common::IDLE_STATE,pap_common::PLACER_ACTIVE);
 				// Keep state indicators to see error state
 				if(last_state != ERROR) {
-					sendPlacerStatus(pap_common::GOTOBOX_STATE,pap_common::PLACER_FINISHED);
-					sendPlacerStatus(pap_common::STARTPICKUP_STATE,pap_common::PLACER_FINISHED);
-					sendPlacerStatus(pap_common::GOTOPCBCOMP_STATE,pap_common::PLACER_FINISHED);
-					sendPlacerStatus(pap_common::PLACECOMPONENT_STATE,pap_common::PLACER_FINISHED);
-					sendPlacerStatus(pap_common::HOMING_STATE,pap_common::PLACER_FINISHED);
+					sendPlacerStatus(pap_common::GOTOBOX_STATE,pap_common::PLACER_IDLE);
+					sendPlacerStatus(pap_common::STARTPICKUP_STATE,pap_common::PLACER_IDLE);
+					sendPlacerStatus(pap_common::GOTOPCBCOMP_STATE,pap_common::PLACER_IDLE);
+					sendPlacerStatus(pap_common::PLACECOMPONENT_STATE,pap_common::PLACER_IDLE);
+					sendPlacerStatus(pap_common::HOMING_STATE,pap_common::PLACER_IDLE);
 				}
 				IDLE_called = false;
 			}
