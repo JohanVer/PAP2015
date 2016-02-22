@@ -22,8 +22,11 @@ Nikolas:
 * Placer-Planner: Implement the second nozzle
 * Placer-Planner: Implement complete (all parts with one click magic) assembling of smd parts
 * Placer-Planner: Test the part rotation procedure (does the system rotate the part in the right direction?)
-* GUI: Pass occupied slots with name to slotsSelector
-* Implement guided selecting of the boxes for complete assembly
+* CHECKED GUI: Reimplementation of slotSelector + functionalities 
+* CHECKED GUI: Database functions: Add/Edit/Delete packages 
+* CHECKED Implement guided selecting of the boxes for complete assembly
+* Camera calibration using checkerboard
+
 
 #DEPENDENCIES
 

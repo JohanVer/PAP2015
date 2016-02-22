@@ -4,5 +4,6 @@
 	<param name="pixel_format" value="yuyv" />
       <!-- nodes can have their own remap args -->
       <remap from="usb_cam" to="usb_camera0"/>
+      </>
   </node>
 </launch>
