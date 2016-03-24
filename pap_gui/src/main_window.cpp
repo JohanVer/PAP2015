@@ -1137,9 +1137,10 @@ void MainWindow::cameraUpdated(int index) {
 }
 
 void MainWindow::on_startHoming_clicked(bool check) {
-	qnode.sendTask(pap_common::CONTROLLER, pap_common::COORD, currentPosition.x,
-			currentPosition.y, 45.0);
-	ros::Duration(2.0).sleep();
+	//Removed 24.03 - Why is this needed?
+	//qnode.sendTask(pap_common::CONTROLLER, pap_common::COORD, currentPosition.x,
+	//		currentPosition.y, 45.0);
+	//ros::Duration(2.0).sleep();
 	qnode.sendTask(pap_common::CONTROLLER, pap_common::HOMING);
 }
 
@@ -1450,12 +1451,14 @@ void MainWindow::on_valveToggle1_clicked(bool check) {
 		qnode.sendRelaisTask(5, true);
 		ui.valveToggle1->setText("On");
 		valve1Active_ = true;
+		ROS_INFO("Toggle");
 	} else {
 		qnode.sendRelaisTask(5, false);
 		ui.valveToggle1->setText("Off");
 		valve1Active_ = false;
 	}
 }
+
 
 void MainWindow::on_valveToggle2_clicked(bool check) {
 	if (!valve2Active_) {

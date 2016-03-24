@@ -117,13 +117,11 @@ void parseTask(const pap_common::TaskConstPtr& taskMsg) {
 		case pap_common::HOMING:
 			if (controllerConnected && controllerEnergized) {
 				desX = xHome;							// Desired position
-				distXTotal = desX - currentState.x;	// Distance we have to go
-
+				distXTotal = desX - currentState.x;		// Distance we have to go
 				desY = yHome;							// Desired position
-				distYTotal = desY - currentState.y;	// Distance we have to go
-
+				distYTotal = desY - currentState.y;		// Distance we have to go
 				desZ = zHome;							// Desired position
-				distZTotal = desZ - currentState.z;	// Distance we have to go
+				distZTotal = desZ - currentState.z;		// Distance we have to go
 			}
 
 			break;
@@ -160,26 +158,26 @@ void parseTask(const pap_common::TaskConstPtr& taskMsg) {
 		case pap_common::COORD:
 			if (controllerConnected && controllerEnergized) {
 				desX = taskMsg->data1;					// Desired position
-				distXTotal = desX - currentState.x;	// Distance we have to go
+				distXTotal = desX - currentState.x;		// Distance we have to go
 
 				desY = taskMsg->data2;					// Desired position
-				distYTotal = desY - currentState.y;	// Distance we have to go
+				distYTotal = desY - currentState.y;		// Distance we have to go
 
 				desZ = taskMsg->data3;					// Desired position
-				distZTotal = desZ - currentState.z;	// Distance we have to go
+				distZTotal = desZ - currentState.z;		// Distance we have to go
 			}
 			break;
 
 		case pap_common::COORD_VEL:
 			if (controllerConnected && controllerEnergized) {
 				desX = taskMsg->data1;					// Desired position
-				distXTotal = desX - currentState.x;	// Distance we have to go
+				distXTotal = desX - currentState.x;		// Distance we have to go
 
 				desY = taskMsg->data2;					// Desired position
-				distYTotal = desY - currentState.y;	// Distance we have to go
+				distYTotal = desY - currentState.y;		// Distance we have to go
 
 				desZ = taskMsg->data3;					// Desired position
-				distZTotal = desZ - currentState.z;	// Distance we have to go
+				distZTotal = desZ - currentState.z;		// Distance we have to go
 			}
 			break;
 
