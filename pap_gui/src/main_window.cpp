@@ -1141,7 +1141,8 @@ void MainWindow::on_startHoming_clicked(bool check) {
 	//qnode.sendTask(pap_common::CONTROLLER, pap_common::COORD, currentPosition.x,
 	//		currentPosition.y, 45.0);
 	//ros::Duration(2.0).sleep();
-	qnode.sendTask(pap_common::CONTROLLER, pap_common::HOMING);
+	qnode.sendTask(pap_common::PLACER, pap_common::HOMING);
+	//qnode.sendTask(pap_common::CONTROLLER, pap_common::HOMING);
 }
 
 void MainWindow::on_switchCurrent_clicked(bool check) {

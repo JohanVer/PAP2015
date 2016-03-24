@@ -630,18 +630,19 @@ int main(int argc, char **argv) {
 					sendTask(pap_common::VISION, pap_vision::START_VISION);
 					float length = placeController.getComponentLenth();
 					float width = placeController.getComponentWidth();
-					if (placeController.selectFinder() == 3) {
+
+					if (placeController.visualFinder == 1) {
 						sendTask(pap_common::VISION,
-								pap_vision::START_CHIP_FINDER, width, length,
-								0);
-					} else if (placeController.selectFinder() == 4) {
+								pap_vision::START_SMALL_FINDER, width, length, 0);
+						ROS_INFO("Placer: SmallFinder started");
+					} else if (placeController.visualFinder == 2) {
 						sendTask(pap_common::VISION,
-								pap_vision::START_SMALL_FINDER, width, length,
-								0);
-					} else if (placeController.selectFinder() == 5) {
+								pap_vision::START_CHIP_FINDER, width, length, 0);
+						ROS_INFO("Placer: ChipFinder started");
+					} else if (placeController.visualFinder == 3) {
 						sendTask(pap_common::VISION,
-								pap_vision::START_TAPE_FINDER, width, length,
-								0);
+								pap_vision::START_TAPE_FINDER, width, length, 0);
+						ROS_INFO("Placer: TapeFinder started");
 					}
 					visionStarted = true;
 					ros::Duration(3).sleep();

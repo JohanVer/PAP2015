@@ -73,15 +73,15 @@ PlaceController::PlaceController() {
 	PlaceCorrection.z = 0;
 	PlaceCorrection.rot = 0.0;
 
+	// Calibration offsets
 	camClibrationOffset_.x = 0.0;
 	camClibrationOffset_.y = 0.0;
 	tip1ClibrationOffset_.x = 0.0;
 	tip1ClibrationOffset_.y = 0.0;
 
-
-	// Default tip
+	// Default tip/visual finder
 	tip = LEFT_TIP;
-
+	visualFinder = 2;	//(ChipFinder)
 	pickRelQR_ = false;
 };
 
@@ -288,11 +288,6 @@ int PlaceController::getBoxNumber() {
 }
 ;
 
-// TODO: Choose tip according to component type and position!
-int PlaceController::selectFinder() {
-	return 3;	// Chipfinder = 3, smallFinder = 4, tapeFinder = 5
-};
-
 int PlaceController::selectTip() {
 	return tip;	// Left tip
 };
@@ -308,4 +303,13 @@ void PlaceController::updatePlacementData(ComponentPlacerData * data) {
 	currentComponent.tapeX = data->tapeX;
 	currentComponent.tapeY = data->tapeY;
 	currentComponent.tapeRot = data->tapeRot;
+
+	// Select corresponding visual finder
+	if(currentComponent.box <= 46) {
+		visualFinder = 1;	// SmallFinder
+	} else if (currentComponent.box <= 66) {
+		visualFinder = 2;	// ChipFinder
+	} else {
+		visualFinder = 3;	// TapeFinder
+	}
 };

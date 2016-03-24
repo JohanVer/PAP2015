@@ -107,6 +107,7 @@ public:
 	Offset idleCoordinates_;
 	float MovingHeight_;
 	bool pickRelQR_;
+	int visualFinder;
 
 	Offset SLOT_QR_Offset_, PCB_QR_Offset_;
 	Offset TAPE_QR_Offset_, BottomCam_QR_Offset_;
@@ -127,7 +128,6 @@ public:
 	float getComponentLenth();
 	float getComponentWidth();
 
-	int selectFinder();
 	int selectTip();
 	void setPickUpCorrectionOffset(float xDiff, float yDiff, float rotDiff);
 	void setPlaceCorrectionOffset(float xDiff, float yDiff, float rotDiff);
