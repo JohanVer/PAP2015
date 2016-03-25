@@ -235,6 +235,7 @@ void MainWindow::on_loadGerberFileButton_clicked() {
 	if (datafile.is_open()) {
 
 		string componentString;
+		bool inDatabase;
 		int comp_index = 0;
 		while (getline(datafile, componentString)) {
 
@@ -289,6 +290,25 @@ void MainWindow::on_loadGerberFileButton_clicked() {
 
 				// Set box number of component
 				newComponent.box = -1;
+
+				// Set length and width of component - if package known
+				inDatabase = false;
+				for (size_t k = 0; k < databaseVector.size(); k++) {
+					if (newComponent.package.compare(
+							databaseVector.at(k).package.toStdString()) == 0) {
+						inDatabase = true;
+						newComponent.length = databaseVector.at(k).length;
+						newComponent.width =  databaseVector.at(k).width;
+						break;
+					}
+				}
+
+				if (!inDatabase) {
+					newComponent.length = -1;
+					newComponent.width = -1;
+				}
+
+				ROS_ERROR("[%d]: length=%f, width=%f", comp_index, newComponent.length, newComponent.width);
 
 				newComponent.index = comp_index;
 				comp_index++;
@@ -922,13 +942,14 @@ void MainWindow::updatePlacementData(componentEntry &singleComponentIn) {
 
 	componentEntry entryToTransform;
 	entryToTransform = singleComponentIn;
+	ROS_ERROR("GUI: BEFORE: %f, %f", singleComponentIn.length, singleComponentIn.width);
 
-	ROS_INFO("GUI: placerInfo - before: x%f, y=%f", entryToTransform.posX,
+	ROS_INFO("GUI: placerInfo - before: x=%f, y=%f", entryToTransform.posX,
 			entryToTransform.posY);
 	padParser.transformComponent(&entryToTransform);
-	ROS_INFO("GUI: placerInfo - after: x%f, y=%f", entryToTransform.posX,
+	ROS_INFO("GUI: placerInfo - after: x=%f, y=%f", entryToTransform.posX,
 			entryToTransform.posY);
-
+	ROS_ERROR("GUI: AFTER: %f, %f", entryToTransform.length, entryToTransform.width);
 	// Is it a tape?
 	if ((entryToTransform.box >= 67) && (entryToTransform.box <= 86)) {
 		unsigned int tape_nr = entryToTransform.box - 67;
@@ -951,6 +972,7 @@ void MainWindow::updatePlacementData(componentEntry &singleComponentIn) {
 	placementData.length = entryToTransform.length;
 	placementData.width = entryToTransform.width;
 	placementData.rotation = entryToTransform.rotation;
+	ROS_ERROR("GUI: PLACEMENT DATA UPDATE: %f, %f", placementData.length, placementData.width);
 }
 
 void MainWindow::on_placeSingleComponentButton_clicked() {
@@ -1007,11 +1029,6 @@ void MainWindow::on_placeSingleComponentButton_clicked() {
 		msgBox.close();
 	}
 }
-
-/*
- void MainWindow::showMessage(){
-
- }*/
 
 void MainWindow::showSelectCompMessage() {
 	QMessageBox msgBox;
@@ -1228,10 +1245,12 @@ void MainWindow::placerStatusUpdated(int state, int status) {
 	if (state == pap_common::PLACECOMPONENT_STATE
 			&& status == pap_common::PLACER_FINISHED
 			&& completePlacementRunning) {
+		componentIndicator++;
 		if (componentIndicator < componentList.size()
 				&& componentIndicator != -1) {
-			componentIndicator++;
 			updatePlacementData(componentList[componentIndicator]);
+			ROS_INFO("GUI: Next component. Indicator: [%i]", componentIndicator);
+			ROS_INFO("ComponentList size: [%d]", componentList.size());
 			qnode.sendTask(pap_common::PLACER, pap_common::COMPLETEPLACEMENT,
 					placementData);
 			ui.label_compLeft->setText(
@@ -1241,6 +1260,7 @@ void MainWindow::placerStatusUpdated(int state, int status) {
 							componentList.at(componentIndicator).name));
 		} else {
 			// no more components - stop placer (Homing)
+			ROS_INFO("GUI: Stop placer - HOMING");
 			qnode.sendTask(pap_common::PLACER, pap_common::HOMING);
 			completePlacementRunning = false;
 			ui.label_placement->setText("Finished");

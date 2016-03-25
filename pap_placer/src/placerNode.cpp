@@ -638,7 +638,7 @@ int main(int argc, char **argv) {
 					} else if (placeController.visualFinder == 2) {
 						sendTask(pap_common::VISION,
 								pap_vision::START_CHIP_FINDER, width, length, 0);
-						ROS_INFO("Placer: ChipFinder started");
+						ROS_INFO("Placer: ChipFinder started. Width: %f, length: %f", width, length);
 					} else if (placeController.visualFinder == 3) {
 						sendTask(pap_common::VISION,
 								pap_vision::START_TAPE_FINDER, width, length, 0);
@@ -820,8 +820,9 @@ int main(int argc, char **argv) {
 				state = GOTOCOORD;
 			} else {
 				positionSend = false;
-				IDLE_called = true;
-				state = IDLE;
+				//IDLE_called = true;
+				//state = IDLE;
+				state = PLACECOMPONENT;
 			}
 			break;
 
