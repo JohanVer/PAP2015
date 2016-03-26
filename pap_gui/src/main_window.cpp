@@ -222,7 +222,7 @@ void MainWindow::on_loadGerberFileButton_clicked() {
 
 	//get a filename to open
 	QString gerberFile = QFileDialog::getOpenFileName(this,
-			tr("Open Gerber file"), "/home", tr("Text Files (*.txt *.csv)"));
+			tr("Open Gerber file"), "/home/johan/Documents/catkin_ws/src/PAP2015/PAP/pickPlace", tr("Text Files (*.txt *.csv)"));
 	std::cout << "Got filename: " << gerberFile.toStdString() << std::endl;
 
 	/* Load gerber file and add components to componentList */
@@ -503,8 +503,9 @@ void MainWindow::on_startPlacementButton_clicked() {
 			updatePlacementData(componentList[componentIndicator]);
 			qnode.sendTask(pap_common::PLACER, pap_common::COMPLETEPLACEMENT,
 					placementData);
+			ui.label_placement->setText("Running ...");
 			ui.label_compLeft->setText(
-					QString::number(componentList.size() - componentIndicator));
+					QString::number(componentList.size()));
 			ui.label_currentComp->setText(
 					QString::fromStdString(
 							componentList.at(componentIndicator).name));
@@ -527,6 +528,7 @@ bool MainWindow::emptySlots() {
 
 void MainWindow::on_stopPlacementButton_clicked() {
 	// Placer will stop/home once current comp placed
+	ui.label_placement->setText("Stopped ...");
 	qnode.sendTask(pap_common::PLACER, pap_common::STOP);
 	componentIndicator = -1;
 }
@@ -882,7 +884,7 @@ void MainWindow::updateComponentTable() {
 
 	// Set number of components
 	ui.label_compTotal->setText(QString::number(componentList.size()));
-	ui.label_compLeft->setText(QString::number(componentList.size()));
+	ui.label_compLeft->setText(QString::number(0));
 }
 
 void MainWindow::updateDatabaseTable() {
@@ -946,7 +948,10 @@ void MainWindow::on_goToPCBButton_clicked() {
 }
 
 // Package that is going to be sent to placeController
-void MainWindow::updatePlacementData(componentEntry &entryToTransform) {
+void MainWindow::updatePlacementData(componentEntry &singleComponentIn) {
+
+	componentEntry entryToTransform;
+	entryToTransform = singleComponentIn;
 
 	ROS_INFO("GUI: placerInfo - before: x=%f, y=%f", entryToTransform.posX,
 			entryToTransform.posY);
@@ -976,8 +981,6 @@ void MainWindow::updatePlacementData(componentEntry &entryToTransform) {
 	placementData.length = entryToTransform.length;
 	placementData.width = entryToTransform.width;
 	placementData.rotation = entryToTransform.rotation;
-	ROS_ERROR("GUI: PLACEMENT DATA UPDATE: %f, %f", placementData.length,
-			placementData.width);
 }
 
 void MainWindow::on_placeSingleComponentButton_clicked() {
@@ -1020,7 +1023,7 @@ void MainWindow::on_placeSingleComponentButton_clicked() {
 			updatePlacementData(componentList[currentComp]);
 			qnode.sendTask(pap_common::PLACER, pap_common::SINGLEPLACEMENT,
 					placementData);
-			ui.label_placement->setText("Running");
+			ui.label_placement->setText("Running ...");
 			ui.label_compLeft->setText(QString::number(1));
 			ui.label_currentComp->setText(
 					QString::fromStdString(componentList.at(currentComp).name));
@@ -1250,9 +1253,9 @@ void MainWindow::placerStatusUpdated(int state, int status) {
 	if (state == pap_common::PLACECOMPONENT_STATE
 			&& status == pap_common::PLACER_FINISHED
 			&& completePlacementRunning) {
-		componentIndicator++;
-		if (componentIndicator < componentList.size()
+		if (componentIndicator < (componentList.size()-1)
 				&& componentIndicator != -1) {
+			componentIndicator++;
 			updatePlacementData(componentList[componentIndicator]);
 			ROS_INFO("GUI: Next component. Indicator: [%i]",
 					componentIndicator);
@@ -1267,11 +1270,17 @@ void MainWindow::placerStatusUpdated(int state, int status) {
 		} else {
 			// no more components - stop placer (Homing)
 			ROS_INFO("GUI: Stop placer - HOMING");
-			qnode.sendTask(pap_common::PLACER, pap_common::HOMING);
-			completePlacementRunning = false;
 			ui.label_placement->setText("Finished");
 			ui.label_currentComp->setText("-");
 			ui.label_compLeft->setText(QString::number(0));
+			completePlacementRunning = false;
+			ros::Duration(1).sleep();
+			if(componentIndicator != -1) {
+				qnode.sendTask(pap_common::PLACER, pap_common::HOMING);
+			}
+
+
+
 		}
 	}
 
@@ -1303,7 +1312,8 @@ void MainWindow::placerStatusUpdated(int state, int status) {
 		p.setBrush(brushGreen);
 		break;
 	case pap_common::PLACER_FINISHED:
-		p.setBrush(brushYellow);
+		//p.setBrush(brushYellow);
+		p.setBrush(brushGreen);
 		break;
 	case pap_common::PLACER_ERROR:
 		p.setBrush(brushRed);
@@ -1332,56 +1342,6 @@ void MainWindow::placerStatusUpdated(int state, int status) {
 	case 7:
 		ui.label_indicator7->setPixmap(statePixmap);
 		break;
-		/*
-		 case pap_common::INFO:
-		 switch (status) {
-		 case 1:
-		 ui.label_Info->setText("IDLE");
-		 break;
-		 case 2:
-		 ui.label_Info->setText("CALIBRATE");
-		 break;
-		 case 3:
-		 ui.label_Info->setText("GOTOPCBORIGIN");
-		 break;
-		 case 4:
-		 ui.label_Info->setText("FINDPADS");
-		 break;
-		 case 5:
-		 ui.label_Info->setText("GOTOBOX");
-		 break;
-		 case 6:
-		 ui.label_Info->setText("FINDCOMPONENT");
-		 break;
-		 case 7:
-		 ui.label_Info->setText("GOTOPICKUPCOOR");
-		 break;
-		 case 8:
-		 ui.label_Info->setText("STARTPICKUP");
-		 break;
-		 case 9:
-		 ui.label_Info->setText("GOTOBOTTOMCAM");
-		 break;
-		 case 10:
-		 ui.label_Info->setText("CHECKCOMPONENTPICKUP");
-		 break;
-		 case 11:
-		 ui.label_Info->setText("GOTOPCBCOMP");
-		 break;
-		 case 12:
-		 ui.label_Info->setText("CHECKCOMPPOSITON");
-		 break;
-		 case 13:
-		 ui.label_Info->setText("GOTOPLACECOORD");
-		 break;
-		 case 14:
-		 ui.label_Info->setText("CHECKCOMPONENTPOSITION");
-		 break;
-		 case 15:
-		 ui.label_Info->setText("STARTPLACEMENT");
-		 break;
-		 break;
-		 }*/
 	}
 }
 

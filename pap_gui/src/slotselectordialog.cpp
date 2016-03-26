@@ -94,6 +94,7 @@ void SlotSelectorDialog::on_buttonBox_clicked(QAbstractButton* button) {
 
 void SlotSelectorDialog::slotPressed(int numberOfFiducial, QPointF padPos) {
 	int id = searchId(padPos);
+	if(id < 0) return;
 	int partListIndex = ui->partTable->currentRow();
 	int currentPartIndex = ui->partTable->currentRow();
 

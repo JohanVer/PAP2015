@@ -697,8 +697,6 @@ int main(int argc, char **argv) {
 				dispensed = false;
 				positionSend = false;
 				IDLE_called = true;
-				sendPlacerStatus(pap_common::INFO,
-						pap_common::DISPENSER_FINISHED);
 				state = IDLE;
 			}
 			break;
@@ -872,15 +870,11 @@ int main(int argc, char **argv) {
 					sendRelaisTask(7, false);			// Tip 2
 					sendPlacerStatus(pap_common::INFO, pap_common::LEFT_TIP_UP);
 				}
-
-				// Indicates placement finished & if complPlacement gui send new data and restarts process
-				sendPlacerStatus(pap_common::PLACECOMPONENT_STATE,
-						pap_common::PLACER_FINISHED);
+				ros::Duration(1).sleep();
+				positionSend = false;
 				if (placeController.pickRelQR_) {
 					placeController.pickRelQR_ = false;
 				}
-
-				positionSend = false;
 
 				// Distinguish single/complete placement
 				if (completePlacement) {
@@ -890,6 +884,10 @@ int main(int argc, char **argv) {
 				} else {
 					state = HOMING;
 				}
+
+				// Indicates placement finished & if complPlacement gui send new data and restarts process
+				sendPlacerStatus(pap_common::PLACECOMPONENT_STATE,
+						pap_common::PLACER_FINISHED);
 			}
 			break;
 
@@ -897,6 +895,11 @@ int main(int argc, char **argv) {
 
 			if (!positionSend) {
 				ROS_INFO("PlacerState: HOMING");
+				sendPlacerStatus(pap_common::IDLE_STATE,pap_common::PLACER_IDLE);
+				sendPlacerStatus(pap_common::GOTOBOX_STATE,pap_common::PLACER_IDLE);
+				sendPlacerStatus(pap_common::STARTPICKUP_STATE,pap_common::PLACER_IDLE);
+				sendPlacerStatus(pap_common::GOTOPCBCOMP_STATE,pap_common::PLACER_IDLE);
+				sendPlacerStatus(pap_common::PLACECOMPONENT_STATE,pap_common::PLACER_IDLE);
 				sendPlacerStatus(pap_common::HOMING_STATE, pap_common::PLACER_ACTIVE);
 
 				placeController.currentDestination_ =
@@ -909,7 +912,6 @@ int main(int argc, char **argv) {
 				last_state = state;
 				state = GOTOCOORD;
 			} else {
-				//endTask(pap_common::CONTROLLER, pap_common::HOMING);
 				positionSend = false;
 				IDLE_called = true;
 				state = IDLE;
@@ -994,12 +996,6 @@ int main(int argc, char **argv) {
 				} else if (zPosReached == 2) {
 					zPosReached = 0;
 					state = last_state;
-					if (manualGoto) {
-						sendPlacerStatus(pap_common::GOTO_STATE,
-								pap_common::PLACER_FINISHED);
-						manualGoto = false;
-					}
-					//ROS_INFO("Last state: %d", last_state);
 				}
 				//ros::Duration(3).sleep();
 				break;
@@ -1343,8 +1339,6 @@ void placerCallback(const pap_common::TaskConstPtr& taskMsg) {
 
 		case pap_common::COMPLETEPLACEMENT: {
 			ROS_INFO("Placer: CompletePlacement called.");
-			/*sendPlacerStatus(pap_common::PLACECOMPONENT_STATE,
-					pap_common::PLACER_FINISHED);*/
 			completePlacement = true;
 		}
 			break;
@@ -1412,7 +1406,8 @@ void placerCallback(const pap_common::TaskConstPtr& taskMsg) {
 
 		case pap_common::HOMING:
 			ROS_INFO("Placer: Homing called.");
-			sendPlacerStatus(pap_common::HOMING_STATE, pap_common::PLACER_IDLE);
+			completePlacement = false;
+			//sendPlacerStatus(pap_common::HOMING_STATE, pap_common::PLACER_IDLE);
 			state = HOMING;
 			break;
 
