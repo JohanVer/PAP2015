@@ -291,25 +291,6 @@ void MainWindow::on_loadGerberFileButton_clicked() {
 				// Set box number of component
 				newComponent.box = -1;
 
-				// Set length and width of component - if package known
-				inDatabase = false;
-				for (size_t k = 0; k < databaseVector.size(); k++) {
-					if (newComponent.package.compare(
-							databaseVector.at(k).package.toStdString()) == 0) {
-						inDatabase = true;
-						newComponent.length = databaseVector.at(k).length;
-						newComponent.width =  databaseVector.at(k).width;
-						break;
-					}
-				}
-
-				if (!inDatabase) {
-					newComponent.length = -1;
-					newComponent.width = -1;
-				}
-
-				ROS_ERROR("[%d]: length=%f, width=%f", comp_index, newComponent.length, newComponent.width);
-
 				newComponent.index = comp_index;
 				comp_index++;
 
@@ -323,6 +304,7 @@ void MainWindow::on_loadGerberFileButton_clicked() {
 	}
 
 	datafile.close();
+	updateCompDimensions();
 	updateComponentTable();
 
 	/* Check if components in database */
@@ -341,6 +323,37 @@ void MainWindow::on_loadGerberFileButton_clicked() {
 
 		/* Jump to database tab and show missing packages*/
 		ui.tab_manager->setCurrentIndex(2);
+	}
+}
+
+void MainWindow::updateCompDimensions() {
+
+	int databasePos = -1;
+	/* Iterate over all parts */
+	for (size_t i = 0; i < componentList.size(); i++) {
+
+		databasePos = -1;
+		for (size_t k = 0; k < databaseVector.size(); k++) {
+			/* Check if part is in database */
+			if (componentList.at(i).package.compare(
+					databaseVector.at(k).package.toStdString()) == 0) {
+				databasePos = k;
+				break;
+			}
+		}
+
+		/* If part is not in database -> add */
+		if (databasePos == -1) {
+			componentList[i].length = -1.0;
+			componentList[i].width = -1.0;
+			componentList[i].height = -1.0;
+			componentList[i].pins = -1;
+		} else {
+			componentList[i].length = databaseVector.at(databasePos).length;
+			componentList[i].width = databaseVector.at(databasePos).width;
+			componentList[i].height = databaseVector.at(databasePos).height;
+			componentList[i].pins = databaseVector.at(databasePos).pins;
+		}
 	}
 }
 
@@ -559,6 +572,7 @@ void MainWindow::on_replaceButton_clicked() {
 				}
 			}
 			updateComponentTable();
+			updateCompDimensions();
 			updateComponentInformation();
 			updateMissingPackageList();
 			updateMissingPackageTable();
@@ -573,6 +587,8 @@ void MainWindow::on_addPackageButton_clicked() {
 			&missingPackageList, missing_package);
 	packageDialog->exec();
 	updateDatabaseTable();
+	updateCompDimensions();
+	updateComponentInformation();
 	updateMissingPackageList();
 	updateMissingPackageTable();
 }
@@ -585,6 +601,8 @@ void MainWindow::on_editPackageButton_clicked() {
 				current_package);
 		packageDialog->exec();
 		updateDatabaseTable();
+		updateCompDimensions();
+		updateComponentInformation();
 		updateMissingPackageList();
 		updateMissingPackageTable();
 	} else {
@@ -601,6 +619,8 @@ void MainWindow::on_deletePackageButton_clicked() {
 	if (current_package != -1) {
 		databaseVector.remove(current_package);
 		updateDatabaseTable();
+		updateCompDimensions();
+		updateComponentInformation();
 		updateMissingPackageList();
 		updateMissingPackageTable();
 	} else {
@@ -696,38 +716,26 @@ void MainWindow::updateComponentInformation() {
 		ui.label_compPackage->setText(
 				componentList.at(currentComp).package.c_str());
 
-		int packageID = -1;
-		for (int i = 0; i < databaseVector.size(); i++) {
-			string currentPackage = componentList.at(currentComp).package;
-
-			if (databaseVector.at(i).package
-					== QString::fromStdString(currentPackage)) {
-				packageID = i;
-				break;
-			}
-		}
-
-		if (packageID == -1) {		// Package not found
+		// No package info available
+		if (componentList.at(currentComp).length == -1.0
+				&& componentList.at(currentComp).width == -1.0) {
 			ui.label_compLength->setText("not found");
 			ui.label_compWidth->setText("not found");
 			ui.label_compHeight->setText("not found");
 			ui.label_compPins->setText("not found");
-		} else {					// Package found
+		// Package info found
+		} else {
 			ui.label_compLength->setText(
-					QString::number(databaseVector.at(packageID).length, 'f',
+					QString::number(componentList.at(currentComp).length, 'f',
 							2));
-			componentList[currentComp].length =
-					databaseVector.at(packageID).length;
 			ui.label_compWidth->setText(
-					QString::number(databaseVector.at(packageID).width, 'f',
+					QString::number(componentList.at(currentComp).width, 'f',
 							2));
-			componentList[currentComp].width =
-					databaseVector.at(packageID).width;
 			ui.label_compHeight->setText(
-					QString::number(databaseVector.at(packageID).height, 'f',
+					QString::number(componentList.at(currentComp).height, 'f',
 							2));
 			ui.label_compPins->setText(
-					QString::number(databaseVector.at(packageID).pins));
+					QString::number(componentList.at(currentComp).pins));
 		}
 
 		ui.label_compPos->setText(
@@ -938,18 +946,14 @@ void MainWindow::on_goToPCBButton_clicked() {
 }
 
 // Package that is going to be sent to placeController
-void MainWindow::updatePlacementData(componentEntry &singleComponentIn) {
-
-	componentEntry entryToTransform;
-	entryToTransform = singleComponentIn;
-	ROS_ERROR("GUI: BEFORE: %f, %f", singleComponentIn.length, singleComponentIn.width);
+void MainWindow::updatePlacementData(componentEntry &entryToTransform) {
 
 	ROS_INFO("GUI: placerInfo - before: x=%f, y=%f", entryToTransform.posX,
 			entryToTransform.posY);
 	padParser.transformComponent(&entryToTransform);
 	ROS_INFO("GUI: placerInfo - after: x=%f, y=%f", entryToTransform.posX,
 			entryToTransform.posY);
-	ROS_ERROR("GUI: AFTER: %f, %f", entryToTransform.length, entryToTransform.width);
+
 	// Is it a tape?
 	if ((entryToTransform.box >= 67) && (entryToTransform.box <= 86)) {
 		unsigned int tape_nr = entryToTransform.box - 67;
@@ -972,7 +976,8 @@ void MainWindow::updatePlacementData(componentEntry &singleComponentIn) {
 	placementData.length = entryToTransform.length;
 	placementData.width = entryToTransform.width;
 	placementData.rotation = entryToTransform.rotation;
-	ROS_ERROR("GUI: PLACEMENT DATA UPDATE: %f, %f", placementData.length, placementData.width);
+	ROS_ERROR("GUI: PLACEMENT DATA UPDATE: %f, %f", placementData.length,
+			placementData.width);
 }
 
 void MainWindow::on_placeSingleComponentButton_clicked() {
@@ -1249,7 +1254,8 @@ void MainWindow::placerStatusUpdated(int state, int status) {
 		if (componentIndicator < componentList.size()
 				&& componentIndicator != -1) {
 			updatePlacementData(componentList[componentIndicator]);
-			ROS_INFO("GUI: Next component. Indicator: [%i]", componentIndicator);
+			ROS_INFO("GUI: Next component. Indicator: [%i]",
+					componentIndicator);
 			ROS_INFO("ComponentList size: [%d]", componentList.size());
 			qnode.sendTask(pap_common::PLACER, pap_common::COMPLETEPLACEMENT,
 					placementData);
@@ -1479,7 +1485,6 @@ void MainWindow::on_valveToggle1_clicked(bool check) {
 		valve1Active_ = false;
 	}
 }
-
 
 void MainWindow::on_valveToggle2_clicked(bool check) {
 	if (!valve2Active_) {
@@ -2552,8 +2557,8 @@ tapeCalibrationValue MainWindow::calculatePosOfTapePart(int numOfTape,
 	out.y = pointToTransform.y() + tapeCalibrationValues[indexInVector].y;
 	out.rot = tapeCalibrationValues[indexInVector].rot;
 
-	ROS_INFO("GUI: Calculated Pos of part in Tape: x %f y %f rot %f", out.x, out.y,
-			out.rot);
+	ROS_INFO("GUI: Calculated Pos of part in Tape: x %f y %f rot %f", out.x,
+			out.y, out.rot);
 	return out;
 }
 
@@ -2618,7 +2623,8 @@ void MainWindow::calibrateTape(int tapeNumber, float componentWidth,
 	}
 	qnode.sendTask(pap_common::VISION, pap_vision::STOP_VISION);
 
-	ROS_INFO("GUI: TapeCal: %f CurrentPos: %f", xTapeCalibration, currentPosition.x);
+	ROS_INFO("GUI: TapeCal: %f CurrentPos: %f", xTapeCalibration,
+			currentPosition.x);
 	calibrationVal.x = xTapeCalibration + currentPosition.x;
 	calibrationVal.y = yTapeCalibration + currentPosition.y;
 	ros::Duration(1).sleep();
@@ -2653,8 +2659,8 @@ void MainWindow::calibrateTape(int tapeNumber, float componentWidth,
 		calibrationVal.rot = 0;
 	}
 	qnode.sendTask(pap_common::VISION, pap_vision::STOP_VISION);
-	ROS_INFO(" GUI: Tape Calibration: Got x: %f y: %f rot: %f", calibrationVal.x,
-			calibrationVal.y, calibrationVal.rot);
+	ROS_INFO(" GUI: Tape Calibration: Got x: %f y: %f rot: %f",
+			calibrationVal.x, calibrationVal.y, calibrationVal.rot);
 	tapeCalibrationValues.push_back(calibrationVal);
 }
 
