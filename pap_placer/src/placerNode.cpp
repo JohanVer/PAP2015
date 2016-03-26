@@ -167,6 +167,7 @@ int main(int argc, char **argv) {
 				ROS_INFO("PlacerState: IDLE");
 				sendPlacerStatus(pap_common::IDLE_STATE,pap_common::PLACER_ACTIVE);
 				// Keep state indicators to see error state
+				ROS_ERROR("Last state: %d", last_state);
 				if(last_state != ERROR) {
 					sendPlacerStatus(pap_common::GOTOBOX_STATE,pap_common::PLACER_IDLE);
 					sendPlacerStatus(pap_common::STARTPICKUP_STATE,pap_common::PLACER_IDLE);
@@ -902,6 +903,18 @@ int main(int argc, char **argv) {
 				sendPlacerStatus(pap_common::PLACECOMPONENT_STATE,pap_common::PLACER_IDLE);
 				sendPlacerStatus(pap_common::HOMING_STATE, pap_common::PLACER_ACTIVE);
 
+				// Make sure tip is in upper position again!
+				if (placeController.selectTip()) {		// Release tip
+					sendRelaisTask(6, false);
+					sendRelaisTask(3, true);			// Tip 1
+					sendPlacerStatus(pap_common::INFO,
+							pap_common::RIGHT_TIP_UP);
+				} else {
+					sendRelaisTask(7, false);			// Tip 2
+					sendPlacerStatus(pap_common::INFO, pap_common::LEFT_TIP_UP);
+				}
+				ros::Duration(1).sleep();
+
 				placeController.currentDestination_ =
 						placeController.idleCoordinates_;
 				ROS_INFO("Go to: x:%f y:%f z:%f",
@@ -912,6 +925,7 @@ int main(int argc, char **argv) {
 				last_state = state;
 				state = GOTOCOORD;
 			} else {
+				ROS_ERROR("Manual homing");
 				sendTask(pap_common::CONTROLLER, pap_common::HOMING);
 				positionSend = false;
 				IDLE_called = true;
@@ -1371,8 +1385,6 @@ void placerCallback(const pap_common::TaskConstPtr& taskMsg) {
 			break;
 
 		case pap_common::PICKUPCOMPONENT: {
-			sendPlacerStatus(pap_common::STARTPICKUP_STATE,
-					pap_common::PLACER_IDLE);
 			state = STARTPICKUP;
 			ROS_INFO("Pick-up component called...");
 		}
@@ -1394,7 +1406,7 @@ void placerCallback(const pap_common::TaskConstPtr& taskMsg) {
 			break;
 
 		case pap_common::CALIBRATION_OFFSET:
-			ROS_INFO("Placer: Calibration called.");
+			ROS_INFO("Placer: Calibration_offset called.");
 			state = CALIBRATE;
 			calibration_state = CAMERA;
 			break;
@@ -1408,7 +1420,7 @@ void placerCallback(const pap_common::TaskConstPtr& taskMsg) {
 		case pap_common::HOMING:
 			ROS_INFO("Placer: Homing called.");
 			completePlacement = false;
-			//sendPlacerStatus(pap_common::HOMING_STATE, pap_common::PLACER_IDLE);
+			positionSend = false;
 			state = HOMING;
 			break;
 
