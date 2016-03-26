@@ -19,9 +19,9 @@
 PlaceController::PlaceController() {
 	MovingHeight_ = 45.0;
 
-	idleCoordinates_.x = 1.0;
-	idleCoordinates_.y = 1.0;
-	idleCoordinates_.z = 1.0;
+	idleCoordinates_.x = 5.0;
+	idleCoordinates_.y = 5.0;
+	idleCoordinates_.z = 0.0;
 
 	// Height for sucking a component (normal chip, not a tape)
 	suckingHeight_ = 20.2;

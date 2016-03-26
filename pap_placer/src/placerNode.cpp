@@ -912,6 +912,7 @@ int main(int argc, char **argv) {
 				last_state = state;
 				state = GOTOCOORD;
 			} else {
+				sendTask(pap_common::CONTROLLER, pap_common::HOMING);
 				positionSend = false;
 				IDLE_called = true;
 				state = IDLE;
