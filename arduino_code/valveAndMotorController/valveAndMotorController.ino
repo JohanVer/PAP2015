@@ -5,9 +5,7 @@
 
 #define MOTORSTEPS 200
 
-Stepper stepper1(MOTORSTEPS, A0, A1, A2 ,A3);
 Stepper stepper2(MOTORSTEPS, A4, A5, 12, 13);
-int previousSteps1 = 0;
 int previousSteps2 = 0;
 
 void messageCb( const pap_common::ArduinoMsg& arduinoMsg);
@@ -124,31 +122,17 @@ void messageCb( const pap_common::ArduinoMsg& arduinoMsg){
       digitalWrite(11, LOW);
       break;
     }
-  }
-  
-  if(arduinoMsg.command == RUNSTEPPER1) {
-    
-    int steps = round(arduinoMsg.data/1.8);    // Resolution of 1.8°
-  
-    if((previousSteps1 + steps) > 100) {
-      steps = steps - 200;                     // Rotation = 200 Steps
-    }     
-    else if((previousSteps1 + steps) < -100) {
-      steps = 200 - steps;
-    }         
-    previousSteps1 = previousSteps1 + steps;   
-    stepper1.step(steps);
-  }
-  
+  } 
 
   if(arduinoMsg.command == RUNSTEPPER2 ){
     
-    int steps = round(arduinoMsg.data/1.8);    // Resolution of 1.8°
-  
-    if((previousSteps2 + steps) > 100) {
+    //int steps = round(arduinoMsg.data/1.8);    // Resolution of 1.8°
+    int steps = arduinoMsg.data;
+     
+    if((previousSteps2 + steps) >= 100) {
       steps = steps - 200;                     // Rotation = 200 Steps
     }  
-    if((previousSteps2 + steps) < -100) {
+    if((previousSteps2 + steps) <= -100) {
       steps = 200 - steps;
     }  
     previousSteps2 = previousSteps2 + steps;   
@@ -156,9 +140,7 @@ void messageCb( const pap_common::ArduinoMsg& arduinoMsg){
   } 
  
   if(arduinoMsg.command == RESETSTEPPERS ){
-    stepper1.step(-previousSteps1);
     stepper2.step(-previousSteps2);
-    previousSteps1 = 0;
     previousSteps2 = 0;
   }
    
@@ -186,8 +168,7 @@ void setup()
   digitalWrite(9, HIGH);
   digitalWrite(10, HIGH);
   digitalWrite(11, HIGH);
-  stepper1.setSpeed(30); // RPM
-  stepper2.setSpeed(30);
+  stepper2.setSpeed(60);  //RPM
   nh.initNode();
   //nh.advertise(statusPublisher);
   nh.subscribe(arduinoMessageSub);
@@ -196,8 +177,9 @@ void setup()
 void loop()
 {
   nh.spinOnce();
-  
+  //Serial.print("running!");
   //stepper1.step(100);
+  //stepper2.step(100);
   delay(1);
 }
 

@@ -29,9 +29,8 @@ namespace pap_gui {
  ** Implementation
  *****************************************************************************/
 
-QNode::QNode(int argc, char** argv) :
-		init_argc(argc), init_argv(argv) {
-	fakePadPos_ = true; //false;
+QNode::QNode(int argc, char** argv) : init_argc(argc), init_argv(argv) {
+	fakePadPos_ = false;
 }
 
 QNode::~QNode() {

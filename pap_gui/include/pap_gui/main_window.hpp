@@ -219,6 +219,7 @@ public Q_SLOTS:
 
     void on_calibrationButton_offsets_clicked();
     void on_calibrationButton_ratios_clicked();
+    void on_calibrationButton_checkerboard_clicked();
 
     void updatePackageList();
     void updateMissingPackageList();
@@ -231,6 +232,10 @@ public Q_SLOTS:
     void on_deletePackageButton_clicked();
     void updateCompDimensions();
 
+    int angleToSteps(float angle);
+
+    // Print Buttons
+    void on_printButton_offsets_clicked();
 
 
     /******************************************

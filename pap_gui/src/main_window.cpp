@@ -1162,7 +1162,12 @@ void MainWindow::cameraUpdated(int index) {
 }
 
 void MainWindow::on_startHoming_clicked(bool check) {
+	//Removed 24.03 - Why is this needed?
+	//qnode.sendTask(pap_common::CONTROLLER, pap_common::COORD, currentPosition.x,
+	//		currentPosition.y, 45.0);
+	//ros::Duration(2.0).sleep();
 	qnode.sendTask(pap_common::PLACER, pap_common::HOMING);
+	//qnode.sendTask(pap_common::CONTROLLER, pap_common::HOMING);
 }
 
 void MainWindow::on_switchCurrent_clicked(bool check) {
@@ -1171,6 +1176,10 @@ void MainWindow::on_switchCurrent_clicked(bool check) {
 }
 
 void MainWindow::on_gotoCoord_clicked(bool check) {
+	//qnode.sendTask(pap_common::CONTROLLER, pap_common::COORD,
+	//		(ui.xLineEdit->text()).toFloat(), (ui.yLineEdit->text()).toFloat(),
+	//		(ui.zLineEdit->text()).toFloat());
+
 	qnode.sendTask(pap_common::PLACER, pap_common::GOTO,
 			(ui.xLineEdit->text()).toFloat(), (ui.yLineEdit->text()).toFloat(),
 			(ui.zLineEdit->text()).toFloat());
@@ -1426,12 +1435,12 @@ void MainWindow::on_connectButton_clicked(bool check) {
 
 void MainWindow::on_valveToggle1_clicked(bool check) {
 	if (!valve1Active_) {
-		qnode.sendRelaisTask(5, true);
+		qnode.sendRelaisTask(4, true);
 		ui.valveToggle1->setText("On");
 		valve1Active_ = true;
 		ROS_INFO("Toggle");
 	} else {
-		qnode.sendRelaisTask(5, false);
+		qnode.sendRelaisTask(4, false);
 		ui.valveToggle1->setText("Off");
 		valve1Active_ = false;
 	}
@@ -1439,11 +1448,11 @@ void MainWindow::on_valveToggle1_clicked(bool check) {
 
 void MainWindow::on_valveToggle2_clicked(bool check) {
 	if (!valve2Active_) {
-		qnode.sendRelaisTask(4, true);
+		qnode.sendRelaisTask(5, true);
 		ui.valveToggle2->setText("On");
 		valve2Active_ = true;
 	} else {
-		qnode.sendRelaisTask(4, false);
+		qnode.sendRelaisTask(5, false);
 		ui.valveToggle2->setText("Off");
 		valve2Active_ = false;
 	}
@@ -1526,10 +1535,9 @@ void MainWindow::on_valveToggle8_clicked(bool check) {
 void MainWindow::on_turnLeftTipButton_clicked() {
 	// Get angle from line edit
 	bool ok;
-	int requestedAngle = ui.rotationAngleLeft->text().toInt(&ok, 10);
-	//float requestedAngle = ui.rotationAngleRight->text().toFloat(&ok);
+	float requestedAngle = ui.rotationAngleLeft->text().toFloat(&ok);
 	if (ok == true) {
-		qnode.sendStepperTask(1, requestedAngle);
+		qnode.sendStepperTask(1, angleToSteps(requestedAngle));
 	} else {
 		QMessageBox msgBox;
 		const QString title = "Conversion failed!";
@@ -1543,10 +1551,9 @@ void MainWindow::on_turnLeftTipButton_clicked() {
 void MainWindow::on_turnRightTipButton_clicked() {
 	// Get angle from line edit
 	bool ok;
-	int requestedAngle = ui.rotationAngleRight->text().toInt(&ok, 10);
-	//float requestedAngle = ui.rotationAngleRight->text().toFloat(&ok);
+	float requestedAngle = ui.rotationAngleRight->text().toFloat(&ok);
 	if (ok == true) {
-		qnode.sendStepperTask(2, requestedAngle);
+		qnode.sendStepperTask(2, angleToSteps(requestedAngle));
 	} else {
 		QMessageBox msgBox;
 		const QString title = "Conversion failed!";
@@ -1555,6 +1562,12 @@ void MainWindow::on_turnRightTipButton_clicked() {
 		msgBox.exec();
 		msgBox.close();
 	}
+}
+int MainWindow::angleToSteps(float angle) {
+	int steps = round(angle / 1.8);
+	steps = steps%200;				// 200 steps = full rotation
+	ROS_INFO("Angle: %f, Steps: %d", angle, steps);
+	return steps;
 }
 
 void MainWindow::on_setLEDButton_clicked() {
@@ -1767,31 +1780,6 @@ void MainWindow::setCamera1Point(QPointF point) {
 void MainWindow::on_scanQRButton_clicked() {
 	qnode.sendTask(pap_common::VISION, pap_vision::START__QRCODE_FINDER, 0, 1,
 			0);
-	/*
-	 QEventLoop loop;
-	 QTimer *timer = new QTimer(this);
-
-	 //connect(&qnode, SIGNAL(signalPosition(float,float)), &compOrientButton_2loop, SLOT(quit()));
-	 connect(timer, SIGNAL(timeout()), &loop, SLOT(quit()));
-	 timer->setSingleShot(true);
-	 timer->start(1000);
-
-	 loop.exec(); //blocks untill either signalPosition or timeout was fired
-
-	 // Is timeout ocurred?
-	 if (!timer->isActive()) {
-	 //qnode.sendTask(pap_common::VISION, pap_vision::START_PAD_FINDER);
-	 QMessageBox msgBox;
-	 const QString title = "No QR Code detected";
-	 msgBox.setWindowTitle(title);
-	 msgBox.setText("No QR Code found within the last 5 seconds");
-	 msgBox.exec();
-	 msgBox.close();
-	 return;
-	 }
-	 */
-	//qnode.sendTask(pap_common::VISION, pap_vision::START_PAD_FINDER);
-	// Update component info
 }
 
 void MainWindow::setFiducial(QPointF point) {
@@ -2045,12 +2033,12 @@ void MainWindow::deletePad(QPointF padPos) {
 }
 
 void MainWindow::on_calibrationButton_offsets_clicked() {
-	ui.tab_manager->setCurrentIndex(1);
+	ui.tab_manager->setCurrentIndex(4);
 	qnode.sendTask(pap_common::PLACER, pap_common::CALIBRATION_OFFSET);
 }
 
 void MainWindow::on_calibrationButton_ratios_clicked() {
-	ui.tab_manager->setCurrentIndex(1);
+	ui.tab_manager->setCurrentIndex(4);
 	qnode.sendTask(pap_common::PLACER, pap_common::CALIBRATION_RATIO);
 }
 
@@ -2613,6 +2601,14 @@ void MainWindow::calibrateTape(int tapeNumber, float componentWidth,
 	ROS_INFO(" GUI: Tape Calibration: Got x: %f y: %f rot: %f",
 			calibrationVal.x, calibrationVal.y, calibrationVal.rot);
 	tapeCalibrationValues.push_back(calibrationVal);
+}
+
+void MainWindow::on_printButton_offsets_clicked() {
+	qnode.sendTask(pap_common::PLACER, pap_common::PRINT_OFFSET);
+}
+
+void MainWindow::on_calibrationButton_checkerboard_clicked() {
+	qnode.sendTask(pap_common::PLACER, pap_common::CALIBRATION_CHECKERBOARD);
 }
 
 }
