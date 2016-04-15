@@ -13,6 +13,7 @@ find_package(catkin REQUIRED COMPONENTS
   cv_bridge
   sensor_msgs
   tf
+  pap_common
 )
 
 find_package( OpenCV REQUIRED )
@@ -87,7 +88,7 @@ find_package( OpenCV REQUIRED )
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES image_simulator
-#  CATKIN_DEPENDS roscpp rospy std_msgs
+#  CATKIN_DEPENDS roscpp rospy std_msgs pap_common image_transport cv_bridge sensor_msgs tf
 #  DEPENDS system_lib
 )
 
