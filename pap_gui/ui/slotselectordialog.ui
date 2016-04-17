@@ -200,7 +200,7 @@
   <customwidget>
    <class>SlotGraphicsView</class>
    <extends>QGraphicsView</extends>
-   <header>SlotGraphicsView.hpp</header>
+   <header location="global">pap_gui/SlotGraphicsView.hpp</header>
   </customwidget>
  </customwidgets>
  <resources/>

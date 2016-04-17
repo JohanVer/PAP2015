@@ -44,6 +44,7 @@
   <depend>rospy</depend>
   <depend>std_msgs</depend>
   <depend>serial</depend>
+  <depend>pap_common</depend>
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>

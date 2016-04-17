@@ -1,6 +1,7 @@
 #ifndef SLOTSELECTORDIALOG_H
 #define SLOTSELECTORDIALOG_H
 
+#include <QtWidgets>
 #include <QDialog>
 #include"../../../pap_placer/include/pap_placer/placerClass.hpp"
 #include <QGraphicsRectItem>

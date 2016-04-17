@@ -1,4 +1,4 @@
-#include "versionSelectorDialog.h"
+#include <pap_gui/versionSelectorDialog.h>
 
 
 VersionSelectorDialog::VersionSelectorDialog(QWidget *parent) :

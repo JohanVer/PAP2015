@@ -12,16 +12,17 @@
 ** Includes
 *****************************************************************************/
 
-#include <MyContextMenuTable.hpp>
-#include <QtGui/QMainWindow>
+#include <pap_gui/MyContextMenuTable.hpp>
+#include <QtWidgets>
+#include <QMainWindow>
 #include "ui_main_window.h"
 #include "slotselectordialog.h"
 #include "versionSelectorDialog.h"
 #include "qnode.hpp"
 #include "pap_common/Task.h"
-#include "../../../pap_common/include/pap_common/vision_message_def.h"
+#include <pap_common/vision_message_def.h>
 #include "pap_common/PlacerStatus.h"
-#include "../../../pap_common/include/pap_common/placer_message_def.h"
+#include <pap_common/placer_message_def.h>
 #include "ClickGraphicsView.hpp"
 #include "MyContextMenuTable.hpp"
 #include "GerberPadParser.hpp"
@@ -242,7 +243,6 @@ public Q_SLOTS:
     ** Manual connections
     *******************************************/
     void updateLoggingView(); // no idea why this can't connect automatically
-
 
 private:
 	Ui::MainWindowDesign ui;

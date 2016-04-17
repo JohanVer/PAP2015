@@ -5,6 +5,7 @@
 #ifndef VERSIONSELECTORDIALOG_H
 #define VERSIONSELECTORDIALOG_H
 
+#include <QtWidgets>
 #include <QDialog>
 #include "ui_versionSelectorDialog.h"
 

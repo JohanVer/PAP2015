@@ -7,8 +7,7 @@
 
 #define CHANGE_SHAPE 54
 #define ENDOFFILE_GERBER 02
-#include "../include/pap_gui/GerberPadParser.hpp"
-//#include "../include/pap_gui/main_window.hpp"
+#include <pap_gui/GerberPadParser.hpp>
 
 GerberPadParser::GerberPadParser() {
 	height_ = 0.0;

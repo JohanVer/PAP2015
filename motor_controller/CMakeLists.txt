@@ -9,6 +9,7 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   std_msgs
   serial
+  pap_common
 )
 
 ## System dependencies are found with CMake's conventions
@@ -81,10 +82,10 @@ find_package(catkin REQUIRED COMPONENTS
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-#  INCLUDE_DIRS include
+  INCLUDE_DIRS include
 #  LIBRARIES motorController
-#  CATKIN_DEPENDS roscpp rospy std_msgs serial
-#  DEPENDS system_lib
+  CATKIN_DEPENDS roscpp rospy std_msgs serial pap_common
+  DEPENDS system_lib
 )
 
 ###########
@@ -94,8 +95,9 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 # include_directories(include)
+file(GLOB_RECURSE INCLUDE_GLOBAL_HEADERS ${PROJECT_SOURCE_DIR} *.h *.hpp)
 include_directories(
-  ${catkin_INCLUDE_DIRS}
+  ${catkin_INCLUDE_DIRS} ${HEADERS_PARENT_DIR} include
 )
 
 ## Declare a cpp library
@@ -105,7 +107,7 @@ include_directories(
 
 ## Declare a cpp executable
 # add_executable(motorController_node src/motorController_node.cpp)
-add_executable(motor_controller_node  src/controllerNode.cpp src/controllerClass.cpp)
+add_executable(motor_controller_node  src/controllerNode.cpp src/controllerClass.cpp ${INCLUDE_GLOBAL_HEADERS})
 target_link_libraries ( motor_controller_node  ${catkin_LIBRARIES}  )
 add_dependencies(motor_controller_node motor_controller_gencpp)
 

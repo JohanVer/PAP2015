@@ -4,8 +4,8 @@
 
 #include <QtGui>
 #include <QApplication>
-#include "../include/pap_gui/main_window.hpp"
-#include "../include/pap_gui/versionSelectorDialog.h"
+#include <pap_gui/main_window.hpp>
+#include <pap_gui/versionSelectorDialog.h>
 
 /*****************************************************************************
 ** Qt application - Main

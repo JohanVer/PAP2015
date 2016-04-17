@@ -13,6 +13,7 @@
 #ifndef PAP_GUI_SRC_MYCONTEXTMENUTABLE_HPP_
 #define PAP_GUI_SRC_MYCONTEXTMENUTABLE_HPP_
 
+#include <QtWidgets>
 #include <QWidget>
 #include <QPointF>
 #include <QDebug>

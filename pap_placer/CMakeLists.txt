@@ -85,10 +85,10 @@ find_package(catkin REQUIRED COMPONENTS
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-#  INCLUDE_DIRS include
+  INCLUDE_DIRS include
 #  LIBRARIES pap_placer
-#  CATKIN_DEPENDS roscpp rospy std_msgs image_transport cv_bridge sensor_msgs pap_common qt_build
-#  DEPENDS system_lib
+  CATKIN_DEPENDS roscpp rospy std_msgs image_transport cv_bridge sensor_msgs pap_common qt_build
+  DEPENDS system_lib
 )
 
 ###########
@@ -98,8 +98,10 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 # include_directories(include)
+file(GLOB_RECURSE INCLUDE_GLOBAL_HEADERS ${PROJECT_SOURCE_DIR} *.h *.hpp)
 include_directories(
   ${catkin_INCLUDE_DIRS}
+  include
 )
 
 ## Declare a cpp library
@@ -111,7 +113,7 @@ include_directories(
 # add_executable(pap_placer_node src/pap_placer_node.cpp)
 
 #add_executable(pap_placer_node src/placerNode.cpp)
-add_executable(pap_placer_node  src/placerClass.cpp src/placerNode.cpp)
+add_executable(pap_placer_node  src/placerClass.cpp src/placerNode.cpp ${INCLUDE_GLOBAL_HEADERS})
 target_link_libraries ( pap_placer_node  ${catkin_LIBRARIES}  )
 add_dependencies(pap_placer_node pap_placer_gencpp)
 

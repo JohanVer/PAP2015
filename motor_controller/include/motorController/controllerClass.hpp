@@ -4,8 +4,8 @@
 #include <cmath>
 #include "pap_common/Task.h"
 #include "pap_common/Status.h"
-#include "../../../pap_common/include/pap_common/task_message_def.h"
-#include "../../../pap_common/include/pap_common/status_message_def.h"
+#include <pap_common/task_message_def.h>
+#include <pap_common/status_message_def.h>
 #include <stdio.h>
 #include <cstdio>
 

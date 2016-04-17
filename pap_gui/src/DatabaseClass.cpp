@@ -5,7 +5,7 @@
  *      Author: nikoas
  */
 
-#include "../include/pap_gui/DatabaseClass.hpp"
+#include <pap_gui/DatabaseClass.hpp>
 #include <string>
 #include <QMessageBox>
 

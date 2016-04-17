@@ -8,6 +8,7 @@
 #ifndef PAP_GUI_SRC_SlotGraphicsView_H_
 #define PAP_GUI_SRC_SlotGraphicsView_H_
 
+#include <QtWidgets>
 #include <QWidget>
 #include <QGraphicsView>
 #include <QGraphicsScene>

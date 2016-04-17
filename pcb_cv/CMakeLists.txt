@@ -12,6 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
   cv_bridge
   sensor_msgs
   tf
+  pap_common
 )
 find_package( OpenCV REQUIRED )
 ## System dependencies are found with CMake's conventions
@@ -74,6 +75,8 @@ find_package( OpenCV REQUIRED )
 #   std_msgs
 # )
 
+
+
 ###################################
 ## catkin specific configuration ##
 ###################################
@@ -86,7 +89,7 @@ find_package( OpenCV REQUIRED )
 catkin_package(
   INCLUDE_DIRS include
 #  LIBRARIES pcb_cv
-  CATKIN_DEPENDS roscpp rospy std_msgs image_transport cv_bridge sensor_msgs tf
+  CATKIN_DEPENDS roscpp rospy std_msgs image_transport cv_bridge sensor_msgs tf pap_common
   DEPENDS system_lib
 )
 
@@ -97,7 +100,7 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 # include_directories(include)
-include_directories(  ${catkin_INCLUDE_DIRS}  ${OpenCV_INCLUDE_DIRS} )
+
 ## Declare a cpp library
 # add_library(pcb_cv
 #   src/${PROJECT_NAME}/pcb_cv.cpp
@@ -105,7 +108,11 @@ include_directories(  ${catkin_INCLUDE_DIRS}  ${OpenCV_INCLUDE_DIRS} )
 
 ## Declare a cpp executable
 # add_executable(pcb_cv_node src/pcb_cv_node.cpp)
-add_executable(displayImage src/displayImage.cpp src/padFinder.cpp)
+file(GLOB_RECURSE INCLUDE_GLOBAL_HEADERS ${PROJECT_SOURCE_DIR} *.h *.hpp)
+include_directories(  ${catkin_INCLUDE_DIRS}  ${OpenCV_INCLUDE_DIRS}  include )
+
+
+add_executable(displayImage src/displayImage.cpp src/padFinder.cpp ${INCLUDE_GLOBAL_HEADERS})
 target_link_libraries ( displayImage zbar ${OpenCV_LIBRARIES} ${catkin_LIBRARIES} )
 add_dependencies(displayImage pcb_cv_gencpp)
 ## Add cmake target dependencies of the executable/library

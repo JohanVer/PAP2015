@@ -5,6 +5,7 @@
 #ifndef PACKAGEDIALOG_H
 #define PACKAGEDIALOG_H
 
+#include <QtWidgets>
 #include <QDialog>
 #include <QVector>
 #include "ui_packageDialog.h"

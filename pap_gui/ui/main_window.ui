@@ -14,7 +14,7 @@
    <string>QRosApp</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="../resources/images.qrc">
+   <iconset>
     <normaloff>:/images/icon.png</normaloff>:/images/icon.png</iconset>
   </property>
   <property name="locale">
@@ -40,7 +40,7 @@
        <locale language="English" country="Australia"/>
       </property>
       <property name="currentIndex">
-       <number>5</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="ComponentPlacement">
        <attribute name="title">
@@ -3610,24 +3610,22 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>ClickGraphicsView</class>
-   <extends>QGraphicsView</extends>
-   <header>ClickGraphicsView.hpp</header>
-  </customwidget>
-  <customwidget>
    <class>MyContextMenuTable</class>
    <extends>QTableWidget</extends>
-   <header>MyContextMenuTable.hpp</header>
+   <header location="global">pap_gui/MyContextMenuTable.hpp</header>
   </customwidget>
   <customwidget>
    <class>PadView</class>
    <extends>QGraphicsView</extends>
-   <header>PadView.hpp</header>
+   <header location="global">pap_gui/PadView.hpp</header>
+  </customwidget>
+  <customwidget>
+   <class>ClickGraphicsView</class>
+   <extends>QGraphicsView</extends>
+   <header location="global">pap_gui/ClickGraphicsView.hpp</header>
   </customwidget>
  </customwidgets>
- <resources>
-  <include location="../resources/images.qrc"/>
- </resources>
+ <resources/>
  <connections>
   <connection>
    <sender>action_Quit</sender>

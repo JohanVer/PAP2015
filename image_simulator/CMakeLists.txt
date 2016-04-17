@@ -88,8 +88,8 @@ find_package( OpenCV REQUIRED )
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES image_simulator
-#  CATKIN_DEPENDS roscpp rospy std_msgs pap_common image_transport cv_bridge sensor_msgs tf
-#  DEPENDS system_lib
+  CATKIN_DEPENDS roscpp rospy std_msgs pap_common image_transport cv_bridge sensor_msgs tf
+  DEPENDS system_lib
 )
 
 ###########
@@ -99,7 +99,8 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 # include_directories(include)
-include_directories(  ${catkin_INCLUDE_DIRS}  ${OpenCV_INCLUDE_DIRS} )
+file(GLOB_RECURSE INCLUDE_GLOBAL_HEADERS ${PROJECT_SOURCE_DIR} *.h *.hpp)
+include_directories(  ${catkin_INCLUDE_DIRS}  ${OpenCV_INCLUDE_DIRS}  )
 
 ## Declare a cpp library
 # add_library(image_simulator
@@ -108,7 +109,7 @@ include_directories(  ${catkin_INCLUDE_DIRS}  ${OpenCV_INCLUDE_DIRS} )
 
 ## Declare a cpp executable
 # add_executable(image_simulator_node src/image_simulator_node.cpp)
-add_executable(image_simulator src/image_simulator_node.cpp)
+add_executable(image_simulator src/image_simulator_node.cpp ${INCLUDE_GLOBAL_HEADERS})
 target_link_libraries ( image_simulator ${OpenCV_LIBRARIES} ${catkin_LIBRARIES} )
 add_dependencies(image_simulator image_simulator_gencpp)
 

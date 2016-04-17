@@ -16,7 +16,7 @@
 #include <std_msgs/String.h>
 #include <sstream>
 #include <ros/param.h>
-#include "../include/pap_gui/qnode.hpp"
+#include <pap_gui/qnode.hpp>
 #include <ros/node_handle.h>
 
 /*****************************************************************************

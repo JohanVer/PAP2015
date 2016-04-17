@@ -15,7 +15,6 @@
 
 
   <buildtool_depend>catkin</buildtool_depend>
-  <depend>qt_build</depend>
   <depend>roscpp</depend>
   <depend>libqt4-dev</depend>
   <depend>std_msgs</depend>
@@ -24,5 +23,7 @@
   <depend>image_transport</depend>
   <depend>pap_common</depend>
   <depend>pap_placer</depend>
+  <depend>rospy</depend>
+  <depend>tf</depend>
  
 </package>

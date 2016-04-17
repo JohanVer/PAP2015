@@ -10,8 +10,8 @@
 #include <string>
 #include <std_msgs/String.h>
 #include <sstream>
-#include "../include/pap_placer/placerClass.hpp"
-#include "../include/pap_placer/offsetTable.hpp"
+#include <pap_placer/placerClass.hpp>
+#include <pap_placer/offsetTable.hpp>
 
 /*****************************************************************************
  ** Implementation

@@ -20,6 +20,7 @@
 #include <string>
 #include <QThread>
 #include <QStringListModel>
+#include <QImage>
 #include "sensor_msgs/Image.h"
 #include "sensor_msgs/PointCloud2.h"
 #include "visualization_msgs/MarkerArray.h"
@@ -41,14 +42,16 @@
 #include "pap_common/VisionStatus.h"
 #include "pap_common/DispenseTask.h"
 #include "pap_common/ArduinoMsg.h"
-#include "../../../pap_common/include/pap_common/task_message_def.h"
-#include "../../../pap_common/include/pap_common/status_message_def.h"
-#include "../../../pap_common/include/pap_common/arduino_message_def.h"
-#include "../../../pap_common/include/pap_common/vision_message_def.h"
+#include <pap_common/task_message_def.h>
+#include <pap_common/status_message_def.h>
+#include <pap_common/arduino_message_def.h>
+#include <pap_common/vision_message_def.h>
+#include <pap_common/placer_message_def.h>
+
+#include "pap_common/PlacerStatus.h"
+
 #include "../../../pap_placer/include/pap_placer/placerClass.hpp"
 
-#include "../../../pap_common/include/pap_common/placer_message_def.h"
-#include "pap_common/PlacerStatus.h"
 #include "DispenserPlanner.hpp"
 
 #include <vector>

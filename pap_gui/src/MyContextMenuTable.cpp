@@ -7,7 +7,7 @@
 // Johan Vertens & Nikolas Simon
 // PAP2015 Student Projekt 6ECTS
 
-#include <MyContextMenuTable.hpp>
+#include <pap_gui/MyContextMenuTable.hpp>
 #include "../include/pap_gui/main_window.hpp"
 
 

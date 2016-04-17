@@ -1,4 +1,4 @@
-#include "../include/motorController/controllerClass.hpp"
+#include "motorController/controllerClass.hpp"
 
 using namespace std;
 using namespace error_codes;

@@ -10,6 +10,7 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   tf
   serial
+  pap_common
 )
 
 ## System dependencies are found with CMake's conventions
@@ -84,7 +85,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES robot_simulation
-  CATKIN_DEPENDS roscpp rospy std_msgs tf serial
+  CATKIN_DEPENDS roscpp rospy std_msgs tf serial pap_common
   DEPENDS system_lib
 )
 

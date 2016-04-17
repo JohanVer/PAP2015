@@ -5,7 +5,7 @@
  *      Author: johan
  */
 
-#include "../include/pap_gui/DispenserPlanner.hpp"
+#include <pap_gui/DispenserPlanner.hpp>
 
 DispenserPlanner::DispenserPlanner() {
 	// TODO Auto-generated constructor stub

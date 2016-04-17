@@ -5,8 +5,8 @@
  *      Author: johan
  */
 
-#include "../include/pap_gui/SlotGraphicsView.hpp"
-#include "../include/pap_gui/main_window.hpp"
+#include <pap_gui/SlotGraphicsView.hpp>
+#include <pap_gui/main_window.hpp>
 #include <QPointF>
 #include <QDebug>
 #include <QGraphicsRectItem>

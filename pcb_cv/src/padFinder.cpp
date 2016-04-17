@@ -4,7 +4,7 @@
  *  Created on: Mar 29, 2015
  *      Author: johan
  */
-#include "../include/pcb_cv/padFinder.h"
+#include <pcb_cv/padFinder.h>
 using namespace std;
 using namespace cv;
 

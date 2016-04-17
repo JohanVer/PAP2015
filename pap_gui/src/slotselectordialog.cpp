@@ -1,5 +1,5 @@
-#include "slotselectordialog.h"
-#include "SlotGraphicsView.hpp"
+#include <pap_gui/slotselectordialog.h>
+#include <pap_gui/SlotGraphicsView.hpp>
 #include "../../pap_placer/include/pap_placer/offsetTable.hpp"
 
 SlotSelectorDialog::SlotSelectorDialog(QVector<componentEntry>* packageList, QVector<databaseEntry>* database, QWidget *parent) :
@@ -303,7 +303,7 @@ void SlotSelectorDialog::updateTable() {
 	ui->partTable->setSelectionBehavior(QAbstractItemView::SelectRows);
 	ui->partTable->setSizePolicy(QSizePolicy::Expanding,
 			QSizePolicy::Expanding);
-	ui->partTable->horizontalHeader()->setResizeMode(QHeaderView::Stretch);
+    ui->partTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
 	ui->partTable->show();
 }
 
@@ -382,8 +382,8 @@ void SlotSelectorDialog::paintSlots(void) {
 		// Print box numbers
 		QGraphicsTextItem * text = new QGraphicsTextItem;
 		text->setPos(slot.pos.x() + slot.pos.width(), slot.pos.y());
-		text->scale(-1, 1);
-		text->scale(0.2, 0.2);
+        //text->scale(-1, 1);
+        text->setScale(0.2);
 		text->setDefaultTextColor(Qt::white);
 		text->setPlainText(QString::number(i));
 		sceneSlots_.addItem(text);
@@ -392,11 +392,11 @@ void SlotSelectorDialog::paintSlots(void) {
 		if (nameFound) {
 			QGraphicsTextItem * text = new QGraphicsTextItem;
 			text->setPos(slot.pos.x() + slot.pos.width(), slot.pos.y() + 4);
-			text->scale(-1, 1);
-			text->scale(0.2, 0.2);
+            //text->scale(-1, 1);
+            text->setScale(0.2);
 			text->setDefaultTextColor(Qt::white);
 			if (slot.index >= 67) {
-				text->rotate(90);
+                text->setRotation(90);
 				text->setPos(text->pos().x() - 5, text->pos().y() + 4);
 			}
 			text->setPlainText(value.c_str());

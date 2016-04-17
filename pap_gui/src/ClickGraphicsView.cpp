@@ -5,8 +5,8 @@
  *      Author: johan
  */
 
-#include "../include/pap_gui/ClickGraphicsView.hpp"
-#include "../include/pap_gui/main_window.hpp"
+#include <pap_gui/ClickGraphicsView.hpp>
+#include <pap_gui/main_window.hpp>
 #include <QPointF>
 #include <QDebug>
 

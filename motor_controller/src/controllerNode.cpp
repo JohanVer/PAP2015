@@ -1,6 +1,6 @@
 #include "ros/ros.h"
 #include "std_msgs/String.h"
-#include "../include/motorController/controllerClass.hpp"
+#include <motorController/controllerClass.hpp>
 
 #include <sstream>
 

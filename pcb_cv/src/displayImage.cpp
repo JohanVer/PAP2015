@@ -13,13 +13,13 @@
 #include "sensor_msgs/Image.h"
 #include "std_msgs/Header.h"
 #include <vector>
-#include "../include/pcb_cv/padFinder.h"
+#include <pcb_cv/padFinder.h>
 #include <cmath>
 #include <image_transport/image_transport.h>
 #include "pap_common/Task.h"
 #include "pap_common/VisionStatus.h"
-#include "../../pap_common/include/pap_common/vision_message_def.h"
-#include "../../pap_common/include/pap_common/task_message_def.h"
+#include <pap_common/vision_message_def.h>
+#include <pap_common/task_message_def.h>
 #include <tf/transform_broadcaster.h>
 #include "zbar.h"
 

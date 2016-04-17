@@ -1,4 +1,4 @@
-#include "packageDialog.hpp"
+#include <pap_gui/packageDialog.hpp>
 #include <QDialogButtonBox>
 #include <QMessageBox>
 #include <stdio.h>

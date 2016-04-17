@@ -88,9 +88,8 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
   INCLUDE_DIRS include
 #  LIBRARIES pap_common
-#  CATKIN_DEPENDS roscpp rospy std_msgs message_generation
-#  DEPENDS system_lib
-CATKIN_DEPENDS message_runtime
+  CATKIN_DEPENDS roscpp rospy std_msgs message_generation message_runtime
+  DEPENDS system_lib
 )
 
 ###########
@@ -102,6 +101,7 @@ CATKIN_DEPENDS message_runtime
 # include_directories(include)
 include_directories(
   ${catkin_INCLUDE_DIRS}
+  include
 )
 
 ## Declare a cpp library

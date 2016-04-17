@@ -14,8 +14,8 @@
 #include <QKeyEvent>
 #include <QMessageBox>
 #include <iostream>
-#include "../include/pap_gui/main_window.hpp"
-#include "../include/pap_gui/GerberPadParser.hpp"
+#include <pap_gui/main_window.hpp>
+#include <pap_gui/GerberPadParser.hpp>
 #include <string>
 #include <vector>
 #include <iostream>
@@ -27,8 +27,8 @@
 #include <QFile>
 #include <tf/transform_broadcaster.h>
 #include "../../pap_placer/include/pap_placer/offsetTable.hpp"
-#include "../include/pap_gui/DatabaseClass.hpp"
-#include "../include/pap_gui/packageDialog.hpp"
+#include <pap_gui/DatabaseClass.hpp>
+#include <pap_gui/packageDialog.hpp>
 
 /*****************************************************************************
  ** Namespaces
@@ -839,7 +839,7 @@ void MainWindow::updateMissingPackageTable() {
 			QAbstractItemView::SelectRows);
 	ui.missingPackageTableWidget->setSizePolicy(QSizePolicy::Expanding,
 			QSizePolicy::Maximum);
-	ui.missingPackageTableWidget->horizontalHeader()->setResizeMode(
+    ui.missingPackageTableWidget->horizontalHeader()->setSectionResizeMode(
 			QHeaderView::Stretch);
 	ui.missingPackageTableWidget->show();
 }
@@ -877,7 +877,7 @@ void MainWindow::updateComponentTable() {
 	//ui.tableWidget->verticalHeader()->setVisible(false);
 	ui.tableWidget->setSizePolicy(QSizePolicy::Expanding,
 			QSizePolicy::Expanding);
-	ui.tableWidget->horizontalHeader()->setResizeMode(QHeaderView::Stretch);
+    ui.tableWidget->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
 
 	//ui.tableWidget->setWindowTitle("QTableWidget");
 	ui.tableWidget->show();
@@ -931,7 +931,7 @@ void MainWindow::updateDatabaseTable() {
 	ui.tableWidget->verticalHeader()->setVisible(false);
 	ui.packageTableWidget->setSizePolicy(QSizePolicy::Expanding,
 			QSizePolicy::Expanding);
-	ui.packageTableWidget->horizontalHeader()->setResizeMode(
+    ui.packageTableWidget->horizontalHeader()->setSectionResizeMode(
 			QHeaderView::Stretch);
 
 	//ui.tableWidget->setWindowTitle("QTableWidget");
@@ -1921,7 +1921,7 @@ void MainWindow::sendGotoFiducial(int indexOfFiducial) {
 void MainWindow::on_inputPad_Button_clicked() {
 	//get a filename to open
 	if (alreadyFlipped_) {
-		ui.padView_Image->scale(-1, -1);
+        ui.padView_Image->scale(-1, -1);
 		alreadyFlipped_ = false;
 	}
 

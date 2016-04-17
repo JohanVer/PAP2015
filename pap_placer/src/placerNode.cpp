@@ -6,13 +6,14 @@
 #include "pap_common/ArduinoMsg.h"
 #include "pap_common/PlacerStatus.h"
 #include "pap_common/DispenseTask.h"
-#include "../../pap_common/include/pap_common/task_message_def.h"
-#include "../../pap_common/include/pap_common/status_message_def.h"
-#include "../../pap_common/include/pap_common/arduino_message_def.h"
-#include "../../pap_common/include/pap_common/vision_message_def.h"
-#include "../../pap_common/include/pap_common/placer_message_def.h"
-#include "../../pap_placer/include/pap_placer/placerNode.hpp"
-#include "../include/pap_placer/placerClass.hpp"
+#include <pap_common/task_message_def.h>
+#include <pap_common/status_message_def.h>
+#include <pap_common/arduino_message_def.h>
+#include <pap_common/vision_message_def.h>
+#include <pap_common/placer_message_def.h>
+
+#include <pap_placer/placerNode.hpp>
+#include <pap_placer/placerClass.hpp>
 
 /* Constant parameter definitions */
 #define posTolerance 0.01 // Deviation of position in mm
