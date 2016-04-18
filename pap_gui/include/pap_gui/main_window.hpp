@@ -108,7 +108,7 @@ public Q_SLOTS:
 	void on_connectButton_clicked(bool check);
 	void on_checkbox_use_environment_stateChanged(int state);
 	void cameraUpdated(int index);
-	void statusUpdated(int index);
+    void statusUpdated();
 	void placerStatusUpdated(int indicator, int state);
 	void on_valveToggle1_clicked(bool check);
 	void on_valveToggle2_clicked(bool check);

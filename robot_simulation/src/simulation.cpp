@@ -181,28 +181,6 @@ void parseTask(const pap_common::TaskConstPtr& taskMsg) {
 			}
 			break;
 
-		case pap_common::MANUAL:
-			if (taskMsg->data1 == (float) (pap_common::XMOTOR)) {
-				if (taskMsg->data2 == (float) (pap_common::FORWARD)) {
-					//controller.manual(1, 1);
-				} else {
-					//controller.manual(1, 0);
-				}
-			} else if (taskMsg->data1 == (float) (pap_common::YMOTOR)) {
-				if (taskMsg->data2 == (float) (pap_common::FORWARD)) {
-					//controller.manual(2, 1);
-				} else {
-					//controller.manual(2, 0);
-				}
-			} else if (taskMsg->data1 == (float) (pap_common::ZMOTOR)) {
-				if (taskMsg->data2 == (float) (pap_common::FORWARD)) {
-					//controller.manual(3, 1);
-				} else {
-					//controller.manual(3, 0);
-				}
-			}
-			break;
-
 		case pap_common::CONNECT:
 			ROS_INFO("Searching for devices...");
 			ROS_INFO("Controller 1 connected...");
@@ -224,15 +202,6 @@ void parseTask(const pap_common::TaskConstPtr& taskMsg) {
 
 			break;
 
-		case pap_common::STOP:
-			if (taskMsg->data1 == (float) (pap_common::XMOTOR)) {
-				//controller.stop(1);
-			} else if (taskMsg->data1 == (float) (pap_common::YMOTOR)) {
-				//controller.stop(2);
-			} else if (taskMsg->data1 == (float) (pap_common::ZMOTOR)) {
-				//controller.stop(3);
-			}
-			break;
 		}
 		break;
 	}

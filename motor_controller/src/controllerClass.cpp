@@ -422,9 +422,6 @@ float motorController::getPosition(unsigned char adressDevice){
 	}
 }
 
-//bool motorController::initialize(unsigned char addressDevice, unsigned int line,
-//		float goal, float vel, unsigned int acc, unsigned int dec)
-
 bool motorController::setSetting(unsigned char addressDevice, unsigned int line,
 		float goal, float vel, unsigned int acc, unsigned int dec) {
 

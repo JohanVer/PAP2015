@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.1.0 FATAL_ERROR)
 project(motor_controller)
 
 ## Find catkin macros and libraries
@@ -10,6 +10,8 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   serial
   pap_common
+  actionlib
+  actionlib_msgs
 )
 
 ## System dependencies are found with CMake's conventions
@@ -84,7 +86,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
   INCLUDE_DIRS include
 #  LIBRARIES motorController
-  CATKIN_DEPENDS roscpp rospy std_msgs serial pap_common
+  CATKIN_DEPENDS roscpp rospy std_msgs serial pap_common actionlib actionlib_msgs
   DEPENDS system_lib
 )
 

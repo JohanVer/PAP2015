@@ -252,43 +252,23 @@ void QNode::placerStatusCallback(
 
 void QNode::statusCallback(const pap_common::StatusConstPtr& statusMsg) {
 
-	int index = statusMsg->data1;
-	if (statusMsg->status == pap_common::ENERGIZED) {
-		motorcontrollerStatus[index].energized = true;
-	}
-	if (statusMsg->status == pap_common::NOENERGY) {
-		motorcontrollerStatus[index].energized = false;
-	}
+    motorcontrollerStatus[0].energized = statusMsg->energized[0];
+    motorcontrollerStatus[1].energized = statusMsg->energized[1];
+    motorcontrollerStatus[2].energized = statusMsg->energized[2];
 
-	if (statusMsg->status == pap_common::POSITIONREACHED) {
-		motorcontrollerStatus[index].positionReached = true;
-	}
+    motorcontrollerStatus[0].error = statusMsg->error[0];
+    motorcontrollerStatus[1].error = statusMsg->error[1];
+    motorcontrollerStatus[2].error = statusMsg->error[2];
 
-	if (statusMsg->status == pap_common::POSITIONNOTREACHED) {
-		motorcontrollerStatus[index].positionReached = false;
-	}
+    motorcontrollerStatus[0].positionReached = statusMsg->reached[0];
+    motorcontrollerStatus[1].positionReached = statusMsg->reached[1];
+    motorcontrollerStatus[2].positionReached = statusMsg->reached[2];
 
-	if (statusMsg->status == pap_common::ERROR) {
-		motorcontrollerStatus[index].error = true;
-	}
+    motorcontrollerStatus[0].position = statusMsg->pos[0];
+    motorcontrollerStatus[1].position = statusMsg->pos[1];
+    motorcontrollerStatus[2].position = statusMsg->pos[2];
 
-	if (statusMsg->status == pap_common::NOERROR) {
-		motorcontrollerStatus[index].error = false;
-	}
-
-	switch (index) {
-	case pap_common::XMOTOR:
-		motorcontrollerStatus[index].pos = statusMsg->posX;
-		break;
-	case pap_common::YMOTOR:
-		motorcontrollerStatus[index].pos = statusMsg->posY;
-		break;
-	case pap_common::ZMOTOR:
-		motorcontrollerStatus[index].pos = statusMsg->posZ;
-		break;
-	}
-
-	Q_EMIT statusUpdated(index);
+    Q_EMIT statusUpdated();
 }
 
 void QNode::sendRelaisTask(int relaisNumber, bool value) {

@@ -37,6 +37,8 @@ public:
 	bool energized;
 	bool positionReached;
 	bool failed;
+    float position;
+
 private:
 };
 

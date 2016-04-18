@@ -43,6 +43,8 @@
   <depend>message_runtime</depend>
   <depend>rospy</depend>
   <depend>std_msgs</depend>
+  <depend>actionlib</depend>
+  <depend>actionlib_msgs</depend>
 
 
 

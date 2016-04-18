@@ -48,6 +48,7 @@
   <depend>sensor_msgs</depend>
   <depend>cv_bridge</depend>
   <depend>qt_build</depend>
+  <depend>motor_controller</depend>
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>

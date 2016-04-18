@@ -69,22 +69,6 @@ public:
 private:
 };
 
-class controllerStatus {
-public:
-	controllerStatus() {
-		error = false;
-		energized = false;
-		positionReached = false;
-		failed = false;
-	}
-
-	bool error;
-	bool energized;
-	bool positionReached;
-	bool failed;
-private:
-};
-
 class Offset {
 public:
 	float x;

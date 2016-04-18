@@ -11,6 +11,8 @@ find_package(catkin REQUIRED COMPONENTS
   message_generation
 )
 
+find_package(catkin REQUIRED genmsg actionlib_msgs actionlib)
+
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
 
@@ -56,6 +58,8 @@ find_package(catkin REQUIRED COMPONENTS
    DispenseStatus.msg
  )
 
+add_action_files(DIRECTORY action FILES MotorControllerAction.action)
+
 ## Generate services in the 'srv' folder
 # add_service_files(
 #   FILES
@@ -63,17 +67,11 @@ find_package(catkin REQUIRED COMPONENTS
 #   Service2.srv
 # )
 
-## Generate actions in the 'action' folder
-# add_action_files(
-#   FILES
-#   Action1.action
-#   Action2.action
-# )
-
 ## Generate added messages and services with any dependencies listed here
  generate_messages(
    DEPENDENCIES
    std_msgs
+   actionlib_msgs
  )
 
 ###################################

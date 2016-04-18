@@ -15,6 +15,8 @@
 #include <pap_placer/placerNode.hpp>
 #include <pap_placer/placerClass.hpp>
 
+#include <motorController/controllerClass.hpp>
+
 /* Constant parameter definitions */
 #define posTolerance 0.01 // Deviation of position in mm
 #define DISPENSER_TOLERANCE 0.1
@@ -1240,40 +1242,31 @@ void resetMotorState(int index, bool value) {
  *****************************************************************************/
 void statusCallback(const pap_common::StatusConstPtr& statusMsg) {
 
-	int index = statusMsg->data1;
-	if (statusMsg->status == pap_common::ENERGIZED) {
-		motorcontrollerStatus[index].energized = true;
-	}
-	if (statusMsg->status == pap_common::NOENERGY) {
-		motorcontrollerStatus[index].energized = false;
-	}
+    motorcontrollerStatus[0].energized = statusMsg->energized[0];
+    motorcontrollerStatus[1].energized = statusMsg->energized[1];
+    motorcontrollerStatus[2].energized = statusMsg->energized[2];
 
-	if (statusMsg->status == pap_common::POSITIONREACHED) {
-		motorcontrollerStatus[index].positionReached = true;
-		//ROS_INFO("Reached %d", index);
-	}
+    motorcontrollerStatus[0].error = statusMsg->error[0];
+    motorcontrollerStatus[1].error = statusMsg->error[1];
+    motorcontrollerStatus[2].error = statusMsg->error[2];
 
-	if (statusMsg->status == pap_common::POSITIONNOTREACHED) {
-		motorcontrollerStatus[index].positionReached = false;
-		//ROS_INFO("NotReached");
-	}
+    motorcontrollerStatus[0].positionReached = statusMsg->reached[0];
+    motorcontrollerStatus[1].positionReached = statusMsg->reached[1];
+    motorcontrollerStatus[2].positionReached = statusMsg->reached[2];
 
-	if (statusMsg->status == pap_common::ERROR) {
-		motorcontrollerStatus[index].error = true;
-	}
+    motorcontrollerStatus[0].position = statusMsg->pos[0];
+    motorcontrollerStatus[1].position = statusMsg->pos[1];
+    motorcontrollerStatus[2].position = statusMsg->pos[2];
 
-	if (statusMsg->status == pap_common::NOERROR) {
-		motorcontrollerStatus[index].error = false;
-	}
 
-	if (statusMsg->posX != 0.0) {
-		placeController.lastDestination_.x = fabs(statusMsg->posX);
+    if (statusMsg->pos[0] != 0.0) {
+        placeController.lastDestination_.x = fabs(statusMsg->pos[0]);
 	}
-	if (statusMsg->posY != 0.0) {
-		placeController.lastDestination_.y = fabs(statusMsg->posY);
+    if (statusMsg->pos[1] != 0.0) {
+        placeController.lastDestination_.y = fabs(statusMsg->pos[1]);
 	}
-	if (statusMsg->posZ != 0.0) {
-		placeController.lastDestination_.z = fabs(statusMsg->posZ);
+    if (statusMsg->pos[2] != 0.0) {
+        placeController.lastDestination_.z = fabs(statusMsg->pos[2]);
 	}
 }
 

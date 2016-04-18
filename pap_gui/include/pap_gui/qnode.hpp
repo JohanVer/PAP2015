@@ -47,8 +47,9 @@
 #include <pap_common/arduino_message_def.h>
 #include <pap_common/vision_message_def.h>
 #include <pap_common/placer_message_def.h>
-
 #include "pap_common/PlacerStatus.h"
+
+#include <motorController/controllerClass.hpp>
 
 #include "../../../pap_placer/include/pap_placer/placerClass.hpp"
 
@@ -65,23 +66,6 @@ namespace pap_gui {
 /*****************************************************************************
 ** Class
 *****************************************************************************/
-
-// TODO: This is redundant
-class controllerStatus {
-public:
-	controllerStatus() {
-		error = false;
-		energized = false;
-		positionReached = false;
-		pos = 0;
-	}
-
-	float pos;
-	bool error;
-	bool energized;
-	bool positionReached;
-private:
-};
 
 class QNode : public QThread {
     Q_OBJECT
@@ -106,7 +90,7 @@ public:
 	QStringListModel* loggingModel() { return &logging_model; }
 	QImage* getCamera1() { return &cameraImage_; }
 	QImage* getCamera2() { return &cameraImage2_; }
-	controllerStatus* getStatus(){ return motorcontrollerStatus;}
+    controllerStatus getStatus(size_t num_controller){ return motorcontrollerStatus[num_controller];}
 	void log( const LogLevel &level, const std::string &msg);
 	void cameraCallback(const sensor_msgs::Image::ConstPtr& camera_msg);
 	void cameraCallback2(const sensor_msgs::ImageConstPtr& camera_msg);
@@ -135,7 +119,7 @@ public:
 
 Q_SIGNALS:
 	void loggingUpdated();
-	void statusUpdated(int index);
+    void statusUpdated();
 	void placerStatusUpdated(int indicator, int status);
 	void qrCodeUpdated();
 	void cameraUpdated(int index);

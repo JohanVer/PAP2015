@@ -25,5 +25,6 @@
   <depend>pap_placer</depend>
   <depend>rospy</depend>
   <depend>tf</depend>
+  <depend>motor_controller</depend>
  
 </package>

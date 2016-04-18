@@ -20,6 +20,7 @@ find_package(catkin REQUIRED COMPONENTS
   pap_common
   pap_placer
   tf
+  motor_controller
 )
 
 # Find the QtWidgets library
@@ -39,7 +40,7 @@ include_directories(${catkin_INCLUDE_DIRS} include)
 
 catkin_package(
   INCLUDE_DIRS include
-  CATKIN_DEPENDS roscpp rospy std_msgs image_transport cv_bridge sensor_msgs pap_common pap_placer tf
+  CATKIN_DEPENDS roscpp rospy std_msgs image_transport cv_bridge sensor_msgs pap_common pap_placer tf motor_controller
   DEPENDS system_lib
 )
 
