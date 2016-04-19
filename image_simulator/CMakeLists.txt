@@ -111,7 +111,6 @@ include_directories(  ${catkin_INCLUDE_DIRS}  ${OpenCV_INCLUDE_DIRS}  )
 # add_executable(image_simulator_node src/image_simulator_node.cpp)
 add_executable(image_simulator src/image_simulator_node.cpp ${INCLUDE_GLOBAL_HEADERS})
 target_link_libraries ( image_simulator ${OpenCV_LIBRARIES} ${catkin_LIBRARIES} )
-add_dependencies(image_simulator image_simulator_gencpp)
 
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes

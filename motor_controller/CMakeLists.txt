@@ -109,7 +109,6 @@ include_directories(
 # add_executable(motorController_node src/motorController_node.cpp)
 add_executable(motor_controller_node  src/controllerNode.cpp src/controllerClass.cpp ${INCLUDE_GLOBAL_HEADERS})
 target_link_libraries ( motor_controller_node  ${catkin_LIBRARIES}  )
-add_dependencies(motor_controller_node motor_controller_gencpp)
 
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes

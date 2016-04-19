@@ -114,7 +114,6 @@ include_directories(  ${catkin_INCLUDE_DIRS}  ${OpenCV_INCLUDE_DIRS}  include )
 
 add_executable(displayImage src/displayImage.cpp src/padFinder.cpp ${INCLUDE_GLOBAL_HEADERS})
 target_link_libraries ( displayImage zbar ${OpenCV_LIBRARIES} ${catkin_LIBRARIES} )
-add_dependencies(displayImage pcb_cv_gencpp)
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes
 # add_dependencies(pcb_cv_node pcb_cv_generate_messages_cpp)

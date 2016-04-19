@@ -12,7 +12,6 @@ find_package(catkin REQUIRED COMPONENTS
   cv_bridge
   sensor_msgs
   pap_common
-  qt_build
 )
 
 ## System dependencies are found with CMake's conventions
@@ -87,7 +86,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
   INCLUDE_DIRS include
 #  LIBRARIES pap_placer
-  CATKIN_DEPENDS roscpp rospy std_msgs image_transport cv_bridge sensor_msgs pap_common qt_build
+  CATKIN_DEPENDS roscpp rospy std_msgs image_transport cv_bridge sensor_msgs pap_common
   DEPENDS system_lib
 )
 
@@ -115,7 +114,6 @@ include_directories(
 #add_executable(pap_placer_node src/placerNode.cpp)
 add_executable(pap_placer_node  src/placerClass.cpp src/placerNode.cpp ${INCLUDE_GLOBAL_HEADERS})
 target_link_libraries ( pap_placer_node  ${catkin_LIBRARIES}  )
-add_dependencies(pap_placer_node pap_placer_gencpp)
 
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes

@@ -109,7 +109,6 @@ include_directories(
 # add_executable(robot_simulation_node src/robot_simulation_node.cpp)
 add_executable(robot_simulation_node src/simulation.cpp)
 target_link_libraries ( robot_simulation_node  ${catkin_LIBRARIES} )
-add_dependencies(robot_simulation_node robot_simulation_gencpp)
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes
 # add_dependencies(robot_simulation_node robot_simulation_generate_messages_cpp)
