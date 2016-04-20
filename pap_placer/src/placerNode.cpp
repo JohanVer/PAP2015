@@ -15,7 +15,8 @@
 #include <pap_placer/placerNode.hpp>
 #include <pap_placer/placerClass.hpp>
 
-#include <motorController/controllerClass.hpp>
+#include <motorController/controller_interface.h>
+
 
 /* Constant parameter definitions */
 #define posTolerance 0.01 // Deviation of position in mm
@@ -86,7 +87,7 @@ bool completePlacement = false;
 
 PlaceController placeController;
 ComponentPlacerData currentComponent;
-static controllerStatus motorcontrollerStatus[2];
+static motor_controller::controllerStatus motorcontrollerStatus[2];
 
 enum QR_CALIBRATION_PROCESS {
 	GOTO_QR, PICKUP_QR, CAM_QR, RELEASE_QR, GOBACKTO_QR, START_QR_VISION

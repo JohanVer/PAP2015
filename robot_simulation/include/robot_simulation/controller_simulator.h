@@ -1,8 +1,10 @@
 #ifndef CONTROLLER_SIMULATOR_H
 #define CONTROLLER_SIMULATOR_H
 
-#include <motorController/controllerClass.hpp>
+#include <ros/ros.h>
+#include <motorController/controller_interface.h>
 #include <pap_common/task_message_def.h>
+#include <QThread>
 
 namespace controller_simulator{
 
@@ -12,19 +14,23 @@ struct state {
     double tip1, tip2;
 };
 
-class ControllerSimulator
+class ControllerSimulator : public QThread
 {
 public:
     ControllerSimulator();
 
-    void gotoCoord(const double x,  const double y, const double z);
+    virtual void gotoCoord(float x, float y, float z, float velX = 50.0, float velY = 300.0, float velZ = 100.0 );
+    virtual void energizeAxis(enum pap_common::MOTOR adressDevice, bool trigger);
+    virtual motor_controller::controllerStatus getFullStatusController(enum pap_common::MOTOR addressDevice);
+    virtual bool isConnected(enum pap_common::MOTOR device);
+    virtual void sendHoming();
+    virtual void connectToBus();
+    virtual void searchForDevices();
+
     void energizeAllAxis(bool activate);
-    void energizeAxis(enum pap_common::MOTOR device, bool activate);
     void connectController(bool connect);
-    controllerStatus getStatusController(enum pap_common::MOTOR device);
+    void run();
     void simulationStep(void);
-    void homing();
-    bool isConnected();
 
 private:
     void simulate_next_step(double accX, double accY, double accZ, double ts);
@@ -50,7 +56,7 @@ private:
     double distX, distY, distZ;
     double desX, desY, desZ;
 
-    controllerStatus controllerState1, controllerState2, controllerState3;
+    motor_controller::controllerStatus controllerState1, controllerState2, controllerState3;
 
 };
 

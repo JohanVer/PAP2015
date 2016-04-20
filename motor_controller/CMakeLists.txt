@@ -116,6 +116,7 @@ include_directories(
 ## Declare a cpp library
  add_library(motorController
    src/controllerClass.cpp
+   src/controller_interface.cpp
  )
 
 target_link_libraries ( motorController  ${catkin_LIBRARIES}  )

@@ -49,7 +49,7 @@
 #include <pap_common/placer_message_def.h>
 #include "pap_common/PlacerStatus.h"
 
-#include <motorController/controllerClass.hpp>
+#include <motorController/controller_interface.h>
 
 #include <pap_placer/placerClass.hpp>
 
@@ -90,7 +90,7 @@ public:
 	QStringListModel* loggingModel() { return &logging_model; }
 	QImage* getCamera1() { return &cameraImage_; }
 	QImage* getCamera2() { return &cameraImage2_; }
-    controllerStatus getStatus(size_t num_controller){ return motorcontrollerStatus[num_controller];}
+    motor_controller::controllerStatus getStatus(size_t num_controller){ return motorcontrollerStatus[num_controller];}
 	void log( const LogLevel &level, const std::string &msg);
 	void cameraCallback(const sensor_msgs::Image::ConstPtr& camera_msg);
 	void cameraCallback2(const sensor_msgs::ImageConstPtr& camera_msg);
@@ -142,7 +142,7 @@ private:
     image_transport::Subscriber image_sub_;
     image_transport::Subscriber image_sub2_;
     cv_bridge::CvImagePtr cv_ptr;
-    controllerStatus motorcontrollerStatus[3];
+    motor_controller::controllerStatus motorcontrollerStatus[3];
     QImage cameraImage_, cameraImage2_;
     //image_transport::Publisher imagePub_;
     ros::Publisher imagePub_;

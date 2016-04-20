@@ -386,7 +386,7 @@ void ControllerSimulator::simulateZAxisMovement() {
     }
 }
 
-void ControllerSimulator::gotoCoord(const double x,  const double y, const double z){
+void ControllerSimulator::gotoCoord(float x, float y, float z, float velX, float velY, float velZ ){
     if (controllerConnected && controllerEnergized) {
         desX = x;							// Desired position
         distXTotal = desX - currentState.x;		// Distance we have to go
@@ -400,29 +400,29 @@ void ControllerSimulator::gotoCoord(const double x,  const double y, const doubl
 
 void ControllerSimulator::energizeAllAxis(bool activate){
     if(activate){
-        controllerEnergized = true;
         energizeAxis(pap_common::XMOTOR, true);
         energizeAxis(pap_common::YMOTOR, true);
         energizeAxis(pap_common::ZMOTOR, true);
     }else{
-        controllerEnergized = false;
         energizeAxis(pap_common::XMOTOR, false);
         energizeAxis(pap_common::YMOTOR, false);
         energizeAxis(pap_common::ZMOTOR, false);
     }
 }
 
-void ControllerSimulator::energizeAxis(enum pap_common::MOTOR device, bool activate){
-    switch (device){
+void ControllerSimulator::energizeAxis(enum pap_common::MOTOR adressDevice, bool trigger){
+    switch (adressDevice){
     case pap_common::MOTOR::XMOTOR:
-        if(activate)
+        if(trigger)
         {
+            controllerEnergized = true;
             controllerState1.energized = true;
             controllerState1.positionReached = true;
             controllerState1.error = false;
         }
         else
         {
+            controllerEnergized = false;
             controllerState1.energized = false;
             controllerState1.positionReached = false;
             controllerState1.error = false;
@@ -430,14 +430,16 @@ void ControllerSimulator::energizeAxis(enum pap_common::MOTOR device, bool activ
         break;
 
     case pap_common::MOTOR::YMOTOR:
-        if(activate)
+        if(trigger)
         {
+            controllerEnergized = true;
             controllerState2.energized = true;
             controllerState2.positionReached = true;
             controllerState2.error = false;
         }
         else
         {
+            controllerEnergized = false;
             controllerState2.energized = false;
             controllerState2.positionReached = false;
             controllerState2.error = false;
@@ -446,20 +448,26 @@ void ControllerSimulator::energizeAxis(enum pap_common::MOTOR device, bool activ
         break;
 
     case pap_common::MOTOR::ZMOTOR:
-        if(activate)
+        if(trigger)
         {
+            controllerEnergized = true;
             controllerState3.energized = true;
             controllerState3.positionReached = true;
             controllerState3.error = false;
         }
         else
         {
+            controllerEnergized = false;
             controllerState3.energized = false;
             controllerState3.positionReached = false;
             controllerState3.error = false;
         }
         break;
     }
+}
+
+void ControllerSimulator::searchForDevices(){
+    connectController(true);
 }
 
 void ControllerSimulator::connectController(bool connect){
@@ -481,8 +489,8 @@ void ControllerSimulator::connectController(bool connect){
     }
 }
 
-controllerStatus ControllerSimulator::getStatusController(enum pap_common::MOTOR device){
-    switch(device){
+motor_controller::controllerStatus ControllerSimulator::getFullStatusController(enum pap_common::MOTOR addressDevice){
+    switch(addressDevice){
     case pap_common::MOTOR::XMOTOR:
         controllerState1.position = currentState.x;
         return controllerState1;
@@ -511,12 +519,24 @@ void ControllerSimulator::simulationStep(void){
     }
 }
 
-void ControllerSimulator::homing(){
+void ControllerSimulator::sendHoming(){
     gotoCoord(xHome, yHome, zHome);
 }
 
-bool ControllerSimulator::isConnected(){
+bool ControllerSimulator::isConnected(enum pap_common::MOTOR device){
     return controllerConnected;
+}
+
+void ControllerSimulator::connectToBus(){
+    this->start();
+}
+
+void ControllerSimulator::run(){
+    ros::Rate loop_rate(100);
+    while (ros::ok()) {
+        simulationStep();
+        loop_rate.sleep();
+    }
 }
 
 }

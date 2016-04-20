@@ -24,6 +24,9 @@ find_package(catkin REQUIRED COMPONENTS
   pap_common
 )
 
+set(CMAKE_PREFIX_PATH $ENV{HOME}/Qt/5.6/gcc_64)
+find_package(Qt5Widgets)
+
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
 
@@ -119,7 +122,7 @@ file(GLOB_RECURSE INCLUDE_GLOBAL_HEADERS ${PROJECT_SOURCE_DIR} *.h *.hpp)
    src/controller_simulator.cpp
  )
 
-target_link_libraries ( robot_simulation  ${catkin_LIBRARIES} )
+target_link_libraries ( robot_simulation Qt5::Widgets  ${catkin_LIBRARIES} )
 ## Declare a cpp executable
 # add_executable(robot_simulation_node src/robot_simulation_node.cpp)
 add_executable(robot_simulation_node src/simulation.cpp ${INCLUDE_GLOBAL_HEADERS})
