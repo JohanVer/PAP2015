@@ -5,7 +5,7 @@
 namespace controllerNode{
 
 
-void insertStatusInStatusMsg(int num_of_controller, const controllerStatus& c_status, bool connected, pap_common::Status& msg){
+void insertStatusInStatusMsg(enum pap_common::MOTOR num_of_controller, const controllerStatus& c_status, bool connected, pap_common::Status& msg){
     switch (num_of_controller) {
     case pap_common::XMOTOR:
         msg.connected[0] = connected;

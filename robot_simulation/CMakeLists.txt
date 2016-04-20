@@ -22,7 +22,6 @@ find_package(catkin REQUIRED COMPONENTS
   motor_controller
   serial
   pap_common
-  tf
 )
 
 ## System dependencies are found with CMake's conventions
@@ -95,9 +94,9 @@ find_package(catkin REQUIRED COMPONENTS
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES robot_simulation
-  CATKIN_DEPENDS roscpp rospy std_msgs motor_controller tf serial pap_common
+  INCLUDE_DIRS include
+  LIBRARIES robot_simulation
+  CATKIN_DEPENDS roscpp rospy std_msgs motor_controller serial pap_common
   DEPENDS system_lib
 )
 
@@ -111,17 +110,20 @@ catkin_package(
 include_directories(
   ${catkin_INCLUDE_DIRS}
   ${HEADERS_PARENT_DIR}
+  include
 )
+file(GLOB_RECURSE INCLUDE_GLOBAL_HEADERS ${PROJECT_SOURCE_DIR} *.h *.hpp)
 
 ## Declare a cpp library
-# add_library(robot_simulation
-#   src/${PROJECT_NAME}/robot_simulation.cpp
-# )
+ add_library(robot_simulation
+   src/controller_simulator.cpp
+ )
 
+target_link_libraries ( robot_simulation  ${catkin_LIBRARIES} )
 ## Declare a cpp executable
 # add_executable(robot_simulation_node src/robot_simulation_node.cpp)
-add_executable(robot_simulation_node src/simulation.cpp)
-target_link_libraries ( robot_simulation_node  ${catkin_LIBRARIES} )
+add_executable(robot_simulation_node src/simulation.cpp ${INCLUDE_GLOBAL_HEADERS})
+target_link_libraries ( robot_simulation_node robot_simulation  ${catkin_LIBRARIES} )
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes
 # add_dependencies(robot_simulation_node robot_simulation_generate_messages_cpp)
