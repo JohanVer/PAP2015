@@ -52,7 +52,10 @@ void ControllerInterface::publishControllerStatus(const ros::Publisher& publishe
 
 bool ControllerInterface::checkStatusController(enum pap_common::MOTOR device_address,
                                                 controllerStatus& controllerStatusAct) {
-    if(!isConnected(device_address)) return false;
+    if(!isConnected(device_address)){
+        std::cerr << "Not connected...\n";
+        return false;
+    }
 
     while(1){
         controllerStatusAct = getFullStatusController(device_address);
@@ -87,26 +90,33 @@ bool ControllerInterface::checkStatusController(enum pap_common::MOTOR device_ad
             break;
         }
     }
-
-    return controllerStatusAct.failed;
+    return true;
 }
 
 bool ControllerInterface::checkAllControllers(controllerStatus& c1, controllerStatus& c2, controllerStatus& c3){
     if (isConnected(pap_common::XMOTOR)) {
-        if(!checkStatusController(pap_common::XMOTOR, c1))
+        if(!checkStatusController(pap_common::XMOTOR, c1)){
             return false;
-    }else return false;
-
+        }
+    }else{
+        return false;
+    }
     if (isConnected(pap_common::YMOTOR)) {
         if(!checkStatusController(pap_common::YMOTOR, c2))
+        {
             return false;
-    }else return false;
+        }
+    }else{
+        return false;
+    }
 
     if (isConnected(pap_common::ZMOTOR)) {
-        if(!checkStatusController(pap_common::ZMOTOR, c3))
+        if(!checkStatusController(pap_common::ZMOTOR, c3)){
             return false;
-    }else return false;
-
+        }
+    }else{
+        return false;
+    }
     return true;
 }
 
@@ -257,7 +267,7 @@ void ControllerInterface::parseTask(const pap_common::TaskConstPtr& taskMsg) {
     }
 }
 
-void ControllerInterface::init()
+void ControllerInterface::initInterface()
 {
     ros::NodeHandle n;
     taskSubscriber_ = n.subscribe("task", 10, &ControllerInterface::parseTask, this);
@@ -277,6 +287,8 @@ void ControllerInterface::startInterface()
     while (ros::ok()) {
         if(checkAllControllers(controllerState1, controllerState2, controllerState3)){
             publishControllerStatus(statusPublisher, controllerState1, controllerState2, controllerState3);
+        }else{
+            //std::cerr << "Checking devices failed...\n";
         }
         ros::spinOnce();
         loop_rate.sleep();

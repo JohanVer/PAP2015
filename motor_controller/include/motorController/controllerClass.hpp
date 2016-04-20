@@ -24,7 +24,7 @@
 
 namespace motor_controller{
 
-class motorController {
+class motorController: public motor_controller::ControllerInterface {
 public:
 	motorController();
 	~motorController();

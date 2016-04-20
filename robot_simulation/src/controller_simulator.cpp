@@ -386,7 +386,7 @@ void ControllerSimulator::simulateZAxisMovement() {
     }
 }
 
-void ControllerSimulator::gotoCoord(float x, float y, float z, float velX, float velY, float velZ ){
+int ControllerSimulator::gotoCoord(float x, float y, float z, float velX, float velY, float velZ ){
     if (controllerConnected && controllerEnergized) {
         desX = x;							// Desired position
         distXTotal = desX - currentState.x;		// Distance we have to go
@@ -395,6 +395,7 @@ void ControllerSimulator::gotoCoord(float x, float y, float z, float velX, float
         desZ = z;							// Desired position
         distZTotal = desZ - currentState.z;		// Distance we have to go
     }
+    return 0;
 }
 
 
@@ -410,7 +411,7 @@ void ControllerSimulator::energizeAllAxis(bool activate){
     }
 }
 
-void ControllerSimulator::energizeAxis(enum pap_common::MOTOR adressDevice, bool trigger){
+bool ControllerSimulator::energizeAxis(enum pap_common::MOTOR adressDevice, bool trigger){
     switch (adressDevice){
     case pap_common::MOTOR::XMOTOR:
         if(trigger)
@@ -464,6 +465,7 @@ void ControllerSimulator::energizeAxis(enum pap_common::MOTOR adressDevice, bool
         }
         break;
     }
+    return true;
 }
 
 void ControllerSimulator::searchForDevices(){
@@ -493,19 +495,23 @@ motor_controller::controllerStatus ControllerSimulator::getFullStatusController(
     switch(addressDevice){
     case pap_common::MOTOR::XMOTOR:
         controllerState1.position = currentState.x;
+        controllerState1.failed= false;
         return controllerState1;
         break;
 
     case pap_common::MOTOR::YMOTOR:
         controllerState2.position = currentState.y;
+        controllerState2.failed= false;
         return controllerState2;
         break;
 
     case pap_common::MOTOR::ZMOTOR:
         controllerState3.position = currentState.z;
+        controllerState3.failed= false;
         return controllerState3;
         break;
     }
+
 }
 
 void ControllerSimulator::simulationStep(void){
@@ -519,8 +525,9 @@ void ControllerSimulator::simulationStep(void){
     }
 }
 
-void ControllerSimulator::sendHoming(){
+bool ControllerSimulator::sendHoming(){
     gotoCoord(xHome, yHome, zHome);
+    return true;
 }
 
 bool ControllerSimulator::isConnected(enum pap_common::MOTOR device){

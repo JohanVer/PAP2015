@@ -14,16 +14,16 @@ struct state {
     double tip1, tip2;
 };
 
-class ControllerSimulator : public QThread
+class ControllerSimulator : public motor_controller::ControllerInterface, QThread
 {
 public:
     ControllerSimulator();
 
-    virtual void gotoCoord(float x, float y, float z, float velX = 50.0, float velY = 300.0, float velZ = 100.0 );
-    virtual void energizeAxis(enum pap_common::MOTOR adressDevice, bool trigger);
+    virtual int gotoCoord(float x, float y, float z, float velX = 50.0, float velY = 300.0, float velZ = 100.0 );
+    virtual bool energizeAxis(enum pap_common::MOTOR adressDevice, bool trigger);
     virtual motor_controller::controllerStatus getFullStatusController(enum pap_common::MOTOR addressDevice);
     virtual bool isConnected(enum pap_common::MOTOR device);
-    virtual void sendHoming();
+    virtual bool sendHoming();
     virtual void connectToBus();
     virtual void searchForDevices();
 

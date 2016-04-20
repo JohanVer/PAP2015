@@ -47,7 +47,7 @@ public:
 
     ControllerInterface();
     void publishControllerStatus(const ros::Publisher& publisher ,const controllerStatus& c1, const controllerStatus& c2, const controllerStatus& c3);
-    void init();
+    void initInterface();
     void startInterface();
     bool checkAllControllers(controllerStatus& c1, controllerStatus& c2, controllerStatus& c3);
 
