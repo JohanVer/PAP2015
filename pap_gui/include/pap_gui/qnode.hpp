@@ -51,7 +51,7 @@
 
 #include <motorController/controllerClass.hpp>
 
-#include "../../../pap_placer/include/pap_placer/placerClass.hpp"
+#include <pap_placer/placerClass.hpp>
 
 #include "DispenserPlanner.hpp"
 

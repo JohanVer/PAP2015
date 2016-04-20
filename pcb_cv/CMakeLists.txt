@@ -1,6 +1,17 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(pcb_cv)
 
+include(CheckCXXCompilerFlag)
+CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
+CHECK_CXX_COMPILER_FLAG("-std=c++0x" COMPILER_SUPPORTS_CXX0X)
+if(COMPILER_SUPPORTS_CXX11)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+elseif(COMPILER_SUPPORTS_CXX0X)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
+else()
+        message(STATUS "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
+endif()
+
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
@@ -88,7 +99,7 @@ find_package( OpenCV REQUIRED )
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
   INCLUDE_DIRS include
-#  LIBRARIES pcb_cv
+  LIBRARIES pcb_cv
   CATKIN_DEPENDS roscpp rospy std_msgs image_transport cv_bridge sensor_msgs tf pap_common
   DEPENDS system_lib
 )
@@ -102,19 +113,18 @@ catkin_package(
 # include_directories(include)
 
 ## Declare a cpp library
-# add_library(pcb_cv
-#   src/${PROJECT_NAME}/pcb_cv.cpp
-# )
+add_library(pcb_cv
+   src/padFinder.cpp
+ )
+target_link_libraries ( pcb_cv ${OpenCV_LIBRARIES} ${catkin_LIBRARIES} )
 
 ## Declare a cpp executable
 # add_executable(pcb_cv_node src/pcb_cv_node.cpp)
 file(GLOB_RECURSE INCLUDE_GLOBAL_HEADERS ${PROJECT_SOURCE_DIR} *.h *.hpp)
 include_directories(  ${catkin_INCLUDE_DIRS}  ${OpenCV_INCLUDE_DIRS}  include )
 
-
-add_executable(displayImage src/displayImage.cpp src/padFinder.cpp ${INCLUDE_GLOBAL_HEADERS})
-target_link_libraries ( displayImage zbar ${OpenCV_LIBRARIES} ${catkin_LIBRARIES} )
-add_dependencies(displayImage pcb_cv_gencpp)
+add_executable(displayImage src/displayImage.cpp ${INCLUDE_GLOBAL_HEADERS})
+target_link_libraries ( displayImage pcb_cv zbar ${OpenCV_LIBRARIES} ${catkin_LIBRARIES} )
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes
 # add_dependencies(pcb_cv_node pcb_cv_generate_messages_cpp)

@@ -25,13 +25,8 @@ void insertStatusInStatusMsg(int num_of_controller, const controllerStatus& c_st
 class ControllerNode{
 public:
 
-    ControllerNode(){
-        sendHomeOffset = false;
-        xTimeOutTimer = 0;
-        yTimeOutTimer = 0;
-        zTimeOutTimer = 0;
-    }
 
+    ControllerNode();
     void publishControllerStatus(const ros::Publisher& publisher ,const controllerStatus& c1, const controllerStatus& c2, const controllerStatus& c3);
     void init();
     void run();
@@ -52,6 +47,8 @@ private:
     oldControllerState1, oldControllerState2, oldControllerState3;
     ros::Publisher statusPublisher;
     ros::Subscriber taskSubscriber_;
+
+    std::unique_ptr<ActionServer> actionServer_;
 };
 
 }

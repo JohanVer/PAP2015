@@ -1,6 +1,17 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(robot_simulation)
 
+include(CheckCXXCompilerFlag)
+CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
+CHECK_CXX_COMPILER_FLAG("-std=c++0x" COMPILER_SUPPORTS_CXX0X)
+if(COMPILER_SUPPORTS_CXX11)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+elseif(COMPILER_SUPPORTS_CXX0X)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
+else()
+        message(STATUS "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
+endif()
+
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
@@ -8,9 +19,10 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
   std_msgs
-  tf
+  motor_controller
   serial
   pap_common
+  tf
 )
 
 ## System dependencies are found with CMake's conventions
@@ -85,7 +97,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES robot_simulation
-  CATKIN_DEPENDS roscpp rospy std_msgs tf serial pap_common
+  CATKIN_DEPENDS roscpp rospy std_msgs motor_controller tf serial pap_common
   DEPENDS system_lib
 )
 
@@ -98,6 +110,7 @@ catkin_package(
 # include_directories(include)
 include_directories(
   ${catkin_INCLUDE_DIRS}
+  ${HEADERS_PARENT_DIR}
 )
 
 ## Declare a cpp library
@@ -109,7 +122,6 @@ include_directories(
 # add_executable(robot_simulation_node src/robot_simulation_node.cpp)
 add_executable(robot_simulation_node src/simulation.cpp)
 target_link_libraries ( robot_simulation_node  ${catkin_LIBRARIES} )
-add_dependencies(robot_simulation_node robot_simulation_gencpp)
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes
 # add_dependencies(robot_simulation_node robot_simulation_generate_messages_cpp)

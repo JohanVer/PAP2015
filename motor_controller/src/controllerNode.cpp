@@ -33,6 +33,13 @@ void insertStatusInStatusMsg(int num_of_controller, const controllerStatus& c_st
     }
 }
 
+ControllerNode::ControllerNode(){
+    sendHomeOffset = false;
+    xTimeOutTimer = 0;
+    yTimeOutTimer = 0;
+    zTimeOutTimer = 0;
+}
+
 void ControllerNode::publishControllerStatus(const ros::Publisher& publisher ,const controllerStatus& c1, const controllerStatus& c2, const controllerStatus& c3){
     pap_common::Status msg;
     insertStatusInStatusMsg(pap_common::XMOTOR, c1, controller.controllerConnected_1_, msg);
@@ -40,8 +47,6 @@ void ControllerNode::publishControllerStatus(const ros::Publisher& publisher ,co
     insertStatusInStatusMsg(pap_common::ZMOTOR, c3, controller.controllerConnected_3_, msg);
     publisher.publish(msg);
 }
-
-
 
 bool ControllerNode::checkStatusController(int numberOfController,
                                            controllerStatus* controllerStatusAct) {
@@ -254,9 +259,9 @@ void ControllerNode::parseTask(const pap_common::TaskConstPtr& taskMsg) {
 void ControllerNode::init()
 {
     ros::NodeHandle n;
-    taskSubscriber_ = n.subscribe("task", 10, &parseTask, this);
-    ActionServer actionServer(n, "motor_controller_actions", boost::bind(&ControllerNode::execute_action, this, _1, &actionServer), false);
-    actionServer.start();
+    taskSubscriber_ = n.subscribe("task", 10, &ControllerNode::parseTask, this);
+    actionServer_ = std::unique_ptr<ActionServer> ( new ActionServer(n, "motor_controller_actions", boost::bind(&ControllerNode::execute_action, this, _1, &(*actionServer_)), false));
+    actionServer_->start();
     statusPublisher = n.advertise<pap_common::Status>("status", 1000);
 
     ROS_INFO("Motor controller started...");
@@ -291,8 +296,10 @@ void ControllerNode::run()
 int main(int argc, char **argv) {
     ros::init(argc, argv, "motorController");
 
+    controllerNode::ControllerNode node;
 
-
+    node.init();
+    node.run();
 
     return 0;
 }

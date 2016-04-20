@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>robot_simulation</name>
+  <name>pap_robot</name>
   <version>0.0.0</version>
-  <description>The robot_simulation package</description>
+  <description>The pap_robot visualization package</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag --> 
   <!-- Example:  -->
@@ -19,7 +19,7 @@
   <!-- Url tags are optional, but mutiple are allowed, one per tag -->
   <!-- Optional attribute type can be: website, bugtracker, or repository -->
   <!-- Example: -->
-  <!-- <url type="website">http://wiki.ros.org/robot_simulation</url> -->
+  <!-- <url type="website">http://wiki.ros.org/motorController</url> -->
 
 
   <!-- Author tags are optional, mutiple are allowed, one per tag -->
@@ -43,11 +43,6 @@
   <depend>roscpp</depend>
   <depend>rospy</depend>
   <depend>std_msgs</depend>
-  <depend>serial</depend>
-  <depend>motor_controller</depend>
-  <depend>tf</depend>
-  <depend>pap_common</depend>
-  
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>

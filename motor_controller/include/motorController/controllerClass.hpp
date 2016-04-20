@@ -1,3 +1,6 @@
+#ifndef CONTROLLERCLASS_H
+#define CONTROLLERCLASS_H
+
 #include "ros/ros.h"
 #include "std_msgs/Header.h"
 #include <vector>
@@ -86,3 +89,5 @@ private:
 	unsigned int controlWord1;
 
 };
+
+#endif // CONTROLLERCLASS_H

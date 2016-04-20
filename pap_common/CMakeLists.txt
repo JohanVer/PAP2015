@@ -102,9 +102,10 @@ include_directories(
   include
 )
 
+#file(GLOB_RECURSE INCLUDE_GLOBAL_HEADERS include *.h *.hpp)
 ## Declare a cpp library
-# add_library(pap_common
-#   src/${PROJECT_NAME}/pap_common.cpp
+#add_library(pap_common
+#   ${INCLUDE_GLOBAL_HEADERS}
 # )
 
 ## Declare a cpp executable

@@ -3,7 +3,7 @@
 
 #include <QtWidgets>
 #include <QDialog>
-#include"../../../pap_placer/include/pap_placer/placerClass.hpp"
+#include <pap_placer/placerClass.hpp>
 #include <QGraphicsRectItem>
 #include <QGraphicsObject>
 #include <QMessageBox>

@@ -86,7 +86,7 @@ bool completePlacement = false;
 
 PlaceController placeController;
 ComponentPlacerData currentComponent;
-static controllerStatus motorcontrollerStatus[3];
+static controllerStatus motorcontrollerStatus[2];
 
 enum QR_CALIBRATION_PROCESS {
 	GOTO_QR, PICKUP_QR, CAM_QR, RELEASE_QR, GOBACKTO_QR, START_QR_VISION
@@ -1049,9 +1049,9 @@ int main(int argc, char **argv) {
 				placerNodeBusy = true;
 			}
 
-			if (motorcontrollerStatus[1].positionReached
-					&& motorcontrollerStatus[2].positionReached
-					&& motorcontrollerStatus[3].positionReached
+            if (motorcontrollerStatus[0].positionReached
+                    && motorcontrollerStatus[1].positionReached
+                    && motorcontrollerStatus[2].positionReached
 					&& placerNodeBusy) {
 				placerNodeBusy = false;
 				if (zPosReached == 0 || zPosReached == 1) {
@@ -1064,16 +1064,16 @@ int main(int argc, char **argv) {
 				//ros::Duration(3).sleep();
 				break;
 
-			} else if (motorcontrollerStatus[1].error
-					|| motorcontrollerStatus[2].error
-					|| motorcontrollerStatus[3].error) {
+            } else if (motorcontrollerStatus[0].error
+                    || motorcontrollerStatus[1].error
+                    || motorcontrollerStatus[2].error) {
 				error_code = MOTOR_ERROR;
 				state = ERROR;
 				break;
 
-			} else if (motorcontrollerStatus[1].failed
-					|| motorcontrollerStatus[2].failed
-					|| motorcontrollerStatus[3].failed) {
+            } else if (motorcontrollerStatus[0].failed
+                    || motorcontrollerStatus[1].failed
+                    || motorcontrollerStatus[2].failed) {
 				error_code = MOTOR_FAILED;
 				state = ERROR;
 				break;
@@ -1122,9 +1122,9 @@ int main(int argc, char **argv) {
 				placerNodeBusy = true;
 			}
 
-			if (motorcontrollerStatus[1].positionReached
-					&& motorcontrollerStatus[2].positionReached
-					&& motorcontrollerStatus[3].positionReached
+            if (motorcontrollerStatus[0].positionReached
+                    && motorcontrollerStatus[1].positionReached
+                    && motorcontrollerStatus[2].positionReached
 					&& placerNodeBusy) {
 				// Turn off dispenser
 				sendRelaisTask(8, false);
@@ -1132,17 +1132,17 @@ int main(int argc, char **argv) {
 				state = last_state;
 				break;
 
-			} else if (motorcontrollerStatus[1].error
-					|| motorcontrollerStatus[2].error
-					|| motorcontrollerStatus[3].error) {
-				error_code = MOTOR_ERROR;
+            } else if (motorcontrollerStatus[0].error
+                    || motorcontrollerStatus[1].error
+                    || motorcontrollerStatus[2].error) {
+				error_code = MOTOR_ERROR;                
 				state = ERROR;
 				break;
 
-			} else if (motorcontrollerStatus[1].failed
-					|| motorcontrollerStatus[2].failed
-					|| motorcontrollerStatus[3].failed) {
-				error_code = MOTOR_FAILED;
+            } else if (motorcontrollerStatus[0].failed
+                    || motorcontrollerStatus[1].failed
+                    || motorcontrollerStatus[2].failed) {
+                error_code = MOTOR_FAILED;
 				state = ERROR;
 				break;
 
@@ -1186,7 +1186,7 @@ int main(int argc, char **argv) {
 			state = IDLE;
 			break;
 		}
-		//ROS_INFO("Reached 1: %d Reached 2: %d Reached 3: %d",motorcontrollerStatus[1].positionReached,motorcontrollerStatus[2].positionReached,motorcontrollerStatus[3].positionReached);
+        //ROS_INFO("Reached 1: %d Reached 2: %d Reached 3: %d",motorcontrollerStatus[0].positionReached,motorcontrollerStatus[1].positionReached,motorcontrollerStatus[2].positionReached);
 		ros::spinOnce();
 		loop_rate.sleep();
 	}
@@ -1228,9 +1228,9 @@ void checkIfOverThreshold(int numberOfAxis, float zValue) {
 }
 
 void resetMotorState(bool x, bool y, bool z) {
-	motorcontrollerStatus[1].positionReached = x;
-	motorcontrollerStatus[2].positionReached = y;
-	motorcontrollerStatus[3].positionReached = z;
+    motorcontrollerStatus[0].positionReached = x;
+    motorcontrollerStatus[1].positionReached = y;
+    motorcontrollerStatus[2].positionReached = z;
 }
 
 void resetMotorState(int index, bool value) {
@@ -1249,6 +1249,8 @@ void statusCallback(const pap_common::StatusConstPtr& statusMsg) {
     motorcontrollerStatus[0].error = statusMsg->error[0];
     motorcontrollerStatus[1].error = statusMsg->error[1];
     motorcontrollerStatus[2].error = statusMsg->error[2];
+
+
 
     motorcontrollerStatus[0].positionReached = statusMsg->reached[0];
     motorcontrollerStatus[1].positionReached = statusMsg->reached[1];

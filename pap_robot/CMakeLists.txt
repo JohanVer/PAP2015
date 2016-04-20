@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.1.0 FATAL_ERROR)
-project(motor_controller)
+project(pap_robot)
 
 include(CheckCXXCompilerFlag)
 CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
@@ -19,10 +19,6 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
   std_msgs
-  serial
-  pap_common
-  actionlib
-  actionlib_msgs
 )
 
 ## System dependencies are found with CMake's conventions
@@ -95,9 +91,7 @@ find_package(catkin REQUIRED COMPONENTS
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-  INCLUDE_DIRS include
-  LIBRARIES motorController
-  CATKIN_DEPENDS roscpp rospy std_msgs serial pap_common actionlib actionlib_msgs
+  CATKIN_DEPENDS roscpp rospy std_msgs
   DEPENDS system_lib
 )
 
@@ -108,22 +102,11 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 # include_directories(include)
-file(GLOB_RECURSE INCLUDE_GLOBAL_HEADERS ${PROJECT_SOURCE_DIR} *.h *.hpp)
-include_directories(
-  ${catkin_INCLUDE_DIRS} ${HEADERS_PARENT_DIR} include
-)
 
 ## Declare a cpp library
- add_library(motorController
-   src/controllerClass.cpp
- )
-
-target_link_libraries ( motorController  ${catkin_LIBRARIES}  )
 
 ## Declare a cpp executable
 # add_executable(motorController_node src/motorController_node.cpp)
-add_executable(motor_controller_node  src/controllerNode.cpp  ${INCLUDE_GLOBAL_HEADERS})
-target_link_libraries ( motor_controller_node motorController  ${catkin_LIBRARIES}  )
 
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes
