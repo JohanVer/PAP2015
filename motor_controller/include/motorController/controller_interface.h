@@ -50,26 +50,32 @@ public:
     void initInterface();
     void startInterface();
     bool checkAllControllers(controllerStatus& c1, controllerStatus& c2, controllerStatus& c3);
+    bool checkTimeout(ros::WallTime start_t, double timeout);
+    bool waitForArrival(double timeout);
 
-    virtual bool sendHoming();
+    // Necessary virtual functions
+    virtual bool sendHoming() = 0;
+    virtual controllerStatus getFullStatusController(enum pap_common::MOTOR addressDevice) = 0;
+    virtual int  gotoCoord(float x, float y, float z, float velX = 50.0, float velY = 300.0, float velZ = 100.0 ) = 0;
+    virtual bool energizeAxis(enum pap_common::MOTOR adressDevice, bool trigger) = 0;
+    virtual void searchForDevices() = 0;
+    virtual void connectToBus() = 0;
+    virtual bool isConnected(enum pap_common::MOTOR device) = 0;
+
+    // Optional virtual functions
     virtual bool stop(enum pap_common::MOTOR deviceAddress);
-    virtual controllerStatus getFullStatusController(enum pap_common::MOTOR addressDevice);
-    virtual bool energizeAxis(enum pap_common::MOTOR adressDevice, bool trigger);
-    virtual int  gotoCoord(float x, float y, float z, float velX = 50.0, float velY = 300.0, float velZ = 100.0 );
     virtual bool manual(enum pap_common::MOTOR, unsigned char direction);
-    virtual void searchForDevices();
-    virtual void connectToBus();
-    virtual bool isConnected(enum pap_common::MOTOR device);
     virtual bool disconnect(enum pap_common::MOTOR device);
 
 private:
 
+    ros::NodeHandle nh_;
+    ActionServer as_;
     void parseTask(const pap_common::TaskConstPtr& taskMsg);
     bool checkStatusController(pap_common::MOTOR device_address,
                                controllerStatus &controllerStatusAct);
 
-    void execute_action(const pap_common::MotorControllerActionGoalConstPtr& command, ActionServer* as);
-    bool sendHomeOffset;
+    void execute_action(const pap_common::MotorControllerActionGoalConstPtr& command);
     int xTimeOutTimer, yTimeOutTimer, zTimeOutTimer;
 
     controllerStatus controllerState1, controllerState2, controllerState3,

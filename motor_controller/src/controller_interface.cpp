@@ -32,8 +32,7 @@ void insertStatusInStatusMsg(enum pap_common::MOTOR num_of_controller, const con
     }
 }
 
-ControllerInterface::ControllerInterface(){
-    sendHomeOffset = false;
+ControllerInterface::ControllerInterface(): as_(nh_, "motor_controller_actions", boost::bind(&ControllerInterface::execute_action, this, _1),false){
     xTimeOutTimer = 0;
     yTimeOutTimer = 0;
     zTimeOutTimer = 0;
@@ -120,27 +119,148 @@ bool ControllerInterface::checkAllControllers(controllerStatus& c1, controllerSt
     return true;
 }
 
-void ControllerInterface::execute_action(const pap_common::MotorControllerActionGoalConstPtr& command, ActionServer* as)
+bool ControllerInterface::checkTimeout(ros::WallTime start_t, double timeout){
+    double secs = ros::WallTime::now().toSec() - start_t.toSec();
+    if(secs > timeout) return true;
+    return false;
+}
+
+
+bool ControllerInterface::waitForArrival(double timeout){
+    ros::WallTime start_t = ros::WallTime::now();
+    ros::Rate looprate(20);
+
+    while(1){
+        looprate.sleep();
+
+        if(checkTimeout(start_t, timeout)){
+            std::cerr << "Timeout or device not responding...\n";
+            return false;
+        }
+
+        if(checkAllControllers(controllerState1, controllerState2, controllerState3)){
+            publishControllerStatus(statusPublisher, controllerState1, controllerState2, controllerState3);
+            if(controllerState1.positionReached && controllerState2.positionReached && controllerState3.positionReached){
+                return true;
+            }
+        }else{
+            std::cerr << "Timeout or device not responding...\n";
+            return false;
+        }
+
+    }
+
+    return false;
+}
+
+void ControllerInterface::execute_action(const pap_common::MotorControllerActionGoalConstPtr& command)
 {
+
+    int coordError = 0;
+    bool cmdExecuted = true;
     switch (command->task) {
     case pap_common::HOMING:
         if (!sendHoming()) {
             ROS_ERROR("Error while sending homing command");
         }
 
-        while(1){
-            if(checkAllControllers(controllerState1, controllerState2, controllerState3)){
-                if(controllerState1.positionReached && controllerState2.positionReached && controllerState3.positionReached){
-                    gotoCoord(5, 5,
-                              0.1,50.0,300.0,100.0);
-                    as->setSucceeded();
-                    break;
-                }
-            }else{
-                as->setAborted();
-                break;
+        if(!waitForArrival(15)){
+            as_.setAborted();
+            break;
+        }
+
+        gotoCoord(5, 5,
+                  0.1,50.0,300.0,100.0);
+
+        as_.setSucceeded();
+        break;
+
+    case pap_common::CURRENT:
+        if (!controllerState3.energized) {
+            if (!energizeAxis(pap_common::XMOTOR, true)) {
+                ROS_ERROR("Error while switching current on x-axis");
+                cmdExecuted = false;
+            }
+
+            if (!energizeAxis(pap_common::YMOTOR, true)) {
+                ROS_ERROR("Error while switching current on y-axis");
+                cmdExecuted = false;
+            }
+
+            if (!energizeAxis(pap_common::ZMOTOR, true)) {
+                ROS_ERROR("Error while switching current on z-axis");
+                cmdExecuted = false;
+            }
+        } else {
+            if (!energizeAxis(pap_common::XMOTOR, false)) {
+                ROS_ERROR("Error while switching current on x-axis");
+                cmdExecuted = false;
+            }
+            if (!energizeAxis(pap_common::YMOTOR, false)) {
+                ROS_ERROR("Error while switching current on y-axis");
+                cmdExecuted = false;
+            }
+            if (!energizeAxis(pap_common::ZMOTOR, false)) {
+                ROS_ERROR("Error while switching current on z-axis");
+                cmdExecuted = false;
             }
         }
+
+        if(!cmdExecuted) as_.setAborted();
+        else as_.setSucceeded();
+
+        break;
+
+    case pap_common::COORD:
+        coordError = gotoCoord(command->data1, command->data2,
+                               command->data3,50.0,300.0,100.0);
+
+        if (coordError != error_codes::NO_ERROR) {
+            if (coordError == error_codes::X_ERROR) {
+                ROS_ERROR("Error while setting x-axis");
+                cmdExecuted = false;
+            } else if (coordError == error_codes::Y_ERROR) {
+                ROS_ERROR("Error while setting y-axis");
+                cmdExecuted = false;
+            } else if (coordError == error_codes::Z_ERROR) {
+                ROS_ERROR("Error while setting z-axis");
+                cmdExecuted = false;
+            }
+        }
+
+        if(!cmdExecuted || !waitForArrival(15)){
+            as_.setAborted();
+            break;
+        }
+
+        as_.setSucceeded();
+        break;
+
+    case pap_common::COORD_VEL:
+        coordError = gotoCoord(command->data1, command->data2,
+                               command->data3, command->velX, command->velY,100.0);
+        if (coordError != error_codes::NO_ERROR) {
+            if (coordError == error_codes::X_ERROR) {
+                ROS_ERROR("Error while setting x-axis");
+                cmdExecuted = false;
+            } else if (coordError == error_codes::Y_ERROR) {
+                ROS_ERROR("Error while setting y-axis");
+                cmdExecuted = false;
+            } else if (coordError == error_codes::Z_ERROR) {
+                ROS_ERROR("Error while setting z-axis");
+                cmdExecuted = false;
+            }
+        }
+
+        if(!cmdExecuted || !waitForArrival(15)){
+            as_.setAborted();
+            break;
+        }
+
+        as_.setSucceeded();
+
+        break;
+
     }
 }
 
@@ -149,64 +269,7 @@ void ControllerInterface::parseTask(const pap_common::TaskConstPtr& taskMsg) {
     bool cmdExecuted = true;
     switch (taskMsg->destination) {
     case pap_common::CONTROLLER:
-        switch (taskMsg->task) {
-        case pap_common::HOMING:
-            if (!sendHoming()) {
-                ROS_ERROR("Error while sending homing command");
-                cmdExecuted = false;
-
-            }
-            else{
-                sendHomeOffset = true;
-            }
-            break;
-        case pap_common::CURRENT:
-            if (!controllerState3.energized) {
-                if (!energizeAxis(pap_common::XMOTOR, true)) {
-                    ROS_ERROR("Error while switching current on x-axis");
-                    cmdExecuted = false;
-                }
-
-                if (!energizeAxis(pap_common::YMOTOR, true)) {
-                    ROS_ERROR("Error while switching current on y-axis");
-                    cmdExecuted = false;
-                }
-
-                if (!energizeAxis(pap_common::ZMOTOR, true)) {
-                    ROS_ERROR("Error while switching current on z-axis");
-                    cmdExecuted = false;
-                }
-            } else {
-                if (!energizeAxis(pap_common::XMOTOR, false)) {
-                    ROS_ERROR("Error while switching current on x-axis");
-                    cmdExecuted = false;
-                }
-                if (!energizeAxis(pap_common::YMOTOR, false)) {
-                    ROS_ERROR("Error while switching current on y-axis");
-                    cmdExecuted = false;
-                }
-                if (!energizeAxis(pap_common::ZMOTOR, false)) {
-                    ROS_ERROR("Error while switching current on z-axis");
-                    cmdExecuted = false;
-                }
-            }
-            break;
-        case pap_common::COORD:
-            coordError = gotoCoord(taskMsg->data1, taskMsg->data2,
-                                   taskMsg->data3,50.0,300.0,100.0);
-            if (coordError != error_codes::NO_ERROR) {
-                if (coordError == error_codes::X_ERROR) {
-                    ROS_ERROR("Error while setting x-axis");
-                    cmdExecuted = false;
-                } else if (coordError == error_codes::Y_ERROR) {
-                    ROS_ERROR("Error while setting y-axis");
-                    cmdExecuted = false;
-                } else if (coordError == error_codes::Z_ERROR) {
-                    ROS_ERROR("Error while setting z-axis");
-                    cmdExecuted = false;
-                }
-            }
-            break;
+        switch (taskMsg->task) {       
 
         case pap_common::COORD_VEL:
             coordError = gotoCoord(taskMsg->data1, taskMsg->data2,
@@ -269,11 +332,9 @@ void ControllerInterface::parseTask(const pap_common::TaskConstPtr& taskMsg) {
 
 void ControllerInterface::initInterface()
 {
-    ros::NodeHandle n;
-    taskSubscriber_ = n.subscribe("task", 10, &ControllerInterface::parseTask, this);
-    actionServer_ = std::unique_ptr<ActionServer> ( new ActionServer(n, "motor_controller_actions", boost::bind(&ControllerInterface::execute_action, this, _1, &(*actionServer_)), false));
-    actionServer_->start();
-    statusPublisher = n.advertise<pap_common::Status>("status", 1000);
+    taskSubscriber_ = nh_.subscribe("task", 10, &ControllerInterface::parseTask, this);
+    as_.start();
+    statusPublisher = nh_.advertise<pap_common::Status>("status", 1000);
 
     ROS_INFO("Motor controller started...");
     connectToBus();
@@ -295,46 +356,20 @@ void ControllerInterface::startInterface()
     }
 }
 
-// VIRTUAL FUNCTIONS
-bool ControllerInterface::sendHoming(){
-
-    return false;
-}
-
+// VIRTUAL DEFAULT FUNCTIONS
 bool ControllerInterface::stop(enum pap_common::MOTOR deviceAddress){
+    std::cerr << "This function is currently not implemented...\n";
     return false;
 }
 
-controllerStatus ControllerInterface::getFullStatusController(pap_common::MOTOR addressDevice){
-    controllerStatus re;
-    return re;
-}
-
-bool ControllerInterface::energizeAxis(enum pap_common::MOTOR adressDevice, bool trigger){
-    return false;
-}
-
-int  ControllerInterface::gotoCoord(float x, float y, float z, float velX, float velY, float velZ ){
-    return 1;
-}
 
 bool ControllerInterface::manual(enum pap_common::MOTOR, unsigned char direction){
-    return false;
-}
-
-void ControllerInterface::searchForDevices(){
-
-}
-
-void ControllerInterface::connectToBus(){
-
-}
-
-bool ControllerInterface::isConnected(enum pap_common::MOTOR device){
+    std::cerr << "This function is currently not implemented...\n";
     return false;
 }
 
 bool ControllerInterface::disconnect(enum pap_common::MOTOR device){
+    std::cerr << "This function is currently not implemented...\n";
     return false;
 }
 

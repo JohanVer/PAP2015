@@ -50,6 +50,7 @@
 #include "pap_common/PlacerStatus.h"
 
 #include <motorController/controller_interface.h>
+#include <motorController/sendfunctions.h>
 
 #include <pap_placer/placerClass.hpp>
 
@@ -116,6 +117,9 @@ public:
 	void resetBottomLEDTask();
 	void LEDTask(int task, int data);
 
+   motor_send_functions::Client& getMotorClientRef(){
+       return *action_client;
+   }
 
 Q_SIGNALS:
 	void loggingUpdated();
@@ -131,6 +135,7 @@ Q_SIGNALS:
     void positionGotoReached();
 
 private:
+    std::unique_ptr<motor_send_functions::Client> action_client;
 	int init_argc;
 	char** init_argv;
 	ros::Publisher task_publisher, arduino_publisher_, dispenser_publisher_;

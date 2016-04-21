@@ -117,6 +117,7 @@ include_directories(
  add_library(motorController
    src/controllerClass.cpp
    src/controller_interface.cpp
+   src/sendfunctions.cpp
  )
 
 target_link_libraries ( motorController  ${catkin_LIBRARIES}  )

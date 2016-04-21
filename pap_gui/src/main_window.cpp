@@ -1172,7 +1172,9 @@ void MainWindow::on_startHoming_clicked(bool check) {
 
 void MainWindow::on_switchCurrent_clicked(bool check) {
     ROS_INFO("GUI: Sending current switch command...");
-    qnode.sendTask(pap_common::CONTROLLER, pap_common::CURRENT);
+    if(!motor_send_functions::sendMotorControllerAction(qnode.getMotorClientRef(), pap_common::CURRENT)){
+        std::cerr << "Failed to send current command...\n";
+    }
 }
 
 void MainWindow::on_gotoCoord_clicked(bool check) {

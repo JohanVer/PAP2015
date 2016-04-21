@@ -48,8 +48,7 @@
 #include <algorithm>
 #include "CommonDataClasses.hpp"
 #include "packageDialog.hpp"
-
-
+#include <motorController/sendfunctions.h>
 
 class tapeCalibrationValue {
 public:
@@ -244,7 +243,10 @@ public Q_SLOTS:
     *******************************************/
     void updateLoggingView(); // no idea why this can't connect automatically
 
+private slots:
+
 private:
+
 	Ui::MainWindowDesign ui;
 	QNode qnode;
 	bool bottomLayer_;
