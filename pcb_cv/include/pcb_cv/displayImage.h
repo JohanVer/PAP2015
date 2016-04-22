@@ -51,6 +51,7 @@ public:
     void parseTask(const pap_common::TaskConstPtr& taskMsg);
     void runVision();
     void createCrosshairs(cv::Mat &input);
+    void gatherImages(size_t num_images, std::vector<cv::Mat> *images, enum CAMERA_SELECT camera_sel );
 
 private:
 
@@ -68,12 +69,21 @@ private:
     image_transport::Publisher image_pub_;
     image_transport::Publisher image_pub_2;
 
+    // Image buffer
+    bool gather_bottom_images_, gather_top_images_;
+    std::vector<cv::Mat> top_buffer_;
+    std::vector<cv::Mat> bottom_buffer_;
+
+
     VISION_PROCESS visionState ;
     VISION_QR_CALIBRATION qrCalAction;
     bool visionEnabled, selectPad;
     bool searchTapeRotation;
 
     unsigned int id_counter1, id_counter2;
+
+    unsigned int img_gather_counter;
+
 
     int calibrationIteration;
 

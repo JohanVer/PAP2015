@@ -18,6 +18,41 @@ PcbCvInterface::PcbCvInterface() : as_(nh_, "vision_actions", boost::bind(&PcbCv
     id_counter2 = 0;
 
     calibrationIteration = 0;
+    img_gather_counter = 0;
+    gather_top_images_ = false;
+    gather_bottom_images_ = false;
+}
+
+void PcbCvInterface::gatherImages(size_t num_images, std::vector<cv::Mat> *images, enum CAMERA_SELECT camera_sel ){
+
+    bottom_buffer_.clear();
+    top_buffer_.clear();
+
+    img_gather_counter = 0;
+
+    if(camera_sel == CAMERA_TOP){
+        gather_top_images_ = true;
+    }else{
+        gather_bottom_images_ = true;
+    }
+
+    // Wait until all images are gathered
+    ros::Rate loop_rate(100);
+    while(img_gather_counter < num_images){
+        ros::spinOnce();
+        loop_rate.sleep();
+    }
+
+    // All images gathered
+    gather_top_images_ = false;
+    gather_bottom_images_ = false;
+
+    // Return pointer to storage
+    if(camera_sel == CAMERA_TOP){
+        images = &top_buffer_;
+    }else{
+        images = &bottom_buffer_;
+    }
 }
 
 void PcbCvInterface::execute_action(const pap_common::VisionGoalConstPtr& command)
@@ -77,7 +112,6 @@ void PcbCvInterface::execute_action(const pap_common::VisionGoalConstPtr& comman
         finder.setSize(command->data1, command->data2);
         break;
     }
-
 }
 
 void PcbCvInterface::imageCallback1(const sensor_msgs::ImageConstPtr& msg) {
@@ -95,9 +129,13 @@ void PcbCvInterface::imageCallback1(const sensor_msgs::ImageConstPtr& msg) {
         //cv::waitKey(30);
     } catch (cv_bridge::Exception& e) {
         ROS_ERROR("displayImage: Could not convert image");
-        //ROS_ERROR("Could not convert from '%s' to 'bgr8'.",
-        //		msg->encoding.c_str());
         return;
+    }
+
+
+    if(gather_top_images_){
+        top_buffer_.push_back(input);
+        img_gather_counter++;
     }
 
     if (visionEnabled) {
@@ -111,8 +149,9 @@ void PcbCvInterface::imageCallback1(const sensor_msgs::ImageConstPtr& msg) {
                 switch (qrCalAction) {
                 case TOP_SLOT:{
 
-                    double pxRatioSlot = finder.getPixelConvVal(input, 20);
-                    finder.setPixelRatioSlot(pxRatioSlot);
+                    double pxRatioSlot;
+                    if(finder.getPixelConvVal(input, pxRatioSlot))
+                        finder.setPixelRatioSlot(pxRatioSlot);
 
                     visionMsg.task = pap_vision::START__QRCODE_FINDER;
                     statusPublisher.publish(visionMsg);
@@ -122,8 +161,9 @@ void PcbCvInterface::imageCallback1(const sensor_msgs::ImageConstPtr& msg) {
 
                 case TOP_PCB:
                 {
-                    double pxRatioPcb = finder.getPixelConvVal(input, 20);
-                    finder.setPixelRatioPcb(pxRatioPcb);
+                    double pxRatioPcb;
+                    if(finder.getPixelConvVal(input, pxRatioPcb))
+                        finder.setPixelRatioPcb(pxRatioPcb);
 
                     visionMsg.task = pap_vision::START__QRCODE_FINDER;
                     statusPublisher.publish(visionMsg);
@@ -133,8 +173,9 @@ void PcbCvInterface::imageCallback1(const sensor_msgs::ImageConstPtr& msg) {
 
                 case TOP_TAPE:
                 {
-                    double pxRatioTape = finder.getPixelConvVal(input, 20);
-                    finder.setPixelRatioTape(pxRatioTape);
+                    double pxRatioTape;
+                    if(finder.getPixelConvVal(input, pxRatioTape))
+                        finder.setPixelRatioTape(pxRatioTape);
 
                     visionMsg.task = pap_vision::START__QRCODE_FINDER;
                     statusPublisher.publish(visionMsg);
@@ -153,9 +194,7 @@ void PcbCvInterface::imageCallback1(const sensor_msgs::ImageConstPtr& msg) {
             // Chip
 
             if (cameraSelect == CAMERA_TOP) {
-                smd = finder.findChip(&input, cameraSelect);
-
-                if (smd.x != 0.0 && smd.y != 0.0) {
+                if(finder.findChip(&input, cameraSelect, smd)){
                     visionMsg.task = pap_vision::START_CHIP_FINDER;
                     visionMsg.data1 = smd.y;
                     visionMsg.data2 = smd.x;
@@ -181,8 +220,7 @@ void PcbCvInterface::imageCallback1(const sensor_msgs::ImageConstPtr& msg) {
             break;
         case TAPE:
             // SMD Tape
-            smd = finder.findSMDTape(&input, searchTapeRotation);
-            if (smd.x != 0.0 && smd.y != 0.0) {
+            if(finder.findSMDTape(input, searchTapeRotation, smd)){
                 visionMsg.task = pap_vision::START_TAPE_FINDER;
                 visionMsg.data1 = smd.y;
                 visionMsg.data2 = smd.x;
@@ -235,6 +273,12 @@ void PcbCvInterface::imageCallback2(const sensor_msgs::ImageConstPtr& msg) {
         ROS_ERROR("displayImage: Could not convert image");
         return;
     }
+
+    if(gather_bottom_images_){
+        bottom_buffer_.push_back(input2);
+        img_gather_counter++;
+    }
+
     id_counter2++;
     smdPart smd;
     pap_common::VisionStatus visionMsg;
@@ -246,10 +290,8 @@ void PcbCvInterface::imageCallback2(const sensor_msgs::ImageConstPtr& msg) {
 
         case CHIP:
             // Chip
-
             if (cameraSelect == CAMERA_BOTTOM) {
-                smd = finder.findChip(&input2, cameraSelect);
-                if (smd.x != 0.0 && smd.y != 0.0) {
+                if(finder.findChip(&input2, cameraSelect,smd)){
                     visionMsg.task = pap_vision::START_CHIP_FINDER;
                     visionMsg.data1 = smd.y;
                     visionMsg.data2 = smd.x;
@@ -263,8 +305,7 @@ void PcbCvInterface::imageCallback2(const sensor_msgs::ImageConstPtr& msg) {
             break;
 
         case CIRCLE:
-            smd = finder.findTip(&input2);
-            if (smd.x != 0.0 && smd.y != 0.0) {
+            if(finder.findTip(input2, smd)){
                 visionMsg.task = pap_vision::SEARCH_CIRCLE;
                 visionMsg.data1 = -smd.y;
                 visionMsg.data2 = smd.x;
@@ -277,8 +318,10 @@ void PcbCvInterface::imageCallback2(const sensor_msgs::ImageConstPtr& msg) {
         case QRCODE:
             if (cameraSelect == CAMERA_BOTTOM) {
                 if (qrCalAction == BOTTOM_CAM) {
-                    double pxRatioBottom = finder.getPixelConvVal(input2, 20);
-                    finder.setPixelRatioBottom(pxRatioBottom);
+
+                    double pxRatioBottom;
+                    if(finder.getPixelConvVal(input2, pxRatioBottom))
+                        finder.setPixelRatioBottom(pxRatioBottom);
 
                     visionMsg.task = pap_vision::START__QRCODE_FINDER;
                     statusPublisher.publish(visionMsg);

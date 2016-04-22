@@ -137,11 +137,34 @@ void padFinder::setLabel(cv::Mat& im, const std::string label,
     cv::putText(im, label, pt, fontface, scale, CV_RGB(0, 0, 0), thickness, 8);
 }
 
-smdPart padFinder::findTip(cv::Mat* input) {
+bool padFinder::findTipAvg(std::vector<cv::Mat> *input, enum CAMERA_SELECT camera_select, smdPart &tip){
+    size_t num_img = input->size();
+    size_t num_avg = 0;
+
+    for(size_t i = 0; i < num_img; i++){
+        smdPart tip_temp;
+        if(findTip(input->at(i),tip_temp)){
+            tip.x += tip_temp.x;
+            tip.y += tip_temp.y;
+            tip.rot += tip_temp.rot;
+            num_avg++;
+        }
+    }
+
+    if(num_avg){
+        tip.x /= num_avg;
+        tip.y /= num_avg;
+        tip.rot /= num_avg;
+        return true;
+    }else{
+        return false;
+    }
+}
+
+bool padFinder::findTip(cv::Mat &final, smdPart &out) {
     cv::Mat gray;
-    cv::Mat final = input->clone();
     std::vector<smdPart> tipObjects;
-    cv::cvtColor(*input, gray, CV_BGR2GRAY);
+    cv::cvtColor(final, gray, CV_BGR2GRAY);
 
     vector<Vec3f> circles;
     std::vector<std::vector<cv::Point> > circlesSorted;
@@ -175,24 +198,46 @@ smdPart padFinder::findTip(cv::Mat* input) {
     if (circlesSorted.size() > 1) {
         ROS_INFO("More than one tip found! Take nearest one ...");
     }
-
-    smdPart smdFinal;
-
     // Calculation is done with unit pixel
-    if (nearestPart(&tipObjects, &smdFinal, input->cols, input->rows)) {
-        cv::circle(final, Point2f(smdFinal.x, smdFinal.y), smdFinal.rot,
+    if (nearestPart(&tipObjects, &out, final.cols, final.rows)) {
+        cv::circle(final, Point2f(out.x, out.y), out.rot,
                    CV_RGB(0, 255, 0), 3);
-        cv::circle(final, Point2f(smdFinal.x, smdFinal.y), 3, Scalar(255, 0, 0),
+        cv::circle(final, Point2f(out.x, out.y), 3, Scalar(255, 0, 0),
                    -1, 8, 0);
-        smdFinal.x = (smdFinal.x - (input->cols / 2 - 1)) / pxRatioBottom;
-        smdFinal.y = ((input->rows / 2 - 1) - smdFinal.y) / pxRatioBottom;
+        out.x = (out.x - (final.cols / 2 - 1)) / pxRatioBottom;
+        out.y = ((final.rows / 2 - 1) - out.y) / pxRatioBottom;
+        return true;
     }
-
-    *input = final.clone();
-    return smdFinal;
+    else{
+        return false;
+    }
 }
 
-smdPart padFinder::findChip(cv::Mat* input, unsigned int camera_select) {
+bool padFinder::findChipAvg(std::vector<cv::Mat> *input, enum CAMERA_SELECT camera_select, smdPart &chip){
+    size_t num_img = input->size();
+    size_t num_avg = 0;
+
+    for(size_t i = 0; i < num_img; i++){
+        smdPart chip_temp;
+        if(findChip(&(input->at(i)), camera_select,chip_temp)){
+            chip.x += chip_temp.x;
+            chip.y += chip_temp.y;
+            chip.rot += chip_temp.rot;
+            num_avg++;
+        }
+    }
+
+    if(num_avg){
+        chip.x /= num_avg;
+        chip.y /= num_avg;
+        chip.rot /= num_avg;
+        return true;
+    }else{
+        return false;
+    }
+}
+
+bool padFinder::findChip(cv::Mat* input, unsigned int camera_select, smdPart &part_out) {
     float pxToMM = 0.0;
 
     if (camera_select == CAMERA_TOP) {
@@ -264,12 +309,15 @@ smdPart padFinder::findChip(cv::Mat* input, unsigned int camera_select) {
         ROS_INFO("More than one chip found!");
     }
 
-    smdPart smdFinal;
+    *input = final.clone();
 
-    if (nearestPart(&smdObjects, &smdFinal, input->cols, input->rows)) {
-        circle(final, Point2f(smdFinal.x, smdFinal.y), 5, CV_RGB(0, 0, 255), 3);
-        smdFinal.x = (smdFinal.x - (input->cols / 2 - 1)) / pxToMM;
-        smdFinal.y = ((input->rows / 2 - 1) - smdFinal.y) / pxToMM;
+    if (nearestPart(&smdObjects, &part_out, input->cols, input->rows)) {
+        circle(final, Point2f(part_out.x, part_out.y), 5, CV_RGB(0, 0, 255), 3);
+        part_out.x = (part_out.x - (input->cols / 2 - 1)) / pxToMM;
+        part_out.y = ((input->rows / 2 - 1) - part_out.y) / pxToMM;
+        return true;
+    }else{
+        return false;
     }
 
     /*
@@ -277,31 +325,43 @@ smdPart padFinder::findChip(cv::Mat* input, unsigned int camera_select) {
      cv::imshow("input", *input);
      cv::imshow("final", final);
      cv::waitKey(0);*/
-
-    *input = final.clone();
-    return smdFinal;
 }
 
-double padFinder::getPixelConvVal(cv::Mat &picture, size_t num_averages)
+bool padFinder::getPixelConvValAvg(std::vector<cv::Mat> *pictures, double &pxRatio)
 {
-    size_t iterations = 0;
-    double pxRatio = 0.0;
-    double truth_len = 0.0;
+    pxRatio = 0.0;
+    size_t num_img = pictures->size();
+    size_t num_avg = 0;
 
-    while(iterations < num_averages){
-        double width = 0.0;
-        double height = 0.0;
-        if(scanCalibrationQRCode(picture, width, height, truth_len)){
-            pxRatio += (width + height) / 2.0;
-            iterations++;
+    for(size_t i = 0; i < num_img; i++){
+        double temp_ratio = 0.0;
+        if(getPixelConvVal(pictures->at(i), temp_ratio)){
+            pxRatio += temp_ratio;
+            num_avg++;
         }
     }
 
-    pxRatio = pxRatio / num_averages;
-    pxRatio /= truth_len;
+    pxRatio /= num_avg;
 
-    return pxRatio;
+    if(num_avg) return true;
+    else return false;
 }
+
+bool  padFinder::getPixelConvVal(cv::Mat &picture, double &pxRatio){
+
+    pxRatio = 0.0;
+    double truth_len = 0.0;
+    double width = 0.0;
+    double height = 0.0;
+    if(scanCalibrationQRCode(picture, width, height, truth_len)){
+        pxRatio = (width + height) / 2.0;
+        pxRatio /= truth_len;
+        return true;
+    }
+    return false;
+
+}
+
 
 bool padFinder::scanCalibrationQRCode(cv::Mat &picture, double &width, double &height, double &truth_len){
     cv::Mat gray;
@@ -424,12 +484,35 @@ smdPart padFinder::findSmallSMD(cv::Mat* input) {
     return smdFinal;
 }
 
-smdPart padFinder::findSMDTape(cv::Mat* input, bool searchTapeRotation) {
+bool padFinder::findSMDTapeAvg(std::vector<cv::Mat> *input, bool searchTapeRotation, smdPart &out){
+    size_t num_img = input->size();
+    size_t num_avg = 0;
+
+    for(size_t i = 0; i < num_img; i++){
+        smdPart chip_temp;
+        if(findSMDTape((input->at(i)), searchTapeRotation, chip_temp)){
+            out.x += chip_temp.x;
+            out.y += chip_temp.y;
+            out.rot += chip_temp.rot;
+            num_avg++;
+        }
+    }
+
+    if(num_avg){
+        out.x /= num_avg;
+        out.y /= num_avg;
+        out.rot /= num_avg;
+        return true;
+    }else{
+        return false;
+    }
+}
+
+bool padFinder::findSMDTape(cv::Mat &final, bool searchTapeRotation, smdPart &out) {
 
     std::vector<smdPart> smdObjects;
     cv::Mat gray;
-    cv::Mat final = input->clone();
-    cv::cvtColor(*input, gray, CV_BGR2GRAY);
+    cv::cvtColor(final, gray, CV_BGR2GRAY);
     if (searchTapeRotation) {
         cv::threshold(gray, gray, 255, 255, CV_THRESH_BINARY | CV_THRESH_OTSU);
     } else {
@@ -438,16 +521,12 @@ smdPart padFinder::findSMDTape(cv::Mat* input, bool searchTapeRotation) {
     }
     //cv::erode(gray, gray, cv::Mat(), cv::Point(-1, -1),1);
     //cv::cvtColor(gray, *input, CV_GRAY2BGR);
-    //smdPart dummy;
-    //return dummy;
 
-    //ERODE_ITERATIONS_TAPE_FINDER);
     std::vector<std::vector<cv::Point> > contours;
-    std::vector<std::vector<cv::Point> > contoursSorted;
     vector<Vec4i> hierarchy;
     vector<int> circlesIndex;
 
-    cv::findContours(gray.clone(), contours, hierarchy, CV_RETR_TREE,
+    cv::findContours(gray, contours, hierarchy, CV_RETR_TREE,
                      CV_CHAIN_APPROX_SIMPLE);
 
     std::vector<cv::Point> approx;
@@ -504,7 +583,6 @@ smdPart padFinder::findSMDTape(cv::Mat* input, bool searchTapeRotation) {
                     drawRotatedRect(final, rect, CV_RGB(0, 0, 255));
                 }
             } else {
-                //ROS_INFO("Tape size : %f Des size: %f",rectConvertedArea,(partWidth_ * partHeight_));
                 if ((!isBorderTouched(rect)
                      && rect.size.width / pxRatioTape
                      > ((partWidth_) / 100.0)
@@ -531,14 +609,7 @@ smdPart padFinder::findSMDTape(cv::Mat* input, bool searchTapeRotation) {
                             && rect.size.width / pxRatioTape
                             < ((partHeight_) / 100.0)
                             * (100.0 + ERROR_PERCENT_SMDTAPE)))
-
-                    /*if (!isBorderTouched(rect)
-                         && rectConvertedArea
-                         > ((partWidth_ * partHeight_) / 100.0)
-                         * (100.0 - ERROR_PERCENT_SMDTAPE)
-                         && rectConvertedArea
-                         < ((partWidth_ * partHeight_) / 100.0)
-                         * (100.0 + ERROR_PERCENT_SMDTAPE))*/{
+                {
 
                     // Calculate moments of image
                     Moments mu;
@@ -551,7 +622,7 @@ smdPart padFinder::findSMDTape(cv::Mat* input, bool searchTapeRotation) {
                                      cv::arcLength(cv::Mat(contours[i]), true) * 0.12,
                                      true);
 
-                    if (approx.size() >= 4 && approx.size() <= 6) {
+                    if (approx.size() >= 2 && approx.size() <= 6) {
                         // Number of vertices of polygonal curve
                         int vtc = approx.size();
                         // Get the cosines of all corners
@@ -567,23 +638,22 @@ smdPart padFinder::findSMDTape(cv::Mat* input, bool searchTapeRotation) {
                         double maxcos = cos.back();
                         // Use the degrees obtained above and the number of vertices
                         // to determine the shape of the contour
-                        if (vtc == 4 && mincos >= -0.1 && maxcos <= 0.3) {
+                        if (1 || vtc == 4 && mincos >= -0.1 && maxcos <= 0.3) {
                             smdPart smd;
-                            smd.x = mc.x;	//rect.center.x;
-                            smd.y = mc.y;	//rect.center.y;
+                            smd.x = mc.x;
+                            smd.y = mc.y;
                             smd.rot = rect.angle;
                             if (rect.size.height < rect.size.width) {
                                 smd.rot = std::fabs(smd.rot);
                             } else {
                                 smd.rot = -(90.0 + smd.rot);
                             }
-                            //ROS_INFO("Angle : %f Width: %f Height: %f",rect.angle,rect.size.width,rect.size.height);
                             smdObjects.push_back(smd);
-                            //drawRotatedRect(final, rect, CV_RGB(0, 0, 255));
+                            drawRotatedRect(final, rect, CV_RGB(0, 0, 255));
                             circle(final, Point2f(smd.x, smd.y), 5,
                                    CV_RGB(255, 0, 0), 3);
-                            cv::drawContours(final, contours, i,
-                                             CV_RGB(0, 255, 0), 2);
+                            //cv::drawContours(final, contours, i,
+                            //                 CV_RGB(0, 255, 0), 2);
 
                         }
                     }
@@ -593,21 +663,19 @@ smdPart padFinder::findSMDTape(cv::Mat* input, bool searchTapeRotation) {
         }
     }
 
-    smdPart smdFinal;
     if (!smdObjects.size()) {
-        return smdFinal;
+        return false;
     }
-    if (nearestPart(&smdObjects, &smdFinal, input->cols, input->rows)) {
-        circle(final, Point2f(smdFinal.x, smdFinal.y), 5, CV_RGB(0, 0, 255), 3);
-        smdFinal.x = (smdFinal.x - (input->cols / 2 - 1)) / pxRatioTape;
-        smdFinal.y = ((input->rows / 2 - 1) - smdFinal.y) / pxRatioTape;
+    if (nearestPart(&smdObjects, &out, final.cols, final.rows)) {
+        circle(final, Point2f(out.x, out.y), 5, CV_RGB(0, 0, 255), 3);
+        out.x = (out.x - (final.cols / 2 - 1)) / pxRatioTape;
+        out.y = ((final.rows / 2 - 1) - out.y) / pxRatioTape;
+        return true;
+    }else{
+        return false;
     }
-
-    *input = final.clone();
-    return smdFinal;
 }
 
-//std::vector<cv::Point2f >
 cv::Point2f padFinder::findPads(cv::Mat* input, bool startSelect,
                                 cv::Point2f selectPad) {
     foundVia = false;
@@ -767,7 +835,6 @@ cv::Point2f padFinder::findPads(cv::Mat* input, bool startSelect,
                     drawRotatedRect(final, pad, CV_RGB(255, 0, 0));
                 }
                 padCounter++;
-                //cv::circle(final,mc,3,CV_RGB(0,0,255),3);
             }
         }
     }

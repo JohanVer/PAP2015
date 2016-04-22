@@ -43,18 +43,20 @@ public:
 
 class padFinder {
 public:
-	// öffentlich
-	padFinder();                      // der Default-Konstruktor
-	~padFinder();                     // der Destruktor
+    padFinder();
+    ~padFinder();
 
-	//std::vector<cv::Point2f > findPads(cv::Mat* input);        // eine Funktion mit einem (Default-) Parameter
 	cv::Point2f findPads(cv::Mat* input,bool startSelect,cv::Point2f selectPad);
-	smdPart findChip(cv::Mat* input, unsigned int camera_select);
+    bool findChipAvg(std::vector<cv::Mat> *input, enum CAMERA_SELECT camera_select, smdPart &chip);
+    bool findChip(cv::Mat* input, unsigned int camera_select, smdPart &part_out);
 	smdPart findSmallSMD(cv::Mat* input);
-	smdPart findSMDTape(cv::Mat* input,bool searchTapeRotation);
-	smdPart findTip(cv::Mat* input);
+    bool findSMDTapeAvg(std::vector<cv::Mat> *input, bool searchTapeRotation, smdPart &out);
+    bool findSMDTape(cv::Mat &final, bool searchTapeRotation, smdPart &out);
+    bool findTipAvg(std::vector<cv::Mat> *input, enum CAMERA_SELECT camera_select, smdPart &tip);
+    bool findTip(cv::Mat &final, smdPart &out);
 
-    double getPixelConvVal(cv::Mat &picture, size_t num_averages);
+    bool  getPixelConvVal(cv::Mat &picture, double &pxRatio);
+    bool getPixelConvValAvg(std::vector<cv::Mat> *pictures, double &pxRatio);
     bool scanCalibrationQRCode(cv::Mat &picture, double &width, double &height, double &truth_len);
 
 	double angle(cv::Point pt1, cv::Point pt2, cv::Point pt0);
