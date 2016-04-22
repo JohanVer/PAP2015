@@ -14,6 +14,7 @@
 #include "std_msgs/Header.h"
 #include <vector>
 #include <cmath>
+#include "zbar.h"
 
 
 // Conversion factors for pixel to mm
@@ -53,6 +54,9 @@ public:
 	smdPart findSMDTape(cv::Mat* input,bool searchTapeRotation);
 	smdPart findTip(cv::Mat* input);
 
+    double getPixelConvVal(cv::Mat &picture, size_t num_averages);
+    bool scanCalibrationQRCode(cv::Mat &picture, double &width, double &height, double &truth_len);
+
 	double angle(cv::Point pt1, cv::Point pt2, cv::Point pt0);
 	void setLabel(cv::Mat& im, const std::string label,
 			std::vector<cv::Point>& contour);
@@ -77,6 +81,7 @@ public:
 	}
 private:
 	// privat
+    zbar::ImageScanner scanner;
 	int m_eineVariable;
 	bool foundVia;
 	bool repeat;

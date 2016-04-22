@@ -115,6 +115,7 @@ catkin_package(
 ## Declare a cpp library
 add_library(pcb_cv
    src/padFinder.cpp
+   src/sendfunctions.cpp
  )
 target_link_libraries ( pcb_cv ${OpenCV_LIBRARIES} ${catkin_LIBRARIES} )
 

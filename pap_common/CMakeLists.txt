@@ -58,7 +58,7 @@ find_package(catkin REQUIRED genmsg actionlib_msgs actionlib)
    DispenseStatus.msg
  )
 
-add_action_files(DIRECTORY action FILES MotorControllerAction.action)
+add_action_files(DIRECTORY action FILES MotorControllerAction.action Vision.action)
 
 ## Generate services in the 'srv' folder
 # add_service_files(
