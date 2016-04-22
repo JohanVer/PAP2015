@@ -30,6 +30,7 @@
 #include <pap_gui/DatabaseClass.hpp>
 #include <pap_gui/packageDialog.hpp>
 
+
 /*****************************************************************************
  ** Namespaces
  *****************************************************************************/
@@ -1710,6 +1711,17 @@ void MainWindow::on_startChipFinder_Button_clicked() {
                    ui.widthChipFinder_LineEdit->text().toFloat(),
                    ui.heightChipFinder_LineEdit->text().toFloat(),
                    (float) cameraSelect);
+
+
+
+    //pap_common::VisionResult res;
+    //if(vision_send_functions::sendVisionTask(qnode.getVisionClientRef(), pap_vision::START_CHIP_FINDER,
+    //                                      ui.widthChipFinder_LineEdit->text().toFloat(), ui.heightChipFinder_LineEdit->text().toFloat(),
+    //                                      (float) cameraSelect, res)){
+    //    std::cerr << "Res is " << res.data1 << " , " << res.data2 << std::endl;
+    //}
+
+
     displaySMDCoords(0.0, 0.0, 0.0, 0);
     displaySMDCoords(0.0, 0.0, 0.0, 1);
 }

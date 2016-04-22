@@ -51,6 +51,7 @@
 
 #include <motorController/controller_interface.h>
 #include <motorController/sendfunctions.h>
+#include <pcb_cv/sendfunctions.h>
 
 #include <pap_placer/placerClass.hpp>
 
@@ -118,7 +119,11 @@ public:
 	void LEDTask(int task, int data);
 
    motor_send_functions::Client& getMotorClientRef(){
-       return *action_client;
+       return *motor_action_client;
+   }
+
+   vision_send_functions::Client& getVisionClientRef(){
+       return *vision_action_client;
    }
 
 Q_SIGNALS:
@@ -135,7 +140,9 @@ Q_SIGNALS:
     void positionGotoReached();
 
 private:
-    std::unique_ptr<motor_send_functions::Client> action_client;
+    std::unique_ptr<motor_send_functions::Client> motor_action_client;
+    std::unique_ptr<vision_send_functions::Client> vision_action_client;
+
 	int init_argc;
 	char** init_argv;
 	ros::Publisher task_publisher, arduino_publisher_, dispenser_publisher_;

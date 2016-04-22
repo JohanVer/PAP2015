@@ -49,6 +49,8 @@
 #include "CommonDataClasses.hpp"
 #include "packageDialog.hpp"
 #include <motorController/sendfunctions.h>
+#include <pap_common/VisionResult.h>
+
 
 class tapeCalibrationValue {
 public:

@@ -1,5 +1,4 @@
 int32 task
-int32 placerTask
 int32 cameraSelect
 int32 numAverages
 float32 data1

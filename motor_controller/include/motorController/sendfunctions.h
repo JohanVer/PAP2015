@@ -1,5 +1,5 @@
-#ifndef SENDFUNCTIONS_H
-#define SENDFUNCTIONS_H
+#ifndef MOTOR_SENDFUNCTIONS_H
+#define MOTOR_SENDFUNCTIONS_H
 
 #include <actionlib/client/simple_action_client.h>
 #include <pap_common/MotorControllerActionAction.h>
@@ -16,4 +16,4 @@ bool sendMotorControllerAction(Client& action_client, pap_common::TASK task,  fl
 bool sendMotorControllerAction(Client& action_client, pap_common::TASK task);
 
 }
-#endif // SENDFUNCTIONS_H
+#endif // MOTOR_SENDFUNCTIONS_H

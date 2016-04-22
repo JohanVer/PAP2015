@@ -27,7 +27,6 @@ void PcbCvInterface::gatherImages(size_t num_images, std::vector<cv::Mat> *image
 
     bottom_buffer_.clear();
     top_buffer_.clear();
-
     img_gather_counter = 0;
 
     if(camera_sel == CAMERA_TOP){
@@ -60,38 +59,109 @@ void PcbCvInterface::execute_action(const pap_common::VisionGoalConstPtr& comman
     switch(command->task){
 
     case pap_vision::START_VISION:
-
+        visionEnabled = true;
+        visionState = IDLE;
+        as_.setSucceeded();
         break;
 
     case pap_vision::STOP_VISION:
-
+        visionEnabled = false;
+        visionState = IDLE;
+        as_.setSucceeded();
         break;
 
-    case pap_vision::START_CHIP_FINDER:
+    case pap_vision::START_CHIP_FINDER:{
         finder.setSize(command->data1, command->data2);
-        cameraSelect = command->data3;
-
+        cameraSelect = command->cameraSelect;
+        std::vector<cv::Mat> *images;
+        gatherImages(command->numAverages, images,(CAMERA_SELECT)cameraSelect);
+        smdPart chip;
+        if(finder.findChipAvg(images, (CAMERA_SELECT) cameraSelect, chip)){
+            pap_common::VisionResult res;
+            res.cameraSelect = cameraSelect;
+            res.data1 = chip.y;
+            res.data2 = chip.x;
+            res.data3 = chip.rot;
+            as_.setSucceeded(res);
+        }else{
+            as_.setAborted();
+        }
+    }
         break;
 
-    case pap_vision::START_SMALL_FINDER:
+    case pap_vision::START_TAPE_FINDER:{
         finder.setSize(command->data1, command->data2);
-
-        break;
-
-    case pap_vision::START_TAPE_FINDER:
-        finder.setSize(command->data1 * 1.2, command->data2 * 1.15);
+        cameraSelect = command->cameraSelect;
+        std::vector<cv::Mat> *images;
+        gatherImages(command->numAverages, images,(CAMERA_SELECT) cameraSelect);
         if (command->data3 == 1.0) {
             searchTapeRotation = true;
         } else {
             searchTapeRotation = false;
         }
-        visionState = TAPE;
+        smdPart chip;
+        if(finder.findSMDTapeAvg(images, searchTapeRotation, chip)){
+            pap_common::VisionResult res;
+            res.data1 = chip.y;
+            res.data2 = chip.x;
+            res.data3 = chip.rot;
+            res.cameraSelect = 0;
+            as_.setSucceeded(res);
+        }else{
+            as_.setAborted();
+        }
+    }
         break;
 
     case pap_vision::START__QRCODE_FINDER:
-        qrCalAction = (VISION_QR_CALIBRATION) command->data1;
-        cameraSelect = command->data2;
+    {
+        cameraSelect = command->cameraSelect;
+        std::vector<cv::Mat> *images;
+        gatherImages(command->numAverages, images,(CAMERA_SELECT) cameraSelect);
 
+        if ((CAMERA_SELECT) command->cameraSelect == CAMERA_TOP) {
+            switch ((VISION_QR_CALIBRATION) command->data1) {
+            case TOP_SLOT:{
+
+                double pxRatioSlot;
+                if(finder.getPixelConvValAvg(images, pxRatioSlot))
+                    finder.setPixelRatioSlot(pxRatioSlot);
+                else as_.setAborted();
+
+            }
+                break;
+
+            case TOP_PCB:
+            {
+                double pxRatioPcb;
+                if(finder.getPixelConvValAvg(images, pxRatioPcb))
+                    finder.setPixelRatioPcb(pxRatioPcb);
+                else as_.setAborted();
+
+            }
+                break;
+
+            case TOP_TAPE:
+            {
+                double pxRatioTape;
+                if(finder.getPixelConvValAvg(images, pxRatioTape))
+                    finder.setPixelRatioTape(pxRatioTape);
+                else as_.setAborted();
+            }
+                break;
+            }
+        }
+        else {
+            if((VISION_QR_CALIBRATION) command->data1 == BOTTOM_CAM){
+                double pxRatioBottom;
+                if(finder.getPixelConvValAvg(images, pxRatioBottom))
+                    finder.setPixelRatioBottom(pxRatioBottom);
+                else as_.setAborted();
+            }
+        }
+
+        as_.setSucceeded();
+    }
         break;
 
         // This state is for manually selecting of the fiducials
@@ -106,10 +176,28 @@ void PcbCvInterface::execute_action(const pap_common::VisionGoalConstPtr& comman
             selectPoint.x = 0.0;
             selectPoint.y = 0.0;
         }
+        visionState = PAD;
+        as_.setSucceeded();
         break;
 
-    case pap_vision::SEARCH_CIRCLE:
+    case pap_vision::SEARCH_CIRCLE:{
         finder.setSize(command->data1, command->data2);
+        cameraSelect = command->cameraSelect;
+        std::vector<cv::Mat> *images;
+        gatherImages(command->numAverages, images,(CAMERA_SELECT) cameraSelect);
+
+        smdPart tip;
+        if(finder.findTipAvg(images, (CAMERA_SELECT) cameraSelect, tip)){
+            pap_common::VisionResult res;
+            res.data1 = -tip.y;
+            res.data2 = tip.x;
+            res.data3 = tip.rot;
+            res.cameraSelect = cameraSelect;
+            as_.setSucceeded(res);
+        }else{
+            as_.setAborted();
+        }
+    }
         break;
     }
 }
@@ -376,7 +464,7 @@ void PcbCvInterface::parseTask(const pap_common::TaskConstPtr& taskMsg) {
             break;
 
         case pap_vision::START_TAPE_FINDER:
-            finder.setSize(taskMsg->data1 * 1.2, taskMsg->data2 * 1.15);
+            finder.setSize(taskMsg->data1, taskMsg->data2);
             if (taskMsg->data3 == 1.0) {
                 searchTapeRotation = true;
             } else {

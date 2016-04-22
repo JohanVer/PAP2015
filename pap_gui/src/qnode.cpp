@@ -73,7 +73,7 @@ bool QNode::init() {
 	imagePub_ = n_.advertise<sensor_msgs::PointCloud2>("renderedPcb", 2);
 	markerPub_ = n_.advertise<visualization_msgs::MarkerArray>("marker", 2);
 
-    action_client = std::unique_ptr<motor_send_functions::Client>(new motor_send_functions::Client("motor_controller_actions", true));
+    motor_action_client = std::unique_ptr<motor_send_functions::Client>(new motor_send_functions::Client("motor_controller_actions", true));
 
 	start();
 	return true;

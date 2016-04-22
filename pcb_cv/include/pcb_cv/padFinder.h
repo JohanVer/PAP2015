@@ -1,3 +1,6 @@
+#ifndef PADFINDER_H
+#define PADFINDER_H
+
 #include "ros/ros.h"
 #include <cv_bridge/cv_bridge.h>
 #include <sensor_msgs/image_encodings.h>
@@ -91,3 +94,5 @@ private:
 
 	float pxRatioSlot,pxRatioTape,pxRatioPcb,pxRatioBottom;
 };
+
+#endif // PADFINDER_H
