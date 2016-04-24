@@ -17,6 +17,14 @@ enum VISION {
   START_CALIBRATON_QR	= 11
 };
 
+enum CAMERA_SELECT {
+        CAMERA_TOP, CAMERA_BOTTOM
+};
+
+enum VISION_QR_CALIBRATION {
+        NO_CAL, TOP_SLOT, TOP_TAPE, TOP_PCB, BOTTOM_CAM
+};
+
 
 } // end namespace 'common'
 

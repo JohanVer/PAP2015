@@ -1713,15 +1713,6 @@ void MainWindow::on_startChipFinder_Button_clicked() {
                    (float) cameraSelect);
 
 
-
-    //pap_common::VisionResult res;
-    //if(vision_send_functions::sendVisionTask(qnode.getVisionClientRef(), pap_vision::START_CHIP_FINDER,
-    //                                      ui.widthChipFinder_LineEdit->text().toFloat(), ui.heightChipFinder_LineEdit->text().toFloat(),
-    //                                      (float) cameraSelect, res)){
-    //    std::cerr << "Res is " << res.data1 << " , " << res.data2 << std::endl;
-    //}
-
-
     displaySMDCoords(0.0, 0.0, 0.0, 0);
     displaySMDCoords(0.0, 0.0, 0.0, 1);
 }
@@ -1765,11 +1756,11 @@ void MainWindow::on_startPadFinder_Button_clicked() {
 void MainWindow::on_StartStopVision_Button_clicked() {
 
     if (!visionStarted_) {
-        qnode.sendTask(pap_common::VISION, pap_vision::START_VISION);
+        vision_send_functions::sendVisionTask(qnode.getVisionClientRef(), pap_vision::START_VISION);
         ui.visionStatus_Label->setText("On");
         visionStarted_ = true;
     } else {
-        qnode.sendTask(pap_common::VISION, pap_vision::STOP_VISION);
+        vision_send_functions::sendVisionTask(qnode.getVisionClientRef(), pap_vision::STOP_VISION);
         ui.visionStatus_Label->setText("Off");
         visionStarted_ = false;
     }

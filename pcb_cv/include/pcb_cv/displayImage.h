@@ -36,11 +36,6 @@ enum VISION_PROCESS {
         CHIP, SMALL_SMD, TAPE, PAD, IDLE, CIRCLE, QRCODE
 };
 
-enum VISION_QR_CALIBRATION {
-        NO_CAL, TOP_SLOT, TOP_TAPE, TOP_PCB, BOTTOM_CAM
-};
-
-
 class PcbCvInterface{
 public:
 
@@ -51,7 +46,7 @@ public:
     void parseTask(const pap_common::TaskConstPtr& taskMsg);
     void runVision();
     void createCrosshairs(cv::Mat &input);
-    void gatherImages(size_t num_images, std::vector<cv::Mat> *images, enum CAMERA_SELECT camera_sel );
+    void gatherImages(size_t num_images, std::vector<cv::Mat> &images, enum pap_vision::CAMERA_SELECT camera_sel );
 
 private:
 
@@ -76,7 +71,7 @@ private:
 
 
     VISION_PROCESS visionState ;
-    VISION_QR_CALIBRATION qrCalAction;
+    pap_vision::VISION_QR_CALIBRATION qrCalAction;
     bool visionEnabled, selectPad;
     bool searchTapeRotation;
 

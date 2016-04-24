@@ -74,6 +74,7 @@ bool QNode::init() {
 	markerPub_ = n_.advertise<visualization_msgs::MarkerArray>("marker", 2);
 
     motor_action_client = std::unique_ptr<motor_send_functions::Client>(new motor_send_functions::Client("motor_controller_actions", true));
+    vision_action_client = std::unique_ptr<vision_send_functions::Client>(new vision_send_functions::Client("vision_actions", true));
 
 	start();
 	return true;

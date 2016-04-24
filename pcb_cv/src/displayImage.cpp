@@ -9,7 +9,7 @@ namespace pcb_cv{
 PcbCvInterface::PcbCvInterface() : as_(nh_, "vision_actions", boost::bind(&PcbCvInterface::execute_action, this, _1),false){
 
     visionState = IDLE;
-    qrCalAction = NO_CAL;
+    qrCalAction = pap_vision::NO_CAL;
     visionEnabled = false;
     selectPad = false;
     searchTapeRotation = false;
@@ -23,13 +23,13 @@ PcbCvInterface::PcbCvInterface() : as_(nh_, "vision_actions", boost::bind(&PcbCv
     gather_bottom_images_ = false;
 }
 
-void PcbCvInterface::gatherImages(size_t num_images, std::vector<cv::Mat> *images, enum CAMERA_SELECT camera_sel ){
+void PcbCvInterface::gatherImages(size_t num_images, std::vector<cv::Mat> &images, enum pap_vision::CAMERA_SELECT camera_sel ){
 
     bottom_buffer_.clear();
     top_buffer_.clear();
     img_gather_counter = 0;
 
-    if(camera_sel == CAMERA_TOP){
+    if(camera_sel == pap_vision::CAMERA_TOP){
         gather_top_images_ = true;
     }else{
         gather_bottom_images_ = true;
@@ -47,10 +47,10 @@ void PcbCvInterface::gatherImages(size_t num_images, std::vector<cv::Mat> *image
     gather_bottom_images_ = false;
 
     // Return pointer to storage
-    if(camera_sel == CAMERA_TOP){
-        images = &top_buffer_;
+    if(camera_sel == pap_vision::CAMERA_TOP){
+        images = top_buffer_;
     }else{
-        images = &bottom_buffer_;
+        images = bottom_buffer_;
     }
 }
 
@@ -73,10 +73,10 @@ void PcbCvInterface::execute_action(const pap_common::VisionGoalConstPtr& comman
     case pap_vision::START_CHIP_FINDER:{
         finder.setSize(command->data1, command->data2);
         cameraSelect = command->cameraSelect;
-        std::vector<cv::Mat> *images;
-        gatherImages(command->numAverages, images,(CAMERA_SELECT)cameraSelect);
+        std::vector<cv::Mat> images;
+        gatherImages(command->numAverages, images,(pap_vision::CAMERA_SELECT)cameraSelect);
         smdPart chip;
-        if(finder.findChipAvg(images, (CAMERA_SELECT) cameraSelect, chip)){
+        if(finder.findChipAvg(&images, (pap_vision::CAMERA_SELECT) cameraSelect, chip)){
             pap_common::VisionResult res;
             res.cameraSelect = cameraSelect;
             res.data1 = chip.y;
@@ -92,15 +92,15 @@ void PcbCvInterface::execute_action(const pap_common::VisionGoalConstPtr& comman
     case pap_vision::START_TAPE_FINDER:{
         finder.setSize(command->data1, command->data2);
         cameraSelect = command->cameraSelect;
-        std::vector<cv::Mat> *images;
-        gatherImages(command->numAverages, images,(CAMERA_SELECT) cameraSelect);
+        std::vector<cv::Mat> images;
+        gatherImages(command->numAverages, images,(pap_vision::CAMERA_SELECT) cameraSelect);
         if (command->data3 == 1.0) {
             searchTapeRotation = true;
         } else {
             searchTapeRotation = false;
         }
         smdPart chip;
-        if(finder.findSMDTapeAvg(images, searchTapeRotation, chip)){
+        if(finder.findSMDTapeAvg(&images, searchTapeRotation, chip)){
             pap_common::VisionResult res;
             res.data1 = chip.y;
             res.data2 = chip.x;
@@ -116,35 +116,35 @@ void PcbCvInterface::execute_action(const pap_common::VisionGoalConstPtr& comman
     case pap_vision::START__QRCODE_FINDER:
     {
         cameraSelect = command->cameraSelect;
-        std::vector<cv::Mat> *images;
-        gatherImages(command->numAverages, images,(CAMERA_SELECT) cameraSelect);
+        std::vector<cv::Mat> images;
+        gatherImages(command->numAverages, images,(pap_vision::CAMERA_SELECT) cameraSelect);
 
-        if ((CAMERA_SELECT) command->cameraSelect == CAMERA_TOP) {
-            switch ((VISION_QR_CALIBRATION) command->data1) {
-            case TOP_SLOT:{
+        if ((pap_vision::CAMERA_SELECT) command->cameraSelect == pap_vision::CAMERA_TOP) {
+            switch ((pap_vision::VISION_QR_CALIBRATION) command->data1) {
+            case pap_vision::TOP_SLOT:{
 
                 double pxRatioSlot;
-                if(finder.getPixelConvValAvg(images, pxRatioSlot))
+                if(finder.getPixelConvValAvg(&images, pxRatioSlot))
                     finder.setPixelRatioSlot(pxRatioSlot);
                 else as_.setAborted();
 
             }
                 break;
 
-            case TOP_PCB:
+            case pap_vision::TOP_PCB:
             {
                 double pxRatioPcb;
-                if(finder.getPixelConvValAvg(images, pxRatioPcb))
+                if(finder.getPixelConvValAvg(&images, pxRatioPcb))
                     finder.setPixelRatioPcb(pxRatioPcb);
                 else as_.setAborted();
 
             }
                 break;
 
-            case TOP_TAPE:
+            case pap_vision::TOP_TAPE:
             {
                 double pxRatioTape;
-                if(finder.getPixelConvValAvg(images, pxRatioTape))
+                if(finder.getPixelConvValAvg(&images, pxRatioTape))
                     finder.setPixelRatioTape(pxRatioTape);
                 else as_.setAborted();
             }
@@ -152,9 +152,9 @@ void PcbCvInterface::execute_action(const pap_common::VisionGoalConstPtr& comman
             }
         }
         else {
-            if((VISION_QR_CALIBRATION) command->data1 == BOTTOM_CAM){
+            if((pap_vision::VISION_QR_CALIBRATION) command->data1 == pap_vision::BOTTOM_CAM){
                 double pxRatioBottom;
-                if(finder.getPixelConvValAvg(images, pxRatioBottom))
+                if(finder.getPixelConvValAvg(&images, pxRatioBottom))
                     finder.setPixelRatioBottom(pxRatioBottom);
                 else as_.setAborted();
             }
@@ -183,11 +183,11 @@ void PcbCvInterface::execute_action(const pap_common::VisionGoalConstPtr& comman
     case pap_vision::SEARCH_CIRCLE:{
         finder.setSize(command->data1, command->data2);
         cameraSelect = command->cameraSelect;
-        std::vector<cv::Mat> *images;
-        gatherImages(command->numAverages, images,(CAMERA_SELECT) cameraSelect);
+        std::vector<cv::Mat> images;
+        gatherImages(command->numAverages, images,(pap_vision::CAMERA_SELECT) cameraSelect);
 
         smdPart tip;
-        if(finder.findTipAvg(images, (CAMERA_SELECT) cameraSelect, tip)){
+        if(finder.findTipAvg(&images, (pap_vision::CAMERA_SELECT) cameraSelect, tip)){
             pap_common::VisionResult res;
             res.data1 = -tip.y;
             res.data2 = tip.x;
@@ -222,7 +222,7 @@ void PcbCvInterface::imageCallback1(const sensor_msgs::ImageConstPtr& msg) {
 
 
     if(gather_top_images_){
-        top_buffer_.push_back(input);
+        top_buffer_.push_back(input.clone());
         img_gather_counter++;
     }
 
@@ -233,9 +233,9 @@ void PcbCvInterface::imageCallback1(const sensor_msgs::ImageConstPtr& msg) {
             break;
 
         case QRCODE: {
-            if (cameraSelect == CAMERA_TOP) {
+            if (cameraSelect == pap_vision::CAMERA_TOP) {
                 switch (qrCalAction) {
-                case TOP_SLOT:{
+                case pap_vision::TOP_SLOT:{
 
                     double pxRatioSlot;
                     if(finder.getPixelConvVal(input, pxRatioSlot))
@@ -243,11 +243,11 @@ void PcbCvInterface::imageCallback1(const sensor_msgs::ImageConstPtr& msg) {
 
                     visionMsg.task = pap_vision::START__QRCODE_FINDER;
                     statusPublisher.publish(visionMsg);
-                    qrCalAction = NO_CAL;
+                    qrCalAction = pap_vision::NO_CAL;
                 }
                     break;
 
-                case TOP_PCB:
+                case pap_vision::TOP_PCB:
                 {
                     double pxRatioPcb;
                     if(finder.getPixelConvVal(input, pxRatioPcb))
@@ -255,11 +255,11 @@ void PcbCvInterface::imageCallback1(const sensor_msgs::ImageConstPtr& msg) {
 
                     visionMsg.task = pap_vision::START__QRCODE_FINDER;
                     statusPublisher.publish(visionMsg);
-                    qrCalAction = NO_CAL;
+                    qrCalAction = pap_vision::NO_CAL;
                 }
                     break;
 
-                case TOP_TAPE:
+                case pap_vision::TOP_TAPE:
                 {
                     double pxRatioTape;
                     if(finder.getPixelConvVal(input, pxRatioTape))
@@ -267,11 +267,11 @@ void PcbCvInterface::imageCallback1(const sensor_msgs::ImageConstPtr& msg) {
 
                     visionMsg.task = pap_vision::START__QRCODE_FINDER;
                     statusPublisher.publish(visionMsg);
-                    qrCalAction = NO_CAL;
+                    qrCalAction = pap_vision::NO_CAL;
                 }
                     break;
 
-                case NO_CAL:
+                case pap_vision::NO_CAL:
                     break;
                 }
             }
@@ -281,7 +281,7 @@ void PcbCvInterface::imageCallback1(const sensor_msgs::ImageConstPtr& msg) {
         case CHIP:
             // Chip
 
-            if (cameraSelect == CAMERA_TOP) {
+            if (cameraSelect == pap_vision::CAMERA_TOP) {
                 if(finder.findChip(&input, cameraSelect, smd)){
                     visionMsg.task = pap_vision::START_CHIP_FINDER;
                     visionMsg.data1 = smd.y;
@@ -363,7 +363,7 @@ void PcbCvInterface::imageCallback2(const sensor_msgs::ImageConstPtr& msg) {
     }
 
     if(gather_bottom_images_){
-        bottom_buffer_.push_back(input2);
+        bottom_buffer_.push_back(input2.clone());
         img_gather_counter++;
     }
 
@@ -378,7 +378,7 @@ void PcbCvInterface::imageCallback2(const sensor_msgs::ImageConstPtr& msg) {
 
         case CHIP:
             // Chip
-            if (cameraSelect == CAMERA_BOTTOM) {
+            if (cameraSelect == pap_vision::CAMERA_BOTTOM) {
                 if(finder.findChip(&input2, cameraSelect,smd)){
                     visionMsg.task = pap_vision::START_CHIP_FINDER;
                     visionMsg.data1 = smd.y;
@@ -404,8 +404,8 @@ void PcbCvInterface::imageCallback2(const sensor_msgs::ImageConstPtr& msg) {
             break;
 
         case QRCODE:
-            if (cameraSelect == CAMERA_BOTTOM) {
-                if (qrCalAction == BOTTOM_CAM) {
+            if (cameraSelect == pap_vision::CAMERA_BOTTOM) {
+                if (qrCalAction == pap_vision::BOTTOM_CAM) {
 
                     double pxRatioBottom;
                     if(finder.getPixelConvVal(input2, pxRatioBottom))
@@ -413,7 +413,7 @@ void PcbCvInterface::imageCallback2(const sensor_msgs::ImageConstPtr& msg) {
 
                     visionMsg.task = pap_vision::START__QRCODE_FINDER;
                     statusPublisher.publish(visionMsg);
-                    qrCalAction = NO_CAL;
+                    qrCalAction = pap_vision::NO_CAL;
                 }
             }
             break;
@@ -474,7 +474,7 @@ void PcbCvInterface::parseTask(const pap_common::TaskConstPtr& taskMsg) {
             break;
 
         case pap_vision::START__QRCODE_FINDER:
-            qrCalAction = (VISION_QR_CALIBRATION) taskMsg->data1;
+            qrCalAction = (pap_vision::VISION_QR_CALIBRATION) taskMsg->data1;
             cameraSelect = taskMsg->data2;
             visionState = QRCODE;
             break;

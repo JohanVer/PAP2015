@@ -137,7 +137,7 @@ void padFinder::setLabel(cv::Mat& im, const std::string label,
     cv::putText(im, label, pt, fontface, scale, CV_RGB(0, 0, 0), thickness, 8);
 }
 
-bool padFinder::findTipAvg(std::vector<cv::Mat> *input, enum CAMERA_SELECT camera_select, smdPart &tip){
+bool padFinder::findTipAvg(std::vector<cv::Mat> *input, enum pap_vision::CAMERA_SELECT camera_select, smdPart &tip){
     size_t num_img = input->size();
     size_t num_avg = 0;
 
@@ -213,7 +213,7 @@ bool padFinder::findTip(cv::Mat &final, smdPart &out) {
     }
 }
 
-bool padFinder::findChipAvg(std::vector<cv::Mat> *input, enum CAMERA_SELECT camera_select, smdPart &chip){
+bool padFinder::findChipAvg(std::vector<cv::Mat> *input, enum pap_vision::CAMERA_SELECT camera_select, smdPart &chip){
     size_t num_img = input->size();
     size_t num_avg = 0;
 
@@ -240,17 +240,22 @@ bool padFinder::findChipAvg(std::vector<cv::Mat> *input, enum CAMERA_SELECT came
 bool padFinder::findChip(cv::Mat* input, unsigned int camera_select, smdPart &part_out) {
     float pxToMM = 0.0;
 
-    if (camera_select == CAMERA_TOP) {
+    if (camera_select == pap_vision::CAMERA_TOP) {
         pxToMM = pxRatioSlot;
-    } else if (camera_select == CAMERA_BOTTOM) {
+    } else if (camera_select == pap_vision::CAMERA_BOTTOM) {
         pxToMM = pxRatioBottom;
     }
 
     cv::Mat gray;
     cv::Mat final = input->clone();
+
+    //cv::imshow("grey", final);
+    //cv::waitKey(0);
+
     std::vector<smdPart> smdObjects;
-    cv::cvtColor(*input, gray, CV_BGR2GRAY);
+    cv::cvtColor(*input, gray, CV_BGR2GRAY);            
     cv::threshold(gray, gray, 255, 255, CV_THRESH_BINARY | CV_THRESH_OTSU);
+
     //cv::erode(gray, gray, cv::Mat(), cv::Point(-1, -1),
     //ERODE_ITERATIONS_CHIP_FINDER);
     std::vector<std::vector<cv::Point> > contours;
@@ -315,6 +320,7 @@ bool padFinder::findChip(cv::Mat* input, unsigned int camera_select, smdPart &pa
         circle(final, Point2f(part_out.x, part_out.y), 5, CV_RGB(0, 0, 255), 3);
         part_out.x = (part_out.x - (input->cols / 2 - 1)) / pxToMM;
         part_out.y = ((input->rows / 2 - 1) - part_out.y) / pxToMM;
+        std::cerr << "Success \n";
         return true;
     }else{
         return false;

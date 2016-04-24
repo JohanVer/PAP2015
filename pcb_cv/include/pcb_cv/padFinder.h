@@ -14,6 +14,7 @@
 #include <opencv/cv.h>
 #include <opencv/highgui.h>
 #include "sensor_msgs/Image.h"
+#include <pap_common/vision_message_def.h>
 #include "std_msgs/Header.h"
 #include <vector>
 #include <cmath>
@@ -27,10 +28,6 @@
 #define PIXEL_TO_MM_BOTTOM 24.95
 
 #define PIXEL_TO_MM_PCB 33.63
-
-enum CAMERA_SELECT {
-	CAMERA_TOP, CAMERA_BOTTOM
-};
 
 class smdPart {
 public:
@@ -50,12 +47,12 @@ public:
     ~padFinder();
 
 	cv::Point2f findPads(cv::Mat* input,bool startSelect,cv::Point2f selectPad);
-    bool findChipAvg(std::vector<cv::Mat> *input, enum CAMERA_SELECT camera_select, smdPart &chip);
+    bool findChipAvg(std::vector<cv::Mat> *input, enum pap_vision::CAMERA_SELECT camera_select, smdPart &chip);
     bool findChip(cv::Mat* input, unsigned int camera_select, smdPart &part_out);
 	smdPart findSmallSMD(cv::Mat* input);
     bool findSMDTapeAvg(std::vector<cv::Mat> *input, bool searchTapeRotation, smdPart &out);
     bool findSMDTape(cv::Mat &final, bool searchTapeRotation, smdPart &out);
-    bool findTipAvg(std::vector<cv::Mat> *input, enum CAMERA_SELECT camera_select, smdPart &tip);
+    bool findTipAvg(std::vector<cv::Mat> *input, enum pap_vision::CAMERA_SELECT camera_select, smdPart &tip);
     bool findTip(cv::Mat &final, smdPart &out);
 
     bool  getPixelConvVal(cv::Mat &picture, double &pxRatio);
