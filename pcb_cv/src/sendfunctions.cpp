@@ -46,7 +46,7 @@ bool sendVisionTask(Client &action_client, enum pap_vision::VISION task,enum pap
     pap_common::VisionGoal vis_goal;
     vis_goal.task = task;
     vis_goal.data1 = type;
-    vis_goal.data2 = camera;
+    vis_goal.cameraSelect = camera;
     vis_goal.numAverages = num_averages;
     // Fill in goal here
     action_client.sendGoal(vis_goal);

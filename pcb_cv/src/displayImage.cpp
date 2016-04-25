@@ -184,7 +184,7 @@ void PcbCvInterface::execute_action(const pap_common::VisionGoalConstPtr& comman
         finder.setSize(command->data1, command->data2);
         cameraSelect = command->cameraSelect;
         std::vector<cv::Mat> images;
-        gatherImages(command->numAverages, images,(pap_vision::CAMERA_SELECT) cameraSelect);
+        gatherImages(command->numAverages, images, (pap_vision::CAMERA_SELECT) cameraSelect);
 
         smdPart tip;
         if(finder.findTipAvg(&images, (pap_vision::CAMERA_SELECT) cameraSelect, tip)){
@@ -220,6 +220,7 @@ void PcbCvInterface::imageCallback1(const sensor_msgs::ImageConstPtr& msg) {
         return;
     }
 
+   cv::normalize(input, input, 0, 255, NORM_MINMAX, CV_8UC1);
 
     if(gather_top_images_){
         top_buffer_.push_back(input.clone());
@@ -361,6 +362,8 @@ void PcbCvInterface::imageCallback2(const sensor_msgs::ImageConstPtr& msg) {
         ROS_ERROR("displayImage: Could not convert image");
         return;
     }
+
+    cv::normalize(input2, input2, 0, 255, NORM_MINMAX, CV_8UC1);
 
     if(gather_bottom_images_){
         bottom_buffer_.push_back(input2.clone());
