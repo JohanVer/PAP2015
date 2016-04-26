@@ -164,6 +164,24 @@ void PcbCvInterface::execute_action(const pap_common::VisionGoalConstPtr& comman
     }
         break;
 
+    case pap_vision::APPEND_PICTURE:
+    {
+        std::cerr << "Appending picture...\n";
+        cameraSelect = command->cameraSelect;
+        std::vector<cv::Mat> images;
+        gatherImages(command->numAverages, images,(pap_vision::CAMERA_SELECT) cameraSelect);
+        cv::Point3d coord(command->data1, command->data2, command->data3);
+        finder.appendImage(images.front(), coord);
+        as_.setSucceeded();
+
+    }
+        break;
+
+    case pap_vision::STITCH_PICTURES:
+        finder.saveStitchingImages();
+        as_.setSucceeded();
+        break;
+
         // This state is for manually selecting of the fiducials
     case pap_vision::START_PAD_FINDER:
         if (command->data1 == 1.0) {
@@ -220,7 +238,7 @@ void PcbCvInterface::imageCallback1(const sensor_msgs::ImageConstPtr& msg) {
         return;
     }
 
-   cv::normalize(input, input, 0, 255, NORM_MINMAX, CV_8UC1);
+    cv::normalize(input, input, 0, 255, NORM_MINMAX, CV_8UC1);
 
     if(gather_top_images_){
         top_buffer_.push_back(input.clone());

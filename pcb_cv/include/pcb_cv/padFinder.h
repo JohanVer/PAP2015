@@ -19,6 +19,9 @@
 #include <vector>
 #include <cmath>
 #include "zbar.h"
+#include <cstdlib>
+#include <iostream>
+#include <fstream>
 
 
 // Conversion factors for pixel to mm
@@ -55,6 +58,8 @@ public:
     bool findTipAvg(std::vector<cv::Mat> *input, enum pap_vision::CAMERA_SELECT camera_select, smdPart &tip);
     bool findTip(cv::Mat &final, smdPart &out);
 
+    void appendImage(cv::Mat image, cv::Point3d coord);
+    void saveStitchingImages();
     bool  getPixelConvVal(cv::Mat &picture, double &pxRatio);
     bool getPixelConvValAvg(std::vector<cv::Mat> *pictures, double &pxRatio);
     bool scanCalibrationQRCode(cv::Mat &picture, double &width, double &height, double &truth_len);
@@ -88,6 +93,7 @@ private:
 	bool foundVia;
 	bool repeat;
 	float partWidth_,partHeight_;
+    std::vector<std::pair<cv::Mat, cv::Point3d> > stitching_data_;
 
 	float pxRatioSlot,pxRatioTape,pxRatioPcb,pxRatioBottom;
 };

@@ -2625,3 +2625,22 @@ void MainWindow::on_calibrationButton_checkerboard_clicked() {
 }
 // namespace pap_gui
 
+
+void pap_gui::MainWindow::on_take_img_button_clicked()
+{
+    pap_common::VisionResult res;
+    if(vision_send_functions::sendVisionTask(qnode.getVisionClientRef(), pap_vision::APPEND_PICTURE, pap_vision::CAMERA_TOP, currentPosition.x, currentPosition.y, currentPosition.z ,res)){
+        QMessageBox msgBox;
+        msgBox.setText("Image was appended");
+        msgBox.exec();
+    }
+}
+
+void pap_gui::MainWindow::on_pushButton_2_clicked()
+{
+    if(vision_send_functions::sendVisionTask(qnode.getVisionClientRef(), pap_vision::STITCH_PICTURES)){
+        QMessageBox msgBox;
+        msgBox.setText("Images were saved");
+        msgBox.exec();
+    }
+}

@@ -247,6 +247,10 @@ public Q_SLOTS:
 
 private slots:
 
+    void on_take_img_button_clicked();
+
+    void on_pushButton_2_clicked();
+
 private:
 
 	Ui::MainWindowDesign ui;

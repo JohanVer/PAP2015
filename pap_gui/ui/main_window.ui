@@ -1394,7 +1394,7 @@
          </layout>
         </widget>
        </widget>
-       <widget class="QToolBox" name="toolBox">
+       <widget class="QToolBox" name="stitch_button">
         <property name="geometry">
          <rect>
           <x>820</x>
@@ -1404,7 +1404,7 @@
          </rect>
         </property>
         <property name="currentIndex">
-         <number>0</number>
+         <number>5</number>
         </property>
         <widget class="QWidget" name="page">
          <property name="geometry">
@@ -1588,8 +1588,8 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>100</width>
-           <height>30</height>
+           <width>281</width>
+           <height>265</height>
           </rect>
          </property>
          <attribute name="label">
@@ -1657,8 +1657,8 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>100</width>
-           <height>30</height>
+           <width>281</width>
+           <height>265</height>
           </rect>
          </property>
          <attribute name="label">
@@ -1683,8 +1683,8 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>100</width>
-           <height>30</height>
+           <width>281</width>
+           <height>234</height>
           </rect>
          </property>
          <attribute name="label">
@@ -1730,13 +1730,44 @@
           </layout>
          </widget>
         </widget>
+        <widget class="QWidget" name="stitching">
+         <attribute name="label">
+          <string>Stitching</string>
+         </attribute>
+         <widget class="QPushButton" name="take_img_button">
+          <property name="geometry">
+           <rect>
+            <x>10</x>
+            <y>0</y>
+            <width>99</width>
+            <height>27</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>Take Picture</string>
+          </property>
+         </widget>
+         <widget class="QPushButton" name="pushButton_2">
+          <property name="geometry">
+           <rect>
+            <x>10</x>
+            <y>40</y>
+            <width>99</width>
+            <height>27</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>Stitch</string>
+          </property>
+         </widget>
+        </widget>
         <widget class="QWidget" name="page_5">
          <property name="geometry">
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>100</width>
-           <height>30</height>
+           <width>281</width>
+           <height>265</height>
           </rect>
          </property>
          <attribute name="label">
@@ -1803,7 +1834,7 @@
        </widget>
        <zorder>groupBox_15</zorder>
        <zorder>groupBox_16</zorder>
-       <zorder>toolBox</zorder>
+       <zorder>stitch_button</zorder>
        <zorder>horizontalLayoutWidget_8</zorder>
        <zorder>horizontalLayoutWidget</zorder>
       </widget>

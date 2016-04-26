@@ -161,6 +161,25 @@ bool padFinder::findTipAvg(std::vector<cv::Mat> *input, enum pap_vision::CAMERA_
     }
 }
 
+void padFinder::appendImage(cv::Mat image, cv::Point3d coord){
+    stitching_data_.push_back(std::pair<cv::Mat, cv::Point3d>(image, coord));
+}
+
+void padFinder::saveStitchingImages(){
+    static size_t img_c = 0;
+    ofstream myfile;
+    myfile.open((std::string(std::getenv("PAPRESOURCES")) + "stitching/stitch_coord.csv"));
+
+    for(size_t i = 0; i < stitching_data_.size(); i++){
+        cv::imwrite( std::string(std::getenv("PAPRESOURCES")) + "stitching/stitch" + std::to_string(img_c) + ".jpg", stitching_data_.at(i).first);
+        cv::Point3d coord = stitching_data_.at(i).second;
+        myfile << coord.x << "," << coord.y << "," << coord.z << std::endl;
+        img_c++;
+    }
+
+    myfile.close();
+}
+
 bool padFinder::findTip(cv::Mat &final, smdPart &out) {
     cv::Mat gray;
     std::vector<smdPart> tipObjects;
@@ -253,7 +272,7 @@ bool padFinder::findChip(cv::Mat* input, unsigned int camera_select, smdPart &pa
     //cv::waitKey(0);
 
     std::vector<smdPart> smdObjects;
-    cv::cvtColor(*input, gray, CV_BGR2GRAY);            
+    cv::cvtColor(*input, gray, CV_BGR2GRAY);
     cv::threshold(gray, gray, 255, 255, CV_THRESH_BINARY | CV_THRESH_OTSU);
 
     //cv::erode(gray, gray, cv::Mat(), cv::Point(-1, -1),
