@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.1.0 FATAL_ERROR)
 project(motor_controller)
 
+set(CMAKE_BUILD_TYPE Debug)
+
 include(CheckCXXCompilerFlag)
 CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
 CHECK_CXX_COMPILER_FLAG("-std=c++0x" COMPILER_SUPPORTS_CXX0X)

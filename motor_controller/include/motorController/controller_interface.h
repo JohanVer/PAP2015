@@ -84,6 +84,7 @@ private:
     ros::Subscriber taskSubscriber_;
 
     std::unique_ptr<ActionServer> actionServer_;
+    bool block_status_;
 };
 
 
