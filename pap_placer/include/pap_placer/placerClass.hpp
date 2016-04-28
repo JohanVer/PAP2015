@@ -85,8 +85,10 @@ public:
 	~PlaceController();
 
 	dispenseInfos dispenseTask;
+    Offset cameraBottomOffset;
 	// These offsets are relative to camera
 	Offset tip2Offset, tip1Offset, dispenserTipOffset;
+
 	// Current destination coordinates for gotocoord state
 	Offset currentDestination_, lastDestination_;
 	Offset idleCoordinates_;
@@ -98,6 +100,7 @@ public:
 	Offset SLOT_QR_Offset_, PCB_QR_Offset_;
 	Offset TAPE_QR_Offset_, BottomCam_QR_Offset_;
 	Offset CHECKERBOARD_1_Offset_, CHECKERBOARD_2_Offset_;
+
 	Offset camClibrationOffset_;
 	Offset tip1ClibrationOffset_;
 	Offset dispenserCalibrationOffset_;
@@ -105,12 +108,25 @@ public:
 	Offset pickUpAreaOffset;
     Offset pcbOriginOffset;
 
+    // Update offsets based on calibration vision feedback
+    void updateCameraBottomOffset(float update_x, float update_y);
+    void updateTip1Offset(float update_x, float update_y);
+    void updateTip2Offset(float update_x, float update_y);
+    void updatedispenserTipOffset(float update_x, float update_y);
+
+    // Get current offsets (init/calibrated)
+    Offset getBottomCamCoordinates();
+    Offset getTip1Coordinates();
+    Offset getTip2Coordinates();
+    Offset getDispenserCoordinates();
+
+
 	Offset getBoxCoordinates();
 	Offset getCompPickUpCoordinates();
 	Offset getPCBCalibCoordinates();
 	Offset getPCBCompCoordinates();
 	Offset getCompPlaceCoordinates();
-	Offset getBottomCamCoordinates();
+
 	float getCompSuckingHeight();
 	float getCompPlaceHeight();
 	float getComponentLenth();
@@ -124,14 +140,8 @@ public:
 	void setTip2Offset(float xDiff, float yDiff);
 	void setDispenserOffset(float xDiff, float yDiff);
 
-	Offset getTip1Coordinates();
-	Offset getTip2Coordinates();
-	Offset getDispenserCoordinates();
-
-
 
 	void systemCalibration();
-
 	void updatePlacementData(ComponentPlacerData *data);
 	bool getCalibrationStatus();
 	int getBoxNumber();
@@ -145,7 +155,6 @@ private:
 	// These offsets are relative to homing position
 
 	float suckingHeight_, largeBoxHeight_;
-	Offset cameraBottomOffset;
 
 
 	// Correction feedback from vision for pick-up and place

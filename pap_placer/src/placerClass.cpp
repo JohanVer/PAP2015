@@ -86,10 +86,41 @@ PlaceController::PlaceController() {
 	tip = LEFT_TIP;
     finderType = pap_vision::START_CHIP_FINDER;
 	pickRelQR_ = false;
-};
+}
 
 PlaceController::~PlaceController() {
-};
+}
+
+/******************************************************
+* Update offsets based on calibration vision feedback
+******************************************************/
+// absolut
+void PlaceController::updateCameraBottomOffset(float update_x, float update_y) {
+    cameraBottomOffset.x += update_x;
+    cameraBottomOffset.y += update_y;
+}
+
+// relativ to top cam
+void PlaceController::updateTip1Offset(float update_x, float update_y) {
+    tip1Offset.x += update_x;
+    tip1Offset.y += update_y;
+}
+
+// relativ to top cam
+void PlaceController::updateTip2Offset(float update_x, float update_y) {
+    tip2Offset.x += update_x;
+    tip2Offset.y += update_y;
+}
+
+// relativ to top cam
+void PlaceController::updatedispenserTipOffset(float update_x, float update_y) {
+    dispenserTipOffset.x += update_x;
+    dispenserTipOffset.y += update_y;
+}
+
+
+
+
 
 Offset PlaceController::getBoxCoordinates() {
 

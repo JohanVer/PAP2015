@@ -260,9 +260,7 @@ int main(int argc, char **argv) {
                     break;
                 }
 
-                ros::Duration(3).sleep();
-                placeController.camClibrationOffset_.x = 0.0; //needed ??
-                placeController.camClibrationOffset_.y = 0.0; //needed ??
+                ros::Duration(1).sleep();
                 LEDTask(pap_common::SETBOTTOMLED, 0);
 
                 ROS_INFO("Placerstate: CAMERA - Start Vision");
@@ -279,7 +277,7 @@ int main(int argc, char **argv) {
                     break;
                 }
                 ROS_INFO("Placerstate: CAMERA - cameraOffset received");
-                //placeController.updateBottomCamCoordinates(res.data2, res.data1, res.data3);
+                placeController.updateCameraBottomOffset(res.data2, res.data1);
                 /*      res.data1 = -tip.y;
                         res.data2 = tip.x;
                         res.data3 = tip.rot;
@@ -330,7 +328,6 @@ int main(int argc, char **argv) {
                 sendPlacerStatus(pap_common::INFO, pap_common::LEFT_TIP_DOWN);
                 ros::Duration(1).sleep();
 
-                // TODO: Reset calibration offset !!!!!!!!?????????
                 ROS_INFO("Placerstate: TIP1 - Start Vision");
                 if(!vision_send_functions::sendVisionTask(*vision_action_client, pap_vision::START_VISION)) {
                     error_code = VISION_ERROR;
@@ -345,7 +342,7 @@ int main(int argc, char **argv) {
                     break;
                 }
                 ROS_INFO("Placerstate: TIP1 - cameraOffset received");
-                //placeController.updateTip1Coordinates(res.data2, res.data1, res.data3);
+                placeController.updateTip1Offset(res.data2, res.data1);
 
                 LEDTask(pap_common::RESETBOTTOMLED, 0);
                 ROS_INFO("Placerstate: TIP1 - Stop Vision");
@@ -393,8 +390,6 @@ int main(int argc, char **argv) {
                     break;
                 }
 
-                placeController.dispenserTipOffset.x = 0;
-                placeController.dispenserTipOffset.x = 0;
                 ros::Duration(3).sleep();
                 LEDTask(pap_common::SETBOTTOMLED, 0);
 
@@ -412,7 +407,7 @@ int main(int argc, char **argv) {
                     break;
                 }
                 ROS_INFO("Placerstate: DISPENSER - cameraOffset received");
-                //placeController.updateDispenserCoordinates(res.data2, res.data1, res.data3);
+                placeController.updatedispenserTipOffset(res.data2, res.data1);
 
                 LEDTask(pap_common::RESETBOTTOMLED, 0);
                 ROS_INFO("Placerstate: DISPENSER - Stop Vision");
@@ -463,7 +458,6 @@ int main(int argc, char **argv) {
                 ros::Duration(1).sleep();
                 LEDTask(pap_common::SETBOTTOMLED, 0);
 
-                // TODO: Reset calibration offset !!!!!!!!?????????
                 ROS_INFO("Placerstate: TIP2 - Start Vision");
                 if(!vision_send_functions::sendVisionTask(*vision_action_client, pap_vision::START_VISION)) {
                     error_code = VISION_ERROR;
@@ -478,7 +472,7 @@ int main(int argc, char **argv) {
                     break;
                 }
                 ROS_INFO("Placerstate: TIP2 - cameraOffset received");
-                //placeController.updateTip2Coordinates(res.data2, res.data1, res.data3);
+                placeController.updateTip2Offset(res.data2, res.data1);
 
                 LEDTask(pap_common::RESETBOTTOMLED, 0);
                 ROS_INFO("Placerstate: TIP2 - Stop Vision");
