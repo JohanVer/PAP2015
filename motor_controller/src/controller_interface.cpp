@@ -36,6 +36,7 @@ ControllerInterface::ControllerInterface(): as_(nh_, "motor_controller_actions",
     xTimeOutTimer = 0;
     yTimeOutTimer = 0;
     zTimeOutTimer = 0;
+    block_status_ = false;
 }
 
 void ControllerInterface::publishControllerStatus(const ros::Publisher& publisher ,const controllerStatus& c1, const controllerStatus& c2, const controllerStatus& c3){
@@ -56,9 +57,10 @@ bool ControllerInterface::checkStatusController(enum pap_common::MOTOR device_ad
         return false;
     }
 
+    size_t tries = 0;
+
     while(1){
         controllerStatusAct = getFullStatusController(device_address);
-        size_t tries = 0;
 
         if (controllerStatusAct.failed || controllerStatusAct.position == -1){
             ROS_ERROR("Get status of %d axis failed, trying again...",
@@ -156,10 +158,12 @@ bool ControllerInterface::waitForArrival(double timeout){
 void ControllerInterface::execute_action(const pap_common::MotorControllerActionGoalConstPtr& command)
 {
 
+    block_status_ = true;
     int coordError = 0;
     bool cmdExecuted = true;
     switch (command->task) {
     case pap_common::HOMING:
+
         if (!sendHoming()) {
             ROS_ERROR("Error while sending homing command");
         }
@@ -260,16 +264,19 @@ void ControllerInterface::execute_action(const pap_common::MotorControllerAction
         as_.setSucceeded();
 
         break;
-
     }
+
+    block_status_ = false;
 }
 
 void ControllerInterface::parseTask(const pap_common::TaskConstPtr& taskMsg) {
     int coordError = 0;
     bool cmdExecuted = true;
+    std::cerr << "Got command..." << taskMsg->destination << " " << taskMsg->task << std::endl;
+
     switch (taskMsg->destination) {
     case pap_common::CONTROLLER:
-        switch (taskMsg->task) {       
+        switch (taskMsg->task) {
 
         case pap_common::COORD_VEL:
             coordError = gotoCoord(taskMsg->data1, taskMsg->data2,
@@ -332,7 +339,7 @@ void ControllerInterface::parseTask(const pap_common::TaskConstPtr& taskMsg) {
 
 void ControllerInterface::initInterface()
 {
-    taskSubscriber_ = nh_.subscribe("task", 10, &ControllerInterface::parseTask, this);
+    taskSubscriber_ = nh_.subscribe("/task", 100, &ControllerInterface::parseTask, this);
     as_.start();
     statusPublisher = nh_.advertise<pap_common::Status>("status", 1000);
 
@@ -343,16 +350,19 @@ void ControllerInterface::initInterface()
 
 void ControllerInterface::startInterface()
 {
-    ros::Rate loop_rate(10);
+    ros::Rate loop_rate(20);
 
     while (ros::ok()) {
-        if(checkAllControllers(controllerState1, controllerState2, controllerState3)){
-            publishControllerStatus(statusPublisher, controllerState1, controllerState2, controllerState3);
-        }else{
-            //std::cerr << "Checking devices failed...\n";
-        }
-        ros::spinOnce();
         loop_rate.sleep();
+        if(!block_status_){
+            if(checkAllControllers(controllerState1, controllerState2, controllerState3)){
+                publishControllerStatus(statusPublisher, controllerState1, controllerState2, controllerState3);
+            }else{
+                //std::cerr << "Checking devices failed...\n";
+            }
+        }
+        loop_rate.sleep();
+        ros::spinOnce();
     }
 }
 
