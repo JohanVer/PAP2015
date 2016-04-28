@@ -24,6 +24,7 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   pap_common
   motor_controller
+  pcb_cv
 )
 
 ## System dependencies are found with CMake's conventions
