@@ -9,6 +9,7 @@
 #include "pap_common/Status.h"
 #include <pap_common/task_message_def.h>
 #include <pap_common/status_message_def.h>
+#include <pap_common/vision_message_def.h>
 #include <stdio.h>
 #include <cstdio>
 
@@ -91,7 +92,8 @@ public:
 	Offset idleCoordinates_;
 	float MovingHeight_;
 	bool pickRelQR_;
-	int visualFinder;
+    pap_vision::VISION finderType;
+    ComponentPlacerData currentComponent;
 
 	Offset SLOT_QR_Offset_, PCB_QR_Offset_;
 	Offset TAPE_QR_Offset_, BottomCam_QR_Offset_;
@@ -101,6 +103,7 @@ public:
 	Offset dispenserCalibrationOffset_;
 
 	Offset pickUpAreaOffset;
+    Offset pcbOriginOffset;
 
 	Offset getBoxCoordinates();
 	Offset getCompPickUpCoordinates();
@@ -125,6 +128,8 @@ public:
 	Offset getTip2Coordinates();
 	Offset getDispenserCoordinates();
 
+
+
 	void systemCalibration();
 
 	void updatePlacementData(ComponentPlacerData *data);
@@ -132,14 +137,13 @@ public:
 	int getBoxNumber();
 
 private:
-	ComponentPlacerData currentComponent;
 
 	enum TIP {
 		LEFT_TIP, RIGHT_TIP
 	} tip;
 
 	// These offsets are relative to homing position
-	Offset pcbOriginOffset;
+
 	float suckingHeight_, largeBoxHeight_;
 	Offset cameraBottomOffset;
 

@@ -84,7 +84,7 @@ PlaceController::PlaceController() {
 
 	// Default tip/visual finder
 	tip = LEFT_TIP;
-	visualFinder = 2;	//(ChipFinder)
+    finderType = pap_vision::START_CHIP_FINDER;
 	pickRelQR_ = false;
 };
 
@@ -289,11 +289,11 @@ float PlaceController::getComponentWidth() {
 int PlaceController::getBoxNumber() {
 	return currentComponent.box;
 }
-;
+
 
 int PlaceController::selectTip() {
 	return tip;	// Left tip
-};
+}
 
 void PlaceController::updatePlacementData(ComponentPlacerData * data) {
 	currentComponent.box = data->box;
@@ -307,12 +307,12 @@ void PlaceController::updatePlacementData(ComponentPlacerData * data) {
 	currentComponent.tapeY = data->tapeY;
 	currentComponent.tapeRot = data->tapeRot;
 
-	// Select corresponding visual finder
+    // Select corresponding finderType
 	if(currentComponent.box <= 46) {
-		visualFinder = 1;	// SmallFinder
+        finderType = pap_vision::START_SMALL_FINDER;    // SmallFinder
 	} else if (currentComponent.box <= 66) {
-		visualFinder = 2;	// ChipFinder
+        finderType = pap_vision::START_CHIP_FINDER;     // ChipFinder
 	} else {
-		visualFinder = 3;	// TapeFinder
+        finderType = pap_vision::START_TAPE_FINDER;     // TapeFinder
 	}
-};
+}
