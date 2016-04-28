@@ -70,6 +70,7 @@ void LEDTask(int task, int data);
 void resetMotorState(bool x, bool y, bool z);
 void resetMotorState(int index, bool value);
 void checkIfOverThreshold(int numberOfAxis, float zValue);
+bool driveAroundPosition(Offset position, int distance);
 
 ros::Publisher task_publisher, arduino_publisher_, placerStatus_publisher_;
 ros::Subscriber statusSubsriber_;
@@ -512,36 +513,23 @@ int main(int argc, char **argv) {
 
             case CHECKERBOARD: {
 
-                ROS_INFO("PlacerState: CHECKERBOARD");
+                ROS_INFO("PlacerState: CHECKERBOAR 1");
                 Offset checker = placeController.CHECKERBOARD_1_Offset_;
                 ROS_INFO("Go to: x:%f y:%f z:%f", checker.x, checker.y, checker.z);
-                if(!driveToCoord(checker.x, checker.y, checker.z)){
+                if(!driveAroundPosition(checker, 10)){
                     error_code = MOTOR_ERROR;
                     state = ERROR;
                     break;
                 }
 
-                // TODO: Drive around checkerboards - 2 or 3 boards
-                /*if(!driveAround(...)){
-                    error_code = MOTOR_ERROR;
-                    state = ERROR;
-                    break;
-                }*/
-
-                //checker = placeController.CHECKERBOARD_2_Offset_;
+                ROS_INFO("PlacerState: CHECKERBOAR 2");
+                checker = placeController.CHECKERBOARD_2_Offset_;
                 ROS_INFO("Go to: x:%f y:%f z:%f", checker.x, checker.y, checker.z);
-                if(!driveToCoord(checker.x, checker.y, checker.z)){
+                if(!driveAroundPosition(checker, 10)){
                     error_code = MOTOR_ERROR;
                     state = ERROR;
                     break;
                 }
-
-                // TODO: Drive around checkerboards - 2 or 3 boards
-                /*if(!driveAround(...)){
-                    error_code = MOTOR_ERROR;
-                    state = ERROR;
-                    break;
-                }*/
 
                 calibration_state = CAMERA;
                 IDLE_called = true;
@@ -1244,6 +1232,45 @@ int main(int argc, char **argv) {
 /*****************************************************************************
  * General local functions - Implementation
  *****************************************************************************/
+bool driveAroundPosition(Offset position, int distance) {
+
+    if(!driveToCoord(position.x, position.y, position.z)){
+        return false;
+    }
+
+    if(!motor_send_functions::sendMotorControllerAction(*motor_action_client, pap_common::COORD,
+                                  (position.x - (distance/2)), position.y, position.z)){
+        return false;
+    }
+
+    if(!motor_send_functions::sendMotorControllerAction(*motor_action_client, pap_common::COORD,
+                                  (position.x - (distance/2)), (position.y - (distance/2)), position.z)){
+        return false;
+    }
+
+    if(!motor_send_functions::sendMotorControllerAction(*motor_action_client, pap_common::COORD,
+                                  (position.x + (distance/2)), (position.y - (distance/2)), position.z)){
+        return false;
+    }
+
+    if(!motor_send_functions::sendMotorControllerAction(*motor_action_client, pap_common::COORD,
+                                  (position.x + (distance/2)), (position.y + (distance/2)), position.z)){
+        return false;
+    }
+
+    if(!motor_send_functions::sendMotorControllerAction(*motor_action_client, pap_common::COORD,
+                                  (position.x - (distance/2)), (position.y + (distance/2)), position.z)){
+        return false;
+    }
+
+    if(!motor_send_functions::sendMotorControllerAction(*motor_action_client, pap_common::COORD,
+                                  (position.x - (distance/2)), (position.y - (distance/2)), position.z)){
+        return false;
+    }
+    return true;
+}
+
+
 void checkIfOverThreshold(int numberOfAxis, float zValue) {
     if (numberOfAxis == 1) {
         float diffX = fabs(

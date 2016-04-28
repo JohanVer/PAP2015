@@ -66,6 +66,10 @@ PlaceController::PlaceController() {
 	CHECKERBOARD_1_Offset_.y = 80;
 	CHECKERBOARD_1_Offset_.z = pickUpAreaOffset.z;
 
+    CHECKERBOARD_2_Offset_.x = 387;
+    CHECKERBOARD_2_Offset_.y = 55;
+    CHECKERBOARD_2_Offset_.z = pickUpAreaOffset.z;
+
 	// Correction offsets
 	PickUpCorrection.x = 0;
 	PickUpCorrection.y = 0;
