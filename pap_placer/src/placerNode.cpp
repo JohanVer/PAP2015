@@ -561,14 +561,14 @@ int main(int argc, char **argv) {
                 }
 
                 pap_common::VisionResult res;
-                /*if(!vision_send_functions::sendVisionTask(*vision_action_client, pap_common::VISION, pap_vision::START__QRCODE_FINDER, pap_vision::TOP_SLOT, pap_vision::CAMERA_TOP, res, 1)) {
+                if(!vision_send_functions::sendVisionTask(*vision_action_client, pap_vision::START__QRCODE_FINDER, pap_vision::TOP_SLOT, pap_vision::CAMERA_TOP, res, 2)) {
                     error_code = VISION_ERROR;
                     state = ERROR;
                     break;
                 } else {
                     ROS_INFO("Placerstate: SLOT_QR - cameraFeedback received");
                     // TODO: Handle res?
-                }*/
+                }
 
                 ROS_INFO("Placerstate: SLOT_QR - Stop Vision");
                 if(!vision_send_functions::sendVisionTask(*vision_action_client, pap_vision::STOP_VISION)) {
@@ -604,14 +604,14 @@ int main(int argc, char **argv) {
                 }
 
                 pap_common::VisionResult res;
-                /*if(!vision_send_functions::sendVisionTask(*vision_action_client, pap_common::VISION, pap_vision::START__QRCODE_FINDER, pap_vision::TOP_PCB, pap_vision::CAMERA_TOP, res, 1)) {
+                if(!vision_send_functions::sendVisionTask(*vision_action_client, pap_vision::START__QRCODE_FINDER, pap_vision::TOP_PCB, pap_vision::CAMERA_TOP, res, 2)) {
                     error_code = VISION_ERROR;
                     state = ERROR;
                     break;
                 } else {
                     ROS_INFO("Placerstate: PCB_QR - cameraFeedback received");
                     // TODO: Handle res?
-                }*/
+                }
 
                 ROS_INFO("Placerstate: PCB_QR - Stop Vision");
                 if(!vision_send_functions::sendVisionTask(*vision_action_client, pap_vision::STOP_VISION)) {
@@ -650,14 +650,14 @@ int main(int argc, char **argv) {
                 }
 
                 pap_common::VisionResult res;
-               /* if(!vision_send_functions::sendVisionTask(*vision_action_client, pap_common::VISION, pap_vision::START__QRCODE_FINDER, pap_vision::TOP_TAPE, pap_vision::CAMERA_TOP, res, 1)) {
+                if(!vision_send_functions::sendVisionTask(*vision_action_client, pap_vision::START__QRCODE_FINDER, pap_vision::TOP_TAPE, pap_vision::CAMERA_TOP, res, 2)) {
                     error_code = VISION_ERROR;
                     state = ERROR;
                     break;
                 } else {
                     ROS_INFO("Placerstate: TAPE_QR - cameraFeedback received");
                     // TODO: Handle res?
-                }*/
+                }
 
                 ROS_INFO("Placerstate: TAPE_QR - Stop Vision");
                 if(!vision_send_functions::sendVisionTask(*vision_action_client, pap_vision::STOP_VISION)) {
