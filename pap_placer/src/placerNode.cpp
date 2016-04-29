@@ -105,7 +105,7 @@ ComponentPlacerData currentComponent;
 static motor_controller::controllerStatus motorcontrollerStatus[2];
 
 enum QR_CALIBRATION_PROCESS {
-    GOTO_QR, PICKUP_QR, CAM_QR, RELEASE_QR, GOBACKTO_QR, START_QR_VISION
+    GOTO_QR, CAM_QR
 } qr_calibration_state;
 
 enum CALIBRATION_STATE {
@@ -213,8 +213,7 @@ int main(int argc, char **argv) {
     // Run state machine forever
     while (ros::ok()) {
         switch (state) {
-        case IDLE:
-            timeoutValue = 500;
+        case IDLE: {
             if (IDLE_called) {
                 ROS_INFO("PlacerState: IDLE");
                 sendPlacerStatus(pap_common::IDLE_STATE,
@@ -236,8 +235,9 @@ int main(int argc, char **argv) {
                 IDLE_called = false;
             }
             break;
+        }
 
-        case CALIBRATE:
+        case CALIBRATE: {
 
             switch (calibration_state) {
             case CAMERA: {
@@ -670,79 +670,90 @@ int main(int argc, char **argv) {
                 break;
             }
 
-            case BOTTOM_CAM_QR:
+            case BOTTOM_CAM_QR: {
                 switch (qr_calibration_state) {
-                case GOTO_QR:
-                    ROS_INFO("PlacerState: CAM_QR");
-                    placeController.currentDestination_ =
-                            placeController.BottomCam_QR_Offset_;
-                    timeoutValue = 500;
-                    last_state = state;
-                    state = GOTOCOORD;
-                    qr_calibration_state = PICKUP_QR;
-                    break;
-                case PICKUP_QR:
+                case GOTO_QR: {
+                    ROS_INFO("PlacerState: GOTO_QR");
+                    Offset gotoOffset = placeController.BottomCam_QR_Offset_;
+                    ROS_INFO("Go to: x:%f y:%f z:%f", gotoOffset.x, gotoOffset.y, gotoOffset.z);
+
+                    if(!driveToCoord(gotoOffset.x, gotoOffset.y, gotoOffset.z)){
+                        error_code = MOTOR_ERROR;
+                        state = ERROR;
+                        break;
+                    }
+
                     placeController.pickRelQR_ = true;
                     last_qr_state = state;
-                    timeoutValue = 500;
                     state = STARTPICKUP;
                     qr_calibration_state = CAM_QR;
                     break;
-                case CAM_QR:
+                }
+
+                case CAM_QR: {
                     ROS_INFO("PlacerState: CAM_QR");
-                    placeController.currentDestination_ =
-                            placeController.getTip1Coordinates();
-                    placeController.currentDestination_.z += 1.0;
-                    timeoutValue = 500;
-                    last_state = state;
-                    state = GOTOCOORD;
-                    qr_calibration_state = START_QR_VISION;
+                    Offset QROffset = placeController.getTip1Coordinates();
+                    QROffset.z += 1.0;
+                    ROS_INFO("Go to: x:%f y:%f z:%f", QROffset.x, QROffset.y, QROffset.z);
 
-                    break;
+                    if(!driveToCoord(QROffset.x, QROffset.y, QROffset.z)){
+                        error_code = MOTOR_ERROR;
+                        state = ERROR;
+                        break;
+                    }
 
-                case START_QR_VISION:
                     ros::Duration(2.0).sleep();
                     sendRelaisTask(7, true);			// tip 2
-                    sendPlacerStatus(pap_common::INFO,
-                                     pap_common::LEFT_TIP_DOWN);
+                    sendPlacerStatus(pap_common::INFO, pap_common::LEFT_TIP_DOWN);
                     ros::Duration(1).sleep();
-                    cameraFeedbackReceived = false;
                     LEDTask(pap_common::SETBOTTOMLED, 0);
-                    sendTask(pap_common::VISION, pap_vision::START_VISION);
-                    // Start QR Code Finder (Arg1: 4=CAM, Arg2: 1 = camera bottom)
-                    sendTask(pap_common::VISION,
-                             pap_vision::START__QRCODE_FINDER, 4, 1);
-                    qr_calibration_state = GOBACKTO_QR;
-                    break;
-                case GOBACKTO_QR:
-                    if (cameraFeedbackReceived) {
-                        sendRelaisTask(7, false);			// tip 2
-                        sendPlacerStatus(pap_common::INFO,
-                                         pap_common::LEFT_TIP_UP);
-                        LEDTask(pap_common::RESETBOTTOMLED, 0);
-                        sendTask(pap_common::VISION, pap_vision::STOP_VISION);
-                        ROS_INFO("PlacerState: CAM_QR");
-                        placeController.currentDestination_ =
-                                placeController.BottomCam_QR_Offset_;
-                        timeoutValue = 500;
-                        last_state = state;
-                        state = GOTOCOORD;
-                        qr_calibration_state = RELEASE_QR;
-                        cameraFeedbackReceived = false;
+
+                    ROS_INFO("Placerstate: CAM_QR - Start Vision");
+                    if(!vision_send_functions::sendVisionTask(*vision_action_client, pap_vision::START_VISION)) {
+                        error_code = VISION_ERROR;
+                        state = ERROR;
+                        break;
                     }
-                    break;
-                case RELEASE_QR:
+
+                    pap_common::VisionResult res;
+                    if(!vision_send_functions::sendVisionTask(*vision_action_client, pap_vision::START__QRCODE_FINDER, pap_vision::BOTTOM_CAM, pap_vision::CAMERA_BOTTOM, res, 2)) {
+                        error_code = VISION_ERROR;
+                        state = ERROR;
+                        break;
+                    }
+
+                    ROS_INFO("Placerstate: PCB_QR - cameraFeedback received");
+                    // TODO: Handle res?
+
+                    sendRelaisTask(7, false);			// tip 2
+                    sendPlacerStatus(pap_common::INFO, pap_common::LEFT_TIP_UP);
+                    LEDTask(pap_common::RESETBOTTOMLED, 0);
+
+                    ROS_INFO("Placerstate: PCB_QR - Stop Vision");
+                    if(!vision_send_functions::sendVisionTask(*vision_action_client, pap_vision::STOP_VISION)) {
+                        error_code = VISION_ERROR;
+                        state = ERROR;
+                        break;
+                    }
+
+                    QROffset = placeController.BottomCam_QR_Offset_;
+                    ROS_INFO("Go to: x:%f y:%f z:%f", QROffset.x, QROffset.y, QROffset.z);
+                    if(!driveToCoord(QROffset.x, QROffset.y, QROffset.z)){
+                        error_code = MOTOR_ERROR;
+                        state = ERROR;
+                        break;
+                    }
+
                     placeController.pickRelQR_ = true;
-                    timeoutValue = 500;
                     state = PLACECOMPONENT;
-                    calibration_state = SLOT_QR;
                     qr_calibration_state = GOTO_QR;
                     break;
                 }
-
-                break;
+                }
             }
             break;
+            }
+        }
 
         case GOTOPCBORIGIN: {
             ROS_INFO("PlacerState: GOTOPCBORIGIN");
@@ -792,9 +803,10 @@ int main(int argc, char **argv) {
                 break;
             }
 
-            ros::Duration(3).sleep();
+            // TODO: Handle res!
 
-            ROS_INFO("Placerstate: GOTOBOX - Got feedback from vision for chip correction");
+            ros::Duration(3).sleep();
+            ROS_INFO("Placerstate: GOTOBOX - Got feedback from vision");
             vision_send_functions::sendVisionTask(*vision_action_client, pap_vision::STOP_VISION);
 
             state = GOTOPICKUPCOOR;
@@ -804,239 +816,190 @@ int main(int argc, char **argv) {
         case GOTOPICKUPCOOR: {
 
             ROS_INFO("Placerstate: GOTOPICKUPCOOR");
-            if (!positionSend) {
-                placeController.currentDestination_ =
-                        placeController.getCompPickUpCoordinates();
-                ROS_INFO("Go to: x:%f y:%f z:%f",
-                         placeController.currentDestination_.x,
-                         placeController.currentDestination_.y,
-                         placeController.currentDestination_.z);
-                positionSend = true;
-                last_state = state;
-                state = GOTOCOORD;
+            Offset pickupCoord = placeController.getCompPickUpCoordinates();
+            ROS_INFO("Go to: x:%f y:%f z:%f", pickupCoord.x, pickupCoord.y, pickupCoord.z);
+            if(!driveToCoord(pickupCoord.x, pickupCoord.y, pickupCoord.z)){
+                error_code = MOTOR_ERROR;
+                state = ERROR;
+                break;
+            }
+            state = STARTPICKUP;
+            break;
+        }
+
+        case STARTPICKUP: {
+
+            ROS_INFO("PlacerState: STARTPICKUP");
+            sendPlacerStatus(pap_common::STARTPICKUP_STATE,
+                             pap_common::PLACER_ACTIVE);
+            ros::Duration(1).sleep();
+
+            if (placeController.selectTip()) {		// Activate tip
+                sendRelaisTask(3, false);			// tip 1
+                sendRelaisTask(6, true);
+                sendPlacerStatus(pap_common::INFO,
+                                 pap_common::RIGHT_TIP_DOWN);
             } else {
-                positionSend = false;
-                //IDLE_called = true;
-                state = STARTPICKUP; //IDLE;
+                sendRelaisTask(7, true);			// tip 2
+                sendPlacerStatus(pap_common::INFO,
+                                 pap_common::LEFT_TIP_DOWN);
+            }
+            ros::Duration(1).sleep();
+
+            Offset suckCoord = placeController.getCompPickUpCoordinates();
+            suckCoord.z = placeController.getCompSuckingHeight();
+            ROS_INFO("Go to: x:%f y:%f z:%f", suckCoord.x, suckCoord.y, suckCoord.z);
+
+            if(!driveToCoord(suckCoord.x, suckCoord.y, suckCoord.z)){
+                error_code = MOTOR_ERROR;
+                state = ERROR;
+                break;
+            }
+
+            sendRelaisTask(1, false);			// Turn on vacuum
+            sendRelaisTask(2, true);
+            if (placeController.selectTip()) {
+                sendRelaisTask(5, true);		// Tip 1
+            } else {
+                sendRelaisTask(4, true);		// Tip 2
+            }
+            ros::Duration(1).sleep();
+
+            if (placeController.selectTip()) {		// Release tip
+                sendRelaisTask(6, false);
+                sendRelaisTask(3, true);			// Tip 1
+                sendPlacerStatus(pap_common::INFO,
+                                 pap_common::RIGHT_TIP_UP);
+            } else {
+                sendRelaisTask(7, false);			// Tip 2
+                sendPlacerStatus(pap_common::INFO, pap_common::LEFT_TIP_UP);
+            }
+            ros::Duration(1).sleep();
+
+            if (!placeController.pickRelQR_) {
+                int rotation = (int) placeController.getCompPickUpCoordinates().rot;
+                //sendStepperTask((placeController.selectTip() + 1),
+                //		rotation);	// Turn component
+                ROS_INFO("Placer - Rotation: rot:%d", rotation);
+                ros::Duration(1).sleep();
+                state = GOTOPLACECOORD;
+            } else {
+                placeController.pickRelQR_ = false;
+                state = last_qr_state;
             }
             break;
         }
-        case DISPENSETASK:
-            if (!positionSend) {
-                placeController.currentDestination_.x =
-                        placeController.dispenseTask.xPos;
-                placeController.currentDestination_.y =
-                        placeController.dispenseTask.yPos;
-                placeController.currentDestination_.z = DISPENSER_HEIGHT;
-                positionSend = true;
-                last_state = state;
-                state = GOTOCOORD;
-            } else if (!dispensed) {
-                last_state = state;
-                state = DISPENSE;
-                dispensed = true;
+
+        case GOTOBOTTOMCAM: {
+
+            ROS_INFO("PlacerState: GOTOBOTTOMCAM");
+            Offset botCam = placeController.getBottomCamCoordinates();
+            ROS_INFO("Go to: x:%f y:%f z:%f", botCam.x, botCam.y, botCam.z);
+
+            if(!driveToCoord(botCam.x, botCam.y, botCam.z)){
+                error_code = MOTOR_ERROR;
+                state = ERROR;
+                break;
+            }
+
+            ROS_INFO("Placerstate: GOTOBOTTOMCAM - Vision started");
+            vision_send_functions::sendVisionTask(*vision_action_client, pap_vision::START_VISION);
+            float length = placeController.getComponentLenth();
+            float width = placeController.getComponentWidth();
+
+            /*sendTask(pap_common::VISION,						// Start appropriate vision here!
+             pap_vision::CHIP_BOTTOM, width, length,
+             0);*/
+
+            ROS_INFO("Placerstate: GOTOBOTTOMCAM - Got feedback from vision");
+            vision_send_functions::sendVisionTask(*vision_action_client, pap_vision::STOP_VISION);
+            state = GOTOPLACECOORD;
+            break;
+        }
+
+        case GOTOPLACECOORD: {
+
+            ROS_INFO("Placerstate: GOTOPLACECOORD");
+            sendPlacerStatus(pap_common::GOTOPCBCOMP_STATE, pap_common::PLACER_ACTIVE);
+            Offset placeCoord = placeController.getCompPlaceCoordinates();
+            ROS_INFO("Go to: x:%f y:%f z:%f", placeCoord.x, placeCoord.y, placeCoord.z);
+            if(!driveToCoord(placeCoord.x, placeCoord.y, placeCoord.z)){
+                error_code = MOTOR_ERROR;
+                state = ERROR;
+                break;
+            }
+            state = PLACECOMPONENT;
+            break;
+        }
+
+        case PLACECOMPONENT: {
+
+            ROS_INFO("PlacerState: PLACECOMPONENT");
+            sendPlacerStatus(pap_common::PLACECOMPONENT_STATE,
+                             pap_common::PLACER_ACTIVE);
+
+            if (placeController.selectTip()) {
+                sendRelaisTask(3, false);	// Activate left cylinder
+                sendRelaisTask(6, true);
+                sendPlacerStatus(pap_common::INFO,
+                                 pap_common::RIGHT_TIP_DOWN);
             } else {
-                dispensed = false;
-                positionSend = false;
+                sendRelaisTask(7, true);	// Activate right cylinder
+                sendPlacerStatus(pap_common::INFO,
+                                 pap_common::LEFT_TIP_DOWN);
+            }
+            ros::Duration(1).sleep();
+
+            Offset placeCoord = placeController.getCompPlaceCoordinates();
+            placeCoord.z = placeController.getCompPlaceHeight();
+            ROS_INFO("Go to: x:%f y:%f z:%f", placeCoord.x, placeCoord.y, placeCoord.z);
+
+            if(!driveToCoord(placeCoord.x, placeCoord.y, placeCoord.z)){
+                error_code = MOTOR_ERROR;
+                state = ERROR;
+                break;
+            }
+
+            sendRelaisTask(2, false);		// Turn off vacuum
+            sendRelaisTask(1, true);
+            if (placeController.selectTip()) {
+                sendRelaisTask(5, false);	// Tip 1
+            } else {
+                sendRelaisTask(4, false);	// Tip 2
+            }
+            ros::Duration(1).sleep();
+
+            if (placeController.selectTip()) {		// Release tip
+                sendRelaisTask(6, false);
+                sendRelaisTask(3, true);			// Tip 1
+                sendPlacerStatus(pap_common::INFO,
+                                 pap_common::RIGHT_TIP_UP);
+            } else {
+                sendRelaisTask(7, false);			// Tip 2
+                sendPlacerStatus(pap_common::INFO, pap_common::LEFT_TIP_UP);
+            }
+            ros::Duration(1).sleep();
+
+            if (placeController.pickRelQR_) {
+                placeController.pickRelQR_ = false;
+            }
+
+            // Distinguish single/complete placement
+            if (completePlacement) {
+                // Go to idle and wait for next component infos
                 IDLE_called = true;
                 state = IDLE;
-            }
-            break;
-
-        case STARTPICKUP:
-            if (!positionSend) {
-                ROS_INFO("PlacerState: STARTPICKUP");
-                sendPlacerStatus(pap_common::STARTPICKUP_STATE,
-                                 pap_common::PLACER_ACTIVE);
-                ros::Duration(1).sleep();
-
-                if (placeController.selectTip()) {		// Activate tip
-                    sendRelaisTask(3, false);			// tip 1
-                    sendRelaisTask(6, true);
-                    sendPlacerStatus(pap_common::INFO,
-                                     pap_common::RIGHT_TIP_DOWN);
-                } else {
-                    sendRelaisTask(7, true);			// tip 2
-                    sendPlacerStatus(pap_common::INFO,
-                                     pap_common::LEFT_TIP_DOWN);
-                }
-                ros::Duration(1).sleep();
-
-                placeController.currentDestination_.z =
-                        placeController.getCompSuckingHeight();
-                ROS_INFO("Go to: x:%f y:%f z:%f",
-                         placeController.currentDestination_.x,
-                         placeController.currentDestination_.y,
-                         placeController.currentDestination_.z);
-                positionSend = true;
-                last_state = state;
-                state = GOTOCOORD;
             } else {
-                sendRelaisTask(1, false);				// Turn on vacuum
-                sendRelaisTask(2, true);
-                if (placeController.selectTip()) {	// Turn on vacuum
-                    sendRelaisTask(5, true);		// Tip 1
-                } else {
-                    sendRelaisTask(4, true);		// Tip 2
-                }
-                ros::Duration(1).sleep();
-
-                if (placeController.selectTip()) {		// Release tip
-                    sendRelaisTask(6, false);
-                    sendRelaisTask(3, true);			// Tip 1
-                    sendPlacerStatus(pap_common::INFO,
-                                     pap_common::RIGHT_TIP_UP);
-                } else {
-                    sendRelaisTask(7, false);			// Tip 2
-                    sendPlacerStatus(pap_common::INFO, pap_common::LEFT_TIP_UP);
-                }
-                ros::Duration(1).sleep();
-                if (!placeController.pickRelQR_) {
-                    int rotation =
-                            (int) placeController.getCompPickUpCoordinates().rot;
-                    //sendStepperTask((placeController.selectTip() + 1),
-                    //		rotation);	// Turn component
-                    ROS_INFO("Placer - Rotation: rot:%d", rotation);
-                    ros::Duration(1).sleep();
-                    //IDLE_called = true;
-                    state = GOTOPLACECOORD; //GOTOPLACECOORD;
-                } else {
-                    placeController.pickRelQR_ = false;
-                    state = last_qr_state;
-                }
-                positionSend = false;
-
+                state = HOMING;
             }
+
+            // Indicates placement finished & if complPlacement gui sends new data and restarts process
+            sendPlacerStatus(pap_common::PLACECOMPONENT_STATE,
+                             pap_common::PLACER_FINISHED);
             break;
+        }
 
-        case GOTOBOTTOMCAM:
-
-            if (!positionSend) {
-                placeController.currentDestination_ =
-                        placeController.getBottomCamCoordinates();
-                ROS_INFO("PlacerState: GOTOBOTTOMCAM");
-                ROS_INFO("Go to: x:%f y:%f z:%f",
-                         placeController.currentDestination_.x,
-                         placeController.currentDestination_.y,
-                         placeController.currentDestination_.z);
-                positionSend = true;
-                last_state = state;
-                state = GOTOCOORD;
-            } else {
-                if (!visionStarted) {
-                    ROS_INFO("PlacerState: CHECKCOMPONENTPICKUP");
-                    sendTask(pap_common::VISION, pap_vision::START_VISION);
-                    float length = placeController.getComponentLenth();
-                    float width = placeController.getComponentWidth();
-                    /*sendTask(pap_common::VISION,						// Start appropriate vision here!
-                     pap_vision::CHIP_BOTTOM, width, length,
-                     0);*/
-                    visionStarted = true;
-                    ros::Duration(3).sleep();
-                }
-
-                if (cameraFeedbackReceived) {
-                    sendTask(pap_common::VISION, pap_vision::STOP_VISION);
-                    cameraFeedbackReceived = false;
-                    positionSend = false;
-                    visionStarted = false;
-                    IDLE_called = true;
-                    state = IDLE;
-                }
-            }
-            break;
-
-        case GOTOPLACECOORD:
-            if (!positionSend) {
-                ROS_INFO("PlacerState: GOTOPLACECOORD");
-                sendPlacerStatus(pap_common::GOTOPCBCOMP_STATE,
-                                 pap_common::PLACER_ACTIVE);
-                placeController.currentDestination_ =
-                        placeController.getCompPlaceCoordinates();
-                ROS_INFO("Go to: x:%f y:%f z:%f",
-                         placeController.currentDestination_.x,
-                         placeController.currentDestination_.y,
-                         placeController.currentDestination_.z);
-                positionSend = true;
-                last_state = state;
-                state = GOTOCOORD;
-            } else {
-                positionSend = false;
-                //IDLE_called = true;
-                //state = IDLE;
-                state = PLACECOMPONENT;
-            }
-            break;
-
-        case PLACECOMPONENT:
-            if (!positionSend) {
-                ROS_INFO("PlacerState: PLACECOMPONENT");
-                sendPlacerStatus(pap_common::PLACECOMPONENT_STATE,
-                                 pap_common::PLACER_ACTIVE);
-
-                if (placeController.selectTip()) {
-                    sendRelaisTask(3, false);	// Activate left cylinder
-                    sendRelaisTask(6, true);
-                    sendPlacerStatus(pap_common::INFO,
-                                     pap_common::RIGHT_TIP_DOWN);
-                } else {
-                    sendRelaisTask(7, true);	// Activate right cylinder
-                    sendPlacerStatus(pap_common::INFO,
-                                     pap_common::LEFT_TIP_DOWN);
-                }
-                ros::Duration(1).sleep();
-
-                placeController.currentDestination_.z =
-                        placeController.getCompPlaceHeight();
-                ROS_INFO("PlacerState: GOTORELEASECOORD");
-                ROS_INFO("Go to: x:%f y:%f z:%f",
-                         placeController.currentDestination_.x,
-                         placeController.currentDestination_.y,
-                         placeController.currentDestination_.z);
-                positionSend = true;
-                last_state = state;
-                state = GOTOCOORD;
-            } else {
-                sendRelaisTask(2, false);		// Turn off vacuum
-                sendRelaisTask(1, true);
-                if (placeController.selectTip()) {
-                    sendRelaisTask(5, false);	// Tip 1
-                } else {
-                    sendRelaisTask(4, false);	// Tip 2
-                }
-                ros::Duration(1).sleep();
-
-                if (placeController.selectTip()) {		// Release tip
-                    sendRelaisTask(6, false);
-                    sendRelaisTask(3, true);			// Tip 1
-                    sendPlacerStatus(pap_common::INFO,
-                                     pap_common::RIGHT_TIP_UP);
-                } else {
-                    sendRelaisTask(7, false);			// Tip 2
-                    sendPlacerStatus(pap_common::INFO, pap_common::LEFT_TIP_UP);
-                }
-                ros::Duration(1).sleep();
-                positionSend = false;
-                if (placeController.pickRelQR_) {
-                    placeController.pickRelQR_ = false;
-                }
-
-                // Distinguish single/complete placement
-                if (completePlacement) {
-                    // Go to idle and wait for next component infos
-                    IDLE_called = true;
-                    state = IDLE;
-                } else {
-                    state = HOMING;
-                }
-
-                // Indicates placement finished & if complPlacement gui send new data and restarts process
-                sendPlacerStatus(pap_common::PLACECOMPONENT_STATE,
-                                 pap_common::PLACER_FINISHED);
-            }
-            break;
-
-        case HOMING:
+        case HOMING: {
 
             sendPlacerStatus(pap_common::IDLE_STATE,
                              pap_common::PLACER_IDLE);
@@ -1071,118 +1034,76 @@ int main(int argc, char **argv) {
             motor_send_functions::sendMotorControllerAction(*motor_action_client, pap_common::HOMING);
             IDLE_called = true;
             state = IDLE;
-
             break;
+        }
 
-        case GOTOCOORD:
-
+        case GOTOCOORD: {
 
             if(!driveToCoord(placeController.idleCoordinates_.x, placeController.idleCoordinates_.y, placeController.idleCoordinates_.z)){
                 error_code = MOTOR_ERROR;
                 state = ERROR;
                 break;
             }
-
-
-            if(!motor_send_functions::sendMotorControllerAction(*motor_action_client, pap_common::COORD,
-                                          placeController.lastDestination_.x,
-                                          placeController.lastDestination_.y,
-                                          placeController.MovingHeight_)){
-                error_code = MOTOR_ERROR;
-                state = ERROR;
-                break;
-            }
-
-            if(!motor_send_functions::sendMotorControllerAction(*motor_action_client, pap_common::COORD,
-                                          placeController.currentDestination_.x,
-                                          placeController.currentDestination_.y,
-                                          placeController.MovingHeight_)){
-                error_code = MOTOR_ERROR;
-                state = ERROR;
-                break;
-            }
-
-            if(!motor_send_functions::sendMotorControllerAction(*motor_action_client, pap_common::COORD,
-                                          placeController.currentDestination_.x,
-                                          placeController.currentDestination_.y,
-                                          placeController.currentDestination_.z)){
-                error_code = MOTOR_ERROR;
-                state = ERROR;
-                break;
-            }
-
             state = last_state;
             placerNodeBusy = false;
-
             break;
+        }
 
-        case DISPENSE:
-            if (!placerNodeBusy) {
+        case DISPENSETASK: {
 
-                // Turn on dispenser
-                sendRelaisTask(8, true);
-                ros::Duration(placeController.dispenseTask.time).sleep();
-                float diffX = fabs(
-                            placeController.lastDestination_.x
-                            - placeController.dispenseTask.xPos2);
-                float diffY = fabs(
-                            placeController.lastDestination_.y
-                            - placeController.dispenseTask.yPos2);
-
-                if (diffX > DISPENSER_TOLERANCE) {
-                    resetMotorState(1, false);
-                }
-
-                if (diffY > DISPENSER_TOLERANCE) {
-                    resetMotorState(2, false);
-                }
-
-                sendTask(pap_common::CONTROLLER, pap_common::COORD_VEL,
-                         placeController.dispenseTask.xPos2,
-                         placeController.dispenseTask.yPos2, DISPENSER_HEIGHT,
-                         placeController.dispenseTask.velocity,
-                         placeController.dispenseTask.velocity);
-                //ros::Duration(0.3).sleep();
-                ROS_INFO("PlacerState: GOTOCOORD: x=%f y=%f z=%f",
-                         placeController.dispenseTask.xPos2,
-                         placeController.dispenseTask.yPos2, DISPENSER_HEIGHT);
-                motorcontroller_counter = 0;
-                placerNodeBusy = true;
-            }
-
-            if (motorcontrollerStatus[0].positionReached
-                    && motorcontrollerStatus[1].positionReached
-                    && motorcontrollerStatus[2].positionReached
-                    && placerNodeBusy) {
-                // Turn off dispenser
-                sendRelaisTask(8, false);
-                placerNodeBusy = false;
-                state = last_state;
-                break;
-
-            } else if (motorcontrollerStatus[0].error
-                       || motorcontrollerStatus[1].error
-                       || motorcontrollerStatus[2].error) {
+            Offset dispCoord;
+            dispCoord.x = placeController.dispenseTask.xPos;
+            dispCoord.y = placeController.dispenseTask.yPos;
+            dispCoord.z = DISPENSER_HEIGHT;
+            ROS_INFO("Go to: x:%f y:%f z:%f", dispCoord.x, dispCoord.y, dispCoord.z);
+            if(!driveToCoord(dispCoord.x, dispCoord.y, dispCoord.z)){
                 error_code = MOTOR_ERROR;
                 state = ERROR;
                 break;
-
-            } else if (motorcontrollerStatus[0].failed
-                       || motorcontrollerStatus[1].failed
-                       || motorcontrollerStatus[2].failed) {
-                error_code = MOTOR_FAILED;
-                state = ERROR;
-                break;
-
-            } else if (motorcontroller_counter == MOTORCONTROLLER_TIMEOUT) {
-                error_code = MOTOR_TIMEOUT;
-                state = ERROR;
-                break;
-            } else {
-                motorcontroller_counter++;
-                break;
             }
+
+            state = DISPENSE;
             break;
+        }
+
+        case DISPENSE: {
+
+            // Turn on dispenser
+            sendRelaisTask(8, true);
+            ros::Duration(placeController.dispenseTask.time).sleep();
+            float diffX = fabs(
+                        placeController.lastDestination_.x
+                        - placeController.dispenseTask.xPos2);
+            float diffY = fabs(
+                        placeController.lastDestination_.y
+                        - placeController.dispenseTask.yPos2);
+
+            if (diffX > DISPENSER_TOLERANCE) {
+                resetMotorState(1, false);
+            }
+
+            if (diffY > DISPENSER_TOLERANCE) {
+                resetMotorState(2, false);
+            }
+
+            ROS_INFO("PlacerState: GOTOCOORD: x=%f y=%f z=%f",
+                     placeController.dispenseTask.xPos2,
+                     placeController.dispenseTask.yPos2, DISPENSER_HEIGHT);
+
+            // TODO: Check sendTask
+            sendTask(pap_common::CONTROLLER, pap_common::COORD_VEL,
+                     placeController.dispenseTask.xPos2,
+                     placeController.dispenseTask.yPos2, DISPENSER_HEIGHT,
+                     placeController.dispenseTask.velocity,
+                     placeController.dispenseTask.velocity);
+
+            // Turn off dispenser
+            sendRelaisTask(8, false);
+            placerNodeBusy = false;
+
+            state = HOMING; //(last_state;)
+            break;
+        }
 
         case ERROR:
             // Stop and publish error code
