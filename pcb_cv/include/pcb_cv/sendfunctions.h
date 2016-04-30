@@ -12,8 +12,7 @@ typedef actionlib::SimpleActionClient<pap_common::VisionAction> Client;
 
 bool sendVisionTask(Client &action_client, enum pap_vision::VISION task);
 bool sendVisionTask(Client &action_client, enum pap_vision::VISION task, pap_vision::CAMERA_SELECT camera_select, const double &x, const double &y, const double &z, pap_common::VisionResult &res, size_t num_averages = 1);
-bool sendVisionTask(Client &action_client, enum pap_vision::VISION task, int type, int camera, pap_common::VisionResult &res, size_t num_averages = 1);
-
+bool sendVisionTask(Client &action_client, enum pap_vision::VISION task,enum pap_vision::VISION_QR_CALIBRATION  type, enum pap_vision::CAMERA_SELECT camera, pap_common::VisionResult &res, size_t num_averages = 1);
 }
 
 #endif // VISION_SENDFUNCTIONS_H
