@@ -102,7 +102,7 @@ find_package( OpenCV REQUIRED )
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
   INCLUDE_DIRS include
-  LIBRARIES pcb_cv zbar
+  LIBRARIES pcb_cv
   CATKIN_DEPENDS roscpp rospy std_msgs image_transport cv_bridge sensor_msgs tf pap_common
   DEPENDS system_lib
 )
@@ -120,7 +120,7 @@ add_library(pcb_cv
    src/padFinder.cpp
    src/sendfunctions.cpp
  )
-target_link_libraries ( pcb_cv ${OpenCV_LIBRARIES} ${catkin_LIBRARIES} )
+target_link_libraries ( pcb_cv zbar ${OpenCV_LIBRARIES} ${catkin_LIBRARIES} )
 
 ## Declare a cpp executable
 # add_executable(pcb_cv_node src/pcb_cv_node.cpp)
@@ -128,7 +128,7 @@ file(GLOB_RECURSE INCLUDE_GLOBAL_HEADERS ${PROJECT_SOURCE_DIR} *.h *.hpp)
 include_directories(  ${catkin_INCLUDE_DIRS}  ${OpenCV_INCLUDE_DIRS}  include )
 
 add_executable(displayImage src/displayImage.cpp ${INCLUDE_GLOBAL_HEADERS})
-target_link_libraries ( displayImage pcb_cv zbar ${OpenCV_LIBRARIES} ${catkin_LIBRARIES} )
+target_link_libraries ( displayImage pcb_cv ${OpenCV_LIBRARIES} ${catkin_LIBRARIES} )
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes
 # add_dependencies(pcb_cv_node pcb_cv_generate_messages_cpp)

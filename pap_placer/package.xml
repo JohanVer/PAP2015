@@ -49,6 +49,7 @@
   <depend>cv_bridge</depend>
   <depend>qt_build</depend>
   <depend>motor_controller</depend>
+  <depend>pcb_cv</depend>
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>
