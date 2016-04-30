@@ -132,7 +132,7 @@ public:
 	float getComponentLenth();
 	float getComponentWidth();
 
-	int selectTip();
+    int getTip();
 	void setPickUpCorrectionOffset(float xDiff, float yDiff, float rotDiff);
 	void setPlaceCorrectionOffset(float xDiff, float yDiff, float rotDiff);
 	void setBottomCamCorrectionOffset(float xDiff, float yDiff);

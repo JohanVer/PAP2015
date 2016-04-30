@@ -426,7 +426,8 @@ void SlotSelectorDialog::on_autoSlotSelectButton_clicked() {
 		int compNumber = missingPartList.at(part_index).count;
 		float totCompArea = length * width * compNumber;
 		/* First try: Small boxes */
-		if (totCompArea < safetyFactor * 1.00) {
+        ROS_ERROR("CompArea: %f", totCompArea);
+        if (totCompArea < safetyFactor * 100.00) {
 			for (size_t i = 0; i < 47; i++) {
 				if(usedSlots_[i] == false){
 					setSlot(part_index, i);
@@ -435,7 +436,7 @@ void SlotSelectorDialog::on_autoSlotSelectButton_clicked() {
 			}
 
 		/* Second try: Middle boxes */
-		} else if (totCompArea < safetyFactor * 2.25) {
+        } else if (totCompArea < safetyFactor * 225.00) {
 			for (size_t i = 47; i < 59; i++) {
 				if(usedSlots_[i] == false){
 					setSlot(part_index, i);
@@ -444,7 +445,7 @@ void SlotSelectorDialog::on_autoSlotSelectButton_clicked() {
 			}
 
 		/* Third try: Large boxes */
-		} else if (totCompArea < safetyFactor * 4.00){
+        } else if (totCompArea < safetyFactor * 400.00){
 			for (size_t i = 59; i < 67; i++) {
 				if(usedSlots_[i] == false){
 					setSlot(part_index, i);
@@ -460,7 +461,7 @@ void SlotSelectorDialog::on_autoSlotSelectButton_clicked() {
 	if(!allFound){
 		updateMissingPartList();
 		QMessageBox msgBox;
-		msgBox.setText("There parts left that don't fit into any slot!");
+        msgBox.setText("There are parts left that don't fit into any slot!");
 		msgBox.exec();
 		msgBox.close();
 	} else {
