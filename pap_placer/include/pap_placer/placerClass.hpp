@@ -112,6 +112,8 @@ public:
 	Offset pickUpAreaOffset;
     Offset pcbOriginOffset;
 
+    float suckingHeight_, largeBoxHeight_;
+
     // Update offsets based on calibration vision feedback
     void updateCameraBottomOffset(float update_x, float update_y);
     void updateTip1Offset(float update_x, float update_y);
@@ -153,11 +155,6 @@ public:
 private:
 
     TIP tip;
-
-	// These offsets are relative to homing position
-
-	float suckingHeight_, largeBoxHeight_;
-
 
 	// Correction feedback from vision for pick-up and place
 	Offset PickUpCorrection, PlaceCorrection;

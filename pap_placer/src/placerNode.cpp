@@ -44,6 +44,11 @@ void sendPlacerStatus(pap_common::PROCESS process,
 
 void sendPlacerInfo(int state);
 
+
+// Placer functions
+bool pickUp(double height);
+bool placeComp(double height);
+
 /* General local functions */
 void switchDispenser(bool activate);
 void switchVacuum(bool activate);
@@ -51,6 +56,7 @@ void forwardVacuum(enum TIP tip_select, bool activate);
 void moveTip(enum TIP tip_select, bool down);
 bool driveAroundPosition(Offset position, int distance);
 bool driveToCoord(const double &x, const double &y, const double &z);
+void processAllStatusCallbacks();
 
 ros::Publisher task_publisher, arduino_publisher_, placerStatus_publisher_;
 ros::Subscriber statusSubsriber_;
@@ -133,7 +139,7 @@ int main(int argc, char **argv) {
 
     ros::NodeHandle n_;
     task_publisher = n_.advertise<pap_common::Task>("task", 1000);
-    placerStatus_publisher_ = n_.advertise<pap_common::PlacerStatus>("placerStatus", 1000);
+    placerStatus_publisher_ = n_.advertise<pap_common::PlacerStatus>("placerStatus", 100);
     statusSubsriber_ = n_.subscribe("status", 100, &statusCallback);
     placerTaskSubscriber_ = n_.subscribe("task", 10, &placerCallback);
     dispenserTaskSubscriber_ = n_.subscribe("dispenseTask", 10, &dispenserCallback);
@@ -512,15 +518,14 @@ int main(int argc, char **argv) {
                         break;
                     }
 
-                    placeController.pickRelQR_ = true;
-                    last_qr_state = state;
-                    state = STARTPICKUP;
+                    pickUp(placeController.largeBoxHeight_+1);
                     qr_calibration_state = CAM_QR;
                 }
                     break;
 
                 case CAM_QR: {
                     ROS_INFO("PlacerState: CAM_QR");
+                    std::cerr << "Goto tip1\n";
                     Offset QROffset = placeController.getTip1Coordinates();
                     QROffset.z += 1.0;
                     ROS_INFO("Go to: x:%f y:%f z:%f", QROffset.x, QROffset.y, QROffset.z);
@@ -558,8 +563,9 @@ int main(int argc, char **argv) {
                         break;
                     }
 
-                    placeController.pickRelQR_ = true;
-                    state = PLACECOMPONENT;
+                    placeComp(placeController.largeBoxHeight_+1);
+                    IDLE_called = true;
+                    state = IDLE;
                     qr_calibration_state = GOTO_QR;
                 }
                     break;
@@ -917,6 +923,86 @@ int main(int argc, char **argv) {
     return 0;
 }
 
+
+bool pickUp(double height){
+    processAllStatusCallbacks();
+    ROS_INFO("PlacerState: STARTPICKUP");
+    sendPlacerStatus(pap_common::STARTPICKUP_STATE,
+                     pap_common::PLACER_ACTIVE);
+    ros::Duration(1).sleep();
+
+    if (placeController.getTip()) {		// Activate tip
+        moveTip(TIP::RIGHT_TIP, true);
+    } else {
+        moveTip(TIP::LEFT_TIP, true);
+    }
+    ros::Duration(1).sleep();
+
+    if(!driveToCoord(placeController.lastDestination_.x, placeController.lastDestination_.y, height)){
+       return false;
+    }
+
+    switchVacuum(true);
+
+    if (placeController.getTip()) {
+        forwardVacuum(TIP::RIGHT_TIP, true);
+    } else {
+        forwardVacuum(TIP::LEFT_TIP, true);
+    }
+
+    ros::Duration(1).sleep();
+
+    if (placeController.getTip()) {		// Release tip
+        moveTip(TIP::RIGHT_TIP, false);
+    } else {
+        moveTip(TIP::LEFT_TIP, false);
+    }
+    ros::Duration(1).sleep();
+
+    return true;
+}
+
+bool placeComp(double height){
+    processAllStatusCallbacks();
+
+    sendPlacerStatus(pap_common::PLACECOMPONENT_STATE,
+                     pap_common::PLACER_ACTIVE);
+
+    if (placeController.getTip()) {  // Activate cylinder
+        moveTip(TIP::RIGHT_TIP, true);
+    } else {
+        moveTip(TIP::LEFT_TIP, true);
+    }
+    ros::Duration(1).sleep();
+
+    if(!driveToCoord(placeController.lastDestination_.x, placeController.lastDestination_.y, height)){
+       return false;
+    }
+
+    switchVacuum(false);
+
+    if (placeController.getTip()) {
+        forwardVacuum(TIP::RIGHT_TIP, false);
+    } else {
+        forwardVacuum(TIP::LEFT_TIP, false);
+    }
+    ros::Duration(1).sleep();
+
+    if (placeController.getTip()) {		// Release tip
+        moveTip(TIP::RIGHT_TIP, false);
+    } else {
+        moveTip(TIP::LEFT_TIP, false);
+    }
+
+    ros::Duration(1).sleep();
+
+    // Indicates placement finished & if complPlacement gui sends new data and restarts process
+    sendPlacerStatus(pap_common::PLACECOMPONENT_STATE,
+                     pap_common::PLACER_FINISHED);
+
+    return true;
+}
+
 /*****************************************************************************
  * General local functions - Implementation
  *****************************************************************************/
@@ -1036,6 +1122,7 @@ bool driveAroundPosition(Offset position, int distance) {
 }
 
 bool driveToCoord(const double &x, const double &y, const double &z){
+    processAllStatusCallbacks();
     if(!motor_send_functions::sendMotorControllerAction(*motor_action_client, pap_common::COORD,
                                                         placeController.lastDestination_.x,
                                                         placeController.lastDestination_.y,
@@ -1060,6 +1147,12 @@ bool driveToCoord(const double &x, const double &y, const double &z){
     return true;
 }
 
+void processAllStatusCallbacks(){
+    for(size_t i = 0; i < 100; i++){
+        ros::spinOnce();
+    }
+}
+
 /*****************************************************************************
  * Callback functions - Implementation
  *****************************************************************************/
@@ -1073,8 +1166,6 @@ void statusCallback(const pap_common::StatusConstPtr& statusMsg) {
     motorcontrollerStatus[1].error = statusMsg->error[1];
     motorcontrollerStatus[2].error = statusMsg->error[2];
 
-
-
     motorcontrollerStatus[0].positionReached = statusMsg->reached[0];
     motorcontrollerStatus[1].positionReached = statusMsg->reached[1];
     motorcontrollerStatus[2].positionReached = statusMsg->reached[2];
@@ -1082,7 +1173,6 @@ void statusCallback(const pap_common::StatusConstPtr& statusMsg) {
     motorcontrollerStatus[0].position = statusMsg->pos[0];
     motorcontrollerStatus[1].position = statusMsg->pos[1];
     motorcontrollerStatus[2].position = statusMsg->pos[2];
-
 
     if (statusMsg->pos[0] != 0.0) {
         placeController.lastDestination_.x = fabs(statusMsg->pos[0]);

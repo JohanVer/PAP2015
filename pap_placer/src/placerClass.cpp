@@ -25,7 +25,7 @@ PlaceController::PlaceController() {
 
 	// Height for sucking a component (normal chip, not a tape)
 	suckingHeight_ = 20.2;
-	largeBoxHeight_ = 18.2;
+    largeBoxHeight_ = 18.2;
 
     // Absolut offests
 	pcbOriginOffset.x = 300;
@@ -41,10 +41,10 @@ PlaceController::PlaceController() {
     //Relative offsets to camera
 	tip2Offset.x = -94.08;
 	tip2Offset.y = 64.709;
-	tip2Offset.z = 45+15-10;
+    tip2Offset.z = 50;
     tip1Offset.x = -95;
     tip1Offset.y = 0;
-	tip1Offset.z = 45+15-10;
+    tip1Offset.z = 50;
 	dispenserTipOffset.x = -53.42;
 	dispenserTipOffset.y = 37.89;
 	dispenserTipOffset.z = 49-10;
