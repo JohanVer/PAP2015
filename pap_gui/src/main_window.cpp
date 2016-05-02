@@ -2644,3 +2644,13 @@ void pap_gui::MainWindow::on_pushButton_2_clicked()
         msgBox.exec();
     }
 }
+
+void pap_gui::MainWindow::on_pushButton_clicked()
+{
+    qnode.sendTask(pap_common::VISION, pap_vision::START__QRCODE_FINDER, (float)pap_vision::VISION_QR_CALIBRATION::BOTTOM_CAM, (float)pap_vision::CAMERA_SELECT::CAMERA_BOTTOM, 0.0);
+}
+
+void pap_gui::MainWindow::on_pushButton_startQRTop_clicked()
+{
+    qnode.sendTask(pap_common::VISION, pap_vision::START__QRCODE_FINDER, (float)pap_vision::VISION_QR_CALIBRATION::TOP_SLOT, (float)pap_vision::CAMERA_SELECT::CAMERA_TOP, 0.0);
+}

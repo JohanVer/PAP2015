@@ -1,4 +1,4 @@
-#include <pcb_cv/displayImage.h>
+﻿#include <pcb_cv/displayImage.h>
 
 using namespace std;
 using namespace cv;
@@ -82,6 +82,7 @@ void PcbCvInterface::execute_action(const pap_common::VisionGoalConstPtr& comman
             res.data1 = chip.y;
             res.data2 = chip.x;
             res.data3 = chip.rot;
+            std::cerr << "Chip finder result: " << chip.y << " , " << chip.x << " , " << chip.rot << std::endl;
             as_.setSucceeded(res);
         }else{
             as_.setAborted();
@@ -106,6 +107,7 @@ void PcbCvInterface::execute_action(const pap_common::VisionGoalConstPtr& comman
             res.data2 = chip.x;
             res.data3 = chip.rot;
             res.cameraSelect = 0;
+            std::cerr << "Tape finder result: " << chip.y << " , " << chip.x << " , " << chip.rot << std::endl;
             as_.setSucceeded(res);
         }else{
             as_.setAborted();
@@ -124,8 +126,11 @@ void PcbCvInterface::execute_action(const pap_common::VisionGoalConstPtr& comman
             case pap_vision::TOP_SLOT:{
 
                 double pxRatioSlot;
-                if(finder.getPixelConvValAvg(&images, pxRatioSlot))
+                if(finder.getPixelConvValAvg(&images, pxRatioSlot)){
                     finder.setPixelRatioSlot(pxRatioSlot);
+                    std::cerr << "Set slot px ratio to: " << pxRatioSlot << std::endl;
+                    as_.setSucceeded();
+                }
                 else as_.setAborted();
 
             }
@@ -134,8 +139,11 @@ void PcbCvInterface::execute_action(const pap_common::VisionGoalConstPtr& comman
             case pap_vision::TOP_PCB:
             {
                 double pxRatioPcb;
-                if(finder.getPixelConvValAvg(&images, pxRatioPcb))
+                if(finder.getPixelConvValAvg(&images, pxRatioPcb)) {
+                    std::cerr << "Set pcb px ratio to: " << pxRatioPcb << std::endl;
                     finder.setPixelRatioPcb(pxRatioPcb);
+                    as_.setSucceeded();
+                }
                 else as_.setAborted();
 
             }
@@ -144,8 +152,11 @@ void PcbCvInterface::execute_action(const pap_common::VisionGoalConstPtr& comman
             case pap_vision::TOP_TAPE:
             {
                 double pxRatioTape;
-                if(finder.getPixelConvValAvg(&images, pxRatioTape))
+                if(finder.getPixelConvValAvg(&images, pxRatioTape)) {
                     finder.setPixelRatioTape(pxRatioTape);
+                    std::cerr << "Set tape px ratio to: " << pxRatioTape << std::endl;
+                    as_.setSucceeded();
+                }
                 else as_.setAborted();
             }
                 break;
@@ -154,13 +165,15 @@ void PcbCvInterface::execute_action(const pap_common::VisionGoalConstPtr& comman
         else {
             if((pap_vision::VISION_QR_CALIBRATION) command->data1 == pap_vision::BOTTOM_CAM){
                 double pxRatioBottom;
-                if(finder.getPixelConvValAvg(&images, pxRatioBottom))
+                if(finder.getPixelConvValAvg(&images, pxRatioBottom)) {
+                    std::cerr << "Set bottom px ratio to: " << pxRatioBottom << std::endl;
                     finder.setPixelRatioBottom(pxRatioBottom);
+                    as_.setSucceeded();
+                }
                 else as_.setAborted();
             }
         }
 
-        as_.setSucceeded();
     }
         break;
 
@@ -211,6 +224,7 @@ void PcbCvInterface::execute_action(const pap_common::VisionGoalConstPtr& comman
             res.data2 = tip.x;
             res.data3 = tip.rot;
             res.cameraSelect = cameraSelect;
+            std::cerr << "Circle finder result: " << -tip.y << " , " << tip.x << " , " << tip.rot << std::endl;
             as_.setSucceeded(res);
         }else{
             as_.setAborted();
@@ -257,36 +271,36 @@ void PcbCvInterface::imageCallback1(const sensor_msgs::ImageConstPtr& msg) {
                 case pap_vision::TOP_SLOT:{
 
                     double pxRatioSlot;
-                    if(finder.getPixelConvVal(input, pxRatioSlot))
-                        finder.setPixelRatioSlot(pxRatioSlot);
+                    finder.getPixelConvVal(input, pxRatioSlot);
+//                        finder.setPixelRatioSlot(pxRatioSlot);
 
                     visionMsg.task = pap_vision::START__QRCODE_FINDER;
                     statusPublisher.publish(visionMsg);
-                    qrCalAction = pap_vision::NO_CAL;
+                    //qrCalAction = pap_vision::NO_CAL;
                 }
                     break;
 
                 case pap_vision::TOP_PCB:
                 {
                     double pxRatioPcb;
-                    if(finder.getPixelConvVal(input, pxRatioPcb))
-                        finder.setPixelRatioPcb(pxRatioPcb);
+                    finder.getPixelConvVal(input, pxRatioPcb);
+//                        finder.setPixelRatioPcb(pxRatioPcb);
 
                     visionMsg.task = pap_vision::START__QRCODE_FINDER;
                     statusPublisher.publish(visionMsg);
-                    qrCalAction = pap_vision::NO_CAL;
+                   // qrCalAction = pap_vision::NO_CAL;
                 }
                     break;
 
                 case pap_vision::TOP_TAPE:
                 {
                     double pxRatioTape;
-                    if(finder.getPixelConvVal(input, pxRatioTape))
-                        finder.setPixelRatioTape(pxRatioTape);
+                    finder.getPixelConvVal(input, pxRatioTape);
+//                        finder.setPixelRatioTape(pxRatioTape);
 
                     visionMsg.task = pap_vision::START__QRCODE_FINDER;
                     statusPublisher.publish(visionMsg);
-                    qrCalAction = pap_vision::NO_CAL;
+                    //qrCalAction = pap_vision::NO_CAL;
                 }
                     break;
 
@@ -429,12 +443,12 @@ void PcbCvInterface::imageCallback2(const sensor_msgs::ImageConstPtr& msg) {
                 if (qrCalAction == pap_vision::BOTTOM_CAM) {
 
                     double pxRatioBottom;
-                    if(finder.getPixelConvVal(input2, pxRatioBottom))
-                        finder.setPixelRatioBottom(pxRatioBottom);
+                    finder.getPixelConvVal(input2, pxRatioBottom);
+                       // finder.setPixelRatioBottom(pxRatioBottom);
 
                     visionMsg.task = pap_vision::START__QRCODE_FINDER;
                     statusPublisher.publish(visionMsg);
-                    qrCalAction = pap_vision::NO_CAL;
+                   // qrCalAction = pap_vision::NO_CAL;
                 }
             }
             break;

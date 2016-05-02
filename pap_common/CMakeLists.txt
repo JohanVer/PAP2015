@@ -85,7 +85,7 @@ add_action_files(DIRECTORY action FILES MotorControllerAction.action Vision.acti
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
   INCLUDE_DIRS include
-#  LIBRARIES pap_common
+  LIBRARIES pap_common
   CATKIN_DEPENDS roscpp rospy std_msgs message_generation message_runtime
   DEPENDS system_lib
 )
@@ -107,6 +107,15 @@ include_directories(
 #add_library(pap_common
 #   ${INCLUDE_GLOBAL_HEADERS}
 # )
+
+file(GLOB_RECURSE INCLUDE_GLOBAL_HEADERS ${PROJECT_SOURCE_DIR} *.h *.hpp)
+
+add_library(pap_common
+   src/arduinosendfunctions.cpp
+   ${INCLUDE_GLOBAL_HEADERS}
+ )
+
+target_link_libraries(pap_common ${catkin_LIBRARIES})
 
 ## Declare a cpp executable
 # add_executable(pap_common_node src/pap_common_node.cpp)

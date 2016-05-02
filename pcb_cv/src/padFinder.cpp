@@ -418,6 +418,7 @@ bool padFinder::scanCalibrationQRCode(cv::Mat &picture, double &width, double &h
         }
 
         std::string calName = symbol->get_data();
+        std::cerr << calName << std::endl;
         std::string number;
 
         if (calName.size() == 13) {

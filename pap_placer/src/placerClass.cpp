@@ -42,8 +42,8 @@ PlaceController::PlaceController() {
 	tip2Offset.x = -94.08;
 	tip2Offset.y = 64.709;
 	tip2Offset.z = 45+15-10;
-	tip1Offset.x = -92,817; //-93,817;
-	tip1Offset.y = 2,598;
+    tip1Offset.x = -95;
+    tip1Offset.y = 0;
 	tip1Offset.z = 45+15-10;
 	dispenserTipOffset.x = -53.42;
 	dispenserTipOffset.y = 37.89;

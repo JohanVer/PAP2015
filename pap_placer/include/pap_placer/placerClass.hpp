@@ -22,6 +22,10 @@ using namespace std;
  ** Class implementation
  *****************************************************************************/
 
+enum TIP {
+    LEFT_TIP, RIGHT_TIP
+};
+
 class dispenseInfos{
 public:
 	dispenseInfos(){
@@ -148,9 +152,7 @@ public:
 
 private:
 
-	enum TIP {
-		LEFT_TIP, RIGHT_TIP
-	} tip;
+    TIP tip;
 
 	// These offsets are relative to homing position
 
