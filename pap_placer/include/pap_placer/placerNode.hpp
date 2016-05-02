@@ -96,6 +96,21 @@ void sendPlacerInfo(int state);
 bool pickUp(double height);
 bool placeComp(double height);
 
+bool calibrateOffsets();
+bool calibrateCamera();
+bool calibrateTip1();
+bool calibrateDispenser();
+bool calibrateTip2();
+
+bool singleCompPlacement();
+bool goToBox();
+bool pickUpComponent();
+bool checkCompPickUp();
+bool placeComponent();
+
+bool dispensePCB();
+bool goToPCBOrigin();
+
 /* General local functions */
 void switchDispenser(bool activate);
 void switchVacuum(bool activate);
