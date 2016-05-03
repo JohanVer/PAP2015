@@ -256,6 +256,8 @@ private slots:
 
     void on_pushButton_startQRTop_clicked();
 
+    void on_calibrateSystemButton_clicked();
+
 private:
 
 	Ui::MainWindowDesign ui;

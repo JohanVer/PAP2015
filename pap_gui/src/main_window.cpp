@@ -2654,3 +2654,22 @@ void pap_gui::MainWindow::on_pushButton_startQRTop_clicked()
 {
     qnode.sendTask(pap_common::VISION, pap_vision::START__QRCODE_FINDER, (float)pap_vision::VISION_QR_CALIBRATION::TOP_SLOT, (float)pap_vision::CAMERA_SELECT::CAMERA_TOP, 0.0);
 }
+
+void pap_gui::MainWindow::on_calibrateSystemButton_clicked()
+{
+    QMessageBox msgBox;
+    QString message = QString("Please make sure a 3 mm nozzle is used for this calibration process.");
+    msgBox.setWindowTitle("Confirm to start calibration");
+    msgBox.setText(message);
+    msgBox.setStandardButtons(QMessageBox::Yes);
+    msgBox.addButton(QMessageBox::No);
+    msgBox.setDefaultButton(QMessageBox::No);
+    if (msgBox.exec() == QMessageBox::Yes) {
+        //completeCalibrationRunning = true;
+        qnode.sendTask(pap_common::PLACER, pap_common::CALIBRATION_OFFSET);
+
+        // Disable other functions/buttons
+        // Show calibrationIndicator!
+        // implement further calibration/message boxes in callback!
+    }
+}

@@ -40,7 +40,7 @@
        <locale language="English" country="Australia"/>
       </property>
       <property name="currentIndex">
-       <number>4</number>
+       <number>5</number>
       </property>
       <widget class="QWidget" name="ComponentPlacement">
        <attribute name="title">
@@ -684,7 +684,7 @@
           <x>30</x>
           <y>90</y>
           <width>155</width>
-          <height>251</height>
+          <height>271</height>
          </rect>
         </property>
         <layout class="QVBoxLayout" name="verticalLayout_23">
@@ -699,6 +699,26 @@
           <widget class="QPushButton" name="clearTableButton">
            <property name="text">
             <string>Clear Table</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="verticalSpacer_4">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>40</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QPushButton" name="calibrateSystemButton">
+           <property name="text">
+            <string>Calibrate System</string>
            </property>
           </widget>
          </item>
@@ -1735,8 +1755,8 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>281</width>
-           <height>203</height>
+           <width>100</width>
+           <height>30</height>
           </rect>
          </property>
          <attribute name="label">
@@ -1770,6 +1790,14 @@
          </widget>
         </widget>
         <widget class="QWidget" name="page_7">
+         <property name="geometry">
+          <rect>
+           <x>0</x>
+           <y>0</y>
+           <width>281</width>
+           <height>183</height>
+          </rect>
+         </property>
          <attribute name="label">
           <string>QR-Code Reader</string>
          </attribute>
@@ -1805,8 +1833,8 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>281</width>
-           <height>234</height>
+           <width>100</width>
+           <height>30</height>
           </rect>
          </property>
          <attribute name="label">
