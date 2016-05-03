@@ -41,6 +41,59 @@ padFinder::padFinder() {
     pxRatioBottom = PIXEL_TO_MM_BOTTOM;
 
     scanner.set_config(zbar::ZBAR_NONE, zbar::ZBAR_CFG_ENABLE, 1);
+    dlib::deserialize("/home/johan/Desktop/svm_function.dat") >> learned_funct_;
+}
+
+cv::Mat padFinder::classifyPixels(const cv::Mat &in){
+    cv::Mat out(in.rows, in.cols, CV_8UC1, Scalar(0));
+
+    ros::Time start = ros::Time::now();
+    if (in.data)
+    {
+        uchar* ptr = reinterpret_cast<uchar*>(in.data);
+        uchar* ptr_out = reinterpret_cast<uchar*>(out.data);
+        for (int i = 0; i < in.cols * in.rows; i++, ptr+=3, ptr_out +=1 )
+        {
+            sample_type sample;
+            sample(0) = *(ptr);
+            sample(1) = *(ptr+1);
+            sample(2) = *(ptr+2);
+
+            double prob = learned_funct_(sample);
+
+            if(prob){
+                *ptr_out = 0xff;
+            }else{
+                *ptr_out = 0;
+            }
+        }
+    }
+
+    std::cerr << "Time: " << ros::Time::now().toSec() - start.toSec() << std::endl;
+/*
+    for(size_t r = 0; r < in.rows; r++){
+        for(size_t c = 0; c < in.cols; c++){
+            const cv::Vec3b &pix = in.at<cv::Vec3b>(r, c);
+            uchar &pix_out = out.at<uchar>(r, c);
+            sample_type sample;
+
+            sample(0) = pix[0];
+            sample(1) = pix[1];
+            sample(2) = pix[2];
+
+            double prob = learned_pfunct_(sample);
+            //std::cerr << "Prob: " << prob << std::endl;
+
+            if(prob >= 0.38){
+                pix_out = 0xff;
+            }else{
+                pix_out = 0;
+            }
+        }
+    }
+    */
+    std::cerr << "Return image\n";
+    return out;
 }
 
 padFinder::~padFinder() {
@@ -444,6 +497,7 @@ bool padFinder::scanCalibrationQRCode(cv::Mat &picture, double &width, double &h
         height = r.size.height;
         return true;
     }
+    return false;
 }
 
 smdPart padFinder::findSmallSMD(cv::Mat* input) {
@@ -709,14 +763,13 @@ cv::Point2f padFinder::findPads(cv::Mat* input, bool startSelect,
     cv::Point2f outputPosition;
     outputPosition.x = 0.0;
     outputPosition.y = 0.0;
-    cv::cvtColor(*input, gray, CV_BGR2GRAY);
-
-    cv::threshold(gray, gray, 255, 255, CV_THRESH_BINARY_INV | CV_THRESH_OTSU);
-
-    cv::dilate(gray, gray, cv::Mat(), cv::Point(-1, -1), DILATE_ITERATIONS);
-
+    //cv::cvtColor(*input, gray, CV_BGR2GRAY);
     cv::Mat bw;
-    cv::threshold(gray, bw, 255, 255, CV_THRESH_BINARY_INV | CV_THRESH_OTSU);
+    bw = classifyPixels(*input);
+    //cv::threshold(gray, bw, 255, 255, CV_THRESH_BINARY_INV | CV_THRESH_OTSU);
+
+    cv::imshow("classified pixel", bw);
+    cv::waitKey(0);
 
     cv::Mat final = input->clone();
     repeat = false;

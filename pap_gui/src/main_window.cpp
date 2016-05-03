@@ -157,6 +157,7 @@ MainWindow::MainWindow(int version, int argc, char** argv, QWidget *parent) :
     completePlacementRunning = false;
     singlePlacementRunning = false;
     componentIndicator = 0;
+    completeCalibrationRunning = false;
 
     xTapeCalibration = 0.0;
     yTapeCalibration = 0.0;
@@ -1252,7 +1253,15 @@ void MainWindow::placerStatusUpdated(int state, int status) {
 
     ROS_INFO("GUI: placerStatusUpdated: %d, %d !!", state, status);
 
-    // Complete placement - send next component
+    // Calibration running
+    if(state == pap_common::CALIBRATION_OFFSET
+            && status == pap_common::PLACER_FINISHED
+            && completeCalibrationRunning) {
+        qnode.sendTask(pap_common::PLACER, pap_common::CALIBRATION_RATIO);
+
+    }
+
+    // Placement running
     if (state == pap_common::PLACECOMPONENT_STATE
             && status == pap_common::PLACER_FINISHED
             && completePlacementRunning) {
@@ -2665,9 +2674,8 @@ void pap_gui::MainWindow::on_calibrateSystemButton_clicked()
     msgBox.addButton(QMessageBox::No);
     msgBox.setDefaultButton(QMessageBox::No);
     if (msgBox.exec() == QMessageBox::Yes) {
-        //completeCalibrationRunning = true;
+        completeCalibrationRunning = true;
         qnode.sendTask(pap_common::PLACER, pap_common::CALIBRATION_OFFSET);
-
         // Disable other functions/buttons
         // Show calibrationIndicator!
         // implement further calibration/message boxes in callback!

@@ -313,6 +313,7 @@ private:
     bool completePlacementRunning;
     bool singlePlacementRunning;
     int componentIndicator;
+    bool completeCalibrationRunning;
 
     std::vector<tapeCalibrationValue> tapeCalibrationValues;
 };

@@ -115,12 +115,14 @@ catkin_package(
 ## Your package locations should be listed before other locations
 # include_directories(include)
 
+include (/usr/dlib-18.18/dlib/cmake)
+
 ## Declare a cpp library
 add_library(pcb_cv
    src/padFinder.cpp
    src/sendfunctions.cpp
  )
-target_link_libraries ( pcb_cv zbar ${OpenCV_LIBRARIES} ${catkin_LIBRARIES} )
+target_link_libraries ( pcb_cv zbar dlib ${OpenCV_LIBRARIES} ${catkin_LIBRARIES} )
 
 ## Declare a cpp executable
 # add_executable(pcb_cv_node src/pcb_cv_node.cpp)

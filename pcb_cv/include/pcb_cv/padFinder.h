@@ -22,7 +22,16 @@
 #include <cstdlib>
 #include <iostream>
 #include <fstream>
+#include <dlib/svm.h>
 
+typedef dlib::matrix<double, 3, 1> sample_type;
+typedef dlib::radial_basis_kernel<sample_type> kernel_type;
+
+typedef dlib::decision_function<kernel_type> dec_funct_type;
+typedef dlib::normalized_function<dec_funct_type> funct_type;
+
+typedef dlib::probabilistic_decision_function<kernel_type> probabilistic_funct_type;
+typedef dlib::normalized_function<probabilistic_funct_type> pfunct_type;
 
 // Conversion factors for pixel to mm
 // Top-Camera:
@@ -48,6 +57,8 @@ class padFinder {
 public:
     padFinder();
     ~padFinder();
+
+    cv::Mat classifyPixels(const cv::Mat &in);
 
 	cv::Point2f findPads(cv::Mat* input,bool startSelect,cv::Point2f selectPad);
     bool findChipAvg(std::vector<cv::Mat> *input, enum pap_vision::CAMERA_SELECT camera_select, smdPart &chip);
@@ -88,6 +99,7 @@ public:
 	}
 private:
 	// privat
+    funct_type learned_funct_;
     zbar::ImageScanner scanner;
 	int m_eineVariable;
 	bool foundVia;
