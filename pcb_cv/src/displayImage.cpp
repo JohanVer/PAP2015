@@ -252,8 +252,6 @@ void PcbCvInterface::imageCallback1(const sensor_msgs::ImageConstPtr& msg) {
         return;
     }
 
-    cv::normalize(input, input, 0, 255, NORM_MINMAX, CV_8UC3);
-
     if(gather_top_images_){
         top_buffer_.push_back(input.clone());
         img_gather_counter++;
@@ -394,8 +392,6 @@ void PcbCvInterface::imageCallback2(const sensor_msgs::ImageConstPtr& msg) {
         ROS_ERROR("displayImage: Could not convert image");
         return;
     }
-
-    cv::normalize(input2, input2, 0, 255, NORM_MINMAX, CV_8UC3);
 
     if(gather_bottom_images_){
         bottom_buffer_.push_back(input2.clone());

@@ -28,7 +28,7 @@ find_package(catkin REQUIRED COMPONENTS
   pap_common
 )
 
-find_package( OpenCV REQUIRED )
+find_package( OpenCV 3 REQUIRED )
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
 
@@ -122,7 +122,7 @@ add_library(pcb_cv
    src/padFinder.cpp
    src/sendfunctions.cpp
  )
-target_link_libraries ( pcb_cv zbar dlib ${OpenCV_LIBRARIES} ${catkin_LIBRARIES} )
+target_link_libraries ( pcb_cv zbar dlib ${OpenCV_LIBS} ${catkin_LIBRARIES} )
 
 ## Declare a cpp executable
 # add_executable(pcb_cv_node src/pcb_cv_node.cpp)
@@ -130,7 +130,7 @@ file(GLOB_RECURSE INCLUDE_GLOBAL_HEADERS ${PROJECT_SOURCE_DIR} *.h *.hpp)
 include_directories(  ${catkin_INCLUDE_DIRS}  ${OpenCV_INCLUDE_DIRS}  include )
 
 add_executable(displayImage src/displayImage.cpp ${INCLUDE_GLOBAL_HEADERS})
-target_link_libraries ( displayImage pcb_cv ${OpenCV_LIBRARIES} ${catkin_LIBRARIES} )
+target_link_libraries ( displayImage pcb_cv ${OpenCV_LIBS} ${catkin_LIBRARIES} )
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes
 # add_dependencies(pcb_cv_node pcb_cv_generate_messages_cpp)
