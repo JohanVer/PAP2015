@@ -328,16 +328,21 @@ bool calibrateQR() {
 
 // Calibrate cam distortion using checkerboard
 bool calibrateCamDistortion() {
-    ROS_INFO("PlacerState: CHECKERBOAR 1");
+    ROS_INFO("PlacerState: CHECKERBOARD 1");
     Offset checker = placeController.CHECKERBOARD_1_Offset_;
     ROS_INFO("Go to: x:%f y:%f z:%f", checker.x, checker.y, checker.z);
-    if(!driveAroundPosition(checker, 10))
+    if(!driveAroundPosition(checker, 6, 6))
         return false;
 
-    ROS_INFO("PlacerState: CHECKERBOAR 2");
+    if(!driveAroundPosition(checker, 10, 12))
+        return false;
+
+    ROS_INFO("PlacerState: CHECKERBOARD 2");
     checker = placeController.CHECKERBOARD_2_Offset_;
     ROS_INFO("Go to: x:%f y:%f z:%f", checker.x, checker.y, checker.z);
-    if(!driveAroundPosition(checker, 10))
+    if(!driveAroundPosition(checker, 6, 6))
+        return false;
+    if(!driveAroundPosition(checker, 8, 10))
         return false;
 
     return true;
@@ -711,48 +716,111 @@ void switchDispenser(bool activate){
     }
 }
 
-bool driveAroundPosition(Offset position, int distance) {
+bool driveAroundPosition(Offset position, int distance_x, int distance_y) {
 
     if(!driveToCoord(position.x, position.y, position.z)){
         return false;
     }
 
+    float velX = 0.0001;
+    float velY = 0.0001;
+
     ros::Duration(1).sleep();
-    if(!motor_send_functions::sendMotorControllerAction(*motor_action_client, pap_common::COORD,
-                                                        (position.x - (distance/2)), position.y, position.z)){
+
+    for(int i = 0; i <= (distance_x/2); i++) {
+        if(!motor_send_functions::sendMotorControllerAction(*motor_action_client, pap_common::COORD,
+                                                            (position.x - i), position.y, position.z, velX, velY)){
+            return false;
+        }
+        ros::Duration(2).sleep();
+    }
+
+    for(int i = 0; i <= (distance_y/2); i++) {
+        if(!motor_send_functions::sendMotorControllerAction(*motor_action_client, pap_common::COORD,
+                                                            (position.x - (distance_x/2)), (position.y - i), position.z, velX, velY)){
+            return false;
+        }
+        ros::Duration(2).sleep();
+    }
+
+    for(int i = -(distance_x/2); i <= (distance_x/2); i++) {
+        if(!motor_send_functions::sendMotorControllerAction(*motor_action_client, pap_common::COORD,
+                                                            (position.x + i), (position.y - (distance_y/2)), position.z, velX, velY)){
+            return false;
+        }
+        ros::Duration(2).sleep();
+    }
+
+    for(int i = -(distance_y/2); i <= (distance_y/2); i++) {
+        if(!motor_send_functions::sendMotorControllerAction(*motor_action_client, pap_common::COORD,
+                                                            (position.x + (distance_x/2)), (position.y + i), position.z, velX, velY)){
+            return false;
+        }
+        ros::Duration(2).sleep();
+    }
+
+    for(int i = -(distance_x/2); i <= (distance_x/2); i++) {
+        if(!motor_send_functions::sendMotorControllerAction(*motor_action_client, pap_common::COORD,
+                                                            (position.x - i), (position.y + (distance_y/2)), position.z, velX, velY)){
+            return false;
+        }
+        ros::Duration(2).sleep();
+    }
+
+    for(int i = -(distance_y/2); i <= 0; i++) {
+        if(!motor_send_functions::sendMotorControllerAction(*motor_action_client, pap_common::COORD,
+                                                            (position.x - (distance_x/2)), (position.y - i), position.z, velX, velY)){
+            return false;
+        }
+        ros::Duration(2).sleep();
+    }
+
+    for(int i = -(distance_x/2); i <= 0; i++) {
+        if(!motor_send_functions::sendMotorControllerAction(*motor_action_client, pap_common::COORD,
+                                                            (position.x + i), position.y, position.z, velX, velY)){
+            return false;
+        }
+        ros::Duration(2).sleep();
+    }
+
+    /*if(!motor_send_functions::sendMotorControllerAction(*motor_action_client, pap_common::COORD,
+                                                        (position.x - (distance/2)), position.y, position.z, velX, velY)){
         return false;
     }
     ros::Duration(1).sleep();
 
     if(!motor_send_functions::sendMotorControllerAction(*motor_action_client, pap_common::COORD,
-                                                        (position.x - (distance/2)), (position.y - (distance/2)), position.z)){
+                                                        (position.x - (distance/2)), (position.y - (distance/2)), position.z, velX, velY)){
         return false;
     }
     ros::Duration(1).sleep();
 
     if(!motor_send_functions::sendMotorControllerAction(*motor_action_client, pap_common::COORD,
-                                                        (position.x + (distance/2)), (position.y - (distance/2)), position.z)){
+                                                        (position.x + (distance/2)), (position.y - (distance/2)), position.z, velX, velY)){
         return false;
     }
     ros::Duration(1).sleep();
 
     if(!motor_send_functions::sendMotorControllerAction(*motor_action_client, pap_common::COORD,
-                                                        (position.x + (distance/2)), (position.y + (distance/2)), position.z)){
+                                                        (position.x + (distance/2)), (position.y + (distance/2)), position.z, velX, velY)){
+        return false;
+    }
+    ros::Duration(1).sleep();
+
+
+
+    if(!motor_send_functions::sendMotorControllerAction(*motor_action_client, pap_common::COORD,
+                                                        (position.x - (distance/2)), (position.y + (distance/2)), position.z, velX, velY)){
         return false;
     }
     ros::Duration(1).sleep();
 
     if(!motor_send_functions::sendMotorControllerAction(*motor_action_client, pap_common::COORD,
-                                                        (position.x - (distance/2)), (position.y + (distance/2)), position.z)){
+                                                        (position.x - (distance/2)), (position.y - (distance/2)), position.z, velX, velY)){
         return false;
     }
-    ros::Duration(1).sleep();
+    ros::Duration(1).sleep();*/
 
-    if(!motor_send_functions::sendMotorControllerAction(*motor_action_client, pap_common::COORD,
-                                                        (position.x - (distance/2)), (position.y - (distance/2)), position.z)){
-        return false;
-    }
-    ros::Duration(1).sleep();
     return true;
 }
 
@@ -876,11 +944,30 @@ void placerCallback(const pap_common::TaskConstPtr& taskMsg) {
             break;
         }
 
-        case pap_common::CALIBRATION_CHECKERBOARD: {
+        case pap_common::CALIBRATION_TOPCAM: {
             if(!calibrateCamDistortion()) {
                 ROS_ERROR("Placer: Checkerboard calibration failed");
                 // TODO: Handle
+                break;
             }
+            if(! homeSystem()) {
+                ROS_ERROR("Placer: HOMING failed");
+                // TODO: Handle result
+            }
+            break;
+        }
+
+        case pap_common::CALIBRATION_BOTTOMCAM: {
+           /* if(!calibrateCamDistortion()) {
+                ROS_ERROR("Placer: Checkerboard calibration failed");
+                // TODO: Handle
+                break;
+            }
+            if(! homeSystem()) {
+                ROS_ERROR("Placer: HOMING failed");
+                // TODO: Handle result
+            }*/
+            ROS_ERROR("Not implemented yet");
             break;
         }
 
@@ -888,6 +975,7 @@ void placerCallback(const pap_common::TaskConstPtr& taskMsg) {
             if(!singleCompPlacement()) {
                 ROS_ERROR("Placer: Single component placement failed");
                 // TODO: Handle
+                break;
             }
             if(! homeSystem()) {
                 ROS_ERROR("Placer: HOMING failed");

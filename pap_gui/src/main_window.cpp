@@ -2627,12 +2627,18 @@ void MainWindow::on_printButton_offsets_clicked() {
     qnode.sendTask(pap_common::PLACER, pap_common::PRINT_OFFSET);
 }
 
-void MainWindow::on_calibrationButton_checkerboard_clicked() {
-    qnode.sendTask(pap_common::PLACER, pap_common::CALIBRATION_CHECKERBOARD);
-}
-
 }
 // namespace pap_gui
+
+void pap_gui::MainWindow::on_calibrateTopCamButton_clicked()
+{
+    qnode.sendTask(pap_common::PLACER, pap_common::CALIBRATION_TOPCAM);
+}
+
+void pap_gui::MainWindow::on_calibrateBottomCamButton_clicked()
+{
+    qnode.sendTask(pap_common::PLACER, pap_common::CALIBRATION_BOTTOMCAM);
+}
 
 
 void pap_gui::MainWindow::on_take_img_button_clicked()
@@ -2681,3 +2687,6 @@ void pap_gui::MainWindow::on_calibrateSystemButton_clicked()
         // implement further calibration/message boxes in callback!
     }
 }
+
+
+

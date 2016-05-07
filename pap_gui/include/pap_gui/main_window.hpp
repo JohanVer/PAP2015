@@ -221,7 +221,6 @@ public Q_SLOTS:
 
     void on_calibrationButton_offsets_clicked();
     void on_calibrationButton_ratios_clicked();
-    void on_calibrationButton_checkerboard_clicked();
 
     void updatePackageList();
     void updateMissingPackageList();
@@ -257,6 +256,12 @@ private slots:
     void on_pushButton_startQRTop_clicked();
 
     void on_calibrateSystemButton_clicked();
+
+    void on_calibrationButton_checkerboard_clicked(bool checked);
+
+    void on_calibrateBottomCamButton_clicked();
+
+    void on_calibrateTopCamButton_clicked();
 
 private:
 
