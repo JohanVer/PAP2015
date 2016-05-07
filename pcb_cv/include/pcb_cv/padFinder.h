@@ -10,7 +10,6 @@
 #include "opencv2/core/core.hpp"
 #include "opencv2/features2d/features2d.hpp"
 #include "opencv2/highgui/highgui.hpp"
-#include "opencv2/nonfree/features2d.hpp"
 #include <opencv/cv.h>
 #include <opencv/highgui.h>
 #include "sensor_msgs/Image.h"
@@ -23,13 +22,22 @@
 #include <iostream>
 #include <fstream>
 #include <dlib/svm.h>
-
 typedef dlib::matrix<double, 3, 1> sample_type;
+
+// Linear SVM
+
+typedef dlib::linear_kernel<sample_type> kernel_type_lin;
+typedef dlib::decision_function<kernel_type_lin> lin_func_type;
+typedef dlib::normalized_function<lin_func_type> lin_funct_type;
+
+// Nonlinear SVM
+
 typedef dlib::radial_basis_kernel<sample_type> kernel_type;
 
 typedef dlib::decision_function<kernel_type> dec_funct_type;
 typedef dlib::normalized_function<dec_funct_type> funct_type;
 
+// Probabilistic SVM
 typedef dlib::probabilistic_decision_function<kernel_type> probabilistic_funct_type;
 typedef dlib::normalized_function<probabilistic_funct_type> pfunct_type;
 
@@ -99,7 +107,7 @@ public:
 	}
 private:
 	// privat
-    funct_type learned_funct_;
+    lin_funct_type learned_funct_;
     zbar::ImageScanner scanner;
 	int m_eineVariable;
 	bool foundVia;

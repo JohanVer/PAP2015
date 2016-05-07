@@ -41,7 +41,7 @@ padFinder::padFinder() {
     pxRatioBottom = PIXEL_TO_MM_BOTTOM;
 
     scanner.set_config(zbar::ZBAR_NONE, zbar::ZBAR_CFG_ENABLE, 1);
-    dlib::deserialize("/home/johan/Desktop/svm_function.dat") >> learned_funct_;
+    dlib::deserialize(string(getenv("PAPRESOURCES")) + "trained_functions/linear_svm_function.dat") >> learned_funct_;
 }
 
 cv::Mat padFinder::classifyPixels(const cv::Mat &in){
@@ -61,7 +61,7 @@ cv::Mat padFinder::classifyPixels(const cv::Mat &in){
 
             double prob = learned_funct_(sample);
 
-            if(prob){
+            if(prob >= 0){
                 *ptr_out = 0xff;
             }else{
                 *ptr_out = 0;
@@ -70,29 +70,6 @@ cv::Mat padFinder::classifyPixels(const cv::Mat &in){
     }
 
     std::cerr << "Time: " << ros::Time::now().toSec() - start.toSec() << std::endl;
-/*
-    for(size_t r = 0; r < in.rows; r++){
-        for(size_t c = 0; c < in.cols; c++){
-            const cv::Vec3b &pix = in.at<cv::Vec3b>(r, c);
-            uchar &pix_out = out.at<uchar>(r, c);
-            sample_type sample;
-
-            sample(0) = pix[0];
-            sample(1) = pix[1];
-            sample(2) = pix[2];
-
-            double prob = learned_pfunct_(sample);
-            //std::cerr << "Prob: " << prob << std::endl;
-
-            if(prob >= 0.38){
-                pix_out = 0xff;
-            }else{
-                pix_out = 0;
-            }
-        }
-    }
-    */
-    std::cerr << "Return image\n";
     return out;
 }
 
