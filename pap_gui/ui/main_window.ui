@@ -3421,30 +3421,30 @@
          <string>Scan QR Code</string>
         </property>
        </widget>
-       <widget class="QPushButton" name="printButton_offsets">
+       <widget class="QPushButton" name="calibrateTopCamButton">
         <property name="geometry">
          <rect>
           <x>800</x>
           <y>590</y>
-          <width>101</width>
+          <width>141</width>
           <height>27</height>
          </rect>
         </property>
         <property name="text">
-         <string>PrintOffsets</string>
+         <string>Calib. top cam</string>
         </property>
        </widget>
-       <widget class="QPushButton" name="calibrationButton_checkerboard">
+       <widget class="QPushButton" name="calibrateBottomCamButton">
         <property name="geometry">
          <rect>
-          <x>910</x>
+          <x>960</x>
           <y>590</y>
-          <width>91</width>
+          <width>141</width>
           <height>27</height>
          </rect>
         </property>
         <property name="text">
-         <string>Checker</string>
+         <string>Calib. bottom cam</string>
         </property>
        </widget>
       </widget>

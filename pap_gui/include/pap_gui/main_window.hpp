@@ -31,13 +31,6 @@
 #include <sstream>
 #include <iostream>
 #include <QPoint>
-#include <opencv2/imgproc/imgproc.hpp>
-#include <opencv2/highgui/highgui.hpp>
-#include "opencv2/core/core.hpp"
-#include "opencv2/features2d/features2d.hpp"
-#include "opencv2/highgui/highgui.hpp"
-#include "cv.h"
-#include "highgui.h"
 #include <QStandardItemModel>
 #include <QPixmap>
 #include <QPainter>
@@ -220,7 +213,6 @@ public Q_SLOTS:
 
     void on_calibrationButton_offsets_clicked();
     void on_calibrationButton_ratios_clicked();
-    void on_calibrationButton_checkerboard_clicked();
 
     void updatePackageList();
     void updateMissingPackageList();
@@ -256,6 +248,10 @@ private slots:
     void on_pushButton_startQRTop_clicked();
 
     void on_calibrateSystemButton_clicked();
+
+    void on_calibrateBottomCamButton_clicked();
+
+    void on_calibrateTopCamButton_clicked();
 
 private:
 

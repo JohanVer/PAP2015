@@ -116,7 +116,7 @@ void switchDispenser(bool activate);
 void switchVacuum(bool activate);
 void forwardVacuum(enum TIP tip_select, bool activate);
 void moveTip(enum TIP tip_select, bool down);
-bool driveAroundPosition(Offset position, int distance);
+bool driveAroundPosition(Offset position, int distance_x, int distance_y);
 bool driveToCoord(const double &x, const double &y, const double &z);
 void processAllStatusCallbacks();
 

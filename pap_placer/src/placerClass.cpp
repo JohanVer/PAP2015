@@ -63,11 +63,11 @@ PlaceController::PlaceController() {
 	BottomCam_QR_Offset_.y = 259.35;
 	BottomCam_QR_Offset_.z = 20.15;
 
-	CHECKERBOARD_1_Offset_.x = 387;
-	CHECKERBOARD_1_Offset_.y = 80;
+    CHECKERBOARD_1_Offset_.x = 377;
+    CHECKERBOARD_1_Offset_.y = 77;
 	CHECKERBOARD_1_Offset_.z = pickUpAreaOffset.z;
-    CHECKERBOARD_2_Offset_.x = 387;
-    CHECKERBOARD_2_Offset_.y = 55;
+    CHECKERBOARD_2_Offset_.x = 377.5;
+    CHECKERBOARD_2_Offset_.y = 53;
     CHECKERBOARD_2_Offset_.z = pickUpAreaOffset.z;
 
 	// Correction offsets
