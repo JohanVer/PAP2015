@@ -53,6 +53,7 @@ include_directories(${catkin_INCLUDE_DIRS} include)
 
 catkin_package(
   INCLUDE_DIRS include
+  LIBRARIES pap_gui
   CATKIN_DEPENDS roscpp rospy std_msgs image_transport cv_bridge sensor_msgs pap_common pcb_cv pap_placer tf motor_controller
   DEPENDS system_lib
 )
@@ -73,6 +74,19 @@ add_library(pap_gui
    src/GerberPadParser.cpp
    src/PadView.cpp
    ${QT_FORMS_HPP}
+   include/pap_gui/ClickGraphicsView.hpp
+   include/pap_gui/main_window.hpp
+   include/pap_gui/SlotGraphicsView.hpp
+   include/pap_gui/CommonDataClasses.hpp
+   include/pap_gui/MyContextMenuTable.hpp
+   include/pap_gui/slotselectordialog.h
+   include/pap_gui/DatabaseClass.hpp
+   include/pap_gui/packageDialog.hpp
+   include/pap_gui/versionSelectorDialog.h
+   include/pap_gui/DispenserPlanner.hpp
+   include/pap_gui/PadView.hpp
+   include/pap_gui/GerberPadParser.hpp
+   include/pap_gui/qnode.hpp
  )
 
 target_link_libraries(pap_gui Qt5::Widgets ${catkin_LIBRARIES})
@@ -82,11 +96,11 @@ target_link_libraries(pap_gui Qt5::Widgets ${catkin_LIBRARIES})
 ##############################################################################
 
 file(GLOB_RECURSE QT_SOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} FOLLOW_SYMLINKS src/*.cpp)
-file(GLOB_RECURSE INCLUDE_GLOBAL_HEADERS ${PROJECT_SOURCE_DIR} *.h *.hpp)
+#file(GLOB_RECURSE INCLUDE_GLOBAL_HEADERS ${PROJECT_SOURCE_DIR} *.h *.hpp)
 ##############################################################################
 # Binaries
 ##############################################################################
 
-add_executable(pap_gui_node src/main.cpp ${uis_h} ${QT_FORMS_HPP} ${INCLUDE_GLOBAL_HEADERS})
+add_executable(pap_gui_node src/main.cpp )#${QT_FORMS_HPP} )
 target_link_libraries(pap_gui_node pap_gui Qt5::Widgets ${catkin_LIBRARIES})
 
