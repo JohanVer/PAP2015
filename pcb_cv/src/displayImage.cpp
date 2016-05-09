@@ -324,19 +324,7 @@ void PcbCvInterface::imageCallback1(const sensor_msgs::ImageConstPtr& msg) {
                 }
             }
 
-            break;
-        case SMALL_SMD:
-            // SMD Chip
-            smd = finder.findSmallSMD(&input);
-            if (smd.x != 0.0 && smd.y != 0.0) {
-                visionMsg.task = pap_vision::START_SMALL_FINDER;
-                visionMsg.data1 = smd.x;
-                visionMsg.data2 = smd.y;
-                visionMsg.data3 = smd.rot;
-                visionMsg.camera = 0;
-                statusPublisher.publish(visionMsg);
-            }
-            break;
+            break;      
         case TAPE:
             // SMD Tape
             if(finder.findSMDTape(input, searchTapeRotation, smd)){
