@@ -256,8 +256,6 @@ private slots:
 
     void on_calibrateSystemButton_clicked();
 
-    void on_calibrationButton_checkerboard_clicked(bool checked);
-
     void on_calibrateBottomCamButton_clicked();
 
     void on_calibrateTopCamButton_clicked();
