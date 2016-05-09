@@ -25,7 +25,6 @@
 typedef dlib::matrix<double, 3, 1> sample_type;
 
 // Linear SVM
-
 typedef dlib::linear_kernel<sample_type> kernel_type_lin;
 typedef dlib::decision_function<kernel_type_lin> lin_func_type;
 typedef dlib::normalized_function<lin_func_type> lin_funct_type;
@@ -71,7 +70,6 @@ public:
 	cv::Point2f findPads(cv::Mat* input,bool startSelect,cv::Point2f selectPad);
     bool findChipAvg(std::vector<cv::Mat> *input, enum pap_vision::CAMERA_SELECT camera_select, smdPart &chip);
     bool findChip(cv::Mat* input, unsigned int camera_select, smdPart &part_out);
-	smdPart findSmallSMD(cv::Mat* input);
     bool findSMDTapeAvg(std::vector<cv::Mat> *input, bool searchTapeRotation, smdPart &out);
     bool findSMDTape(cv::Mat &final, bool searchTapeRotation, smdPart &out);
     bool findTipAvg(std::vector<cv::Mat> *input, enum pap_vision::CAMERA_SELECT camera_select, smdPart &tip);
@@ -88,7 +86,7 @@ public:
 			std::vector<cv::Point>& contour);
 	void drawRotatedRect(cv::Mat& image, cv::RotatedRect rRect,
 			cv::Scalar color);
-	bool isBorderTouched(cv::RotatedRect pad);
+    bool isBorderTouched(cv::RotatedRect pad, cv::Size mat_size);
 	bool nearestPart(std::vector<smdPart>* list, smdPart* partDst, int width,
 			int height);
 	void setSize(float width, float height);

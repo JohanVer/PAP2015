@@ -9,9 +9,10 @@ using namespace std;
 using namespace cv;
 
 // Pad Finder
-#define MIN_CONTOUR_AREA 100
-#define MIN_PAD_AREA 70
-#define DILATE_ITERATIONS 3
+#define MIN_CONTOUR_AREA 20
+#define MIN_PAD_AREA 20
+#define DILATE_ITERATIONS 1
+#define MIN_VIA_AREA 10
 
 // Chip Finder
 #define ERODE_ITERATIONS_CHIP_FINDER 0
@@ -69,7 +70,7 @@ cv::Mat padFinder::classifyPixels(const cv::Mat &in){
         }
     }
 
-    std::cerr << "Time: " << ros::Time::now().toSec() - start.toSec() << std::endl;
+    std::cerr << "SVM took : " << ros::Time::now().toSec() - start.toSec() << " seconds" << std::endl;
     return out;
 }
 
@@ -120,15 +121,16 @@ double padFinder::angle(cv::Point pt1, cv::Point pt2, cv::Point pt0) {
             / sqrt((dx1 * dx1 + dy1 * dy1) * (dx2 * dx2 + dy2 * dy2) + 1e-10);
 }
 
-bool padFinder::isBorderTouched(cv::RotatedRect pad) {
+bool padFinder::isBorderTouched(cv::RotatedRect pad, cv::Size mat_size) {
+    const unsigned char border_gap = 5;
     cv::Point2f vertices2f[4];
     cv::Point vertices[4];
     pad.points(vertices2f);
     for (int i = 0; i < 4; ++i) {
         vertices[i] = vertices2f[i];
 
-        if (vertices[i].x < 5 || vertices[i].x > 635 || vertices[i].y > 475
-                || vertices[i].y < 5) {
+        if (vertices[i].x < border_gap || vertices[i].x > mat_size.width - border_gap || vertices[i].y > mat_size.height - border_gap
+                || vertices[i].y < border_gap) {
             return true;
         }
     }
@@ -316,14 +318,10 @@ bool padFinder::findChip(cv::Mat* input, unsigned int camera_select, smdPart &pa
     for (int i = 0; i < contours.size(); i++) {
 
         cv::RotatedRect rect = minAreaRect(contours[i]);
-        if (isBorderTouched(rect)) {
+        if (isBorderTouched(rect, input->size())) {
             continue;
         }
-        float rectConvertedArea = rect.size.width / pxToMM * rect.size.height
-                / pxToMM;
-        //ROS_INFO("Converted Area: %f, expected %f", rectConvertedArea,
-        //	(partWidth_ * partHeight_));
-        //ROS_INFO("padFinder: width=%f, height=%f", rect.size.width, rect.size.height);
+
         if ((rect.size.width / pxToMM
              > ((partWidth_) / 100.0) * (100.0 - ERROR_PERCENT_CHIP)
              && rect.size.width / pxToMM
@@ -477,70 +475,6 @@ bool padFinder::scanCalibrationQRCode(cv::Mat &picture, double &width, double &h
     return false;
 }
 
-smdPart padFinder::findSmallSMD(cv::Mat* input) {
-    cv::Mat gray;
-    std::vector<smdPart> smdObjects;
-    cv::Mat final = input->clone();
-    cv::cvtColor(*input, gray, CV_BGR2GRAY);
-    cv::threshold(gray, gray, 255, 255, CV_THRESH_BINARY | CV_THRESH_OTSU);
-    cv::erode(gray, gray, cv::Mat(), cv::Point(-1, -1),
-              ERODE_ITERATIONS_SMD_FINDER);
-    std::vector<std::vector<cv::Point> > contours;
-    std::vector<std::vector<cv::Point> > contoursSorted;
-    vector<Vec4i> hierarchy;
-    cv::findContours(gray.clone(), contours, hierarchy, CV_RETR_TREE,
-                     CV_CHAIN_APPROX_NONE);
-    for (int i = 0; i < contours.size(); i++) {
-        //ROS_INFO("Index %d",i);
-
-        if (hierarchy[i][2] != -1) {
-            int closedContour = hierarchy[i][2];
-            for (int i = 0; i < contours.size(); i++) {
-                //ROS_INFO("Parent %d",hierarchy[i][3]);
-                if (hierarchy[i][3] == closedContour - 1) {
-                    cv::RotatedRect rect = minAreaRect(contours[i]);
-                    float rectConvertedArea = rect.size.width / pxRatioSlot
-                            * rect.size.height / pxRatioSlot;
-
-                    if (rectConvertedArea
-                            > ((partWidth_ * partHeight_) / 100.0)
-                            * (100.0 - ERROR_PERCENT_SMALLSMD)
-                            && rectConvertedArea
-                            < ((partWidth_ * partHeight_) / 100.0)
-                            * (100.0 + ERROR_PERCENT_SMALLSMD)) {
-                        cv::drawContours(final, contours, i, CV_RGB(0, 255, 0),
-                                         2);
-                        smdPart smd;
-                        smd.x = rect.center.x;
-                        smd.y = rect.center.y;
-                        smd.rot = rect.angle;
-                        //ROS_INFO("Angle : %f Width: %f Height: %f",rect.angle,rect.size.width,rect.size.height);
-                        if (rect.size.height < rect.size.width) {
-                            smd.rot = std::fabs(smd.rot);
-                        } else {
-                            smd.rot = -(90.0 + smd.rot);
-                        }
-                        smdObjects.push_back(smd);
-                    }
-                }
-            }
-        }
-    }
-    smdPart smdFinal;
-
-    if (nearestPart(&smdObjects, &smdFinal, input->cols, input->rows)) {
-        circle(final, Point2f(smdFinal.x, smdFinal.y), 5, CV_RGB(0, 0, 255), 3);
-        smdFinal.x = (smdFinal.x - (input->cols / 2 - 1)) / pxRatioSlot;
-        smdFinal.y = ((input->rows / 2 - 1) - smdFinal.y) / pxRatioSlot;
-    }
-    //cv::imshow("grey", gray);
-    //cv::imshow("input", *input);
-    //cv::imshow("final", final);
-    //cv::waitKey(0);
-    *input = final.clone();
-    return smdFinal;
-}
-
 bool padFinder::findSMDTapeAvg(std::vector<cv::Mat> *input, bool searchTapeRotation, smdPart &out){
     size_t num_img = input->size();
     size_t num_avg = 0;
@@ -574,10 +508,12 @@ bool padFinder::findSMDTape(cv::Mat &final, bool searchTapeRotation, smdPart &ou
         cv::threshold(gray, gray, 255, 255, CV_THRESH_BINARY | CV_THRESH_OTSU);
     } else {
         cv::adaptiveThreshold(gray, gray, 255, ADAPTIVE_THRESH_GAUSSIAN_C,
-                              CV_THRESH_BINARY, 201, 1.0);
+                              CV_THRESH_BINARY, 801, 2.0);
     }
-    //cv::erode(gray, gray, cv::Mat(), cv::Point(-1, -1),1);
+    cv::erode(gray, gray, cv::Mat(), cv::Point(-1, -1),1);
     //cv::cvtColor(gray, *input, CV_GRAY2BGR);
+    cv::imshow("tape thresholded", gray);
+    cv::waitKey(0);
 
     std::vector<std::vector<cv::Point> > contours;
     vector<Vec4i> hierarchy;
@@ -586,18 +522,19 @@ bool padFinder::findSMDTape(cv::Mat &final, bool searchTapeRotation, smdPart &ou
     cv::findContours(gray, contours, hierarchy, CV_RETR_TREE,
                      CV_CHAIN_APPROX_SIMPLE);
 
+
+
     std::vector<cv::Point> approx;
     for (int i = 0; i < contours.size(); i++) {
         cv::approxPolyDP(cv::Mat(contours[i]), approx,
-                         cv::arcLength(cv::Mat(contours[i]), true) * 0.02, true);
+                         cv::arcLength(cv::Mat(contours[i]), true) * 0.1, true);
         // Skip small or non-convex objects
         if (std::fabs(cv::contourArea(contours[i])) < MIN_AREA_TAPE_FINDER
                 || !cv::isContourConvex(approx)) {
             continue;
-            ROS_INFO("contour too small");
         }
 
-        if (approx.size() >= 4 && approx.size() <= 6) {
+        if (approx.size() == 3) {
         } else {
             // Detect and label circles
             double area = cv::contourArea(contours[i]);
@@ -625,7 +562,7 @@ bool padFinder::findSMDTape(cv::Mat &final, bool searchTapeRotation, smdPart &ou
             float rectConvertedArea = rect.size.width / pxRatioTape
                     * rect.size.height / pxRatioTape;
             if (searchTapeRotation) {
-                if (isBorderTouched(rect) && rectConvertedArea > 30.0) {
+                if (isBorderTouched(rect, final.size()) && rectConvertedArea > 30.0) {
                     smdPart smd;
                     smd.x = rect.center.x;
                     smd.y = rect.center.y;
@@ -640,7 +577,7 @@ bool padFinder::findSMDTape(cv::Mat &final, bool searchTapeRotation, smdPart &ou
                     drawRotatedRect(final, rect, CV_RGB(0, 0, 255));
                 }
             } else {
-                if ((!isBorderTouched(rect)
+                if ((!isBorderTouched(rect, final.size())
                      && rect.size.width / pxRatioTape
                      > ((partWidth_) / 100.0)
                      * (100.0 - ERROR_PERCENT_SMDTAPE)
@@ -653,7 +590,7 @@ bool padFinder::findSMDTape(cv::Mat &final, bool searchTapeRotation, smdPart &ou
                      && rect.size.height / pxRatioTape
                      < ((partHeight_) / 100.0)
                      * (100.0 + ERROR_PERCENT_SMDTAPE))
-                        || (!isBorderTouched(rect)
+                        || (!isBorderTouched(rect, final.size())
                             && rect.size.height / pxRatioTape
                             > ((partWidth_) / 100.0)
                             * (100.0 - ERROR_PERCENT_SMDTAPE)
@@ -676,26 +613,11 @@ bool padFinder::findSMDTape(cv::Mat &final, bool searchTapeRotation, smdPart &ou
                     mc = Point2f(mu.m10 / mu.m00, mu.m01 / mu.m00);
 
                     cv::approxPolyDP(cv::Mat(contours[i]), approx,
-                                     cv::arcLength(cv::Mat(contours[i]), true) * 0.12,
+                                     cv::arcLength(cv::Mat(contours[i]), true) * 0.15,
                                      true);
 
                     if (approx.size() >= 2 && approx.size() <= 6) {
-                        // Number of vertices of polygonal curve
-                        int vtc = approx.size();
-                        // Get the cosines of all corners
-                        std::vector<double> cos;
-                        for (int j = 2; j < vtc + 1; j++)
-                            cos.push_back(
-                                        angle(approx[j % vtc], approx[j - 2],
-                                    approx[j - 1]));
-                        // Sort ascending the cosine values
-                        std::sort(cos.begin(), cos.end());
-                        // Get the lowest and the highest cosine
-                        double mincos = cos.front();
-                        double maxcos = cos.back();
-                        // Use the degrees obtained above and the number of vertices
-                        // to determine the shape of the contour
-                        if (1 || vtc == 4 && mincos >= -0.1 && maxcos <= 0.3) {
+
                             smdPart smd;
                             smd.x = mc.x;
                             smd.y = mc.y;
@@ -709,10 +631,6 @@ bool padFinder::findSMDTape(cv::Mat &final, bool searchTapeRotation, smdPart &ou
                             drawRotatedRect(final, rect, CV_RGB(0, 0, 255));
                             circle(final, Point2f(smd.x, smd.y), 5,
                                    CV_RGB(255, 0, 0), 3);
-                            //cv::drawContours(final, contours, i,
-                            //                 CV_RGB(0, 255, 0), 2);
-
-                        }
                     }
 
                 }
@@ -735,138 +653,66 @@ bool padFinder::findSMDTape(cv::Mat &final, bool searchTapeRotation, smdPart &ou
 
 cv::Point2f padFinder::findPads(cv::Mat* input, bool startSelect,
                                 cv::Point2f selectPad) {
-    foundVia = false;
-    cv::Mat gray;
     cv::Point2f outputPosition;
     outputPosition.x = 0.0;
     outputPosition.y = 0.0;
-    //cv::cvtColor(*input, gray, CV_BGR2GRAY);
+
     cv::Mat bw;
     bw = classifyPixels(*input);
-    //cv::threshold(gray, bw, 255, 255, CV_THRESH_BINARY_INV | CV_THRESH_OTSU);
+    cv::erode(bw, bw, cv::Mat(), cv::Point(-1, -1), DILATE_ITERATIONS);
 
-    cv::imshow("classified pixel", bw);
-    cv::waitKey(0);
+    //cv::imshow("classified pixel", bw);
+    //cv::waitKey(0);
 
     cv::Mat final = input->clone();
-    repeat = false;
     std::vector<std::vector<cv::Point> > contours;
-    while (1) {
-        //cv::Mat dst = input->clone();
-        foundVia = false;
-        // Find contours
-        contours.clear();
-        vector<Vec4i> hierarchy;
-        vector<int> circlesIndex;
-        cv::findContours(bw.clone(), contours, hierarchy, CV_RETR_TREE,
-                         CV_CHAIN_APPROX_SIMPLE);
-        std::vector<cv::Point> approx;
 
-        for (int i = 0; i < contours.size(); i++) {
-            if (std::fabs(cv::contourArea(contours[i])) > MIN_CONTOUR_AREA) {
-                //cv::drawContours(dst, contours, i, CV_RGB(0, 0, 255), 5);
-            }
+    vector<Vec4i> hierarchy;
+    cv::findContours(bw.clone(), contours, hierarchy, CV_RETR_TREE,
+                     CV_CHAIN_APPROX_NONE);
 
-            // Approximate contour with accuracy proportional
-            // to the contour perimeter
-            cv::approxPolyDP(cv::Mat(contours[i]), approx,
-                             cv::arcLength(cv::Mat(contours[i]), true) * 0.02, true);
-            // Skip small or non-convex objects
-            if (std::fabs(cv::contourArea(contours[i])) < 50
-                    || !cv::isContourConvex(approx)) {
-                continue;
-                //ROS_INFO("Zu klein");
-            }
-
-            if (approx.size() >= 4 && approx.size() <= 6) {
-                // Number of vertices of polygonal curve
-                int vtc = approx.size();
-                // Get the cosines of all corners
-                std::vector<double> cos;
-                for (int j = 2; j < vtc + 1; j++)
-                    cos.push_back(
-                                angle(approx[j % vtc], approx[j - 2],
-                            approx[j - 1]));
-                // Sort ascending the cosine values
-                std::sort(cos.begin(), cos.end());
-                // Get the lowest and the highest cosine
-                double mincos = cos.front();
-                double maxcos = cos.back();
-                // Use the degrees obtained above and the number of vertices
-                // to determine the shape of the contour
-                if (vtc == 4 && mincos >= -0.1 && maxcos <= 0.3) {
-                    //setLabel(dst, "RECT", contours[i]);
-
-                } else if (vtc == 5 && mincos >= -0.34 && maxcos <= -0.27) {
-
-                    //setLabel(dst, "PENTA", contours[i]);
-                } else if (vtc == 6 && mincos >= -0.55 && maxcos <= -0.45) {
-
-                    //setLabel(dst, "HEXA", contours[i]);
-                }
-
-            } else {
-                // Detect and label circles
-                double area = cv::contourArea(contours[i]);
-                cv::Rect r = cv::boundingRect(contours[i]);
-                int radius = r.width / 2;
-                if (std::abs(1 - ((double) r.width / r.height)) <= 0.3
-                        && std::abs(1 - (area / (CV_PI * std::pow(radius, 2))))
-                        <= 0.3) {
-                    circlesIndex.push_back(i);
-                    //setLabel(dst, "CIR", contours[i]);
-                }
-
-            }
-        }
-
-        for (int i = 0; i < contours.size(); i++) {
-            for (int j = 0; j < circlesIndex.size(); j++) {
-                if (hierarchy[i][2] == circlesIndex[j]) {
-                    RotatedRect viaPad = minAreaRect(contours[i]);
-                    RotatedRect via = minAreaRect(contours[circlesIndex[j]]);
-                    via.size.height = via.size.height * 1.6;
-                    via.size.width = via.size.width * 1.6;
-                    via.angle = viaPad.angle;
-
-                    Point2f vertices[4];
-                    Point2f verticesVia[4];
-                    viaPad.points(vertices);
-                    via.points(verticesVia);
-                    for (int k = 0; k < 4; k++) {
-
-                        drawRotatedRect(bw, via, CV_RGB(0, 0, 0));
-                    }
-                    foundVia = true;
-                    break;
-                }
-            }
-        }
-
-        if (foundVia) {
-            repeat = true;
-            //ROS_INFO("Repeat...");
-        } else
-            repeat = false;
-
-        if (!repeat) {
-            //final = dst;
-            break;
-        }
-    }
-
-    // Draw pads rectangles
+    std::vector<cv::Point> approx;
 
     vector<Point2f> padPoints;
     vector<RotatedRect> padRects;
 
-    unsigned int padCounter = 0;
     for (int i = 0; i < contours.size(); i++) {
+
+        //cv::drawContours(final, contours, i, CV_RGB(0, 255, 255), 2);
+
+        // Approximate contour with accuracy proportional
+        // to the contour perimeter
+        cv::approxPolyDP(cv::Mat(contours[i]), approx,
+                         cv::arcLength(cv::Mat(contours[i]), true) * 0.15, true);
+
+        // Skip small or non-convex objects
+        if (std::fabs(cv::contourArea(contours[i])) < MIN_CONTOUR_AREA){
+            continue;
+        }
+
         double area = cv::contourArea(contours[i]);
+
+        if(hierarchy[i][3] != -1){
+            continue;
+        }
+
+        //if(hierarchy[i][2] != -1 && cv::contourArea(contours.at(hierarchy[i][2])) / area > 0.05){
+        if(hierarchy[i][2] != -1 && cv::contourArea(contours.at(hierarchy[i][2])) > MIN_VIA_AREA){
+            // Is circle
+            //RotatedRect viaPad = minAreaRect(contours[i]);
+            //drawRotatedRect(final, viaPad, CV_RGB(0, 255, 0));
+            float radius;
+            cv::Point2f center;
+            cv::minEnclosingCircle(contours.at(hierarchy[i][2]), center, radius);
+            cv::circle(final, center, radius * 1.8, CV_RGB(0,255,0), -1);
+            continue;
+        }
+
         if (area > MIN_PAD_AREA) {
 
             RotatedRect pad = minAreaRect(contours[i]);
-            if (!isBorderTouched(pad)) {
+
+            if (!isBorderTouched(pad, input->size())) {
                 // Calculate moments of image
                 Moments mu;
                 mu = moments(contours[i], false);
@@ -890,22 +736,14 @@ cv::Point2f padFinder::findPads(cv::Mat* input, bool startSelect,
                 } else {
                     drawRotatedRect(final, pad, CV_RGB(255, 0, 0));
                 }
-                padCounter++;
             }
         }
     }
-
-    cv::Mat out;
-    cv::cvtColor(bw, out, CV_GRAY2BGR);
 
     *input = final.clone();
     //cv::imshow("src", *input);
     //	cv::waitKey(0);
     return outputPosition;
 
-    //cv::imshow("bw", bw);
-    //cv::imshow("final", final);
-    //cv::imshow("grey", gray);
-    //ROS_INFO("Found %d pads..", padCounter);
 }
 
