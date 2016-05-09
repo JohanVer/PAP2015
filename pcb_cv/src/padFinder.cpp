@@ -508,10 +508,12 @@ bool padFinder::findSMDTape(cv::Mat &final, bool searchTapeRotation, smdPart &ou
         cv::threshold(gray, gray, 255, 255, CV_THRESH_BINARY | CV_THRESH_OTSU);
     } else {
         cv::adaptiveThreshold(gray, gray, 255, ADAPTIVE_THRESH_GAUSSIAN_C,
-                              CV_THRESH_BINARY, 201, 1.0);
+                              CV_THRESH_BINARY, 801, 2.0);
     }
-    //cv::erode(gray, gray, cv::Mat(), cv::Point(-1, -1),1);
+    cv::erode(gray, gray, cv::Mat(), cv::Point(-1, -1),1);
     //cv::cvtColor(gray, *input, CV_GRAY2BGR);
+    cv::imshow("tape thresholded", gray);
+    cv::waitKey(0);
 
     std::vector<std::vector<cv::Point> > contours;
     vector<Vec4i> hierarchy;
@@ -521,20 +523,18 @@ bool padFinder::findSMDTape(cv::Mat &final, bool searchTapeRotation, smdPart &ou
                      CV_CHAIN_APPROX_SIMPLE);
 
 
-    cv::imshow("tape thresholded", gray);
-    cv::waitKey(0);
 
     std::vector<cv::Point> approx;
     for (int i = 0; i < contours.size(); i++) {
         cv::approxPolyDP(cv::Mat(contours[i]), approx,
-                         cv::arcLength(cv::Mat(contours[i]), true) * 0.05, true);
+                         cv::arcLength(cv::Mat(contours[i]), true) * 0.1, true);
         // Skip small or non-convex objects
         if (std::fabs(cv::contourArea(contours[i])) < MIN_AREA_TAPE_FINDER
                 || !cv::isContourConvex(approx)) {
             continue;
         }
 
-        if (approx.size() >= 4 && approx.size() <= 6) {
+        if (approx.size() == 3) {
         } else {
             // Detect and label circles
             double area = cv::contourArea(contours[i]);
