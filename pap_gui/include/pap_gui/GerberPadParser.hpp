@@ -19,13 +19,6 @@
 #include <QString>
 #include <QStandardItemModel>
 #include <QTableWidget>
-#include <opencv2/imgproc/imgproc.hpp>
-#include <opencv2/highgui/highgui.hpp>
-#include "opencv2/core/core.hpp"
-#include "opencv2/features2d/features2d.hpp"
-#include "opencv2/highgui/highgui.hpp"
-#include "cv.h"
-#include "highgui.h"
 #include <cmath>
 #include "PadView.hpp"
 #include <QGraphicsRectItem>
@@ -34,7 +27,6 @@
 #include "visualization_msgs/Marker.h"
 #include "visualization_msgs/MarkerArray.h"
 #include "CommonDataClasses.hpp"
-
 
 /*class componentEntry {
 public:

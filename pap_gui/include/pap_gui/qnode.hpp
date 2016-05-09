@@ -30,12 +30,6 @@
 #include "std_msgs/ByteMultiArray.h"
 #include "std_msgs/String.h"
 #include <sensor_msgs/image_encodings.h>
-#include <opencv2/imgproc/imgproc.hpp>
-#include <opencv2/highgui/highgui.hpp>
-#include "opencv2/core/core.hpp"
-#include "opencv2/features2d/features2d.hpp"
-#include "opencv2/highgui/highgui.hpp"
-#include "cv.h"
 #include <image_transport/image_transport.h>
 #include "pap_common/Task.h"
 #include "pap_common/Status.h"

@@ -2,7 +2,7 @@
 # CMake
 ##############################################################################
 
-cmake_minimum_required(VERSION 2.8.11)
+cmake_minimum_required(VERSION 3.1.0 FATAL_ERROR)
 project(pap_gui)
 
 set(CMAKE_BUILD_TYPE Debug)
