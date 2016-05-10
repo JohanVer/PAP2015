@@ -44,6 +44,17 @@
 #include <pap_common/VisionResult.h>
 #include <pap_gui/stitchWaypointMaker.h>
 
+#include <cv_bridge/cv_bridge.h>
+#include <opencv2/imgproc.hpp>
+#include <sensor_msgs/image_encodings.h>
+#include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include <sensor_msgs/image_encodings.h>
+#include "opencv2/core/core.hpp"
+#include "opencv2/features2d/features2d.hpp"
+#include "opencv2/highgui/highgui.hpp"
+#include <opencv/cv.h>
+#include <opencv/highgui.h>
 
 class tapeCalibrationValue {
 public:

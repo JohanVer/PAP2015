@@ -368,9 +368,6 @@ QRectF GerberPadParser::renderImage(QGraphicsScene* scene, int width,
 		QRectF pad;
 		PadInformation padInfo;
 
-		// Change x,
-
-		//padInfo = padInformationArrayPrint_[i];
 		padInfo.rect.setX(padInformationArrayPrint_[i].rect.y());
 		padInfo.rect.setY(padInformationArrayPrint_[i].rect.x());
 		padInfo.rect.setWidth(padInformationArrayPrint_[i].rect.height());

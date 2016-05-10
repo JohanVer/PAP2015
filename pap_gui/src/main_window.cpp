@@ -2682,6 +2682,7 @@ void pap_gui::MainWindow::processAllCallbacks(){
 
 void pap_gui::MainWindow::on_scanButton_clicked()
 {
+    /*
     if(qnode.pcbHeight_ == 0 || qnode.pcbWidth_ == 0) return;
     const QVector3D init(311.204, 153.019, 27.0);
     const QVector2D pcb_size(qnode.pcbHeight_, qnode.pcbWidth_);
@@ -2704,26 +2705,35 @@ void pap_gui::MainWindow::on_scanButton_clicked()
             return;
         }
     }
-
+    */
 
     pap_common::VisionResult res;
     if(vision_send_functions::sendVisionTask(qnode.getVisionClientRef(), pap_vision::STITCH_PICTURES,  pap_vision::CAMERA_TOP,0,0,0,res,1)){
-        /* QMessageBox msgBox;
+        QMessageBox msgBox;
         msgBox.setText("Images were stitched");
         msgBox.exec();
 
-        static uchar dataArray[640*480 * 3];
-
-        for (size_t i = 0; i < res.mats.front().width * res.mats.front().height * 3; i++) {
-            dataArray[i] = res.mats.front().data.at(i);
+        cv_bridge::CvImagePtr cv_ptr;
+        try
+        {
+            cv_ptr = cv_bridge::toCvCopy(res.mats.front(), sensor_msgs::image_encodings::BGR8);
+        }
+        catch (cv_bridge::Exception& e)
+        {
+            ROS_ERROR("cv_bridge exception: %s", e.what());
+            return;
         }
 
-        static QImage stitchedImage(dataArray, res.mats.front().width, res.mats.front().height,
-                           QImage::Format_RGB888);
+        cv::Mat outputRGB;
+        cvtColor(cv_ptr->image, outputRGB, CV_BGR2RGB);
+
+        static QImage stitchedImage= QImage((uchar*) outputRGB.data, outputRGB.cols, outputRGB.rows, outputRGB.step, QImage::Format_RGB888);
 
         static QGraphicsPixmapItem stitched_pixmap( QPixmap::fromImage(stitchedImage));
         scenePads_.addItem(&stitched_pixmap);
-        */
-    }
 
+        ui.padView_Image->setScene(&scenePads_);
+        ui.padView_Image->show();
+
+    }
 }

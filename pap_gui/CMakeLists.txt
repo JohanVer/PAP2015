@@ -37,6 +37,8 @@ find_package(catkin REQUIRED COMPONENTS
   motor_controller
 )
 
+find_package( OpenCV 3.1 REQUIRED )
+
 # Find the QtWidgets library
 set(CMAKE_PREFIX_PATH $ENV{HOME}/Qt/5.6/gcc_64)
 set(CMAKE_INCLUDE_PATH $ENV{HOME}/Qt/5.6/gcc_64)
@@ -49,7 +51,7 @@ set(CMAKE_AUTOMOC ON)
 
 find_package(Qt5Widgets)
 
-include_directories(${catkin_INCLUDE_DIRS} include)
+include_directories(${catkin_INCLUDE_DIRS} include ${OpenCV_INCLUDE_DIRS})
 
 catkin_package(
   INCLUDE_DIRS include
@@ -91,7 +93,7 @@ add_library(pap_gui
    include/pap_gui/stitchWaypointMaker.h
  )
 
-target_link_libraries(pap_gui Qt5::Widgets ${catkin_LIBRARIES})
+target_link_libraries(pap_gui Qt5::Widgets ${OpenCV_LIBS} ${catkin_LIBRARIES})
 
 ##############################################################################
 # Sources
