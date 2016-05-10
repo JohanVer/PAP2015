@@ -31,6 +31,9 @@ namespace pap_gui {
 
 QNode::QNode(int argc, char** argv) : init_argc(argc), init_argv(argv) {
 	fakePadPos_ = false;
+    pcbWidth_ = 0;
+    pcbHeight_ = 0;
+
 }
 
 QNode::~QNode() {

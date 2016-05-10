@@ -237,6 +237,8 @@ public Q_SLOTS:
     *******************************************/
     void updateLoggingView(); // no idea why this can't connect automatically
 
+    void processAllCallbacks();
+
 private slots:
 
     void on_take_img_button_clicked();

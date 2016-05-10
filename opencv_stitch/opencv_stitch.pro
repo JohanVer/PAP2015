@@ -3,15 +3,16 @@ CONFIG += console c++11
 CONFIG -= app_bundle
 CONFIG -= qt
 
-SOURCES += main.cpp
+SOURCES += main.cpp \
+    pcbstitcher.cpp
 
-INCLUDEPATH += /usr/opencv3/include/opencv
-INCLUDEPATH += /usr/opencv3/include/opencv2
+INCLUDEPATH += /usr/local/include/opencv
+INCLUDEPATH += /usr/local/include/opencv2
 
-QMAKE_CXXFLAGS = -L/usr/opencv3/lib \
-       -I/usr/opencv3/include
+QMAKE_CXXFLAGS = -L/usr/local/lib \
+       -I/usr/local/include
 
-LIBS += -L/usr/opencv3/lib
+LIBS += -L/usr/local/lib
 LIBS += -lopencv_core
 LIBS += -lopencv_imgproc
 LIBS += -lopencv_highgui
@@ -27,3 +28,6 @@ LIBS += -lopencv_nonfree
 LIBS += -lopencv_imgcodecs
 LIBS += -lopencv_stitching
 LIBS += -lopencv_reg
+
+HEADERS += \
+    pcbstitcher.h

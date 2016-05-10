@@ -1,4 +1,4 @@
-#include <pcb_cv/pcbstitcher.h>
+#include "pcbstitcher.h"
 
 using namespace std;
 using namespace cv;
@@ -10,12 +10,11 @@ static const char* DIFF_IM = "Image difference";
 static const char* DIFF_REGPIX_IM = "Image difference: pixel registered";
 
 
-PcbStitcher::PcbStitcher(double pxFactorInit)
+PcbStitcher::PcbStitcher()
 {
-    px_conv_factor = pxFactorInit;
+    px_conv_factor = 31.0;
     i_pic_ = 0;
     scan_pos_ = cv::Point2d(0,0);
-    ll_corner_coord_ = cv::Point2d(0,0);
 }
 
 Mat PcbStitcher::translateImg(Mat &img, int offsetx, int offsety){
@@ -68,7 +67,6 @@ void PcbStitcher::blendImages(cv::Mat &final){
     double max_y = 0;
 
     double min_y = std::numeric_limits<double>::max();
-    double min_x = std::numeric_limits<double>::max();
 
     cv::Size image_size = images.front().first.size();
 
@@ -77,10 +75,6 @@ void PcbStitcher::blendImages(cv::Mat &final){
         double y = images.at(i).second.y;
         if(x > max_x){
             max_x = x;
-        }
-
-        if(x < min_x){
-            min_x = x;
         }
 
         if(y > max_y){
@@ -98,19 +92,12 @@ void PcbStitcher::blendImages(cv::Mat &final){
     if(min_y < 0){
         y_offset = std::fabs(min_y);
     }
-
-    double x_offset = 0;
-    if(min_x < 0){
-        x_offset = std::fabs(min_x);
-    }
-
     std::cerr << "Y-Offset is: "<< y_offset << std::endl;
-    std::cerr << "X-Offset is: "<< y_offset << std::endl;
 
 
     // Init blender
     detail::FeatherBlender blender;
-    Rect bounding_box(0,0,max_x + image_size.width + x_offset , max_y + image_size.height + y_offset);
+    Rect bounding_box(0,0,max_x + image_size.width , max_y + image_size.height+y_offset);
     std::cerr << "Bounding box: " << bounding_box.width << " , " << bounding_box.height << std::endl;
     blender.prepare(bounding_box);
 
@@ -185,7 +172,7 @@ void PcbStitcher::blendImages(cv::Mat &final){
 
         cv::Point2d px_offset = images.at(i).second;
         std::cerr << "Feed pos: " << px_offset.x << " , " << px_offset.y << std::endl;
-        blender.feed(feed_im.clone(), mask, Point(px_offset.x + x_offset, px_offset.y + y_offset));
+        blender.feed(feed_im.clone(), mask, Point(px_offset.x, px_offset.y + y_offset));
 
     }
 
@@ -212,10 +199,6 @@ void PcbStitcher::reset(){
 void PcbStitcher::feedImage(cv::Mat image_in, cv::Point2d offset){
     // This point will be updated later on
     cv::Point2d p0(0,0);
-
-    if(input_images.size() == 0){
-        ll_corner_coord_ = offset;
-    }
 
     // Add data to database
     input_images.push_back(std::pair<cv::Mat,cv::Point2d>(image_in, p0));
@@ -246,8 +229,8 @@ void PcbStitcher::feedImage(cv::Mat image_in, cv::Point2d offset){
         cv::Mat mask = cv::Mat::ones(test.size(), CV_8U) * 255;
         cur_image.copyTo(cur_image, mask);
 
-        //showDifference(img_before, test, DIFF_IM);
-        //waitKey(1);
+        showDifference(img_before, test, DIFF_IM);
+        waitKey(1);
         //------
 
         align(img_before, cur_image, mapTest);

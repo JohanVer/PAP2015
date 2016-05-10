@@ -179,19 +179,33 @@ void PcbCvInterface::execute_action(const pap_common::VisionGoalConstPtr& comman
 
     case pap_vision::FEED_STITCH_PIC:
     {
+        /*
         std::cerr << "Appending picture, size now: " << stitcher_.getImageListSize() + 1 << std::endl;
         cameraSelect = command->cameraSelect;
         std::vector<cv::Mat> images;
         gatherImages(command->numAverages, images,(pap_vision::CAMERA_SELECT) cameraSelect);
-        cv::Point2d coord(command->data1, command->data2);
+        cv::Point2d coord(command->data2, command->data1);
+        std::cerr << "Appending with coordinate : " << coord << std::endl;
         stitcher_.feedImage(images.front(), coord);
         as_.setSucceeded();
+*/
+        std::cerr << "Appending picture...\n";
+        cameraSelect = command->cameraSelect;
+        std::vector<cv::Mat> images;
+        gatherImages(1, images,(pap_vision::CAMERA_SELECT) cameraSelect);
+        cv::Point3d coord(command->data1, command->data2, command->data3);
+        finder.appendImage(images.front(), coord);
+        as_.setSucceeded();
+
     }
         break;
 
     case pap_vision::STITCH_PICTURES:{
+        finder.saveStitchingImages();
+                as_.setSucceeded();
+        /*
         static size_t stitch_id = 0;
-        cv:Mat composed_img;
+cv:Mat composed_img;
         stitcher_.blendImages(composed_img);
         pap_common::VisionResult res;
         res.data1 = (stitcher_.getLLCornerCoord()).x;
@@ -211,8 +225,9 @@ void PcbCvInterface::execute_action(const pap_common::VisionGoalConstPtr& comman
         out_msg.image = outputRGB;
         res.mats.push_back(*out_msg.toImageMsg());
 
-        as_.setSucceeded();
+        as_.setSucceeded(res);
         stitcher_.reset();
+        */
     }
         break;
 
@@ -291,7 +306,7 @@ void PcbCvInterface::imageCallback1(const sensor_msgs::ImageConstPtr& msg) {
 
                     double pxRatioSlot;
                     finder.getPixelConvVal(input, pxRatioSlot);
-//                        finder.setPixelRatioSlot(pxRatioSlot);
+                    //                        finder.setPixelRatioSlot(pxRatioSlot);
 
                     visionMsg.task = pap_vision::START__QRCODE_FINDER;
                     statusPublisher.publish(visionMsg);
@@ -303,11 +318,11 @@ void PcbCvInterface::imageCallback1(const sensor_msgs::ImageConstPtr& msg) {
                 {
                     double pxRatioPcb;
                     finder.getPixelConvVal(input, pxRatioPcb);
-//                        finder.setPixelRatioPcb(pxRatioPcb);
+                    //                        finder.setPixelRatioPcb(pxRatioPcb);
 
                     visionMsg.task = pap_vision::START__QRCODE_FINDER;
                     statusPublisher.publish(visionMsg);
-                   // qrCalAction = pap_vision::NO_CAL;
+                    // qrCalAction = pap_vision::NO_CAL;
                 }
                     break;
 
@@ -315,7 +330,7 @@ void PcbCvInterface::imageCallback1(const sensor_msgs::ImageConstPtr& msg) {
                 {
                     double pxRatioTape;
                     finder.getPixelConvVal(input, pxRatioTape);
-//                        finder.setPixelRatioTape(pxRatioTape);
+                    //                        finder.setPixelRatioTape(pxRatioTape);
 
                     visionMsg.task = pap_vision::START__QRCODE_FINDER;
                     statusPublisher.publish(visionMsg);
@@ -345,7 +360,7 @@ void PcbCvInterface::imageCallback1(const sensor_msgs::ImageConstPtr& msg) {
                 }
             }
 
-            break;      
+            break;
         case TAPE:
             // SMD Tape
             if(finder.findSMDTape(input, searchTapeRotation, smd)){
@@ -448,11 +463,11 @@ void PcbCvInterface::imageCallback2(const sensor_msgs::ImageConstPtr& msg) {
 
                     double pxRatioBottom;
                     finder.getPixelConvVal(input2, pxRatioBottom);
-                       // finder.setPixelRatioBottom(pxRatioBottom);
+                    // finder.setPixelRatioBottom(pxRatioBottom);
 
                     visionMsg.task = pap_vision::START__QRCODE_FINDER;
                     statusPublisher.publish(visionMsg);
-                   // qrCalAction = pap_vision::NO_CAL;
+                    // qrCalAction = pap_vision::NO_CAL;
                 }
             }
             break;

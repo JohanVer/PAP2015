@@ -2674,18 +2674,29 @@ void pap_gui::MainWindow::on_calibrateSystemButton_clicked()
     }
 }
 
+void pap_gui::MainWindow::processAllCallbacks(){
+    for(size_t i = 0; i < 100; i++){
+        ros::spinOnce();
+    }
+}
+
 void pap_gui::MainWindow::on_scanButton_clicked()
 {
-    const QVector3D init(0,0,0);
-    const QVector2D pcb_size(qnode.pcbWidth_, qnode.pcbHeight_);
+    if(qnode.pcbHeight_ == 0 || qnode.pcbWidth_ == 0) return;
+    const QVector3D init(311.204, 153.019, 27.0);
+    const QVector2D pcb_size(qnode.pcbHeight_, qnode.pcbWidth_);
     std::vector<QVector3D> waypoints = stitch_waypoint_maker::generateWaypoints(init, 50, pcb_size, 31 , 31, 27.0);
 
     for(size_t i = 0; i < waypoints.size(); i++){
+        std::cerr << "Drive to waypoint... " << i << std::endl;
         QVector3D &p = waypoints.at(i);
         if(!motor_send_functions::sendMotorControllerAction(qnode.getMotorClientRef(), pap_common::COORD, p.x(), p.y(), p.z() )){
             std::cerr << "Failed to send current command...\n";
             return;
         }
+
+        processAllCallbacks();
+
         ros::Duration(0.2);
         pap_common::VisionResult res;
         if(!vision_send_functions::sendVisionTask(qnode.getVisionClientRef(), pap_vision::FEED_STITCH_PIC, pap_vision::CAMERA_TOP, currentPosition.x, currentPosition.y, currentPosition.z ,res)){
@@ -2694,9 +2705,10 @@ void pap_gui::MainWindow::on_scanButton_clicked()
         }
     }
 
+
     pap_common::VisionResult res;
     if(vision_send_functions::sendVisionTask(qnode.getVisionClientRef(), pap_vision::STITCH_PICTURES,  pap_vision::CAMERA_TOP,0,0,0,res,1)){
-        QMessageBox msgBox;
+        /* QMessageBox msgBox;
         msgBox.setText("Images were stitched");
         msgBox.exec();
 
@@ -2711,5 +2723,7 @@ void pap_gui::MainWindow::on_scanButton_clicked()
 
         static QGraphicsPixmapItem stitched_pixmap( QPixmap::fromImage(stitchedImage));
         scenePads_.addItem(&stitched_pixmap);
+        */
     }
+
 }
