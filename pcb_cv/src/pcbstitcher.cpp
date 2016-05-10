@@ -10,11 +10,12 @@ static const char* DIFF_IM = "Image difference";
 static const char* DIFF_REGPIX_IM = "Image difference: pixel registered";
 
 
-PcbStitcher::PcbStitcher()
+PcbStitcher::PcbStitcher(double pxFactorInit)
 {
-    px_conv_factor = 31.0;
+    px_conv_factor = pxFactorInit;
     i_pic_ = 0;
     scan_pos_ = cv::Point2d(0,0);
+    ll_corner_coord_ = cv::Point2d(0,0);
 }
 
 Mat PcbStitcher::translateImg(Mat &img, int offsetx, int offsety){
@@ -199,6 +200,10 @@ void PcbStitcher::reset(){
 void PcbStitcher::feedImage(cv::Mat image_in, cv::Point2d offset){
     // This point will be updated later on
     cv::Point2d p0(0,0);
+
+    if(input_images.size() == 0){
+        ll_corner_coord_ = offset;
+    }
 
     // Add data to database
     input_images.push_back(std::pair<cv::Mat,cv::Point2d>(image_in, p0));

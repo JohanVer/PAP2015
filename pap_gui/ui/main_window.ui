@@ -40,7 +40,7 @@
        <locale language="English" country="Australia"/>
       </property>
       <property name="currentIndex">
-       <number>5</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="ComponentPlacement">
        <attribute name="title">
@@ -815,7 +815,7 @@
           <x>10</x>
           <y>0</y>
           <width>201</width>
-          <height>221</height>
+          <height>231</height>
          </rect>
         </property>
         <property name="title">
@@ -921,6 +921,19 @@
           <string>Generate Pad Image</string>
          </property>
         </widget>
+        <widget class="QPushButton" name="scanButton">
+         <property name="geometry">
+          <rect>
+           <x>20</x>
+           <y>200</y>
+           <width>99</width>
+           <height>27</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Scan Pcb</string>
+         </property>
+        </widget>
        </widget>
        <widget class="PadView" name="padView_Image">
         <property name="geometry">
@@ -936,9 +949,9 @@
         <property name="geometry">
          <rect>
           <x>20</x>
-          <y>220</y>
+          <y>240</y>
           <width>371</width>
-          <height>371</height>
+          <height>351</height>
          </rect>
         </property>
        </widget>

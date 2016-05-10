@@ -73,6 +73,7 @@ add_library(pap_gui
    src/DispenserPlanner.cpp
    src/GerberPadParser.cpp
    src/PadView.cpp
+   src/stitchWaypointMaker.cpp
    ${QT_FORMS_HPP}
    include/pap_gui/ClickGraphicsView.hpp
    include/pap_gui/main_window.hpp
@@ -87,6 +88,7 @@ add_library(pap_gui
    include/pap_gui/PadView.hpp
    include/pap_gui/GerberPadParser.hpp
    include/pap_gui/qnode.hpp
+   include/pap_gui/stitchWaypointMaker.h
  )
 
 target_link_libraries(pap_gui Qt5::Widgets ${catkin_LIBRARIES})

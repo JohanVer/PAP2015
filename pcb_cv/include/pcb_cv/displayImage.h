@@ -26,6 +26,7 @@
 #include <tf/transform_broadcaster.h>
 #include <pap_common/VisionAction.h>
 #include <actionlib/server/simple_action_server.h>
+#include <pcb_cv/pcbstitcher.h>
 
 
 namespace pcb_cv{
@@ -52,6 +53,7 @@ private:
 
     void execute_action(const pap_common::VisionGoalConstPtr &command);
 
+    stitcher::PcbStitcher stitcher_;
     ros::NodeHandle nh_;
     ActionServer as_;
     ros::Publisher statusPublisher;
@@ -78,7 +80,6 @@ private:
     unsigned int id_counter1, id_counter2;
 
     unsigned int img_gather_counter;
-
 
     int calibrationIteration;
 

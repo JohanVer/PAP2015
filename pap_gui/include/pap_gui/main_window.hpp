@@ -42,6 +42,7 @@
 #include "packageDialog.hpp"
 #include <motorController/sendfunctions.h>
 #include <pap_common/VisionResult.h>
+#include <pap_gui/stitchWaypointMaker.h>
 
 
 class tapeCalibrationValue {
@@ -253,6 +254,8 @@ private slots:
 
     void on_calibrateTopCamButton_clicked();
 
+    void on_scanButton_clicked();
+
 private:
 
 	Ui::MainWindowDesign ui;
@@ -283,6 +286,8 @@ private:
 	// Structures for holding the rendered image of the pcb
 	QPixmap renderedPadsPixmap;
 	graphicsScene scenePads_;
+
+    QPixmap stitched_img_;
 
 	// Variables of the valves
 	bool valve1Active_;

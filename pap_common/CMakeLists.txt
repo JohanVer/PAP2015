@@ -8,6 +8,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
   std_msgs
+  sensor_msgs
   message_generation
 )
 
@@ -72,6 +73,7 @@ add_action_files(DIRECTORY action FILES MotorControllerAction.action Vision.acti
    DEPENDENCIES
    std_msgs
    actionlib_msgs
+   sensor_msgs
  )
 
 ###################################
@@ -86,7 +88,7 @@ add_action_files(DIRECTORY action FILES MotorControllerAction.action Vision.acti
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES pap_common
-  CATKIN_DEPENDS roscpp rospy std_msgs message_generation message_runtime
+  CATKIN_DEPENDS roscpp rospy std_msgs message_generation message_runtime sensor_msgs
   DEPENDS system_lib
 )
 

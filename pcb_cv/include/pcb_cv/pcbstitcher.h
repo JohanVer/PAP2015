@@ -7,11 +7,8 @@
 #include <opencv2/opencv.hpp>
 #include <opencv2/stitching.hpp>
 #include <opencv2/stitching/detail/blenders.hpp>
-#include <opencv_modules.hpp>
-#include <opencv.hpp>
 #include <opencv2/stitching/detail/matchers.hpp>
 #include <opencv2/core.hpp>
-#include <opencv_modules.hpp>
 #include "opencv2/reg/mapaffine.hpp"
 #include "opencv2/reg/mapshift.hpp"
 #include "opencv2/reg/mapprojec.hpp"
@@ -32,21 +29,39 @@ namespace stitcher{
 class PcbStitcher
 {
 public:
-    PcbStitcher();
+    PcbStitcher(double pxFactorInit);
     cv::Mat translateImg(cv::Mat &img, int offsetx, int offsety);
-    void showDifference(const cv::Mat& image1, const cv::Mat& image2, const char* title);
-    void align(const cv::Mat& img1, cv::Mat& img2, cv::reg::MapShift &mapshift);
-    void blendImages(cv::Mat &final);
     void feedImage(cv::Mat image_in, cv::Point2d offset);
     void reset();
+    void blendImages(cv::Mat &final);
+
+    double getApproxPxFactor(){
+        return px_conv_factor;
+    }
+
+    void setApproxPxFactor(double factor){
+        px_conv_factor = factor;
+    }
+
+    size_t getImageListSize(){
+        return input_images.size();
+    }
+
+    cv::Point2d getLLCornerCoord(){
+        return ll_corner_coord_;
+    }
 
 private:
+    void showDifference(const cv::Mat& image1, const cv::Mat& image2, const char* title);
+    void align(const cv::Mat& img1, cv::Mat& img2, cv::reg::MapShift &mapshift);
     std::vector<std::pair<cv::Mat,cv::Point2d> > input_images;
 
     std::vector<cv::Point2d> offsets_;
     double px_conv_factor;
     cv::Point2d scan_pos_;
     size_t i_pic_;
+
+    cv::Point2d ll_corner_coord_;
 };
 
 }

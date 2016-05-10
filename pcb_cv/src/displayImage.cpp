@@ -6,7 +6,7 @@ using namespace zbar;
 
 namespace pcb_cv{
 
-PcbCvInterface::PcbCvInterface() : as_(nh_, "vision_actions", boost::bind(&PcbCvInterface::execute_action, this, _1),false){
+PcbCvInterface::PcbCvInterface() : as_(nh_, "vision_actions", boost::bind(&PcbCvInterface::execute_action, this, _1),false) , stitcher_(31.0){
 
     visionState = IDLE;
     qrCalAction = pap_vision::NO_CAL;
@@ -177,22 +177,43 @@ void PcbCvInterface::execute_action(const pap_common::VisionGoalConstPtr& comman
     }
         break;
 
-    case pap_vision::APPEND_PICTURE:
+    case pap_vision::FEED_STITCH_PIC:
     {
-        std::cerr << "Appending picture...\n";
+        std::cerr << "Appending picture, size now: " << stitcher_.getImageListSize() + 1 << std::endl;
         cameraSelect = command->cameraSelect;
         std::vector<cv::Mat> images;
         gatherImages(command->numAverages, images,(pap_vision::CAMERA_SELECT) cameraSelect);
-        cv::Point3d coord(command->data1, command->data2, command->data3);
-        finder.appendImage(images.front(), coord);
+        cv::Point2d coord(command->data1, command->data2);
+        stitcher_.feedImage(images.front(), coord);
         as_.setSucceeded();
-
     }
         break;
 
-    case pap_vision::STITCH_PICTURES:
-        finder.saveStitchingImages();
+    case pap_vision::STITCH_PICTURES:{
+        static size_t stitch_id = 0;
+        cv:Mat composed_img;
+        stitcher_.blendImages(composed_img);
+        pap_common::VisionResult res;
+        res.data1 = (stitcher_.getLLCornerCoord()).x;
+        res.data2 = (stitcher_.getLLCornerCoord()).y;
+
+        cv::Mat outputRGB;
+        cvtColor(composed_img, outputRGB, CV_BGR2RGB);
+        std_msgs::Header header;
+        header.seq = stitch_id;
+        header.stamp = ros::Time::now();
+        header.frame_id = "stitched";
+        stitch_id++;
+
+        cv_bridge::CvImage out_msg;
+        out_msg.header = header; // Same timestamp and tf frame as input image
+        out_msg.encoding = sensor_msgs::image_encodings::RGB8;
+        out_msg.image = outputRGB;
+        res.mats.push_back(*out_msg.toImageMsg());
+
         as_.setSucceeded();
+        stitcher_.reset();
+    }
         break;
 
         // This state is for manually selecting of the fiducials
@@ -356,7 +377,6 @@ void PcbCvInterface::imageCallback1(const sensor_msgs::ImageConstPtr& msg) {
     createCrosshairs(input);
 
     // Camera 1
-
     cv::Mat outputRGB;
     cvtColor(input, outputRGB, CV_BGR2RGB);
 

@@ -121,6 +121,7 @@ include (/usr/dlib-18.18/dlib/cmake)
 add_library(pcb_cv
    src/padFinder.cpp
    src/sendfunctions.cpp
+   src/pcbstitcher.cpp
  )
 target_link_libraries ( pcb_cv zbar dlib ${OpenCV_LIBS} ${catkin_LIBRARIES} )
 

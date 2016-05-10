@@ -2009,16 +2009,6 @@ void MainWindow::on_padViewGenerate_button_clicked() {
 
     ui.padView_Image->setScene(&scenePads_);
     ui.padView_Image->show();
-    /*
-     QImage *image = new QImage(pcbSize.width(), pcbSize.height(),
-     QImage::Format_RGB888);
-     QPainter painter(image);
-     painter.setRenderHint(QPainter::Antialiasing);
-     scenePads_.render(&painter);
-     if (!image->save("/home/johan/Schreibtisch/file_name.png")) {
-     ROS_ERROR("Error while saving image");
-     }
-     */
     qnode.sendPcbImage(padParser.getMarkerList());
 
 }
@@ -2034,14 +2024,10 @@ void MainWindow::gotoPad(QPointF padPos) {
     ROS_INFO("GUI: Goto Pad....");
     id_ = padParser.searchId(padPos, ui.padView_Image->width() - 20);
     ROS_INFO("GUI: ID: %d", id_);
-    //if (qnode.getStatus()[0].positionReached
-    //		&& qnode.getStatus()[1].positionReached
-    //	&& qnode.getStatus()[2].positionReached) {
 
     float x = padParser.padInformationArray_[id_].rect.x();
     float y = padParser.padInformationArray_[id_].rect.y();
     ROS_INFO("GUI: Goto position x: %f y: %f", x, y);
-    //qnode.sendTask(pap_common::CONTROLLER, pap_common::COORD, x, y, 22);
     qnode.sendTask(pap_common::PLACER, pap_common::GOTO, x, y, 22.0);
     //}
 }
@@ -2644,7 +2630,7 @@ void pap_gui::MainWindow::on_calibrateBottomCamButton_clicked()
 void pap_gui::MainWindow::on_take_img_button_clicked()
 {
     pap_common::VisionResult res;
-    if(vision_send_functions::sendVisionTask(qnode.getVisionClientRef(), pap_vision::APPEND_PICTURE, pap_vision::CAMERA_TOP, currentPosition.x, currentPosition.y, currentPosition.z ,res)){
+    if(vision_send_functions::sendVisionTask(qnode.getVisionClientRef(), pap_vision::FEED_STITCH_PIC, pap_vision::CAMERA_TOP, currentPosition.x, currentPosition.y, currentPosition.z ,res)){
         QMessageBox msgBox;
         msgBox.setText("Image was appended");
         msgBox.exec();
@@ -2688,5 +2674,42 @@ void pap_gui::MainWindow::on_calibrateSystemButton_clicked()
     }
 }
 
+void pap_gui::MainWindow::on_scanButton_clicked()
+{
+    const QVector3D init(0,0,0);
+    const QVector2D pcb_size(qnode.pcbWidth_, qnode.pcbHeight_);
+    std::vector<QVector3D> waypoints = stitch_waypoint_maker::generateWaypoints(init, 50, pcb_size, 31 , 31, 27.0);
 
+    for(size_t i = 0; i < waypoints.size(); i++){
+        QVector3D &p = waypoints.at(i);
+        if(!motor_send_functions::sendMotorControllerAction(qnode.getMotorClientRef(), pap_common::COORD, p.x(), p.y(), p.z() )){
+            std::cerr << "Failed to send current command...\n";
+            return;
+        }
+        ros::Duration(0.2);
+        pap_common::VisionResult res;
+        if(!vision_send_functions::sendVisionTask(qnode.getVisionClientRef(), pap_vision::FEED_STITCH_PIC, pap_vision::CAMERA_TOP, currentPosition.x, currentPosition.y, currentPosition.z ,res)){
+            std::cerr << "Appending picture failed\n ";
+            return;
+        }
+    }
 
+    pap_common::VisionResult res;
+    if(vision_send_functions::sendVisionTask(qnode.getVisionClientRef(), pap_vision::STITCH_PICTURES,  pap_vision::CAMERA_TOP,0,0,0,res,1)){
+        QMessageBox msgBox;
+        msgBox.setText("Images were stitched");
+        msgBox.exec();
+
+        static uchar dataArray[640*480 * 3];
+
+        for (size_t i = 0; i < res.mats.front().width * res.mats.front().height * 3; i++) {
+            dataArray[i] = res.mats.front().data.at(i);
+        }
+
+        static QImage stitchedImage(dataArray, res.mats.front().width, res.mats.front().height,
+                           QImage::Format_RGB888);
+
+        static QGraphicsPixmapItem stitched_pixmap( QPixmap::fromImage(stitchedImage));
+        scenePads_.addItem(&stitched_pixmap);
+    }
+}
