@@ -652,7 +652,7 @@ bool padFinder::findSMDTape(cv::Mat &final, bool searchTapeRotation, smdPart &ou
 }
 
 cv::Point2f padFinder::findPads(cv::Mat* input, bool startSelect,
-                                cv::Point2f selectPad) {
+                                cv::Point2f selectPad, std::vector<RotatedRect> &pads) {
     cv::Point2f outputPosition;
     outputPosition.x = 0.0;
     outputPosition.y = 0.0;
@@ -739,6 +739,13 @@ cv::Point2f padFinder::findPads(cv::Mat* input, bool startSelect,
             }
         }
     }
+
+    for(size_t i = 0; i < padRects.size(); i++){
+        padRects.at(i).center.x = input->cols - padRects.at(i).center.x;
+        padRects.at(i).center.y = input->rows - padRects.at(i).center.y;
+    }
+
+    pads = padRects;
 
     *input = final.clone();
     //cv::imshow("src", *input);

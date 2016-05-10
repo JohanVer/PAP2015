@@ -2735,5 +2735,9 @@ void pap_gui::MainWindow::on_scanButton_clicked()
         ui.padView_Image->setScene(&scenePads_);
         ui.padView_Image->show();
 
+        padFinder finder;
+        std::vector<cv::RotatedRect> pads;
+        finder.findPads(&(cv_ptr->image),false, cv::Point2f(0,0),pads);
+
     }
 }

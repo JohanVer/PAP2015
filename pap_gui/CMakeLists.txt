@@ -5,6 +5,8 @@
 cmake_minimum_required(VERSION 2.8.11)
 project(pap_gui)
 
+include (/usr/dlib-18.18/dlib/cmake)
+
 set(CMAKE_BUILD_TYPE Debug)
 
 include(CheckCXXCompilerFlag)
@@ -51,8 +53,6 @@ set(CMAKE_AUTOMOC ON)
 
 find_package(Qt5Widgets)
 
-include_directories(${catkin_INCLUDE_DIRS} include ${OpenCV_INCLUDE_DIRS})
-
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES pap_gui
@@ -93,7 +93,8 @@ add_library(pap_gui
    include/pap_gui/stitchWaypointMaker.h
  )
 
-target_link_libraries(pap_gui Qt5::Widgets ${OpenCV_LIBS} ${catkin_LIBRARIES})
+target_link_libraries(pap_gui Qt5::Widgets dlib ${OpenCV_LIBS} ${catkin_LIBRARIES})
+include_directories(${catkin_INCLUDE_DIRS} include ${OpenCV_INCLUDE_DIRS})
 
 ##############################################################################
 # Sources
@@ -105,6 +106,6 @@ file(GLOB_RECURSE QT_SOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} FOLLOW_SYMLINK
 # Binaries
 ##############################################################################
 
-add_executable(pap_gui_node src/main.cpp )#${QT_FORMS_HPP} )
+add_executable(pap_gui_node src/main.cpp )
 target_link_libraries(pap_gui_node pap_gui Qt5::Widgets ${catkin_LIBRARIES})
 

@@ -55,12 +55,12 @@ void PcbCvInterface::gatherImages(size_t num_images, std::vector<cv::Mat> &image
 }
 
 string type2str(int type) {
-  string r;
+    string r;
 
-  uchar depth = type & CV_MAT_DEPTH_MASK;
-  uchar chans = 1 + (type >> CV_CN_SHIFT);
+    uchar depth = type & CV_MAT_DEPTH_MASK;
+    uchar chans = 1 + (type >> CV_CN_SHIFT);
 
-  switch ( depth ) {
+    switch ( depth ) {
     case CV_8U:  r = "8U"; break;
     case CV_8S:  r = "8S"; break;
     case CV_16U: r = "16U"; break;
@@ -69,12 +69,12 @@ string type2str(int type) {
     case CV_32F: r = "32F"; break;
     case CV_64F: r = "64F"; break;
     default:     r = "User"; break;
-  }
+    }
 
-  r += "C";
-  r += (chans+'0');
+    r += "C";
+    r += (chans+'0');
 
-  return r;
+    return r;
 }
 
 
@@ -213,18 +213,29 @@ void PcbCvInterface::execute_action(const pap_common::VisionGoalConstPtr& comman
         stitcher_.feedImage(images.front(), coord);
         as_.setSucceeded();
 
-        //std::cerr << "Appending picture...\n";
-        //cameraSelect = command->cameraSelect;
-        //std::vector<cv::Mat> images;
-        //gatherImages(1, images,(pap_vision::CAMERA_SELECT) cameraSelect);
-        //cv::Point3d coord(command->data1, command->data2, command->data3);
-        //finder.appendImage(images.front(), coord);
-        //as_.setSucceeded();
-
     }
         break;
 
     case pap_vision::STITCH_PICTURES:{
+
+cv:Mat composed_img = cv::imread(string(getenv("PAPRESOURCES")) + "training_data/filternull_org.png");
+        static size_t stitch_id = 0;
+        pap_common::VisionResult res;
+
+        std_msgs::Header header;
+        header.seq = stitch_id;
+        header.stamp = ros::Time::now();
+        header.frame_id = "stitched";
+        stitch_id++;
+
+        cv_bridge::CvImage out_msg;
+        out_msg.header = header; // Same timestamp and tf frame as input image
+        out_msg.encoding = sensor_msgs::image_encodings::BGR8;
+        out_msg.image = composed_img;
+        res.mats.push_back(*out_msg.toImageMsg());
+
+        as_.setSucceeded(res);
+        /*
 
         static size_t stitch_id = 0;
         cv:Mat composed_img;
@@ -248,6 +259,7 @@ void PcbCvInterface::execute_action(const pap_common::VisionGoalConstPtr& comman
         as_.setSucceeded(res);
 
         stitcher_.reset();
+        */
 
     }
         break;
@@ -393,9 +405,10 @@ void PcbCvInterface::imageCallback1(const sensor_msgs::ImageConstPtr& msg) {
                 statusPublisher.publish(visionMsg);
             }
             break;
-        case PAD:
+        case PAD:{
+            std::vector<RotatedRect> pads;
             // Pads
-            position = finder.findPads(&input, selectPad, selectPoint);
+            position = finder.findPads(&input, selectPad, selectPoint, pads);
             if (selectPad && position.x != 0.0 && position.y != 0.0) {
                 visionMsg.task = pap_vision::START_PAD_FINDER;
                 visionMsg.data1 = position.y;
@@ -404,6 +417,7 @@ void PcbCvInterface::imageCallback1(const sensor_msgs::ImageConstPtr& msg) {
                 visionMsg.camera = 0;
                 statusPublisher.publish(visionMsg);
             }
+        }
             break;
         }
     } else {

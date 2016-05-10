@@ -67,7 +67,7 @@ public:
 
     cv::Mat classifyPixels(const cv::Mat &in);
 
-	cv::Point2f findPads(cv::Mat* input,bool startSelect,cv::Point2f selectPad);
+    cv::Point2f findPads(cv::Mat* input, bool startSelect, cv::Point2f selectPad, std::vector<cv::RotatedRect> &pads);
     bool findChipAvg(std::vector<cv::Mat> *input, enum pap_vision::CAMERA_SELECT camera_select, smdPart &chip);
     bool findChip(cv::Mat* input, unsigned int camera_select, smdPart &part_out);
     bool findSMDTapeAvg(std::vector<cv::Mat> *input, bool searchTapeRotation, smdPart &out);

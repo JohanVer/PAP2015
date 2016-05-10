@@ -43,6 +43,7 @@
 #include <motorController/sendfunctions.h>
 #include <pap_common/VisionResult.h>
 #include <pap_gui/stitchWaypointMaker.h>
+#include <pcb_cv/padFinder.h>
 
 #include <cv_bridge/cv_bridge.h>
 #include <opencv2/imgproc.hpp>
