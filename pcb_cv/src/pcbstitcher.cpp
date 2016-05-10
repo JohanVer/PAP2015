@@ -105,7 +105,7 @@ void PcbStitcher::blendImages(cv::Mat &final){
     }
 
     std::cerr << "Y-Offset is: "<< y_offset << std::endl;
-    std::cerr << "X-Offset is: "<< y_offset << std::endl;
+    std::cerr << "X-Offset is: "<< x_offset << std::endl;
 
 
     // Init blender

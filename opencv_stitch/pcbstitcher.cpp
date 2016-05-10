@@ -67,6 +67,7 @@ void PcbStitcher::blendImages(cv::Mat &final){
     double max_y = 0;
 
     double min_y = std::numeric_limits<double>::max();
+    double min_x = std::numeric_limits<double>::max();
 
     cv::Size image_size = images.front().first.size();
 
@@ -84,6 +85,12 @@ void PcbStitcher::blendImages(cv::Mat &final){
         if(y < min_y){
             min_y = y;
         }
+
+        if(x < min_x){
+            min_x = x;
+        }
+
+
     }
 
     std::cerr << "Max x: " << max_x << " Max y: " << max_y << std::endl;
@@ -94,15 +101,19 @@ void PcbStitcher::blendImages(cv::Mat &final){
     }
     std::cerr << "Y-Offset is: "<< y_offset << std::endl;
 
+    double x_offset = 0;
+    if(min_x < 0){
+        x_offset = std::fabs(min_x);
+    }
+    std::cerr << "X-Offset is: "<< x_offset << std::endl;
 
     // Init blender
     detail::FeatherBlender blender;
-    Rect bounding_box(0,0,max_x + image_size.width , max_y + image_size.height+y_offset);
+    Rect bounding_box(0,0,max_x + image_size.width + x_offset , max_y + image_size.height+y_offset);
     std::cerr << "Bounding box: " << bounding_box.width << " , " << bounding_box.height << std::endl;
     blender.prepare(bounding_box);
 
     //Compensate exposure
-
     /*
     Ptr<detail::ExposureCompensator> gain_compensator = detail::ExposureCompensator::createDefault(detail::ExposureCompensator::GAIN);
 
@@ -172,7 +183,7 @@ void PcbStitcher::blendImages(cv::Mat &final){
 
         cv::Point2d px_offset = images.at(i).second;
         std::cerr << "Feed pos: " << px_offset.x << " , " << px_offset.y << std::endl;
-        blender.feed(feed_im.clone(), mask, Point(px_offset.x, px_offset.y + y_offset));
+        blender.feed(feed_im.clone(), mask, Point(px_offset.x + x_offset, px_offset.y + y_offset));
 
     }
 
@@ -230,7 +241,7 @@ void PcbStitcher::feedImage(cv::Mat image_in, cv::Point2d offset){
         cur_image.copyTo(cur_image, mask);
 
         showDifference(img_before, test, DIFF_IM);
-        waitKey(1);
+        waitKey(0);
         //------
 
         align(img_before, cur_image, mapTest);

@@ -34,7 +34,8 @@ int main(int argc, char *argv[])
 
     std::vector<cv::Mat > input_images;
 
-    ifstream file ( "/home/johan/catkin_ws/src/PAP2015/PAP/stitching/stitch_coord.csv" );
+    //ifstream file ( "/home/johan/catkin_ws/src/PAP2015/PAP/stitching/stitch_coord.csv" );
+    ifstream file ( "/home/vertensj/PAP_workspace/src/PAP2015/PAP/stitching/stitch_coord.csv" );
     // Get offsets
     std::vector<cv::Point2d> offsets;
     std::string line;
@@ -48,7 +49,8 @@ int main(int argc, char *argv[])
 
     // Get images and combine them with offsets
     for(size_t i = 0; i < 6 ; i++){
-        cv::Mat im1 = cv::imread("/home/johan/catkin_ws/src/PAP2015/PAP/stitching/stitch" +std::to_string(i)+ ".jpg");
+        //cv::Mat im1 = cv::imread("/home/johan/catkin_ws/src/PAP2015/PAP/stitching/stitch" +std::to_string(i)+ ".jpg");
+        cv::Mat im1 = cv::imread("/home/vertensj/PAP_workspace/src/PAP2015/PAP/stitching/stitch" +std::to_string(i)+ ".jpg");
         im1.convertTo(im1, CV_64FC3);
         input_images.push_back(im1);
     }
