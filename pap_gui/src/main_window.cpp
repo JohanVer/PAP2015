@@ -2707,6 +2707,8 @@ void pap_gui::MainWindow::on_scanButton_clicked()
     }
     */
 
+    double px_conv = 31.0;
+
     pap_common::VisionResult res;
     if(vision_send_functions::sendVisionTask(qnode.getVisionClientRef(), pap_vision::STITCH_PICTURES,  pap_vision::CAMERA_TOP,0,0,0,res,1)){
         QMessageBox msgBox;
@@ -2730,14 +2732,40 @@ void pap_gui::MainWindow::on_scanButton_clicked()
         static QImage stitchedImage= QImage((uchar*) outputRGB.data, outputRGB.cols, outputRGB.rows, outputRGB.step, QImage::Format_RGB888);
 
         static QGraphicsPixmapItem stitched_pixmap( QPixmap::fromImage(stitchedImage));
-        scenePads_.addItem(&stitched_pixmap);
 
-        ui.padView_Image->setScene(&scenePads_);
-        ui.padView_Image->show();
+
+        //scenePads_.addItem(&stitched_pixmap);
+
+        //ui.padView_Image->setScene(&scenePads_);
+        //ui.padView_Image->show();
 
         padFinder finder;
         std::vector<cv::RotatedRect> pads;
         finder.findPads(&(cv_ptr->image),false, cv::Point2f(0,0),pads);
+
+        cv::imshow("Pads found", (cv_ptr->image));
+        cv::waitKey(0);
+        for(size_t i = 0; i < pads.size(); i++ ){
+            PadInformation pad;
+            pad.rect.setX(pads.at(i).center.x / px_conv);
+            pad.rect.setY(pads.at(i).center.y / px_conv);
+            pad.rect.setWidth(pads.at(i).size.width / px_conv);
+            pad.rect.setHeight(pads.at(i).size.height / px_conv);
+            pad.dispensed = false;
+
+            if(pads.at(i).angle < 0 ){
+                pads.at(i).angle = 180 + std::fabs(pads.at(i).angle);
+            }
+            pad.rotation = pads.at(i).angle;
+            pad.shapeStr = "rectangle";
+
+
+            padParser.padInformationArray_.push_back(pad);
+            padParser.padInformationArrayPrint_.push_back(pad);
+        }
+
+        padParser.setTable(ui.padTable);
+        padFileLoaded_ = true;
 
     }
 }
