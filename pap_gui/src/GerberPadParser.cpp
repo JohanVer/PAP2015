@@ -20,6 +20,12 @@ GerberPadParser::GerberPadParser() {
     // Initial Transform for simulation
     transTransformIntoRobot_.setOrigin(tf::Vector3(300.0, 150.0, 0.0));
     transTransformIntoRobot_.setRotation(tf::Quaternion(0, 0, 0, 1));
+
+    transformIntoGlobalPoint_.setOrigin(tf::Vector3(0, 0, 0));
+    transformIntoGlobalPoint_.setRotation(tf::Quaternion(0, 0, 0, 1));
+
+    rotation_.setOrigin(tf::Vector3(0, 0, 0));
+    rotation_.setRotation(tf::Quaternion(0, 0, 0, 1));
 }
 
 GerberPadParser::~GerberPadParser() {
@@ -556,11 +562,6 @@ void GerberPadParser::rotatePads(void) {
         padInformationArray_[i].rect.setHeight(height);
         padInformationArray_[i].rotation = padInformationArray_[i].rotation
                 - (differenceAngle_ * (180.0 / M_PI));
-        /*ROS_INFO("After X: %f Y: %f Width: %f Height %f",
-         padInformationArray_[i].rect.x(),
-         padInformationArray_[i].rect.y(),
-         padInformationArray_[i].rect.width(),
-         padInformationArray_[i].rect.height());*/
     }
 
     ROS_INFO("Calibration: Transformed %d pads...",

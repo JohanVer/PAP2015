@@ -2694,11 +2694,14 @@ void pap_gui::MainWindow::on_scanButton_clicked()
 
     if(qnode.pcbHeight_ == 0 || qnode.pcbWidth_ == 0) return;
 
-
+    // Lower left corner of pcb holder
     const QVector3D init(311.204, 153.019, 27.0);
     const QVector2D pcb_size(qnode.pcbHeight_, qnode.pcbWidth_);
+
+    // Calculate waypoints for gathering all images for the stitching process
     std::vector<QVector3D> waypoints = stitch_waypoint_maker::generateWaypoints(init, 50, pcb_size, 31 , 31, 27.0);
 
+    // Drive along waypoints
     for(size_t i = 0; i < waypoints.size(); i++){
         std::cerr << "Drive to waypoint... " << i << std::endl;
         QVector3D &p = waypoints.at(i);
@@ -2707,9 +2710,12 @@ void pap_gui::MainWindow::on_scanButton_clicked()
             return;
         }
 
+        // This is needed to update the positions via the callbacks
         processAllCallbacks();
 
         ros::Duration(0.3);
+
+        // Make picture and align it with the previous taken picture
         pap_common::VisionResult res;
         if(!vision_send_functions::sendVisionTask(qnode.getVisionClientRef(), pap_vision::FEED_STITCH_PIC, pap_vision::CAMERA_TOP, currentPosition.x, currentPosition.y, currentPosition.z ,res)){
             std::cerr << "Appending picture failed\n ";
@@ -2717,8 +2723,7 @@ void pap_gui::MainWindow::on_scanButton_clicked()
         }
     }
 
-
-
+    // Start stitching process
     pap_common::VisionResult res;
     if(vision_send_functions::sendVisionTask(qnode.getVisionClientRef(), pap_vision::STITCH_PICTURES,  pap_vision::CAMERA_TOP,0,0,0,res,1)){
 
@@ -2730,6 +2735,8 @@ void pap_gui::MainWindow::on_scanButton_clicked()
         msgBox.setText("Images were stitched");
         msgBox.exec();
 
+
+        // Create opencv image out of ros image
         cv_bridge::CvImagePtr cv_ptr;
         try
         {
@@ -2744,17 +2751,21 @@ void pap_gui::MainWindow::on_scanButton_clicked()
         cv::Mat outputRGB;
         cvtColor(cv_ptr->image, outputRGB, CV_BGR2RGB);
 
-        QImage stitchedImage= QImage((uchar*) outputRGB.data, outputRGB.cols, outputRGB.rows, outputRGB.step, QImage::Format_RGB888);
 
+        // Set background image
+        QImage stitchedImage= QImage((uchar*) outputRGB.data, outputRGB.cols, outputRGB.rows, outputRGB.step, QImage::Format_RGB888);
         padParser.deleteBackground();
         padParser.setBackGround(stitchedImage.copy());
 
+        // Search pads on stitched image
         padFinder finder;
         std::vector<cv::RotatedRect> pads;
         finder.findPads(&(cv_ptr->image),false, cv::Point2f(0,0),pads);
 
         cv::imshow("Pads found", (cv_ptr->image));
         cv::waitKey(0);
+
+        // Convert opencv rectangle calculations in Padinformations in the robot coordinate system
         for(size_t i = 0; i < pads.size(); i++ ){
             PadInformation pad;
             pad.rect.setX(-pads.at(i).center.y );
@@ -2786,7 +2797,9 @@ void pap_gui::MainWindow::on_scanButton_clicked()
         tf.setRotation(tf::Quaternion(0, 0, 0, 1));
 
         padParser.setTransformation(tf);
+        padParser.rotatePads();
 
+        /*
         for (size_t i = 0; i < padParser.padInformationArray_.size(); i++) {
                 tf::Point pointToTransform;
                 // This point should be transformed
@@ -2805,7 +2818,10 @@ void pap_gui::MainWindow::on_scanButton_clicked()
                 padParser.padInformationArray_[i].rect.setWidth(width);
                 padParser.padInformationArray_[i].rect.setHeight(height);
             }
+            */
 
+
+        // Render visualization and set up table
 
         padParser.setTable(ui.padTable);
         padFileLoaded_ = true;
@@ -2818,7 +2834,6 @@ void pap_gui::MainWindow::on_scanButton_clicked()
         ui.padView_Image->setScene(&scenePads_);
         ui.padView_Image->show();
         qnode.sendPcbImage(padParser.getMarkerList());
-
     }
 }
 
