@@ -2006,8 +2006,11 @@ void MainWindow::on_padViewGenerate_button_clicked() {
     // Build image with QGraphicsItem
     padParser.pixelConversionFactor = 10;
     padParser.deleteBackground();
+    pic_size_.width = ui.padView_Image->width() - 20;
+    pic_size_.height = ui.padView_Image->height() - 20;
+
     QRectF pcbSize = padParser.renderImage(&scenePads_,
-                                           ui.padView_Image->width() - 20, ui.padView_Image->height() - 20);
+                                           pic_size_.width, pic_size_.height);
 
     ui.padView_Image->setScene(&scenePads_);
     ui.padView_Image->show();
@@ -2030,14 +2033,18 @@ void MainWindow::gotoPad(QPointF padPos) {
     float x = padParser.padInformationArray_[id_].rect.x();
     float y = padParser.padInformationArray_[id_].rect.y();
     ROS_INFO("GUI: Goto position x: %f y: %f", x, y);
-    qnode.sendTask(pap_common::PLACER, pap_common::GOTO, x, y, 22.0);
+    qnode.sendTask(pap_common::PLACER, pap_common::GOTO, x, y, 27.0);
     //}
 }
 
 void MainWindow::deletePad(QPointF padPos) {
     id_ = padParser.searchId(padPos, ui.padView_Image->width() - 20);
     padParser.deleteEntry(id_);
-    on_padViewGenerate_button_clicked();
+
+    padParser.renderImage(&scenePads_, pic_size_.width, pic_size_.height);
+    ui.padView_Image->setScene(&scenePads_);
+    ui.padView_Image->show();
+    qnode.sendPcbImage(padParser.getMarkerList());
 }
 
 void MainWindow::on_calibrationButton_offsets_clicked() {
@@ -2677,15 +2684,17 @@ void pap_gui::MainWindow::on_calibrateSystemButton_clicked()
 }
 
 void pap_gui::MainWindow::processAllCallbacks(){
-    for(size_t i = 0; i < 100; i++){
+    for(size_t i = 0; i < 1000; i++){
         ros::spinOnce();
     }
 }
 
 void pap_gui::MainWindow::on_scanButton_clicked()
 {
-    /*
+
     if(qnode.pcbHeight_ == 0 || qnode.pcbWidth_ == 0) return;
+
+
     const QVector3D init(311.204, 153.019, 27.0);
     const QVector2D pcb_size(qnode.pcbHeight_, qnode.pcbWidth_);
     std::vector<QVector3D> waypoints = stitch_waypoint_maker::generateWaypoints(init, 50, pcb_size, 31 , 31, 27.0);
@@ -2700,14 +2709,15 @@ void pap_gui::MainWindow::on_scanButton_clicked()
 
         processAllCallbacks();
 
-        ros::Duration(0.2);
+        ros::Duration(0.3);
         pap_common::VisionResult res;
         if(!vision_send_functions::sendVisionTask(qnode.getVisionClientRef(), pap_vision::FEED_STITCH_PIC, pap_vision::CAMERA_TOP, currentPosition.x, currentPosition.y, currentPosition.z ,res)){
             std::cerr << "Appending picture failed\n ";
             return;
         }
     }
-    */
+
+
 
     pap_common::VisionResult res;
     if(vision_send_functions::sendVisionTask(qnode.getVisionClientRef(), pap_vision::STITCH_PICTURES,  pap_vision::CAMERA_TOP,0,0,0,res,1)){
@@ -2765,15 +2775,45 @@ void pap_gui::MainWindow::on_scanButton_clicked()
             padParser.padInformationArray_.push_back(pad);
             padParser.padInformationArrayPrint_.push_back(pad);
         }
+        double px_factor = res.data3;
+
+        // Create transform
+        const double x_fov = 480 / px_factor;
+        const double y_fov = 640 / px_factor;
+
+        tf::Transform tf;
+        tf.setOrigin(tf::Vector3(res.data2 + x_fov / 2.0, res.data1 + y_fov / 2.0, 0.0));
+        tf.setRotation(tf::Quaternion(0, 0, 0, 1));
+
+        padParser.setTransformation(tf);
+
+        for (size_t i = 0; i < padParser.padInformationArray_.size(); i++) {
+                tf::Point pointToTransform;
+                // This point should be transformed
+                pointToTransform.setX(padParser.padInformationArray_[i].rect.x());
+                pointToTransform.setY(padParser.padInformationArray_[i].rect.y());
+                pointToTransform.setZ(0.0);
+
+                float width, height = 0.0;
+                width = padParser.padInformationArray_[i].rect.width();
+                height = padParser.padInformationArray_[i].rect.height();
+
+                pointToTransform = tf * pointToTransform;
+
+                padParser.padInformationArray_[i].rect.setX(pointToTransform.x());
+                padParser.padInformationArray_[i].rect.setY(pointToTransform.y());
+                padParser.padInformationArray_[i].rect.setWidth(width);
+                padParser.padInformationArray_[i].rect.setHeight(height);
+            }
+
 
         padParser.setTable(ui.padTable);
         padFileLoaded_ = true;
 
-        double new_px_factor = res.data3;
-        cv::Size2d pic_size = cv_ptr->image.size();
+        pic_size_ = cv_ptr->image.size();
 
-        padParser.pixelConversionFactor = new_px_factor;
-        padParser.renderImage(&scenePads_, pic_size.width, pic_size.height);
+        padParser.pixelConversionFactor = px_factor;
+        padParser.renderImage(&scenePads_, pic_size_.width, pic_size_.height);
 
         ui.padView_Image->setScene(&scenePads_);
         ui.padView_Image->show();

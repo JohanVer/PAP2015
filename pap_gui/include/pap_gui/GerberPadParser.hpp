@@ -50,6 +50,7 @@ public:
 	int searchId(QPointF position, int height);
 	float calibratePads(QPointF local1, QPointF local2, QPointF global1,
 			QPointF global2,bool simulationMode);
+    void setTransformation(tf::Transform tf);
 	void rotatePads(void);
 	void transformComponent(componentEntry *componentInformation);
 	visualization_msgs::MarkerArray* getMarkerList(void);

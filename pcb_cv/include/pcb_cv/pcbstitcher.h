@@ -47,8 +47,8 @@ public:
         return input_images.size();
     }
 
-    cv::Point2d getLLCornerCoord(){
-        return ll_corner_coord_;
+    cv::Point2d getURCornerCoord(){
+        return ur_corner_coord_;
     }
 
 private:
@@ -61,7 +61,7 @@ private:
     cv::Point2d scan_pos_;
     size_t i_pic_;
 
-    cv::Point2d ll_corner_coord_;
+    cv::Point2d ur_corner_coord_;
 };
 
 }

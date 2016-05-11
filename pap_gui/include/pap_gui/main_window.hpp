@@ -330,6 +330,8 @@ private:
     bool completeCalibrationRunning;
 
     std::vector<tapeCalibrationValue> tapeCalibrationValues;
+
+    cv::Size2d pic_size_;
 };
 
 }  // namespace pap_gui

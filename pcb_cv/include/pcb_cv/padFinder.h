@@ -46,7 +46,7 @@ typedef dlib::normalized_function<probabilistic_funct_type> pfunct_type;
 // Bottom-Camera
 #define PIXEL_TO_MM_BOTTOM 24.95
 
-#define PIXEL_TO_MM_PCB 30.8
+#define PIXEL_TO_MM_PCB 31.1463
 
 class smdPart {
 public:
@@ -103,17 +103,17 @@ public:
 	void setPixelRatioBottom(float value){
 		pxRatioBottom = value;
 	}
+    float pxRatioSlot,pxRatioTape,pxRatioPcb,pxRatioBottom;
 private:
-	// privat
+    // privat
     lin_funct_type learned_funct_;
     zbar::ImageScanner scanner;
-	int m_eineVariable;
-	bool foundVia;
-	bool repeat;
-	float partWidth_,partHeight_;
+    int m_eineVariable;
+    bool foundVia;
+    bool repeat;
+    float partWidth_,partHeight_;
     std::vector<std::pair<cv::Mat, cv::Point3d> > stitching_data_;
 
-	float pxRatioSlot,pxRatioTape,pxRatioPcb,pxRatioBottom;
 };
 
 #endif // PADFINDER_H

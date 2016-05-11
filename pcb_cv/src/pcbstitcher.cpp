@@ -15,7 +15,7 @@ PcbStitcher::PcbStitcher(double pxFactorInit)
     px_conv_factor = pxFactorInit;
     i_pic_ = 0;
     scan_pos_ = cv::Point2d(0,0);
-    ll_corner_coord_ = cv::Point2d(0,0);
+    ur_corner_coord_ = cv::Point2d(0,0);
 }
 
 Mat PcbStitcher::translateImg(Mat &img, int offsetx, int offsety){
@@ -196,10 +196,6 @@ void PcbStitcher::blendImages(cv::Mat &final){
     blender.blend(final,dst_mask );
 
     final.convertTo(final, (final.type() / 8) * 8);
-
-    imshow("Blended", final);
-
-    waitKey(0);
 }
 
 void PcbStitcher::reset(){
@@ -214,7 +210,7 @@ void PcbStitcher::feedImage(cv::Mat image_in, cv::Point2d offset){
     cv::Point2d p0(0,0);
 
     if(input_images.size() == 0){
-        ll_corner_coord_ = offset;
+        ur_corner_coord_ = offset;
     }
 
     // Add data to database

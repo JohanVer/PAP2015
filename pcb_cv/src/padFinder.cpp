@@ -659,7 +659,7 @@ cv::Point2f padFinder::findPads(cv::Mat* input, bool startSelect,
 
     cv::Mat bw;
     bw = classifyPixels(*input);
-    cv::erode(bw, bw, cv::Mat(), cv::Point(-1, -1), DILATE_ITERATIONS);
+    //cv::erode(bw, bw, cv::Mat(), cv::Point(-1, -1), DILATE_ITERATIONS);
 
     //cv::imshow("classified pixel", bw);
     //cv::waitKey(0);

@@ -521,6 +521,10 @@ float GerberPadParser::calibratePads(QPointF local1, QPointF local2,
     transTransformIntoRobot_.setRotation(tf::Quaternion(0, 0, 0, 1));
 }
 
+void GerberPadParser::setTransformation(tf::Transform tf){
+    transTransformIntoRobot_ = tf;
+}
+
 void GerberPadParser::rotatePads(void) {
     // The postitions of the pad are stored in it's own reference coordinate system
     // 1. Rotate the pad positions around the global1 point about the angle which is
