@@ -63,12 +63,19 @@ PlaceController::PlaceController() {
 	BottomCam_QR_Offset_.y = 259.35;
 	BottomCam_QR_Offset_.z = 20.15;
 
-    CHECKERBOARD_1_Offset_.x = 377;
-    CHECKERBOARD_1_Offset_.y = 77;
-	CHECKERBOARD_1_Offset_.z = pickUpAreaOffset.z;
-    CHECKERBOARD_2_Offset_.x = 377.5;
-    CHECKERBOARD_2_Offset_.y = 53;
-    CHECKERBOARD_2_Offset_.z = pickUpAreaOffset.z;
+    Checkerboard_top1_Offset_.x = 377;
+    Checkerboard_top1_Offset_.y = 77;
+    Checkerboard_top1_Offset_.z = pickUpAreaOffset.z;
+    Checkerboard_top2_Offset_.x = 377.5;
+    Checkerboard_top2_Offset_.y = 53;
+    Checkerboard_top2_Offset_.z = pickUpAreaOffset.z;
+
+    Checkerboard_bottom1_Offset_.x = 292.09;
+    Checkerboard_bottom1_Offset_.y = 259.35;
+    Checkerboard_bottom1_Offset_.z = 20.15;
+    Checkerboard_bottom2_Offset_.x = 292.09;
+    Checkerboard_bottom2_Offset_.y = 259.35;
+    Checkerboard_bottom2_Offset_.z = 20.15;
 
 	// Correction offsets
 	PickUpCorrection.x = 0;

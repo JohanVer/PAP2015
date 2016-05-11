@@ -102,6 +102,9 @@ bool calibrateTip1();
 bool calibrateDispenser();
 bool calibrateTip2();
 
+bool calibrateTopCamDistortion();
+bool calibrateBottomCamDistortion();
+
 bool singleCompPlacement();
 bool goToBox();
 bool pickUpComponent();

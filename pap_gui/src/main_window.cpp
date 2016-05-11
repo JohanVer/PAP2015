@@ -2627,12 +2627,28 @@ void MainWindow::on_printButton_offsets_clicked() {
 
 void pap_gui::MainWindow::on_calibrateTopCamButton_clicked()
 {
-    qnode.sendTask(pap_common::PLACER, pap_common::CALIBRATION_TOPCAM);
+    QMessageBox msgBox;
+    msgBox.setWindowTitle("Confirm to start calibration");
+    msgBox.setText(QString("You are about to calibrate the top camera. Make sure 'calibTopCamera.launch'' has been started."));
+    msgBox.setStandardButtons(QMessageBox::Yes);
+    msgBox.addButton(QMessageBox::No);
+    msgBox.setDefaultButton(QMessageBox::Yes);
+    if (msgBox.exec() == QMessageBox::Yes) {
+        qnode.sendTask(pap_common::PLACER, pap_common::CALIBRATION_TOPCAM);
+    }
 }
 
 void pap_gui::MainWindow::on_calibrateBottomCamButton_clicked()
 {
-    qnode.sendTask(pap_common::PLACER, pap_common::CALIBRATION_BOTTOMCAM);
+    QMessageBox msgBox;
+    msgBox.setWindowTitle("Confirm to start calibration");
+    msgBox.setText(QString("You are about to calibrate the bottom camera. Make sure 'calibBottomCamera.launch has been started."));
+    msgBox.setStandardButtons(QMessageBox::Yes);
+    msgBox.addButton(QMessageBox::No);
+    msgBox.setDefaultButton(QMessageBox::Yes);
+    if (msgBox.exec() == QMessageBox::Yes) {
+        qnode.sendTask(pap_common::PLACER, pap_common::CALIBRATION_BOTTOMCAM);
+    }
 }
 
 

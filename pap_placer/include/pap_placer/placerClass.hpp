@@ -103,7 +103,8 @@ public:
 
 	Offset SLOT_QR_Offset_, PCB_QR_Offset_;
 	Offset TAPE_QR_Offset_, BottomCam_QR_Offset_;
-	Offset CHECKERBOARD_1_Offset_, CHECKERBOARD_2_Offset_;
+    Offset Checkerboard_top1_Offset_, Checkerboard_top2_Offset_;
+    Offset Checkerboard_bottom1_Offset_, Checkerboard_bottom2_Offset_;
 
 	Offset camClibrationOffset_;
 	Offset tip1ClibrationOffset_;

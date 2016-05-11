@@ -327,22 +327,113 @@ bool calibrateQR() {
 }
 
 // Calibrate cam distortion using checkerboard
-bool calibrateCamDistortion() {
-    ROS_INFO("PlacerState: CHECKERBOARD 1");
-    Offset checker = placeController.CHECKERBOARD_1_Offset_;
-    ROS_INFO("Go to: x:%f y:%f z:%f", checker.x, checker.y, checker.z);
-    if(!driveAroundPosition(checker, 6, 6))
+bool calibrateTopCamDistortion() {
+
+    ROS_INFO("PlacerState: Calibrate top cam distortion - Checkerboard 1");
+    Offset gotoOffset = placeController.Checkerboard_top1_Offset_;
+    ROS_INFO("Go to: x:%f y:%f z:%f", gotoOffset.x, gotoOffset.y, gotoOffset.z);
+    if(!driveToCoord(gotoOffset.x, gotoOffset.y, gotoOffset.z))
         return false;
 
-    if(!driveAroundPosition(checker, 10, 12))
+    if(!driveAroundPosition(gotoOffset, 6, 6))
+        return false;
+    if(!driveAroundPosition(gotoOffset, 10, 12))
+        return false;
+    ROS_INFO("Placerstate: First checkerboard finished");
+
+    ROS_INFO("PlacerState: Calibrate top cam distortion - Checkerboard 2");
+    gotoOffset = placeController.Checkerboard_bottom2_Offset_;
+    ROS_INFO("Go to: x:%f y:%f z:%f", gotoOffset.x, gotoOffset.y, gotoOffset.z);
+    if(!driveToCoord(gotoOffset.x, gotoOffset.y, gotoOffset.z))
         return false;
 
-    ROS_INFO("PlacerState: CHECKERBOARD 2");
-    checker = placeController.CHECKERBOARD_2_Offset_;
-    ROS_INFO("Go to: x:%f y:%f z:%f", checker.x, checker.y, checker.z);
-    if(!driveAroundPosition(checker, 6, 6))
+    if(!driveAroundPosition(gotoOffset, 6, 6))
         return false;
-    if(!driveAroundPosition(checker, 8, 10))
+    if(!driveAroundPosition(gotoOffset, 8, 10))
+        return false;
+    ROS_INFO("Placerstate: Second checkerboard finished");
+
+    if(!homeSystem())
+        return false;
+
+    return true;
+}
+
+// Calibration bottom cam
+bool calibrateBottomCamDistortion() {
+
+    ROS_INFO("PlacerState: Calibrate bottom cam distortion - Checkerboard 1");
+    Offset gotoOffset = placeController.Checkerboard_bottom1_Offset_;
+    ROS_INFO("Go to: x:%f y:%f z:%f", gotoOffset.x, gotoOffset.y, gotoOffset.z);
+    if(!driveToCoord(gotoOffset.x, gotoOffset.y, gotoOffset.z))
+        return false;
+
+    pickUp(placeController.largeBoxHeight_+1);
+
+    gotoOffset = placeController.getTip1Coordinates();
+    gotoOffset.z += 1.0;
+    ROS_INFO("Go to: x:%f y:%f z:%f", gotoOffset.x, gotoOffset.y, gotoOffset.z);
+    if(!driveToCoord(gotoOffset.x, gotoOffset.y, gotoOffset.z))
+        return false;
+
+    ros::Duration(2.0).sleep();
+    moveTip(TIP::LEFT_TIP, true);
+    arduino_client->LEDTask(pap_common::SETBOTTOMLED, 0);
+    ros::Duration(1).sleep();
+
+    if(!driveAroundPosition(gotoOffset, 6, 6))
+        return false;
+    if(!driveAroundPosition(gotoOffset, 8, 10))
+        return false;
+
+    ROS_INFO("Placerstate: First checkerboard finished");
+    moveTip(TIP::LEFT_TIP, false);
+    arduino_client->LEDTask(pap_common::RESETBOTTOMLED, 0);
+
+    gotoOffset = placeController.Checkerboard_bottom1_Offset_;
+    ROS_INFO("Go to: x:%f y:%f z:%f", gotoOffset.x, gotoOffset.y, gotoOffset.z);
+    if(!driveToCoord(gotoOffset.x, gotoOffset.y, gotoOffset.z))
+        return false;
+
+    placeComp(placeController.largeBoxHeight_+1);
+
+
+    ROS_INFO("PlacerState: Calibrate bottom cam distortion - Checkerboard 2");
+    gotoOffset = placeController.Checkerboard_bottom2_Offset_;
+    ROS_INFO("Go to: x:%f y:%f z:%f", gotoOffset.x, gotoOffset.y, gotoOffset.z);
+    if(!driveToCoord(gotoOffset.x, gotoOffset.y, gotoOffset.z))
+        return false;
+
+    pickUp(placeController.largeBoxHeight_+1);
+
+    gotoOffset = placeController.getTip1Coordinates();
+    gotoOffset.z += 1.0;
+    ROS_INFO("Go to: x:%f y:%f z:%f", gotoOffset.x, gotoOffset.y, gotoOffset.z);
+    if(!driveToCoord(gotoOffset.x, gotoOffset.y, gotoOffset.z))
+        return false;
+
+    ros::Duration(2.0).sleep();
+    moveTip(TIP::LEFT_TIP, true);
+    arduino_client->LEDTask(pap_common::SETBOTTOMLED, 0);
+    ros::Duration(1).sleep();
+
+    if(!driveAroundPosition(gotoOffset, 6, 6))
+        return false;
+    if(!driveAroundPosition(gotoOffset, 8, 10))
+        return false;
+
+    ROS_INFO("Placerstate: Second checkerboard finished");
+    moveTip(TIP::LEFT_TIP, false);
+    arduino_client->LEDTask(pap_common::RESETBOTTOMLED, 0);
+
+    gotoOffset = placeController.Checkerboard_bottom2_Offset_;
+    ROS_INFO("Go to: x:%f y:%f z:%f", gotoOffset.x, gotoOffset.y, gotoOffset.z);
+    if(!driveToCoord(gotoOffset.x, gotoOffset.y, gotoOffset.z))
+        return false;
+
+    placeComp(placeController.largeBoxHeight_+1);
+
+    if(!homeSystem())
         return false;
 
     return true;
@@ -365,6 +456,9 @@ bool singleCompPlacement() {
         return false;*/
 
     if(!placeComponent())
+        return false;
+
+    if(!homeSystem())
         return false;
 
     return true;
@@ -718,10 +812,6 @@ void switchDispenser(bool activate){
 
 bool driveAroundPosition(Offset position, int distance_x, int distance_y) {
 
-    if(!driveToCoord(position.x, position.y, position.z)){
-        return false;
-    }
-
     float velX = 0.0001;
     float velY = 0.0001;
 
@@ -732,7 +822,7 @@ bool driveAroundPosition(Offset position, int distance_x, int distance_y) {
                                                             (position.x - i), position.y, position.z, velX, velY)){
             return false;
         }
-        ros::Duration(2).sleep();
+        ros::Duration(1).sleep();
     }
 
     for(int i = 0; i <= (distance_y/2); i++) {
@@ -740,7 +830,7 @@ bool driveAroundPosition(Offset position, int distance_x, int distance_y) {
                                                             (position.x - (distance_x/2)), (position.y - i), position.z, velX, velY)){
             return false;
         }
-        ros::Duration(2).sleep();
+        ros::Duration(1).sleep();
     }
 
     for(int i = -(distance_x/2); i <= (distance_x/2); i++) {
@@ -748,7 +838,7 @@ bool driveAroundPosition(Offset position, int distance_x, int distance_y) {
                                                             (position.x + i), (position.y - (distance_y/2)), position.z, velX, velY)){
             return false;
         }
-        ros::Duration(2).sleep();
+        ros::Duration(1).sleep();
     }
 
     for(int i = -(distance_y/2); i <= (distance_y/2); i++) {
@@ -756,7 +846,7 @@ bool driveAroundPosition(Offset position, int distance_x, int distance_y) {
                                                             (position.x + (distance_x/2)), (position.y + i), position.z, velX, velY)){
             return false;
         }
-        ros::Duration(2).sleep();
+        ros::Duration(1).sleep();
     }
 
     for(int i = -(distance_x/2); i <= (distance_x/2); i++) {
@@ -764,7 +854,7 @@ bool driveAroundPosition(Offset position, int distance_x, int distance_y) {
                                                             (position.x - i), (position.y + (distance_y/2)), position.z, velX, velY)){
             return false;
         }
-        ros::Duration(2).sleep();
+        ros::Duration(1).sleep();
     }
 
     for(int i = -(distance_y/2); i <= 0; i++) {
@@ -772,7 +862,7 @@ bool driveAroundPosition(Offset position, int distance_x, int distance_y) {
                                                             (position.x - (distance_x/2)), (position.y - i), position.z, velX, velY)){
             return false;
         }
-        ros::Duration(2).sleep();
+        ros::Duration(1).sleep();
     }
 
     for(int i = -(distance_x/2); i <= 0; i++) {
@@ -780,7 +870,7 @@ bool driveAroundPosition(Offset position, int distance_x, int distance_y) {
                                                             (position.x + i), position.y, position.z, velX, velY)){
             return false;
         }
-        ros::Duration(2).sleep();
+        ros::Duration(1).sleep();
     }
 
     /*if(!motor_send_functions::sendMotorControllerAction(*motor_action_client, pap_common::COORD,
@@ -945,29 +1035,18 @@ void placerCallback(const pap_common::TaskConstPtr& taskMsg) {
         }
 
         case pap_common::CALIBRATION_TOPCAM: {
-            if(!calibrateCamDistortion()) {
-                ROS_ERROR("Placer: Checkerboard calibration failed");
+            if(!calibrateTopCamDistortion()) {
+                ROS_ERROR("Placer: Top cam calibration failed");
                 // TODO: Handle
-                break;
-            }
-            if(! homeSystem()) {
-                ROS_ERROR("Placer: HOMING failed");
-                // TODO: Handle result
             }
             break;
         }
 
         case pap_common::CALIBRATION_BOTTOMCAM: {
-           /* if(!calibrateCamDistortion()) {
-                ROS_ERROR("Placer: Checkerboard calibration failed");
+           if(!calibrateBottomCamDistortion()) {
+                ROS_ERROR("Placer: Bottom cam calibration failed");
                 // TODO: Handle
-                break;
             }
-            if(! homeSystem()) {
-                ROS_ERROR("Placer: HOMING failed");
-                // TODO: Handle result
-            }*/
-            ROS_ERROR("Not implemented yet");
             break;
         }
 
