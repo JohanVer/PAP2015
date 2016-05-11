@@ -6,7 +6,6 @@ find_package( OpenCV 3 REQUIRED )
 include (/usr/dlib-18.18/dlib/cmake)
 include_directories(${OpenCV_INCLUDE_DIRS})
 
-aux_source_directory(. SRC_LIST)
-add_executable(learner ${SRC_LIST})
+add_executable(learner main.cpp)
 
 target_link_libraries ( learner dlib ${OpenCV_LIBS} )

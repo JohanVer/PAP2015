@@ -207,7 +207,7 @@ void PcbCvInterface::execute_action(const pap_common::VisionGoalConstPtr& comman
         std::cerr << "Appending picture...\n";
         cameraSelect = command->cameraSelect;
         std::vector<cv::Mat> images;
-        gatherImages(command->numAverages, images,(pap_vision::CAMERA_SELECT) cameraSelect);
+        gatherImages(1, images,(pap_vision::CAMERA_SELECT) cameraSelect);
         cv::Point3d coord(command->data1, command->data2, command->data3);
         finder.appendImage(images.front(), coord);
         as_.setSucceeded();
@@ -226,6 +226,9 @@ void PcbCvInterface::execute_action(const pap_common::VisionGoalConstPtr& comman
 
     case pap_vision::STITCH_PICTURES:{
 
+        finder.saveStitchingImages();
+                as_.setSucceeded();
+        /*
 cv:Mat composed_img = cv::imread(string(getenv("PAPRESOURCES")) + "training_data/filternull_org.png");
         static size_t stitch_id = 0;
         pap_common::VisionResult res;
@@ -244,6 +247,7 @@ cv:Mat composed_img = cv::imread(string(getenv("PAPRESOURCES")) + "training_data
         res.data3 = 31;
 
         as_.setSucceeded(res);
+        */
         /*
 
         static size_t stitch_id = 0;

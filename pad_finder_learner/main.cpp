@@ -82,12 +82,22 @@ int main()
     // over a bunch of points and labeling them according to their distance from the
     // origin.
 
-    cv::Mat pic = cv::imread(string(getenv("PAPRESOURCES")) + "training_data/filternull_org.png",CV_LOAD_IMAGE_COLOR);
-    cv::Mat pic_label = cv::imread(string(getenv("PAPRESOURCES")) + "training_data/filternull_label.png",CV_LOAD_IMAGE_COLOR);
+    cv::Mat pic = cv::imread(string(getenv("PAPRESOURCES")) + "training_data/1.jpg",CV_LOAD_IMAGE_COLOR);
+    cv::Mat pic_label = cv::imread(string(getenv("PAPRESOURCES")) + "training_data/1_labeled.png",CV_LOAD_IMAGE_COLOR);
 
 
     cv::imshow("test", pic);
     extractTrainingDataFromImages(pic, pic_label, samples_full, labels_full);
+
+    std::cerr << "Size samples: " << samples_full.size() << " size labels: " << labels_full.size() << std::endl;
+
+
+    cv::Mat pic2 = cv::imread(string(getenv("PAPRESOURCES")) + "training_data/2.jpg",CV_LOAD_IMAGE_COLOR);
+    cv::Mat pic_label2 = cv::imread(string(getenv("PAPRESOURCES")) + "training_data/2_labeled.png",CV_LOAD_IMAGE_COLOR);
+
+    extractTrainingDataFromImages(pic2, pic_label2, samples_full, labels_full);
+
+    std::cerr << "Size samples: " << samples_full.size() << " size labels: " << labels_full.size() << std::endl;
 
     vector_normalizer<sample_type> normalizer;
     // let the normalizer learn the mean and standard deviation of the samples
@@ -114,7 +124,7 @@ int main()
     // here we make an instance of the svm_nu_trainer object that uses our kernel type.
     svm_nu_trainer<kernel_type> trainer;
 
-    /*
+
     // Now we loop over some different nu and gamma values to see how good they are.  Note
     // that this is a very simple way to try out a few possible parameter choices.  You
     // should look at the model_selection_ex.cpp program for examples of more sophisticated
@@ -137,7 +147,7 @@ int main()
             cout << "     cross validation accuracy: " << cross_validate_trainer(trainer, samples, labels, 3);
         }
     }
-    */
+
 
     trainer.set_kernel(kernel_type(0.15625));
     trainer.set_nu(0.15625);

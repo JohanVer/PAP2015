@@ -118,7 +118,7 @@ void messageCb( const pap_common::ArduinoMsg& arduinoMsg){
   
   if(arduinoMsg.command == SETTOPLED ){
     for (int i = 0; i < NUM_TOP_LEDS; i++) {
-      top_leds[i].setRGB( brightnessTop, brightnessTop, brightnessTop);
+      top_leds[i].setRGB( 31, 31, 31);
       FastLED.show();
     } 
   }
