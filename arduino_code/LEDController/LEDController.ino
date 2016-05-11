@@ -8,7 +8,7 @@
 #define BOT_LED_PIN 3
 #define TOP_LED_PIN 10
 #define NUM_LEDS  59
-#define NUM_TOP_LEDS  5
+#define NUM_TOP_LEDS  12
 #define NUM_BOT_LEDS 24
 #define CHIPSET   WS2812B
 
@@ -118,7 +118,7 @@ void messageCb( const pap_common::ArduinoMsg& arduinoMsg){
   
   if(arduinoMsg.command == SETTOPLED ){
     for (int i = 0; i < NUM_TOP_LEDS; i++) {
-      top_leds[i].setHSV( 0, 255, brightnessTop);
+      top_leds[i].setRGB( brightnessTop, brightnessTop, brightnessTop);
       FastLED.show();
     } 
   }
