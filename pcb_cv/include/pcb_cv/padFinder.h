@@ -46,7 +46,7 @@ typedef dlib::normalized_function<probabilistic_funct_type> pfunct_type;
 // Bottom-Camera
 #define PIXEL_TO_MM_BOTTOM 24.95
 
-#define PIXEL_TO_MM_PCB 33.63
+#define PIXEL_TO_MM_PCB 30.8
 
 class smdPart {
 public:

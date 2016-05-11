@@ -61,6 +61,12 @@ public:
 	float height_, width_,outerRectRot_;
 	int heightPixel_;
 
+    void deleteBackground();
+
+    void setBackGround(QImage background){
+        background_ = background;
+    }
+
 private:
 	std::vector<ShapeInformation> shapeInformationArray_;
 	std::vector<QRectF> printedRects;
@@ -70,6 +76,9 @@ private:
 	float differenceAngle_;
 	visualization_msgs::MarkerArray markerArray;
 	bool bottomLayer_;
+
+    QImage background_;
+    QGraphicsPixmapItem*  background_item_;
 };
 
 #endif /* PAP_GUI_SRC_GERBERPADPARSER_HPP_ */

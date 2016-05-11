@@ -740,9 +740,15 @@ cv::Point2f padFinder::findPads(cv::Mat* input, bool startSelect,
         }
     }
 
+    // Convert to pap coordinate system and convert to mm
+
     for(size_t i = 0; i < padRects.size(); i++){
-        padRects.at(i).center.x = input->cols - padRects.at(i).center.x;
-        padRects.at(i).center.y = input->rows - padRects.at(i).center.y;
+        RotatedRect rect = padRects.at(i);
+
+        padRects.at(i).center.x = (input->cols - rect.center.x) / pxRatioPcb;
+        padRects.at(i).center.y = (rect.center.y) / pxRatioPcb ;
+        padRects.at(i).size.width = rect.size.height / pxRatioPcb;
+        padRects.at(i).size.height = rect.size.width / pxRatioPcb;
     }
 
     pads = padRects;

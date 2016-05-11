@@ -204,6 +204,14 @@ void PcbCvInterface::execute_action(const pap_common::VisionGoalConstPtr& comman
     case pap_vision::FEED_STITCH_PIC:
     {
 
+        std::cerr << "Appending picture...\n";
+        cameraSelect = command->cameraSelect;
+        std::vector<cv::Mat> images;
+        gatherImages(command->numAverages, images,(pap_vision::CAMERA_SELECT) cameraSelect);
+        cv::Point3d coord(command->data1, command->data2, command->data3);
+        finder.appendImage(images.front(), coord);
+        as_.setSucceeded();
+        /*
         std::cerr << "Appending picture, size now: " << stitcher_.getImageListSize() + 1 << std::endl;
         cameraSelect = command->cameraSelect;
         std::vector<cv::Mat> images;
@@ -212,7 +220,7 @@ void PcbCvInterface::execute_action(const pap_common::VisionGoalConstPtr& comman
         std::cerr << "Appending with coordinate : " << coord << std::endl;
         stitcher_.feedImage(images.front(), coord);
         as_.setSucceeded();
-
+*/
     }
         break;
 
@@ -233,6 +241,7 @@ cv:Mat composed_img = cv::imread(string(getenv("PAPRESOURCES")) + "training_data
         out_msg.encoding = sensor_msgs::image_encodings::BGR8;
         out_msg.image = composed_img;
         res.mats.push_back(*out_msg.toImageMsg());
+        res.data3 = 31;
 
         as_.setSucceeded(res);
         /*
@@ -243,6 +252,7 @@ cv:Mat composed_img = cv::imread(string(getenv("PAPRESOURCES")) + "training_data
         pap_common::VisionResult res;
         res.data1 = (stitcher_.getLLCornerCoord()).x;
         res.data2 = (stitcher_.getLLCornerCoord()).y;
+        res.data3 = stitcher_.getApproxPxFactor();
 
         std_msgs::Header header;
         header.seq = stitch_id;
