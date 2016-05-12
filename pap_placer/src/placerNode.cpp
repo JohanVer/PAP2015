@@ -71,7 +71,7 @@ bool homeSystem() {
     moveTip(TIP::RIGHT_TIP, false);
     moveTip(TIP::LEFT_TIP, false);
 
-    if(!driveToCoord(placeController.idleCoordinates_.x, placeController.idleCoordinates_.y, placeController.idleCoordinates_.z))
+    if(!driveToCoord(placeController.lastDestination_.x, placeController.lastDestination_.y, 40))
         return false;
 
     motor_send_functions::sendMotorControllerAction(*motor_action_client, pap_common::HOMING);
@@ -89,11 +89,11 @@ bool calibrateOffsets() {
     if(!calibrateTip1())
         return false;
 
-    if(!calibrateDispenser())
-        return false;
+    //if(!calibrateDispenser())
+    //    return false;
 
-    if(!calibrateTip2())
-        return false;
+    //if(!calibrateTip2())
+    //    return false;
 
     return true;
 }
@@ -125,7 +125,6 @@ bool calibrateCamera() {
 
     ROS_INFO("Placerstate: CAMERA - cameraOffset received");
     placeController.updateCameraBottomOffset(res.data1, res.data2);
-    arduino_client->LEDTask(pap_common::RESETBOTTOMLED, 0);
 
     ROS_INFO("PlacerState: CORRECTED_CAMERA");
     bottomCam = placeController.getBottomCamCoordinates();
@@ -135,6 +134,8 @@ bool calibrateCamera() {
         return false;
 
     ros::Duration(5).sleep();
+
+    arduino_client->LEDTask(pap_common::RESETBOTTOMLED, 0);
     return true;
 }
 
@@ -148,6 +149,8 @@ bool calibrateTip1() {
 
     ros::Duration(1).sleep();
     moveTip(TIP::LEFT_TIP, true);
+
+    arduino_client->LEDTask(pap_common::SETBOTTOMLED, 0);
     ros::Duration(1).sleep();
 
     ROS_INFO("Placerstate: TIP1 - Start Vision");
@@ -157,7 +160,7 @@ bool calibrateTip1() {
         return true;
 
     ROS_INFO("Placerstate: TIP1 - cameraOffset received");
-    placeController.updateTip1Offset(res.data2, res.data1);
+    placeController.updateTip1Offset(res.data1, res.data2);
 
     arduino_client->LEDTask(pap_common::RESETBOTTOMLED, 0);
 
@@ -250,13 +253,14 @@ bool calibrateQR() {
     if(!driveToCoord(slot_qr.x, slot_qr.y, slot_qr.z))
         return false;
 
+
+    arduino_client->LEDTask(pap_common::SETTOPLED, 0);
     ros::Duration(3).sleep();
     ROS_INFO("Placerstate: SLOT_QR - Start Vision");
 
     pap_common::VisionResult res;
     if(!vision_send_functions::sendVisionTask(*vision_action_client, pap_vision::START__QRCODE_FINDER, pap_vision::TOP_SLOT, pap_vision::CAMERA_TOP, res, 100))
         return false;
-
 
     ROS_INFO("PlacerState: PCB_QR");
     Offset pcb_qr = placeController.PCB_QR_Offset_;
@@ -313,6 +317,7 @@ bool calibrateQR() {
     if(!vision_send_functions::sendVisionTask(*vision_action_client, pap_vision::START__QRCODE_FINDER, pap_vision::BOTTOM_CAM, pap_vision::CAMERA_BOTTOM, res, 100))
         return false;
 
+    arduino_client->LEDTask(pap_common::RESETTOPLED, 0);
     ROS_INFO("Placerstate: PCB_QR - cameraFeedback received");
     moveTip(TIP::LEFT_TIP, false);
     arduino_client->LEDTask(pap_common::RESETBOTTOMLED, 0);
@@ -818,104 +823,54 @@ void switchDispenser(bool activate){
 
 bool driveAroundPosition(Offset position, int distance_x, int distance_y) {
 
-    float velX = 0.0001;
-    float velY = 0.0001;
+    float velX = 1;
+    float velY = 1;
 
     ros::Duration(1).sleep();
 
-    for(int i = 0; i <= (distance_x/2); i++) {
-        if(!motor_send_functions::sendMotorControllerAction(*motor_action_client, pap_common::COORD,
-                                                            (position.x - i), position.y, position.z, velX, velY)){
-            return false;
-        }
-        ros::Duration(1).sleep();
-    }
 
-    for(int i = 0; i <= (distance_y/2); i++) {
-        if(!motor_send_functions::sendMotorControllerAction(*motor_action_client, pap_common::COORD,
-                                                            (position.x - (distance_x/2)), (position.y - i), position.z, velX, velY)){
-            return false;
-        }
-        ros::Duration(1).sleep();
-    }
-
-    for(int i = -(distance_x/2); i <= (distance_x/2); i++) {
-        if(!motor_send_functions::sendMotorControllerAction(*motor_action_client, pap_common::COORD,
-                                                            (position.x + i), (position.y - (distance_y/2)), position.z, velX, velY)){
-            return false;
-        }
-        ros::Duration(1).sleep();
-    }
-
-    for(int i = -(distance_y/2); i <= (distance_y/2); i++) {
-        if(!motor_send_functions::sendMotorControllerAction(*motor_action_client, pap_common::COORD,
-                                                            (position.x + (distance_x/2)), (position.y + i), position.z, velX, velY)){
-            return false;
-        }
-        ros::Duration(1).sleep();
-    }
-
-    for(int i = -(distance_x/2); i <= (distance_x/2); i++) {
-        if(!motor_send_functions::sendMotorControllerAction(*motor_action_client, pap_common::COORD,
-                                                            (position.x - i), (position.y + (distance_y/2)), position.z, velX, velY)){
-            return false;
-        }
-        ros::Duration(1).sleep();
-    }
-
-    for(int i = -(distance_y/2); i <= 0; i++) {
-        if(!motor_send_functions::sendMotorControllerAction(*motor_action_client, pap_common::COORD,
-                                                            (position.x - (distance_x/2)), (position.y - i), position.z, velX, velY)){
-            return false;
-        }
-        ros::Duration(1).sleep();
-    }
-
-    for(int i = -(distance_x/2); i <= 0; i++) {
-        if(!motor_send_functions::sendMotorControllerAction(*motor_action_client, pap_common::COORD,
-                                                            (position.x + i), position.y, position.z, velX, velY)){
-            return false;
-        }
-        ros::Duration(1).sleep();
-    }
-
-    /*if(!motor_send_functions::sendMotorControllerAction(*motor_action_client, pap_common::COORD,
-                                                        (position.x - (distance/2)), position.y, position.z, velX, velY)){
+    if(!motor_send_functions::sendMotorControllerAction(*motor_action_client, pap_common::COORD_VEL,
+                                                        (position.x - (distance_x/2)), position.y, position.z, velX, velY)){
         return false;
     }
     ros::Duration(1).sleep();
 
-    if(!motor_send_functions::sendMotorControllerAction(*motor_action_client, pap_common::COORD,
-                                                        (position.x - (distance/2)), (position.y - (distance/2)), position.z, velX, velY)){
-        return false;
-    }
-    ros::Duration(1).sleep();
-
-    if(!motor_send_functions::sendMotorControllerAction(*motor_action_client, pap_common::COORD,
-                                                        (position.x + (distance/2)), (position.y - (distance/2)), position.z, velX, velY)){
-        return false;
-    }
-    ros::Duration(1).sleep();
-
-    if(!motor_send_functions::sendMotorControllerAction(*motor_action_client, pap_common::COORD,
-                                                        (position.x + (distance/2)), (position.y + (distance/2)), position.z, velX, velY)){
+    if(!motor_send_functions::sendMotorControllerAction(*motor_action_client, pap_common::COORD_VEL,
+                                                        (position.x - (distance_x/2)), (position.y - (distance_y/2)), position.z, velX, velY)){
         return false;
     }
     ros::Duration(1).sleep();
 
 
-
-    if(!motor_send_functions::sendMotorControllerAction(*motor_action_client, pap_common::COORD,
-                                                        (position.x - (distance/2)), (position.y + (distance/2)), position.z, velX, velY)){
+    if(!motor_send_functions::sendMotorControllerAction(*motor_action_client, pap_common::COORD_VEL,
+                                                        (position.x + (distance_x/2)), (position.y - (distance_y/2)), position.z, velX, velY)){
         return false;
     }
     ros::Duration(1).sleep();
 
-    if(!motor_send_functions::sendMotorControllerAction(*motor_action_client, pap_common::COORD,
-                                                        (position.x - (distance/2)), (position.y - (distance/2)), position.z, velX, velY)){
+    if(!motor_send_functions::sendMotorControllerAction(*motor_action_client, pap_common::COORD_VEL,
+                                                        (position.x + (distance_x/2)), (position.y + (distance_y/2)), position.z, velX, velY)){
         return false;
     }
-    ros::Duration(1).sleep();*/
+    ros::Duration(1).sleep();
+
+    if(!motor_send_functions::sendMotorControllerAction(*motor_action_client, pap_common::COORD_VEL,
+                                                        (position.x - (distance_x/2)), (position.y + (distance_y/2)), position.z, velX, velY)){
+        return false;
+    }
+    ros::Duration(1).sleep();
+
+    if(!motor_send_functions::sendMotorControllerAction(*motor_action_client, pap_common::COORD_VEL,
+                                                        (position.x - (distance_x/2)), position.y, position.z, velX, velY)){
+        return false;
+    }
+    ros::Duration(1).sleep();
+
+    if(!motor_send_functions::sendMotorControllerAction(*motor_action_client, pap_common::COORD_VEL,
+                                                        position.x, position.y, position.z, velX, velY)){
+        return false;
+    }
+    ros::Duration(1).sleep();
 
     return true;
 }

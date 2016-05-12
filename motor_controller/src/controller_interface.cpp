@@ -168,7 +168,7 @@ void ControllerInterface::execute_action(const pap_common::MotorControllerAction
             ROS_ERROR("Error while sending homing command");
         }
 
-        if(!waitForArrival(15)){
+        if(!waitForArrival(50)){
             as_.setAborted();
             break;
         }

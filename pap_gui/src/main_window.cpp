@@ -2704,7 +2704,7 @@ void pap_gui::MainWindow::on_scanButton_clicked()
 {
 
     if(qnode.pcbHeight_ == 0 || qnode.pcbWidth_ == 0) return;
-/*
+
     // Lower left corner of pcb holder
     const QVector3D init(311.204, 153.019, 27.0);
     const QVector2D pcb_size(qnode.pcbHeight_, qnode.pcbWidth_);
@@ -2733,7 +2733,7 @@ void pap_gui::MainWindow::on_scanButton_clicked()
             return;
         }
     }
-*/
+
     // Start stitching process
     pap_common::VisionResult res;
     if(vision_send_functions::sendVisionTask(qnode.getVisionClientRef(), pap_vision::STITCH_PICTURES,  pap_vision::CAMERA_TOP,0,0,0,res,1)){

@@ -34,9 +34,9 @@ PlaceController::PlaceController() {
 	pickUpAreaOffset.x = 108.42;	// + tape_x -> 449.85 = max.x destination
 	pickUpAreaOffset.y = 261;
 	pickUpAreaOffset.z = suckingHeight_;
-	cameraBottomOffset.x = 237.6; //239.15; //238.74+1.0;
-	cameraBottomOffset.y = 195.65; //195.21+1.0;
-	cameraBottomOffset.z = 23.17-15; //13;
+    cameraBottomOffset.x = 237.6;
+    cameraBottomOffset.y = 195.65;
+    cameraBottomOffset.z = 8.17;
 
     //Relative offsets to camera
 	tip2Offset.x = -94.08;
@@ -70,12 +70,12 @@ PlaceController::PlaceController() {
     Checkerboard_top2_Offset_.y = 53;
     Checkerboard_top2_Offset_.z = pickUpAreaOffset.z;
 
-    Checkerboard_bottom1_Offset_.x = 292.09;
-    Checkerboard_bottom1_Offset_.y = 259.35;
-    Checkerboard_bottom1_Offset_.z = 20.15;
-    Checkerboard_bottom2_Offset_.x = 292.09;
-    Checkerboard_bottom2_Offset_.y = 259.35;
-    Checkerboard_bottom2_Offset_.z = 20.15;
+    Checkerboard_bottom1_Offset_.x = 327.5;
+    Checkerboard_bottom1_Offset_.y = 186.4;
+    Checkerboard_bottom1_Offset_.z = 18.6;
+    Checkerboard_bottom2_Offset_.x = 324.15;
+    Checkerboard_bottom2_Offset_.y = 155.2;
+    Checkerboard_bottom2_Offset_.z = 18.6;
 
 	// Correction offsets
 	PickUpCorrection.x = 0;
@@ -132,16 +132,16 @@ void PlaceController::updatedispenserTipOffset(float update_x, float update_y) {
 ******************************************************/
 Offset PlaceController::getBottomCamCoordinates() {
     Offset temp;
-    temp.x = cameraBottomOffset.x; // + camClibrationOffset_.x;
-    temp.y = cameraBottomOffset.y; // + camClibrationOffset_.y;
+    temp.x = cameraBottomOffset.x;
+    temp.y = cameraBottomOffset.y;
     temp.z = cameraBottomOffset.z;
     return temp;
 }
 
 Offset PlaceController::getTip1Coordinates() {
     Offset tip1Coordinate;
-    tip1Coordinate.x = cameraBottomOffset.x + tip1Offset.x; // + tip1ClibrationOffset_.x;
-    tip1Coordinate.y = cameraBottomOffset.y + tip1Offset.y; // + tip1ClibrationOffset_.y;
+    tip1Coordinate.x = cameraBottomOffset.x + tip1Offset.x;
+    tip1Coordinate.y = cameraBottomOffset.y + tip1Offset.y;
     tip1Coordinate.z = tip1Offset.z;
     return tip1Coordinate;
 }

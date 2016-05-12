@@ -42,11 +42,13 @@ typedef dlib::normalized_function<probabilistic_funct_type> pfunct_type;
 
 // Conversion factors for pixel to mm
 // Top-Camera:
-#define PIXEL_TO_MM_TOP 32.37
-// Bottom-Camera
-#define PIXEL_TO_MM_BOTTOM 24.95
+#define PIXEL_TO_MM_TOP 33.1339
 
-#define PIXEL_TO_MM_PCB 31.1463
+#define PIXEL_TO_MM_TAPE 31.9609
+// Bottom-Camera
+#define PIXEL_TO_MM_BOTTOM 40.6267
+
+#define PIXEL_TO_MM_PCB 31.2509
 
 class smdPart {
 public:

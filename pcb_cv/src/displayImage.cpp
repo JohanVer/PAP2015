@@ -230,7 +230,7 @@ void PcbCvInterface::execute_action(const pap_common::VisionGoalConstPtr& comman
 
         //finder.saveStitchingImages();
         //        as_.setSucceeded();
-
+/*
 cv:Mat composed_img = cv::imread(string(getenv("PAPRESOURCES")) + "training_data/1.jpg");
         static size_t stitch_id = 0;
         pap_common::VisionResult res;
@@ -249,9 +249,7 @@ cv:Mat composed_img = cv::imread(string(getenv("PAPRESOURCES")) + "training_data
         res.data3 = finder.pxRatioPcb;
 
         as_.setSucceeded(res);
-
-
-/*
+*/
         static size_t stitch_id = 0;
         cv:Mat composed_img;
         stitcher_.blendImages(composed_img);
@@ -275,7 +273,7 @@ cv:Mat composed_img = cv::imread(string(getenv("PAPRESOURCES")) + "training_data
         as_.setSucceeded(res);
 
         stitcher_.reset();
-*/
+
     }
         break;
 
@@ -304,11 +302,11 @@ cv:Mat composed_img = cv::imread(string(getenv("PAPRESOURCES")) + "training_data
         smdPart tip;
         if(finder.findTipAvg(&images, (pap_vision::CAMERA_SELECT) cameraSelect, tip)){
             pap_common::VisionResult res;
-            res.data1 = -tip.y;
-            res.data2 = tip.x;
+            res.data1 = tip.x;
+            res.data2 = tip.y;
             res.data3 = tip.rot;
             res.cameraSelect = cameraSelect;
-            std::cerr << "Circle finder result: " << -tip.y << " , " << tip.x << " , " << tip.rot << std::endl;
+            std::cerr << "Circle finder result: " << tip.x << " , " << tip.y << " , " << tip.rot << std::endl;
             as_.setSucceeded(res);
         }else{
             as_.setAborted();
@@ -499,8 +497,8 @@ void PcbCvInterface::imageCallback2(const sensor_msgs::ImageConstPtr& msg) {
         case CIRCLE:
             if(finder.findTip(input2, smd)){
                 visionMsg.task = pap_vision::SEARCH_CIRCLE;
-                visionMsg.data1 = -smd.y;
-                visionMsg.data2 = smd.x;
+                visionMsg.data1 = smd.x;
+                visionMsg.data2 = smd.y;
                 visionMsg.data3 = smd.rot;
                 visionMsg.camera = 1;
                 statusPublisher.publish(visionMsg);
@@ -633,9 +631,10 @@ void PcbCvInterface::runVision(){
     statusPublisher = nh_.advertise<pap_common::VisionStatus>("visionStatus",
                                                               1000);
 
-    image_transport::Subscriber camera1sub = it_.subscribe("Camera1/image_raw",
+    //image_rect_color
+    image_transport::Subscriber camera1sub = it_.subscribe("/Camera1/image_raw",
                                                            2, &PcbCvInterface::imageCallback1, this);
-    image_transport::Subscriber camera2sub = it_.subscribe("Camera2/image_raw",
+    image_transport::Subscriber camera2sub = it_.subscribe("/Camera2/image_raw",
                                                            2, &PcbCvInterface::imageCallback2, this);
 
     ros::Rate loop_rate(100);

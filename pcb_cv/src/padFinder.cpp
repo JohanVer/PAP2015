@@ -37,7 +37,7 @@ padFinder::padFinder() {
     partWidth_ = 0.0;
     partHeight_ = 0.0;
     pxRatioSlot = PIXEL_TO_MM_TOP;
-    pxRatioTape = PIXEL_TO_MM_TOP;
+    pxRatioTape = PIXEL_TO_MM_TAPE;
     pxRatioPcb = PIXEL_TO_MM_PCB;
     pxRatioBottom = PIXEL_TO_MM_BOTTOM;
 
@@ -255,8 +255,12 @@ bool padFinder::findTip(cv::Mat &final, smdPart &out) {
                    CV_RGB(0, 255, 0), 3);
         cv::circle(final, Point2f(out.x, out.y), 3, Scalar(255, 0, 0),
                    -1, 8, 0);
-        out.x = (out.x - (final.cols / 2 - 1)) / pxRatioBottom;
-        out.y = ((final.rows / 2 - 1) - out.y) / pxRatioBottom;
+        // Transformation from bottom to PAP
+        double x_middle = out.x;
+        double y_middle = out.y;
+
+        out.x = -(((final.rows / 2 - 1) - y_middle) / pxRatioBottom);
+        out.y = ((x_middle - (final.cols / 2 - 1)) / pxRatioBottom);
         return true;
     }
     else{
