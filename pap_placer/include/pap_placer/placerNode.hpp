@@ -85,7 +85,7 @@ enum STATE {
 void statusCallback(const pap_common::StatusConstPtr& statusMsg);
 void visionStatusCallback(const pap_common::VisionStatusConstPtr& statusMsg);
 void placerCallback(const pap_common::TaskConstPtr& taskMsg);
-void dispenserCallback(const pap_common::DispenseTaskConstPtr& taskMsg);
+void dispenserCallbackPlacer(const pap_common::DispenseTaskConstPtr& taskMsg);
 
 void sendPlacerStatus(pap_common::PROCESS process,
                       pap_common::PLACER_STATUS status);

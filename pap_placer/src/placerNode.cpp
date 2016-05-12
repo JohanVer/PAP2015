@@ -32,7 +32,7 @@ int main(int argc, char **argv) {
     placerStatus_publisher_ = n_.advertise<pap_common::PlacerStatus>("placerStatus", 100);
     statusSubsriber_ = n_.subscribe("status", 100, &statusCallback);
     placerTaskSubscriber_ = n_.subscribe("task", 10, &placerCallback);
-    dispenserTaskSubscriber_ = n_.subscribe("dispenseTask", 10, &dispenserCallback);
+    dispenserTaskSubscriber_ = n_.subscribe("/dispenseTask", 100, &dispenserCallbackPlacer);
 
     // motor_action_client = std::unique_ptr<Client>(new Client("motor_controller_actions", true));
     motor_action_client = std::unique_ptr<motor_send_functions::Client>(new motor_send_functions::Client("motor_controller_actions", true));
@@ -635,15 +635,21 @@ bool dispensePCB() {
              placeController.dispenseTask.xPos2,
              placeController.dispenseTask.yPos2, DISPENSER_HEIGHT);
 
-    // TODO: Check
-    //sendTask(pap_common::CONTROLLER, pap_common::COORD_VEL,
-    //         placeController.dispenseTask.xPos2,
-    //         placeController.dispenseTask.yPos2, DISPENSER_HEIGHT,
-    //         placeController.dispenseTask.velocity,
-    //         placeController.dispenseTask.velocity);
+
+    if(!motor_send_functions::sendMotorControllerAction(*motor_action_client, pap_common::COORD_VEL,
+                                                        placeController.dispenseTask.xPos2,
+                                                        placeController.dispenseTask.yPos2,
+                                                        DISPENSER_HEIGHT,
+                                                        placeController.dispenseTask.velocity,
+                                                        placeController.dispenseTask.velocity)){
+        return false;
+    }
 
     // Turn off dispenser
     switchDispenser(false);
+
+    sendPlacerStatus(pap_common::INFO,
+                     pap_common::DISPENSER_FINISHED);
     return true;
 }
 
@@ -1092,7 +1098,8 @@ void placerCallback(const pap_common::TaskConstPtr& taskMsg) {
     }
 }
 
-void dispenserCallback(const pap_common::DispenseTaskConstPtr& taskMsg) {
+void dispenserCallbackPlacer(const pap_common::DispenseTaskConstPtr& taskMsg) {
+    std::cerr << "received dispenser task\n";
     placeController.dispenseTask.xPos = taskMsg->xPos1;
     //+ placeController.dispenserTipOffset.x
     //- placeController.camClibrationOffset_.x
@@ -1112,6 +1119,7 @@ void dispenserCallback(const pap_common::DispenseTaskConstPtr& taskMsg) {
     placeController.dispenseTask.velocity = taskMsg->velocity;
     placeController.dispenseTask.time = taskMsg->waitTime;
     //ROS_INFO("Dispensing...");
+    dispensePCB();
 }
 
 void sendPlacerStatus(pap_common::PROCESS process,
