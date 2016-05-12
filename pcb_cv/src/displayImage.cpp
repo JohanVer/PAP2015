@@ -230,7 +230,7 @@ void PcbCvInterface::execute_action(const pap_common::VisionGoalConstPtr& comman
 
         //finder.saveStitchingImages();
         //        as_.setSucceeded();
-/*
+
 cv:Mat composed_img = cv::imread(string(getenv("PAPRESOURCES")) + "training_data/1.jpg");
         static size_t stitch_id = 0;
         pap_common::VisionResult res;
@@ -249,9 +249,9 @@ cv:Mat composed_img = cv::imread(string(getenv("PAPRESOURCES")) + "training_data
         res.data3 = finder.pxRatioPcb;
 
         as_.setSucceeded(res);
-*/
 
 
+/*
         static size_t stitch_id = 0;
         cv:Mat composed_img;
         stitcher_.blendImages(composed_img);
@@ -275,7 +275,7 @@ cv:Mat composed_img = cv::imread(string(getenv("PAPRESOURCES")) + "training_data
         as_.setSucceeded(res);
 
         stitcher_.reset();
-
+*/
     }
         break;
 

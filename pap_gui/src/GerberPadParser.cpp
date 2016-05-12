@@ -316,15 +316,14 @@ void GerberPadParser::loadFile(std::string fileName, bool bottomLayer) {
                 PadInformation newPad;
 
                 bottomLayer_ = bottomLayer;
-                newPad.rect.setX(height_ - (yParsed * 25.4));
+                newPad.rect.setX((yParsed * 25.4));
                 if (bottomLayer) {
                     ROS_INFO("Bottom layer detected");
                     newPad.rect.setY((xParsed * 25.4));
 
                 } else {
                     ROS_INFO("Top layer detected");
-                    newPad.rect.setY(width_ - (xParsed * 25.4));
-                    //newPad.rect.setX(width_ - (xParsed * 25.4));
+                    newPad.rect.setY((xParsed * 25.4));
                 }
                 //newPad.rect.setY(yParsed * 25.4);
                 // Convert d-code using tabular out of whl file
@@ -362,7 +361,7 @@ QRectF GerberPadParser::renderImage(QGraphicsScene* scene, int width,
 
     if(!background_.isNull()){
         background_item_ = new QGraphicsPixmapItem(QPixmap::fromImage(background_));
-        background_item_->setPos(-width,height);
+        background_item_->setPos(-width,0);
         scene->addItem(background_item_);
     }
 
@@ -374,7 +373,7 @@ QRectF GerberPadParser::renderImage(QGraphicsScene* scene, int width,
         PadInformation padInfo;
 
         padInfo.rect.setX(padInformationArrayPrint_[i].rect.y());
-        padInfo.rect.setY(padInformationArrayPrint_[i].rect.x());
+        padInfo.rect.setY(-padInformationArrayPrint_[i].rect.x());
         padInfo.rect.setWidth(padInformationArrayPrint_[i].rect.height());
         padInfo.rect.setHeight(padInformationArrayPrint_[i].rect.width());
         padInfo.rotation = padInformationArrayPrint_[i].rotation;
@@ -382,8 +381,7 @@ QRectF GerberPadParser::renderImage(QGraphicsScene* scene, int width,
         double upperCornerPadX =
                 ((padInfo.rect.x() - padInfo.rect.width() / 2.0)
                  * pixelConversionFactor);
-        double upperCornerPadY = (double) height
-                - ((padInfo.rect.y() + padInfo.rect.height() / 2.0)
+        double upperCornerPadY = ((padInfo.rect.y() - padInfo.rect.height() / 2.0)
                    * pixelConversionFactor);
 
         pad.setX(upperCornerPadX);
@@ -404,7 +402,7 @@ QRectF GerberPadParser::renderImage(QGraphicsScene* scene, int width,
             rect->setBrush(Qt::green);
         }
         rect->setTransformOriginPoint(padInfo.rect.x() * pixelConversionFactor,
-                                      (double) height - (padInfo.rect.y() * pixelConversionFactor));
+                                      (padInfo.rect.y() * pixelConversionFactor));
         rect->setRotation(padInfo.rotation);
 
         scene->addItem(rect);

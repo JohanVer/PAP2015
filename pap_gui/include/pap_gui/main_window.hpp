@@ -205,6 +205,7 @@ public Q_SLOTS:
     void on_inputPad_Button_clicked();
     void on_padViewSetSize_button_clicked();
     void on_padViewGenerate_button_clicked();
+    void redrawPadView();
     void initPadTable(int rows);
     void padPressed(int numberOfFiducial,QPointF padPos);
     void on_calcOrientation_Button_clicked();

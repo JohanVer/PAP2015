@@ -1940,10 +1940,6 @@ void MainWindow::sendGotoFiducial(int indexOfFiducial) {
 
 void MainWindow::on_inputPad_Button_clicked() {
     //get a filename to open
-    if (alreadyFlipped_) {
-        ui.padView_Image->scale(-1, -1);
-        alreadyFlipped_ = false;
-    }
 
     QString gerberFile = QFileDialog::getOpenFileName(this, tr("Open Whl file"),
                                                       "/home", tr("Text Files (*.txt  *.Whl)"));
@@ -1959,8 +1955,6 @@ void MainWindow::on_inputPad_Button_clicked() {
     bottomLayer_ = false;
     if (gerberFile.contains(".PasteBot")) {
         bottomLayer_ = true;
-        ui.padView_Image->scale(-1, -1);
-        alreadyFlipped_ = true;
     } else {
         bottomLayer_ = false;
     }
@@ -2006,20 +2000,15 @@ void MainWindow::on_padViewGenerate_button_clicked() {
     // Build image with QGraphicsItem
     padParser.pixelConversionFactor = 10;
     padParser.deleteBackground();
-    pic_size_.width = ui.padView_Image->width() - 20;
-    pic_size_.height = ui.padView_Image->height() - 20;
+    pic_size_.width = ui.padView_Image->width();
+    pic_size_.height = ui.padView_Image->height();
 
-    QRectF pcbSize = padParser.renderImage(&scenePads_,
-                                           pic_size_.width, pic_size_.height);
-
-    ui.padView_Image->setScene(&scenePads_);
-    ui.padView_Image->show();
-    qnode.sendPcbImage(padParser.getMarkerList());
+   redrawPadView();
 
 }
 
 void MainWindow::padPressed(int numberOfFiducial, QPointF padPos) {
-    id_ = padParser.searchId(padPos, ui.padView_Image->width() - 20);
+    id_ = padParser.searchId(padPos, ui.padView_Image->width());
     setFiducialPads(numberOfFiducial,
                     padParser.padInformationArray_[id_].rect.x(),
                     padParser.padInformationArray_[id_].rect.y());
@@ -2027,7 +2016,7 @@ void MainWindow::padPressed(int numberOfFiducial, QPointF padPos) {
 
 void MainWindow::gotoPad(QPointF padPos) {
     ROS_INFO("GUI: Goto Pad....");
-    id_ = padParser.searchId(padPos, ui.padView_Image->width() - 20);
+    id_ = padParser.searchId(padPos, ui.padView_Image->width());
     ROS_INFO("GUI: ID: %d", id_);
 
     float x = padParser.padInformationArray_[id_].rect.x();
@@ -2037,14 +2026,17 @@ void MainWindow::gotoPad(QPointF padPos) {
     //}
 }
 
-void MainWindow::deletePad(QPointF padPos) {
-    id_ = padParser.searchId(padPos, ui.padView_Image->width() - 20);
-    padParser.deleteEntry(id_);
-
+void MainWindow::redrawPadView(){
     padParser.renderImage(&scenePads_, pic_size_.width, pic_size_.height);
     ui.padView_Image->setScene(&scenePads_);
     ui.padView_Image->show();
     qnode.sendPcbImage(padParser.getMarkerList());
+}
+
+void MainWindow::deletePad(QPointF padPos) {
+    id_ = padParser.searchId(padPos, ui.padView_Image->width());
+    padParser.deleteEntry(id_);
+    redrawPadView();
 }
 
 void MainWindow::on_calibrationButton_offsets_clicked() {
@@ -2238,7 +2230,7 @@ void MainWindow::on_stopDispense_button_clicked() {
 void MainWindow::on_resetDispense_button_clicked() {
     dispenserPaused = false;
     lastDispenserId = 0;
-    on_padViewGenerate_button_clicked();
+    redrawPadView();
     QMessageBox msgBox;
     const QString title = "Dispensing information";
     msgBox.setWindowTitle(title);
@@ -2282,11 +2274,9 @@ void MainWindow::on_startDispense_button_clicked() {
         for (size_t j = 0; j < dispInfo.size(); j++) {
             scenePads_.addLine(
                         QLineF(dispInfo[j].yPos * pxFactor,
-                               padParser.heightPixel_
                                - (dispInfo[j].xPos * pxFactor),
                                dispInfo[j].yPos2 * pxFactor,
-                               padParser.heightPixel_
-                               - (dispInfo[j].xPos2 * pxFactor)),
+                               -(dispInfo[j].xPos2 * pxFactor)),
                         QPen(Qt::blue, nozzleDiameter * pxFactor, Qt::SolidLine));
 
             padParser.transformDispenserInfo(&dispInfo[j]);
@@ -2308,31 +2298,30 @@ void MainWindow::on_startDispense_button_clicked() {
             }
         }
         scenePads_.addEllipse((copy[i].rect.y()) * pxFactor - 1.0,
-                              padParser.heightPixel_ - (copy[i].rect.x() * pxFactor), 1, 1,
+                              -(copy[i].rect.x() * pxFactor), 1, 1,
                               QPen(Qt::green, 2, Qt::SolidLine));
 
     }
+    processAllCallbacks();
     ROS_INFO("GUI: Dispensing finished....");
     qnode.sendTask(pap_common::PLACER, pap_common::GOTO, currentPosition.x,
                    currentPosition.y, 45.0);
 }
 
 void MainWindow::dispenseSinglePad(QPointF point) {
-    id_ = padParser.searchId(point, ui.padView_Image->width() - 20);
+    id_ = padParser.searchId(point, ui.padView_Image->width());
     float nozzleDiameter = ui.nozzleDispCombo->currentText().toFloat();
     float pxFactor = padParser.pixelConversionFactor;
     if (id_ != -1) {
         std::vector<dispenseInfo> dispInfo = dispenserPlanner.planDispensing(
                     padParser.padInformationArrayPrint_[id_], nozzleDiameter);
 
-        for (size_t j = 0; j < dispInfo.size(); j++) {
+        for (size_t j = 0; j < dispInfo.size(); j++) {            
             scenePads_.addLine(
                         QLineF(dispInfo[j].yPos * pxFactor,
-                               padParser.heightPixel_
                                - (dispInfo[j].xPos * pxFactor),
                                dispInfo[j].yPos2 * pxFactor,
-                               padParser.heightPixel_
-                               - (dispInfo[j].xPos2 * pxFactor)),
+                               -(dispInfo[j].xPos2 * pxFactor)),
                         QPen(Qt::blue, nozzleDiameter * pxFactor, Qt::SolidLine));
 
             padParser.transformDispenserInfo(&dispInfo[j]);
@@ -2353,10 +2342,16 @@ void MainWindow::dispenseSinglePad(QPointF point) {
                 return;
             }
             //ROS_INFO(" GUI: Print: X %f Y %f X2 %f Y2 %f",dispInfo[j].xPos *pxFactor ,(padParser.height_-dispInfo[j].yPos)*pxFactor,dispInfo[j].xPos2*pxFactor,(padParser.height_-dispInfo[j].yPos2)*pxFactor);
+
+            processAllCallbacks();
+            ROS_INFO("GUI: Dispensing finished....");
+            qnode.sendTask(pap_common::PLACER, pap_common::GOTO, currentPosition.x,
+                           currentPosition.y, 45.0);
         }
     } else {
         ROS_ERROR("No pad selected...");
     }
+
 }
 
 void MainWindow::sendTransforms(double x, double y, double z, double nozzle_1,
@@ -2709,7 +2704,7 @@ void pap_gui::MainWindow::on_scanButton_clicked()
 {
 
     if(qnode.pcbHeight_ == 0 || qnode.pcbWidth_ == 0) return;
-
+/*
     // Lower left corner of pcb holder
     const QVector3D init(311.204, 153.019, 27.0);
     const QVector2D pcb_size(qnode.pcbHeight_, qnode.pcbWidth_);
@@ -2738,7 +2733,7 @@ void pap_gui::MainWindow::on_scanButton_clicked()
             return;
         }
     }
-
+*/
     // Start stitching process
     pap_common::VisionResult res;
     if(vision_send_functions::sendVisionTask(qnode.getVisionClientRef(), pap_vision::STITCH_PICTURES,  pap_vision::CAMERA_TOP,0,0,0,res,1)){
@@ -2814,28 +2809,6 @@ void pap_gui::MainWindow::on_scanButton_clicked()
 
         padParser.setTransformation(tf);
         padParser.rotatePads();
-
-        /*
-        for (size_t i = 0; i < padParser.padInformationArray_.size(); i++) {
-                tf::Point pointToTransform;
-                // This point should be transformed
-                pointToTransform.setX(padParser.padInformationArray_[i].rect.x());
-                pointToTransform.setY(padParser.padInformationArray_[i].rect.y());
-                pointToTransform.setZ(0.0);
-
-                float width, height = 0.0;
-                width = padParser.padInformationArray_[i].rect.width();
-                height = padParser.padInformationArray_[i].rect.height();
-
-                pointToTransform = tf * pointToTransform;
-
-                padParser.padInformationArray_[i].rect.setX(pointToTransform.x());
-                padParser.padInformationArray_[i].rect.setY(pointToTransform.y());
-                padParser.padInformationArray_[i].rect.setWidth(width);
-                padParser.padInformationArray_[i].rect.setHeight(height);
-            }
-            */
-
 
         // Render visualization and set up table
 
