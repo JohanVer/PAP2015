@@ -196,6 +196,7 @@ void PcbStitcher::blendImages(cv::Mat &final){
     blender.blend(final,dst_mask );
 
     final.convertTo(final, (final.type() / 8) * 8);
+    size_blended_ = final.size();
 }
 
 void PcbStitcher::reset(){
@@ -276,5 +277,42 @@ void PcbStitcher::feedImage(cv::Mat image_in, cv::Point2d offset){
     }
     i_pic_++;
 }
+
+void PcbStitcher::getApproxPxFactor(double &px_factor_x, double &px_factor_y){
+
+    double max_x = 0;
+    double max_y = 0;
+    double min_x = std::numeric_limits<double>::max();
+    double min_y = std::numeric_limits<double>::max();
+    for(size_t i = 0; i < offsets_.size(); i++){
+        double x = offsets_.at(i).x;
+        double y = offsets_.at(i).y;
+        if(x > max_x){
+            max_x = x;
+        }
+
+        if(x < min_x){
+            min_x = x;
+        }
+
+        if(y > max_y){
+            max_y = y;
+        }
+
+        if(y < min_y){
+            min_y = y;
+        }
+    }
+
+    double delta_x = max_x - min_x;
+    double delta_y = max_y - min_y;
+
+    double pixel_x = size_blended_.width - 640;
+    double pixel_y = size_blended_.height - 480;
+
+    px_factor_x = pixel_x / delta_x;
+    px_factor_y = pixel_y / delta_y;
+}
+
 
 }

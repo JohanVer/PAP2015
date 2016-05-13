@@ -226,6 +226,10 @@ bool padFinder::findTip(cv::Mat &final, smdPart &out) {
     //cv::HoughCircles(gray, circles, CV_HOUGH_GRADIENT, 1, gray.rows / 4, 200,
     //	100, radiusMin * pxRatioBottom,radiusMax * pxRatioBottom);
 
+    cv::threshold(gray, gray, 255, 255, CV_THRESH_BINARY | CV_THRESH_OTSU);
+
+    cv::imshow("Thresholded tip", gray);
+    cv::waitKey(0);
     cv::HoughCircles(gray, circles, CV_HOUGH_GRADIENT, 1, gray.rows / 4, 200,
                      70, 10, 500);
 

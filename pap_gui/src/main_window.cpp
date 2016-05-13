@@ -2762,14 +2762,16 @@ void pap_gui::MainWindow::on_scanButton_clicked()
         cv::Mat outputRGB;
         cvtColor(cv_ptr->image, outputRGB, CV_BGR2RGB);
 
-
         // Set background image
         QImage stitchedImage= QImage((uchar*) outputRGB.data, outputRGB.cols, outputRGB.rows, outputRGB.step, QImage::Format_RGB888);
         padParser.deleteBackground();
         padParser.setBackGround(stitchedImage.copy());
 
+        double px_factor = res.data3;
+
         // Search pads on stitched image
         padFinder finder;
+        finder.pxRatioPcb = px_factor;
         std::vector<cv::RotatedRect> pads;
         finder.findPads(&(cv_ptr->image),false, cv::Point2f(0,0),pads);
 
@@ -2797,7 +2799,6 @@ void pap_gui::MainWindow::on_scanButton_clicked()
             padParser.padInformationArray_.push_back(pad);
             padParser.padInformationArrayPrint_.push_back(pad);
         }
-        double px_factor = res.data3;
 
         // Create transform
         const double x_fov = 480 / px_factor;

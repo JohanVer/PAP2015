@@ -6,7 +6,7 @@ using namespace zbar;
 
 namespace pcb_cv{
 
-PcbCvInterface::PcbCvInterface() : as_(nh_, "vision_actions", boost::bind(&PcbCvInterface::execute_action, this, _1),false) , stitcher_(31.0){
+PcbCvInterface::PcbCvInterface() : as_(nh_, "vision_actions", boost::bind(&PcbCvInterface::execute_action, this, _1),false) , stitcher_(PIXEL_TO_MM_PCB){
 
     visionState = IDLE;
     qrCalAction = pap_vision::NO_CAL;
@@ -218,7 +218,6 @@ void PcbCvInterface::execute_action(const pap_common::VisionGoalConstPtr& comman
         std::vector<cv::Mat> images;
         gatherImages(1, images,(pap_vision::CAMERA_SELECT) cameraSelect);
         cv::Point2d coord(command->data2, command->data1);
-        std::cerr << "Appending with coordinate : " << coord << std::endl;
         images.front().convertTo(images.front(), CV_64FC3);
         stitcher_.feedImage(images.front(), coord);
         as_.setSucceeded();
@@ -256,7 +255,13 @@ cv:Mat composed_img = cv::imread(string(getenv("PAPRESOURCES")) + "training_data
         pap_common::VisionResult res;
         res.data1 = (stitcher_.getURCornerCoord()).x;
         res.data2 = (stitcher_.getURCornerCoord()).y;
-        res.data3 = stitcher_.getApproxPxFactor();
+
+        double px_factor_x;
+        double px_factor_y;
+        stitcher_.getApproxPxFactor(px_factor_x, px_factor_y);
+
+        std::cerr << "Approx px factor: " << px_factor_x << " / " << px_factor_y << std::endl;
+        res.data3 = px_factor_x;
 
         std_msgs::Header header;
         header.seq = stitch_id;

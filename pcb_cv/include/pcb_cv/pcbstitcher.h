@@ -35,9 +35,7 @@ public:
     void reset();
     void blendImages(cv::Mat &final);
 
-    double getApproxPxFactor(){
-        return px_conv_factor;
-    }
+    void getApproxPxFactor(double &px_factor_x, double &px_factor_y);
 
     void setApproxPxFactor(double factor){
         px_conv_factor = factor;
@@ -60,7 +58,7 @@ private:
     double px_conv_factor;
     cv::Point2d scan_pos_;
     size_t i_pic_;
-
+    cv::Size2f size_blended_;
     cv::Point2d ur_corner_coord_;
 };
 
