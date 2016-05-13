@@ -262,6 +262,9 @@ cv:Mat composed_img = cv::imread(string(getenv("PAPRESOURCES")) + "training_data
 
         std::cerr << "Approx px factor: " << px_factor_x << " / " << px_factor_y << std::endl;
         res.data3 = px_factor_x;
+        res.data4 = px_factor_x;
+        //res.data3 = finder.pxRatioPcb_x;
+        //res.data4 = finder.pxRatioPcb_y;
 
         std_msgs::Header header;
         header.seq = stitch_id;
@@ -639,7 +642,7 @@ void PcbCvInterface::runVision(){
     //image_rect_color
     image_transport::Subscriber camera1sub = it_.subscribe("/Camera1/image_raw",
                                                            2, &PcbCvInterface::imageCallback1, this);
-    image_transport::Subscriber camera2sub = it_.subscribe("/Camera2/image_raw",
+    image_transport::Subscriber camera2sub = it_.subscribe("/Camera2/image_rect_color",
                                                            2, &PcbCvInterface::imageCallback2, this);
 
     ros::Rate loop_rate(100);

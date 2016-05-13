@@ -118,6 +118,8 @@ bool calibrateCamera() {
     ros::Duration(1).sleep();
     ROS_INFO("Placerstate: CAMERA - Start Vision");
     arduino_client->LEDTask(pap_common::SETBOTTOMLED, 0);
+    arduino_client->LEDTask(pap_common::SETTOPLED, 0);
+    arduino_client->LEDTask(pap_common::SETBRIGHTNESSRING, 45);
 
     pap_common::VisionResult res;
     if(!vision_send_functions::sendVisionTask(*vision_action_client, pap_vision::SEARCH_CIRCLE, pap_vision::CAMERA_BOTTOM, CAMERA_DIAMETER_VISION, 0.0, 0.0, res, 50))
@@ -136,6 +138,7 @@ bool calibrateCamera() {
     ros::Duration(5).sleep();
 
     arduino_client->LEDTask(pap_common::RESETBOTTOMLED, 0);
+    arduino_client->LEDTask(pap_common::RESETTOPLED, 0);
     return true;
 }
 
@@ -151,6 +154,7 @@ bool calibrateTip1() {
     moveTip(TIP::LEFT_TIP, true);
 
     arduino_client->LEDTask(pap_common::SETBOTTOMLED, 0);
+    arduino_client->LEDTask(pap_common::SETBRIGHTNESSRING, 100);
     ros::Duration(1).sleep();
 
     ROS_INFO("Placerstate: TIP1 - Start Vision");

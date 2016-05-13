@@ -100,12 +100,14 @@ public:
 		pxRatioTape = value;
 	}
 	void setPixelRatioPcb(float value){
-		pxRatioPcb = value;
+        pxRatioPcb_x = value;
+        pxRatioPcb_y = value;
 	}
 	void setPixelRatioBottom(float value){
 		pxRatioBottom = value;
 	}
-    float pxRatioSlot,pxRatioTape,pxRatioPcb,pxRatioBottom;
+    float pxRatioSlot,pxRatioTape,pxRatioBottom;
+    double pxRatioPcb_x, pxRatioPcb_y;
 private:
     // privat
     lin_funct_type learned_funct_;

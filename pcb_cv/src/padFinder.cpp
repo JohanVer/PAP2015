@@ -30,7 +30,7 @@ using namespace cv;
 #define ERROR_PERCENT_SMDTAPE 30.0
 
 // Tips
-#define ERROR_PERCENT_TIP 20.0
+#define ERROR_PERCENT_TIP 5.0
 
 padFinder::padFinder() {
     foundVia = false;
@@ -38,7 +38,8 @@ padFinder::padFinder() {
     partHeight_ = 0.0;
     pxRatioSlot = PIXEL_TO_MM_TOP;
     pxRatioTape = PIXEL_TO_MM_TAPE;
-    pxRatioPcb = PIXEL_TO_MM_PCB;
+    pxRatioPcb_x = PIXEL_TO_MM_PCB;
+    pxRatioPcb_y = PIXEL_TO_MM_PCB;
     pxRatioBottom = PIXEL_TO_MM_BOTTOM;
 
     scanner.set_config(zbar::ZBAR_NONE, zbar::ZBAR_CFG_ENABLE, 1);
@@ -223,20 +224,20 @@ bool padFinder::findTip(cv::Mat &final, smdPart &out) {
     float radiusMin = ((partWidth_) / 100.0) * (100.0 - ERROR_PERCENT_TIP);
     float radiusMax = ((partWidth_) / 100.0) * (100.0 + ERROR_PERCENT_TIP);
 
-    //cv::HoughCircles(gray, circles, CV_HOUGH_GRADIENT, 1, gray.rows / 4, 200,
-    //	100, radiusMin * pxRatioBottom,radiusMax * pxRatioBottom);
-
     cv::threshold(gray, gray, 255, 255, CV_THRESH_BINARY | CV_THRESH_OTSU);
 
-    cv::imshow("Thresholded tip", gray);
-    cv::waitKey(0);
-    cv::HoughCircles(gray, circles, CV_HOUGH_GRADIENT, 1, gray.rows / 4, 200,
-                     70, 10, 500);
+    cv::Mat bF;
+    cv::bilateralFilter(gray, bF, 15, 800 , 800);
+    //cv::imshow("Thresholded tip", bF);
+    //cv::waitKey(0);
+    cv::HoughCircles(bF, circles, CV_HOUGH_GRADIENT, 1, 50, 70,
+                     45, radiusMin, radiusMax);
 
+
+    std::cerr << "Circles: " << circles.size() << std::endl;
     for (size_t i = 0; i < circles.size(); i++) {
         Point center(cvRound(circles[i][0]), cvRound(circles[i][1]));
         int radius = cvRound(circles[i][2]);
-        if (radius > radiusMin && radius < radiusMax) {
             // draw the circle center
             //cv::circle( final, center, 3, Scalar(255,0,0), -1, 8, 0 );
             // draw the circle outline
@@ -247,7 +248,6 @@ bool padFinder::findTip(cv::Mat &final, smdPart &out) {
             part.y = center.y;
             part.rot = radius;
             tipObjects.push_back(part);
-        }
     }
 
     if (circlesSorted.size() > 1) {
@@ -737,9 +737,9 @@ cv::Point2f padFinder::findPads(cv::Mat* input, bool startSelect,
 
                     // TODO: Change into middle coordinate of the camera
                     outputPosition.x = (mc.x - (input->cols / 2 - 1))
-                            / pxRatioPcb;
+                            / pxRatioPcb_x;
                     outputPosition.y = ((input->rows / 2 - 1) - mc.y)
-                            / pxRatioPcb;
+                            / pxRatioPcb_y;
 
                 } else {
                     drawRotatedRect(final, pad, CV_RGB(255, 0, 0));
@@ -753,10 +753,10 @@ cv::Point2f padFinder::findPads(cv::Mat* input, bool startSelect,
     for(size_t i = 0; i < padRects.size(); i++){
         RotatedRect rect = padRects.at(i);
 
-        padRects.at(i).center.x = (input->cols - rect.center.x) / pxRatioPcb;
-        padRects.at(i).center.y = (rect.center.y) / pxRatioPcb ;
-        padRects.at(i).size.width = rect.size.height / pxRatioPcb;
-        padRects.at(i).size.height = rect.size.width / pxRatioPcb;
+        padRects.at(i).center.x = (input->cols - rect.center.x) / pxRatioPcb_x;
+        padRects.at(i).center.y = (rect.center.y) / pxRatioPcb_y ;
+        padRects.at(i).size.width = rect.size.height / pxRatioPcb_y;
+        padRects.at(i).size.height = rect.size.width / pxRatioPcb_x;
     }
 
     pads = padRects;

@@ -2712,6 +2712,7 @@ void pap_gui::MainWindow::on_scanButton_clicked()
     // Calculate waypoints for gathering all images for the stitching process
     std::vector<QVector3D> waypoints = stitch_waypoint_maker::generateWaypoints(init, 50, pcb_size, 31 , 31, 27.0);
 
+    qnode.LEDTask(pap_common::SETTOPLED, 0);
     // Drive along waypoints
     for(size_t i = 0; i < waypoints.size(); i++){
         std::cerr << "Drive to waypoint... " << i << std::endl;
@@ -2734,6 +2735,7 @@ void pap_gui::MainWindow::on_scanButton_clicked()
         }
     }
 
+    qnode.LEDTask(pap_common::RESETTOPLED, 0);
     // Start stitching process
     pap_common::VisionResult res;
     if(vision_send_functions::sendVisionTask(qnode.getVisionClientRef(), pap_vision::STITCH_PICTURES,  pap_vision::CAMERA_TOP,0,0,0,res,1)){
@@ -2767,11 +2769,13 @@ void pap_gui::MainWindow::on_scanButton_clicked()
         padParser.deleteBackground();
         padParser.setBackGround(stitchedImage.copy());
 
-        double px_factor = res.data3;
+        double px_factor_x = res.data3;
+        double px_factor_y = res.data4;
 
         // Search pads on stitched image
         padFinder finder;
-        finder.pxRatioPcb = px_factor;
+        finder.pxRatioPcb_x = px_factor_x;
+        finder.pxRatioPcb_y = px_factor_y;
         std::vector<cv::RotatedRect> pads;
         finder.findPads(&(cv_ptr->image),false, cv::Point2f(0,0),pads);
 
@@ -2801,8 +2805,8 @@ void pap_gui::MainWindow::on_scanButton_clicked()
         }
 
         // Create transform
-        const double x_fov = 480 / px_factor;
-        const double y_fov = 640 / px_factor;
+        const double x_fov = 480 / px_factor_y;
+        const double y_fov = 640 / px_factor_x;
 
         tf::Transform tf;
         tf.setOrigin(tf::Vector3(res.data2 + x_fov / 2.0, res.data1 + y_fov / 2.0, 0.0));
@@ -2818,7 +2822,7 @@ void pap_gui::MainWindow::on_scanButton_clicked()
 
         pic_size_ = cv_ptr->image.size();
 
-        padParser.pixelConversionFactor = px_factor;
+        padParser.pixelConversionFactor = px_factor_x;
         padParser.renderImage(&scenePads_, pic_size_.width, pic_size_.height);
 
         ui.padView_Image->setScene(&scenePads_);
