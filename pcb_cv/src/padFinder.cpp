@@ -30,7 +30,7 @@ using namespace cv;
 #define ERROR_PERCENT_SMDTAPE 30.0
 
 // Tips
-#define ERROR_PERCENT_TIP 5.0
+#define ERROR_PERCENT_TIP 6.0
 
 padFinder::padFinder() {
     foundVia = false;
@@ -231,7 +231,7 @@ bool padFinder::findTip(cv::Mat &final, smdPart &out) {
     //cv::imshow("Thresholded tip", bF);
     //cv::waitKey(0);
     cv::HoughCircles(bF, circles, CV_HOUGH_GRADIENT, 1, 50, 70,
-                     45, radiusMin, radiusMax);
+                     40, radiusMin, radiusMax);
 
 
     std::cerr << "Circles: " << circles.size() << std::endl;

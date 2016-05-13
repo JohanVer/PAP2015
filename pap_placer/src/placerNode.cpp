@@ -118,8 +118,11 @@ bool calibrateCamera() {
     ros::Duration(1).sleep();
     ROS_INFO("Placerstate: CAMERA - Start Vision");
     arduino_client->LEDTask(pap_common::SETBOTTOMLED, 0);
+    ros::Duration(0.5).sleep();
     arduino_client->LEDTask(pap_common::SETTOPLED, 0);
+    ros::Duration(0.5).sleep();
     arduino_client->LEDTask(pap_common::SETBRIGHTNESSRING, 45);
+    ros::Duration(0.5).sleep();
 
     pap_common::VisionResult res;
     if(!vision_send_functions::sendVisionTask(*vision_action_client, pap_vision::SEARCH_CIRCLE, pap_vision::CAMERA_BOTTOM, CAMERA_DIAMETER_VISION, 0.0, 0.0, res, 50))
@@ -154,9 +157,9 @@ bool calibrateTip1() {
     moveTip(TIP::LEFT_TIP, true);
 
     arduino_client->LEDTask(pap_common::SETBOTTOMLED, 0);
-    arduino_client->LEDTask(pap_common::SETBRIGHTNESSRING, 100);
-    ros::Duration(1).sleep();
-
+    ros::Duration(0.5).sleep();
+    arduino_client->LEDTask(pap_common::SETBRIGHTNESSRING, 200);
+    ros::Duration(0.5).sleep();
     ROS_INFO("Placerstate: TIP1 - Start Vision");
 
     pap_common::VisionResult res;
@@ -1059,22 +1062,13 @@ void placerCallback(const pap_common::TaskConstPtr& taskMsg) {
 
 void dispenserCallbackPlacer(const pap_common::DispenseTaskConstPtr& taskMsg) {
     std::cerr << "received dispenser task\n";
-    placeController.dispenseTask.xPos = taskMsg->xPos1;
-    //+ placeController.dispenserTipOffset.x
-    //- placeController.camClibrationOffset_.x
-    //+ placeController.dispenserCalibrationOffset_.x;
-    placeController.dispenseTask.xPos2 = taskMsg->xPos2;
-    //+ placeController.dispenserTipOffset.x
-    //- placeController.camClibrationOffset_.x
-    //+ placeController.dispenserCalibrationOffset_.x;
-    placeController.dispenseTask.yPos = taskMsg->yPos1;
-    //+ placeController.dispenserTipOffset.y
-    //- placeController.camClibrationOffset_.y
-    //+ placeController.dispenserCalibrationOffset_.y;
-    placeController.dispenseTask.yPos2 = taskMsg->yPos2;
-    //+ placeController.dispenserTipOffset.y
-    //- placeController.camClibrationOffset_.y
-    //+ placeController.dispenserCalibrationOffset_.y;
+    Offset tipOffset = placeController.tip1Offset;
+    placeController.dispenseTask.xPos = taskMsg->xPos1 + tipOffset.x;
+    placeController.dispenseTask.xPos2 = taskMsg->xPos2 + tipOffset.x;
+
+    placeController.dispenseTask.yPos = taskMsg->yPos1 + tipOffset.y;
+    placeController.dispenseTask.yPos2 = taskMsg->yPos2 + tipOffset.y;
+
     placeController.dispenseTask.velocity = taskMsg->velocity;
     placeController.dispenseTask.time = taskMsg->waitTime;
     //ROS_INFO("Dispensing...");

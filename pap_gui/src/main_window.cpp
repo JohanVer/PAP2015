@@ -1673,7 +1673,6 @@ void MainWindow::on_blinkRingButton_clicked() {
 void MainWindow::changeRingLEDBrightness(int brightness) {
     qnode.LEDTask(pap_common::SETBRIGHTNESSRING, brightness);
 }
-
 void MainWindow::changeBackLEDBrightness(int brightness) {
     qnode.LEDTask(pap_common::SETBRIGHTNESSBACK, brightness);
 }

@@ -416,7 +416,7 @@ int GerberPadParser::searchId(QPointF position, int height) {
     convPoint.setX(position.x());
     convPoint.setY(position.y());
     // First rect is outline
-    for (std::size_t i = 1; i < printedRects.size(); i++) {
+    for (std::size_t i = 0; i < printedRects.size(); i++) {
         if (printedRects[i].contains(convPoint)) {
             return i;
         }
