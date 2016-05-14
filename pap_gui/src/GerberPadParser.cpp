@@ -353,13 +353,33 @@ void GerberPadParser::deleteBackground(){
     }
 }
 
+void GerberPadParser::createPadFromView(QRectF pad){
+    QRectF tf;
+    tf.setTopLeft(pad.topLeft());
+    tf.setWidth(pad.width());
+    tf.setHeight(pad.height());
+
+    PadInformation newPad;
+
+    newPad.rect.setX(((double)-tf.center().y()) / pixelConversionFactor);
+    newPad.rect.setY((double)tf.center().x() / pixelConversionFactor);
+    newPad.rect.setHeight((double)tf.width() / pixelConversionFactor);
+    newPad.rect.setWidth((double)tf.height() / pixelConversionFactor);
+    newPad.rotation = 0;
+
+    padInformationArray_.push_back(newPad);
+    padInformationArrayPrint_.push_back(newPad);
+
+}
+
 QRectF GerberPadParser::renderImage(QGraphicsScene* scene, int width,
                                     int height) {
-
+    //gen_data_.clear();
     printedRects.clear();
-    scene->clear();
+    qDeleteAll(scene->items());
 
     if(!background_.isNull()){
+        std::cerr << "Inserting background...\n";
         background_item_ = new QGraphicsPixmapItem(QPixmap::fromImage(background_));
         background_item_->setPos(-width,0);
         scene->addItem(background_item_);
@@ -388,13 +408,14 @@ QRectF GerberPadParser::renderImage(QGraphicsScene* scene, int width,
         pad.setY(upperCornerPadY);
 
         pad.setWidth(
-                    (unsigned int) (padInfo.rect.width() * pixelConversionFactor));
+                     (padInfo.rect.width() * pixelConversionFactor));
         pad.setHeight(
-                    (unsigned int) (padInfo.rect.height() * pixelConversionFactor));
+                     (padInfo.rect.height() * pixelConversionFactor));
 
         printedRects.push_back(pad);
-        QGraphicsRectItem *rect = new QGraphicsRectItem(pad.x(), pad.y(),
-                                                        pad.width(), pad.height());
+        //std::shared_ptr<QGraphicsRectItem> rect = std::shared_ptr<QGraphicsRectItem>(new QGraphicsRectItem(pad.x(), pad.y(), pad.width(), pad.height()));
+        QGraphicsRectItem* rect =  new QGraphicsRectItem(pad.x(), pad.y(), pad.width(), pad.height());
+        //gen_data_.push_back(rect);
         rect->setPen(QPen(Qt::red, 1, Qt::SolidLine));
         if (i != 0) {
             rect->setBrush(Qt::red);

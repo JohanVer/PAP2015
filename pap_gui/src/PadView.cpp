@@ -46,6 +46,52 @@ void graphicsScene::contextMenuEvent(QGraphicsSceneContextMenuEvent *event) {
     }
 }
 
+void graphicsScene::mousePressEvent(QGraphicsSceneMouseEvent* event){
+    if(event->button() == Qt::LeftButton){
+        x_press = event->scenePos().x();
+        y_press = event->scenePos().y();
+
+        temp_rect = new QGraphicsRectItem(x_press, y_press, 1, 1);
+        temp_rect->setPen(QPen(Qt::red, 1, Qt::SolidLine));
+        temp_rect->setBrush(Qt::red);
+
+        this->addItem(temp_rect);
+        update(QRectF(x_press, y_press, 1,1));
+    }
+}
+
+void graphicsScene::mouseMoveEvent(QGraphicsSceneMouseEvent* event){
+
+    width_press_ = event->scenePos().x() - x_press;
+    height_press_ = event->scenePos().y() - y_press;
+
+    temp_rect->setRect(x_press, y_press, width_press_ , height_press_);
+    //temp_rect = new QGraphicsRectItem(x_press, y_press, width_press_ , height_press_);
+    update(QRectF(x_press, y_press, width_press_, height_press_));
+}
+
+void graphicsScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *event){
+
+    QMessageBox msgBox;
+    msgBox.setWindowTitle("New pad");
+    msgBox.setText("Create new pad?");
+    msgBox.setStandardButtons(QMessageBox::Yes);
+    msgBox.addButton(QMessageBox::No);
+    msgBox.setDefaultButton(QMessageBox::Yes);
+
+    if (msgBox.exec() == QMessageBox::Yes) {
+        std::cerr << "Creating new pad...\n";
+        Q_EMIT createPad(QRectF(x_press, y_press, width_press_, height_press_));
+    }else{
+        this->removeItem(temp_rect);
+        delete temp_rect;
+        temp_rect = NULL;
+    }
+
+    update(QRectF(x_press, y_press, width_press_, height_press_));
+}
+
+
 PadView::PadView() {
     // TODO Auto-generated constructor stub
 

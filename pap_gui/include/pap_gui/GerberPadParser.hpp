@@ -19,6 +19,7 @@
 #include <QString>
 #include <QStandardItemModel>
 #include <QTableWidget>
+#include <QtAlgorithms>
 #include <cmath>
 #include "PadView.hpp"
 #include <QGraphicsRectItem>
@@ -40,6 +41,7 @@ class GerberPadParser {
 public:
 	GerberPadParser();
 	virtual ~GerberPadParser();
+    void createPadFromView(QRectF pad);
 	float parseFloat(std::string line, std::size_t start, std::size_t end);
 	void loadFile(std::string fileName,bool bottomLayer);
 	void parseShapes(std::string fileName);
@@ -80,6 +82,8 @@ private:
 
     QImage background_;
     QGraphicsPixmapItem*  background_item_;
+
+    //std::vector<std::shared_ptr<QGraphicsRectItem> > gen_data_;
 };
 
 #endif /* PAP_GUI_SRC_GERBERPADPARSER_HPP_ */

@@ -12,6 +12,7 @@
 #include <vector>
 #include <math.h>
 #include <ros/ros.h>
+#include <tf/tf.h>
 
 #define PERCENTAGE_EDGE_DISTANCE 0.1
 #define VELOCITY_DISPENSE 0.5
