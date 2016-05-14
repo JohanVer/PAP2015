@@ -59,8 +59,8 @@ PlaceController::PlaceController() {
 	TAPE_QR_Offset_.x = 389.554;
 	TAPE_QR_Offset_.y = 110.429;
 	TAPE_QR_Offset_.z = pickUpAreaOffset.z;
-	BottomCam_QR_Offset_.x = 292.09;
-	BottomCam_QR_Offset_.y = 259.35;
+    BottomCam_QR_Offset_.x = 218;
+    BottomCam_QR_Offset_.y = 177;
 	BottomCam_QR_Offset_.z = 20.15;
 
     Checkerboard_top1_Offset_.x = 377;

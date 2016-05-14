@@ -33,7 +33,7 @@
 
 /*****************************************************************************
  ** Namespaces
- *****************************************************************************/
+ ****************************************************************************/
 
 namespace pap_gui {
 
@@ -196,9 +196,12 @@ MainWindow::MainWindow(int version, int argc, char** argv, QWidget *parent) :
         ui.tab_manager->setTabEnabled(5, false);
         ui.tab_manager->setCurrentIndex(0);
         on_button_connect_clicked(true);
+        ros::Duration(0.5).sleep();
+        on_switchCurrent_clicked(true);
+        ros::Duration(0.5).sleep();
+        on_switchCurrent_clicked(true);
         ui.dock_status->hide();
         ros::Duration(1).sleep();
-        qnode.sendTask(pap_common::PLACER, pap_common::IDLE);
     } else {
         // Show Ros status dockwidget
         ui.dock_status->show();
@@ -2678,7 +2681,7 @@ void pap_gui::MainWindow::on_pushButton_startQRTop_clicked()
 void pap_gui::MainWindow::on_calibrateSystemButton_clicked()
 {
     QMessageBox msgBox;
-    QString message = QString("Please make sure a 3 mm nozzle is used for this calibration process.");
+    QString message = QString("Please make sure small nozzle is used for this calibration process.");
     msgBox.setWindowTitle("Confirm to start calibration");
     msgBox.setText(message);
     msgBox.setStandardButtons(QMessageBox::Yes);

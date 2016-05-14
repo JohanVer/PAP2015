@@ -49,6 +49,14 @@ SlotSelectorDialog::SlotSelectorDialog(QVector<componentEntry>* packageList, QVe
 	}
 
 	for (size_t i = 0; i < 88; i++) { usedSlots_[i] = false;}
+
+    // Both slots used for QR-Calibration
+    usedSlots_[0] = true;
+    usedSlots_[58] = true;
+    // Both slots used for checkerboard calibration
+    usedSlots_[65] = true;
+    usedSlots_[66] = true;
+
 	componentVector_ = packageList;
 	databaseVector_ = database;
 	missingPartListActive = false;
@@ -104,42 +112,43 @@ void SlotSelectorDialog::slotPressed(int numberOfFiducial, QPointF padPos) {
 		msgBox.setText("No part selected.");
 		msgBox.exec();
 		msgBox.close();
-	}
+    } else {
 
-	/* If missing parts shown -> calc. actual index */
-	if (missingPartListActive) {
-		/* Search for actual index in full list */
-		for (size_t i = 0; i < partList.size(); i++) {
-			if (partList[i].package == missingPartList[currentPartIndex].package
-					&& partList[i].value
-							== missingPartList[currentPartIndex].value) {
-				partListIndex = i;
-				break;
-			}
-		}
-	}
+        /* If missing parts shown -> calc. actual index */
+        if (missingPartListActive) {
+            /* Search for actual index in full list */
+            for (size_t i = 0; i < partList.size(); i++) {
+                if (partList[i].package == missingPartList[currentPartIndex].package
+                        && partList[i].value
+                                == missingPartList[currentPartIndex].value) {
+                    partListIndex = i;
+                    break;
+                }
+            }
+        }
 
-	/* If not -> full list, index correct */
-	if (slotUsed(id)) {
-		QMessageBox msgBox;
-		msgBox.setText("Slot in use - reset first!");
-		msgBox.exec();
-		msgBox.close();
-	} else {
-		/* If there has been set a slot before - reset usedSlots */
-		if (partList[partListIndex].slot != -1) {
-			usedSlots_[partList[partListIndex].slot] = false;
-		}
-		/* Update partList & used slots */
-		partList[partListIndex].slot = id;
-		usedSlots_[id] = true;
-		/* Update table, image and initial comp. vector */
-		if (missingPartListActive) {
-			updateMissingPartList();
-		}
-		updateTable();
-		paintSlots();
-	}
+        /* If not -> full list, index correct */
+        if (slotUsed(id)) {
+            QMessageBox msgBox;
+            msgBox.setText("Slot in use - reset first!");
+            msgBox.exec();
+            msgBox.close();
+        } else {
+            /* If there has been set a slot before - reset usedSlots */
+            if (partList[partListIndex].slot != -1) {
+                usedSlots_[partList[partListIndex].slot] = false;
+            }
+            /* Update partList & used slots */
+            partList[partListIndex].slot = id;
+            usedSlots_[id] = true;
+            /* Update table, image and initial comp. vector */
+            if (missingPartListActive) {
+                updateMissingPartList();
+            }
+            updateTable();
+            paintSlots();
+        }
+    }
 }
 
 void SlotSelectorDialog::updateComponentVector() {

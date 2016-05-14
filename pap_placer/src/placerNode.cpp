@@ -95,6 +95,9 @@ bool calibrateOffsets() {
     //if(!calibrateTip2())
     //    return false;
 
+    if(!homeSystem())
+        return false;
+
     return true;
 }
 
@@ -335,6 +338,10 @@ bool calibrateQR() {
         return false;
 
     placeComp(placeController.largeBoxHeight_+1);
+
+    if(!homeSystem())
+        return false;
+
     return true;
 }
 
@@ -494,7 +501,9 @@ bool goToBox() {
     float height = placeController.currentComponent.height;
     pap_common::VisionResult res;
 
-    ROS_INFO("Placer: componentFinder started");
+    std::cerr << "sizes: " << length << ", " << width << ", " << height << std::endl;
+
+    ROS_INFO("Placerstate: componentFinder started");
     if(!vision_send_functions::sendVisionTask(*vision_action_client, placeController.finderType,
                                               pap_vision::CAMERA_TOP, length, width, height, res))
         return false;
@@ -527,7 +536,7 @@ bool pickUpComponent() {
     ros::Duration(1).sleep();
 
     Offset suckCoord = placeController.getCompPickUpCoordinates();
-    suckCoord.z = placeController.getCompSuckingHeight();
+    suckCoord.z = placeController.getCompSuckingHeight();qnode.sendTask(pap_common::PLACER, pap_common::IDLE);
     ROS_INFO("Go to: x:%f y:%f z:%f", suckCoord.x, suckCoord.y, suckCoord.z);
 
     if(!driveToCoord(suckCoord.x, suckCoord.y, suckCoord.z))
