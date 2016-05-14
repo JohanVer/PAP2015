@@ -1003,6 +1003,9 @@ void placerCallback(const pap_common::TaskConstPtr& taskMsg) {
             if(!calibrateOffsets()) {
                 ROS_ERROR("Placer: Offset calibration failed");
                 // TODO: Handle
+            } else {
+                sendPlacerStatus(pap_common::OFFSET_CALIBRATION,
+                                 pap_common::PLACER_FINISHED);
             }
             break;
         }
@@ -1011,6 +1014,9 @@ void placerCallback(const pap_common::TaskConstPtr& taskMsg) {
             if(!calibrateQR()) {
                 ROS_ERROR("Placer: Ratio calibration failed");
                 // TODO: Handle
+            } else {
+                sendPlacerStatus(pap_common::RATIO_CALIBRATION,
+                                 pap_common::PLACER_FINISHED);
             }
             break;
         }

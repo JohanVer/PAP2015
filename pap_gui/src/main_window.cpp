@@ -1259,12 +1259,34 @@ void MainWindow::placerStatusUpdated(int state, int status) {
     ROS_INFO("GUI: placerStatusUpdated: %d, %d !!", state, status);
 
     // Calibration running
-    if(state == pap_common::CALIBRATION_OFFSET
+    if(state == pap_common::RATIO_CALIBRATION
             && status == pap_common::PLACER_FINISHED
             && completeCalibrationRunning) {
-        qnode.sendTask(pap_common::PLACER, pap_common::CALIBRATION_RATIO);
-
+        QMessageBox msgBox;
+        msgBox.setWindowTitle("Confirm to continue calibration");
+        msgBox.setText(QString("Please switch to a small nozzle."));
+        msgBox.setStandardButtons(QMessageBox::Yes);
+        msgBox.addButton(QMessageBox::No);
+        msgBox.setDefaultButton(QMessageBox::No);
+        if (msgBox.exec() == QMessageBox::Yes) {
+            qnode.sendTask(pap_common::PLACER, pap_common::CALIBRATION_OFFSET);
+        } else {
+            completeCalibrationRunning = false;
+        }
     }
+
+    if(state == pap_common::OFFSET_CALIBRATION
+            && status == pap_common::PLACER_FINISHED
+            && completeCalibrationRunning) {
+        completeCalibrationRunning = false;
+        QMessageBox msgBox;
+        const QString title = "Calibration finished!";
+        msgBox.setWindowTitle(title);
+        msgBox.setText("All ratios and offset are now calibrated.");
+        msgBox.exec();
+        msgBox.close();
+    }
+
 
     // Placement running
     if (state == pap_common::PLACECOMPONENT_STATE
@@ -2683,7 +2705,7 @@ void pap_gui::MainWindow::on_pushButton_startQRTop_clicked()
 void pap_gui::MainWindow::on_calibrateSystemButton_clicked()
 {
     QMessageBox msgBox;
-    QString message = QString("Please make sure small nozzle is used for this calibration process.");
+    QString message = QString("Please make sure a large nozzle is used for this calibration process.");
     msgBox.setWindowTitle("Confirm to start calibration");
     msgBox.setText(message);
     msgBox.setStandardButtons(QMessageBox::Yes);
@@ -2691,10 +2713,9 @@ void pap_gui::MainWindow::on_calibrateSystemButton_clicked()
     msgBox.setDefaultButton(QMessageBox::No);
     if (msgBox.exec() == QMessageBox::Yes) {
         completeCalibrationRunning = true;
-        qnode.sendTask(pap_common::PLACER, pap_common::CALIBRATION_OFFSET);
-        // Disable other functions/buttons
-        // Show calibrationIndicator!
-        // implement further calibration/message boxes in callback!
+        qnode.sendTask(pap_common::PLACER, pap_common::CALIBRATION_RATIO);
+        // TODO: Disable other functions/buttons
+        // TODO: Show calibrationIndicator!
     }
 }
 

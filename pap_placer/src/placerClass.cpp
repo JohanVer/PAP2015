@@ -34,7 +34,7 @@ PlaceController::PlaceController() {
 	pickUpAreaOffset.x = 108.42;	// + tape_x -> 449.85 = max.x destination
 	pickUpAreaOffset.y = 261;
 	pickUpAreaOffset.z = suckingHeight_;
-    cameraBottomOffset.x = 237.6;
+    cameraBottomOffset.x = 236;
     cameraBottomOffset.y = 195.65;
     cameraBottomOffset.z = 8.17;
 
