@@ -252,6 +252,8 @@ public Q_SLOTS:
 
     void processAllCallbacks();
 
+    void createNewPad(QRectF pad);
+
 private slots:
 
     void on_take_img_button_clicked();

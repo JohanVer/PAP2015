@@ -27,13 +27,20 @@ Q_SIGNALS:
 	void sendMousePoint(int indexOfFiducial,QPointF point);
 	void gotoPad(QPointF point);
 	void dispensePad(QPointF point);
-	void deletePad(QPointF point);
+    void deletePad(QPointF point);
+    void createPad(QRectF pad);
+
 
 public Q_SLOTS:
-
+void mousePressEvent(QGraphicsSceneMouseEvent *event);
+void mouseMoveEvent(QGraphicsSceneMouseEvent *event);
+void mouseReleaseEvent(QGraphicsSceneMouseEvent *event);
 void contextMenuEvent(QGraphicsSceneContextMenuEvent *event);
 
 private:
+QGraphicsRectItem *temp_rect;
+double x_press, y_press;
+double width_press_, height_press_;
 };
 
 

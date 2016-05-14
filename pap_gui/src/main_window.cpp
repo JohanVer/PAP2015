@@ -141,6 +141,11 @@ MainWindow::MainWindow(int version, int argc, char** argv, QWidget *parent) :
     connect(ui.ZManPos, SIGNAL(released()), this, SLOT(releasezManPos()));
     connect(ui.ZManNeg, SIGNAL(released()), this, SLOT(releasezManNeg()));
 
+
+    // New pad creation
+    QWidget::connect(&scenePads_, SIGNAL(createPad(QRectF)), this,
+                     SLOT(createNewPad(QRectF)));
+
     valve1Active_ = false;
     valve2Active_ = false;
     valve3Active_ = false;
@@ -176,6 +181,9 @@ MainWindow::MainWindow(int version, int argc, char** argv, QWidget *parent) :
     padFileLoaded_ = false;
     dispenserPaused = false;
     lastDispenserId = 0;
+
+    ui.padView_Image->setScene(&scenePads_);
+    ui.padView_Image->show();
 
     currentPosition.x = 0.0;
     currentPosition.y = 0.0;
@@ -1984,7 +1992,6 @@ void MainWindow::on_padViewSetSize_button_clicked() {
 }
 
 void MainWindow::on_padViewGenerate_button_clicked() {
-
     if (!sizeDefined_ | !padFileLoaded_) {
         QMessageBox msgBox;
         const QString title = "Not initialized";
@@ -1997,12 +2004,12 @@ void MainWindow::on_padViewGenerate_button_clicked() {
     }
 
     // Build image with QGraphicsItem
-    padParser.pixelConversionFactor = 10;
+    padParser.pixelConversionFactor = 30;
     padParser.deleteBackground();
     pic_size_.width = ui.padView_Image->width();
     pic_size_.height = ui.padView_Image->height();
 
-   redrawPadView();
+    redrawPadView();
 
 }
 
@@ -2027,8 +2034,7 @@ void MainWindow::gotoPad(QPointF padPos) {
 
 void MainWindow::redrawPadView(){
     padParser.renderImage(&scenePads_, pic_size_.width, pic_size_.height);
-    ui.padView_Image->setScene(&scenePads_);
-    ui.padView_Image->show();
+    padParser.setTable(ui.padTable);
     qnode.sendPcbImage(padParser.getMarkerList());
 }
 
@@ -2315,7 +2321,7 @@ void MainWindow::dispenseSinglePad(QPointF point) {
         std::vector<dispenseInfo> dispInfo = dispenserPlanner.planDispensing(
                     padParser.padInformationArrayPrint_[id_], nozzleDiameter);
 
-        for (size_t j = 0; j < dispInfo.size(); j++) {            
+        for (size_t j = 0; j < dispInfo.size(); j++) {
             scenePads_.addLine(
                         QLineF(dispInfo[j].yPos * pxFactor,
                                - (dispInfo[j].xPos * pxFactor),
@@ -2699,9 +2705,13 @@ void pap_gui::MainWindow::processAllCallbacks(){
     }
 }
 
+void pap_gui::MainWindow::createNewPad(QRectF pad){
+    padParser.createPadFromView(pad);
+    redrawPadView();
+}
+
 void pap_gui::MainWindow::on_scanButton_clicked()
 {
-
     if(qnode.pcbHeight_ == 0 || qnode.pcbWidth_ == 0) return;
 
     // Lower left corner of pcb holder
@@ -2824,8 +2834,6 @@ void pap_gui::MainWindow::on_scanButton_clicked()
         padParser.pixelConversionFactor = px_factor_x;
         padParser.renderImage(&scenePads_, pic_size_.width, pic_size_.height);
 
-        ui.padView_Image->setScene(&scenePads_);
-        ui.padView_Image->show();
         qnode.sendPcbImage(padParser.getMarkerList());
     }
 }
