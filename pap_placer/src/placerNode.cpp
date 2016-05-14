@@ -535,12 +535,13 @@ bool pickUpComponent() {
     }
     ros::Duration(1).sleep();
 
-    Offset suckCoord = placeController.getCompPickUpCoordinates();
-    suckCoord.z = placeController.getCompSuckingHeight();qnode.sendTask(pap_common::PLACER, pap_common::IDLE);
-    ROS_INFO("Go to: x:%f y:%f z:%f", suckCoord.x, suckCoord.y, suckCoord.z);
-
-    if(!driveToCoord(suckCoord.x, suckCoord.y, suckCoord.z))
+    //Offset suckCoord = placeController.getCompPickUpCoordinates();
+    pickupCoord.z = placeController.getCompSuckingHeight();
+    ROS_INFO("Go to: x:%f y:%f z:%f", pickupCoord.x, pickupCoord.y, pickupCoord.z);
+    if(!motor_send_functions::sendMotorControllerAction(*motor_action_client, pap_common::COORD,
+                                                        pickupCoord.x, pickupCoord.y, pickupCoord.z)){
         return false;
+    }
 
     switchVacuum(true);
 
@@ -606,12 +607,12 @@ bool placeComponent() {
     }
     ros::Duration(1).sleep();
 
-    placeCoord = placeController.getCompPlaceCoordinates();
     placeCoord.z = placeController.getCompPlaceHeight();
     ROS_INFO("Go to: x:%f y:%f z:%f", placeCoord.x, placeCoord.y, placeCoord.z);
-
-    if(!driveToCoord(placeCoord.x, placeCoord.y, placeCoord.z))
-            return false;
+    if(!motor_send_functions::sendMotorControllerAction(*motor_action_client, pap_common::COORD,
+                                                       placeCoord.x, placeCoord.y, placeCoord.z)){
+        return false;
+    }
 
     switchVacuum(false);
 
@@ -698,8 +699,10 @@ bool pickUp(double height){
     }
     ros::Duration(1).sleep();
 
-    if(!driveToCoord(placeController.lastDestination_.x, placeController.lastDestination_.y, height)){
-       return false;
+    if(!motor_send_functions::sendMotorControllerAction(*motor_action_client, pap_common::COORD,
+                                                        placeController.lastDestination_.x,
+                                                        placeController.lastDestination_.y, height)){
+        return false;
     }
 
     switchVacuum(true);
@@ -735,8 +738,10 @@ bool placeComp(double height){
     }
     ros::Duration(1).sleep();
 
-    if(!driveToCoord(placeController.lastDestination_.x, placeController.lastDestination_.y, height)){
-       return false;
+    if(!motor_send_functions::sendMotorControllerAction(*motor_action_client, pap_common::COORD,
+                                                        placeController.lastDestination_.x,
+                                                        placeController.lastDestination_.y, height)){
+        return false;
     }
 
     switchVacuum(false);

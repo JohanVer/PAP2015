@@ -199,7 +199,8 @@ MainWindow::MainWindow(int version, int argc, char** argv, QWidget *parent) :
         ros::Duration(0.5).sleep();
         on_switchCurrent_clicked(true);
         ros::Duration(0.5).sleep();
-        on_switchCurrent_clicked(true);
+        on_switchCurrent_clicked(true
+                                 );
         ui.dock_status->hide();
         ros::Duration(1).sleep();
     } else {
@@ -1075,6 +1076,7 @@ void MainWindow::on_button_connect_clicked(bool check) {
             ui.line_edit_topic->setReadOnly(true);
         }
     }
+    ui.dock_status->hide();
 }
 
 void MainWindow::on_checkbox_use_environment_stateChanged(int state) {
