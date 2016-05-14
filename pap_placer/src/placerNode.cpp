@@ -467,8 +467,8 @@ bool singleCompPlacement() {
     /*if(!checkCompPickUp())
         return false;*/
 
-    if(!placeComponent())
-        return false;
+    /*if(!placeComponent())
+        return false;*/
 
     if(!homeSystem())
         return false;
@@ -499,11 +499,10 @@ bool goToBox() {
                                               pap_vision::CAMERA_TOP, length, width, height, res))
         return false;
 
-    placeController.setPickUpCorrectionOffset(res.data2, res.data2, res.data3);
-    ROS_INFO("PickUp correction offset: x:%f y:%f, rot:%f",res.data2, res.data2, res.data3);
+    placeController.setPickUpCorrectionOffset(res.data1, res.data2, res.data3);
+    ROS_INFO("PickUp correction offset: x:%f y:%f, rot:%f",res.data1, res.data2, res.data3);
 
     ros::Duration(3).sleep();
-    ROS_INFO("Placerstate: GOTOBOX - Got feedback from vision");
     return true;
 }
 

@@ -206,7 +206,7 @@ Offset PlaceController::getCompPickUpCoordinates() {
     switch (tip) {
     case LEFT_TIP:
         temp.x += tip1Offset.x;
-        temp.x += tip2Offset.x;
+        temp.y += tip1Offset.y;
 //		temp.x += (tip1Offset.x - camClibrationOffset_.x
 //				+ tip1ClibrationOffset_.x +0.532 );
 //		temp.y += (tip1Offset.y - camClibrationOffset_.y

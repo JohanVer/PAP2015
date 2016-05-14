@@ -224,7 +224,7 @@ void MainWindow::on_loadGerberFileButton_clicked() {
 
     //get a filename to open
     QString gerberFile = QFileDialog::getOpenFileName(this,
-                                                      tr("Open Gerber file"), "/home/johan/Documents/catkin_ws/src/PAP2015/PAP/pickPlace", tr("Text Files (*.txt *.csv)"));
+                                                      tr("Open Gerber file"), "/home/johan/catkin_ws/src/PAP2015/PAP/pickPlace", tr("Text Files (*.txt *.csv *.TXT)"));
     std::cout << "Got filename: " << gerberFile.toStdString() << std::endl;
 
     /* Load gerber file and add components to componentList */
@@ -1941,15 +1941,15 @@ void MainWindow::on_inputPad_Button_clicked() {
     //get a filename to open
 
     QString gerberFile = QFileDialog::getOpenFileName(this, tr("Open Whl file"),
-                                                      "/home", tr("Text Files (*.txt  *.Whl)"));
+                                                      "/home/johan/catkin_ws/src/PAP2015/PAP/dispensing", tr("Text Files (*.txt  *.Whl)"));
 
     const char *filenameWhl = gerberFile.toLatin1().data();
 
     padParser.parseShapes(filenameWhl);
 
     //get a filename to open
-    gerberFile = QFileDialog::getOpenFileName(this, tr("Open PasteBot file"),
-                                              "/home", tr("Text Files (*.txt  *.PasteBot *.PasteTop)"));
+    gerberFile = QFileDialog::getOpenFileName(this, tr("Open PasteBot/Top file"),
+                                              "/home/johan/catkin_ws/src/PAP2015/PAP/dispensing", tr("Text Files (*.txt  *.PasteBot *.PasteTop)"));
 
     bottomLayer_ = false;
     if (gerberFile.contains(".PasteBot")) {

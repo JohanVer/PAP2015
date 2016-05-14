@@ -1,0 +1,34 @@
+CAM-Ausgabe für AktuellesProjekt Powermeter_V4.3.T3001
+Ausgabe am 14. May 2016, 11:22h
+AktuellesProjekt erzeugt mit TARGET 16.8.0.6 professional
+Ausgabe erzeugt mit TARGET 3001! V16.8.0.6
+LIEFERANSCHRIFT:
+  
+  
+  
+  D- 
+  Tel: 
+  FAX: 
+  eMail: 
+Größe der Platine: 40 mm x 21.8 mm
+
+Folgend die Beschreibung der erzeugten Dateien:
+
+Powermeter_V4.3.Top = 16 = Kupfer oben L4   ( *.Top )
+Powermeter_V4.3.L3 = 13 = Kupfer innen L3    [Ebene 13]   ( *.L# )
+Powermeter_V4.3.L2 = 10 = Kupfer innen L2    [Ebene 10]   ( *.L# )
+Powermeter_V4.3.Bot = 2 = Kupfer unten L1   ( *.Bot )
+Powermeter_V4.3.Tool = Bohrerliste
+Powermeter_V4.3.Drill = Durchkontaktierte Bohrungen
+Powermeter_V4.3.Outline = 23 = Platinen-Umriss   ( *.Outline )
+Powermeter_V4.3.StopTop = 18 = Lötstoppmaske oben   ( *.StopTop )
+Powermeter_V4.3.StopBot = 4 = Lötstoppmaske unten   ( *.StopBot )
+Powermeter_V4.3.PosiTop = 21 = Bestückungsdruck oben   ( *.PosiTop )
+Powermeter_V4.3.PosiBot = 7 = Bestückungsdruck unten   ( *.PosiBot )
+Powermeter_V4.3.PasteTop = 19 = Lötpaste oben   ( *.PasteTop )
+Powermeter_V4.3.PasteBot = 5 = Lötpaste unten   ( *.PasteBot )
+Powermeter_V4.3.Apr = TARGET 3001! Blendenliste
+Powermeter_V4.3.Whl = Eagle kompatible Blendenliste
+
+
+Achtung: Dünnste Bahn ist kleiner 0.150mm: (0.060 bei -19.746625 | 7.693625) auf Ebene 21

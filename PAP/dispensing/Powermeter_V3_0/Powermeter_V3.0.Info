@@ -1,0 +1,34 @@
+CAM-Ausgabe für AktuellesProjekt BachelorThesis_V3.0.T3001
+Ausgabe am 14. May 2016, 15:03h
+AktuellesProjekt erzeugt mit TARGET 16.5.0.101 professional
+Ausgabe erzeugt mit TARGET 3001! V16.8.0.6
+LIEFERANSCHRIFT:
+  
+  
+  
+  D- 
+  Tel: 
+  FAX: 
+  eMail: 
+Größe der Platine: 48.72 mm x 34.29 mm
+
+Folgend die Beschreibung der erzeugten Dateien:
+
+BachelorThesis_V3.0.Top = 16 = Kupfer oben L4   ( *.Top )
+BachelorThesis_V3.0.L3 = 13 = Kupfer innen L3    [Ebene 13]   ( *.L# )
+BachelorThesis_V3.0.L2 = 10 = Kupfer innen L2    [Ebene 10]   ( *.L# )
+BachelorThesis_V3.0.Bot = 2 = Kupfer unten L1   ( *.Bot )
+BachelorThesis_V3.0.Tool = Bohrerliste
+BachelorThesis_V3.0.Drill = Durchkontaktierte Bohrungen
+BachelorThesis_V3.0.Outline = 23 = Platinen-Umriss   ( *.Outline )
+BachelorThesis_V3.0.StopTop = 18 = Lötstoppmaske oben   ( *.StopTop )
+BachelorThesis_V3.0.StopBot = 4 = Lötstoppmaske unten   ( *.StopBot )
+BachelorThesis_V3.0.PosiTop = 21 = Bestückungsdruck oben   ( *.PosiTop )
+BachelorThesis_V3.0.PosiBot = 7 = Bestückungsdruck unten   ( *.PosiBot )
+BachelorThesis_V3.0.PasteTop = 19 = Lötpaste oben   ( *.PasteTop )
+BachelorThesis_V3.0.PasteBot = 5 = Lötpaste unten   ( *.PasteBot )
+BachelorThesis_V3.0.Apr = TARGET 3001! Blendenliste
+BachelorThesis_V3.0.Whl = Eagle kompatible Blendenliste
+
+
+Achtung: Dünnste Bahn ist kleiner 0.150mm: (0.100 bei 13.3974 | -8.52855) auf Ebene 21
