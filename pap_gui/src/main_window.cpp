@@ -1963,8 +1963,9 @@ void MainWindow::sendGotoFiducial(int indexOfFiducial) {
 void MainWindow::on_inputPad_Button_clicked() {
     //get a filename to open
 
+    std::string package_path = ros::package::getPath("PAP_resources");
     QString gerberFile = QFileDialog::getOpenFileName(this, tr("Open Whl file"),
-                                                      "/home/johan/catkin_ws/src/PAP2015/PAP/dispensing", tr("Text Files (*.txt  *.Whl)"));
+                                                      QString((package_path+"/dispensing").c_str()), tr("Text Files (*.txt  *.Whl)"));
 
     const char *filenameWhl = gerberFile.toLatin1().data();
 
@@ -1972,7 +1973,8 @@ void MainWindow::on_inputPad_Button_clicked() {
 
     //get a filename to open
     gerberFile = QFileDialog::getOpenFileName(this, tr("Open PasteBot/Top file"),
-                                              "/home/johan/catkin_ws/src/PAP2015/PAP/dispensing", tr("Text Files (*.txt  *.PasteBot *.PasteTop)"));
+                                              QString((package_path+"/dispensing").c_str()), tr("Text Files (*.txt  *.PasteBot *.PasteTop)"));
+
 
     bottomLayer_ = false;
     if (gerberFile.contains(".PasteBot")) {

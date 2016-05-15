@@ -33,7 +33,103 @@ GerberPadParser::~GerberPadParser() {
     background_item_ = NULL;
 }
 
-void GerberPadParser::parseShapes(std::string fileName) {
+float GerberPadParser::strToFloat(const std::string &in){
+    QString qs = QString(in.c_str());
+    return qs.toFloat();
+}
+
+void GerberPadParser::parseShapes(std::string fileName){
+    std::vector <std::vector <std::string> > data;
+    std::ifstream infile(fileName.c_str());
+
+    while (infile)
+    {
+        std::string s;
+        if (!getline( infile, s )) break;
+        std::istringstream ss( s );
+        std::vector <std::string> record;
+
+        while (ss)
+        {
+            std::string s;
+            if (!getline( ss, s, ' ' )) break;
+            if(s.size() && s != "x")
+            record.push_back( s );
+        }
+
+        data.push_back( record );
+    }
+    if (!infile.eof())
+    {
+        std::cerr << "Fooey!\n";
+    }
+
+
+    shapeInformationArray_.clear();
+
+    for(size_t i = 0; i < data.size(); i++){
+        int dcode = 0;
+        if(((data.at(i)).at(0)).substr(0,1) == "D"){
+            dcode =  std::stoi(((data.at(i)).at(0)).substr(1,((data.at(i)).at(0)).size()));
+            std::cout << "DCode: " << dcode << std::endl;
+            std::string shape_str = ((data.at(i)).at(1));
+
+            ShapeInformation shape;
+            if(shape_str == "rectangle" || shape_str =="oval"){
+                double width = strToFloat(data.at(i).at(2));
+                double height = strToFloat((data.at(i)).at(3));
+                double rot = 0;
+                if(4 < data.at(i).size()){
+                    rot = strToFloat((data.at(i)).at(4));
+                }
+                shape.shapeIndex = dcode;
+                shape.shapeStr = shape_str;
+                shape.padDimensions.setY(width * 25.4);
+                shape.padDimensions.setX(height * 25.4);
+                shape.rotation = rot;
+                shapeInformationArray_.push_back(shape);
+
+                std::cout << "Detected rectangle with: " << width << " / " << height << " / " << rot << std::endl;
+            }
+            else if(shape_str == "square"){
+                double lenght = strToFloat((data.at(i)).at(2));
+                double rot = 0;
+                if(3 < data.at(i).size()){
+                    rot = strToFloat((data.at(i)).at(3));
+                }
+                shape.shapeIndex = dcode;
+                shape.shapeStr = shape_str;
+                shape.padDimensions.setY(lenght * 25.4);
+                shape.padDimensions.setX(lenght * 25.4);
+                shape.rotation = rot;
+                shapeInformationArray_.push_back(shape);
+
+                std::cout << "Detected square with: " << lenght << " / " << rot << std::endl;
+            }/*
+            else if(shape_str == "roundrect"){
+                double width = strToFloat((data.at(i)).at(2));
+                double height = strToFloat((data.at(i)).at(3));
+                double rot = 0;
+                if(5 < data.at(i).size()){
+                    rot = strToFloat((data.at(i)).at(5));
+                }
+                shape.shapeIndex = dcode;
+                shape.shapeStr = shape_str;
+                shape.padDimensions.setY(width * 25.4);
+                shape.padDimensions.setX(height * 25.4);
+                shape.rotation = rot;
+                shapeInformationArray_.push_back(shape);
+
+                std::cout << "Detected roundrect with: " << width << " / " << height << " / " << rot << std::endl;
+            }
+            */
+        }
+
+        std::cerr << std::endl;
+    }
+}
+
+void GerberPadParser::parseShapes2(std::string fileName) {
     std::ifstream infile;
     shapeInformationArray_.clear();
     infile.open(fileName.c_str(), std::ios::in);
@@ -402,15 +498,15 @@ QRectF GerberPadParser::renderImage(QGraphicsScene* scene, int width,
                 ((padInfo.rect.x() - padInfo.rect.width() / 2.0)
                  * pixelConversionFactor);
         double upperCornerPadY = ((padInfo.rect.y() - padInfo.rect.height() / 2.0)
-                   * pixelConversionFactor);
+                                  * pixelConversionFactor);
 
         pad.setX(upperCornerPadX);
         pad.setY(upperCornerPadY);
 
         pad.setWidth(
-                     (padInfo.rect.width() * pixelConversionFactor));
+                    (padInfo.rect.width() * pixelConversionFactor));
         pad.setHeight(
-                     (padInfo.rect.height() * pixelConversionFactor));
+                    (padInfo.rect.height() * pixelConversionFactor));
 
         printedRects.push_back(pad);
         //std::shared_ptr<QGraphicsRectItem> rect = std::shared_ptr<QGraphicsRectItem>(new QGraphicsRectItem(pad.x(), pad.y(), pad.width(), pad.height()));

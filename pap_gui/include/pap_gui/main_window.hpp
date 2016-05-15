@@ -13,6 +13,7 @@
 *****************************************************************************/
 
 #include <pap_gui/MyContextMenuTable.hpp>
+#include <ros/package.h>
 #include <QtWidgets>
 #include <QMainWindow>
 #include "ui_main_window.h"
