@@ -1844,21 +1844,26 @@ void MainWindow::setFiducial(QPointF point) {
     float indexXFull = (640.0 / 100.0) * percentageX;
     float indexYFull = (480.0 / 100.0) * percentageY;
 
-    qnode.sendTask(pap_common::VISION, pap_vision::START_PAD_FINDER, 1.0,
-                   indexXFull, indexYFull);
+    pap_common::VisionResult res;
+    std::cerr << "Sending fiducial search task \n";
+    if(vision_send_functions::sendVisionTask(qnode.getVisionClientRef(), pap_vision::START_PAD_FINDER, pap_vision::CAMERA_TOP, 1, indexXFull, indexYFull ,res)){
+        QPointF padPos (res.data1, res.data2);
 
-    QEventLoop loop;
-    QTimer *timer = new QTimer(this);
-    connect(&qnode, SIGNAL(signalPosition(float,float)), &loop, SLOT(quit()));
-    connect(timer, SIGNAL(timeout()), &loop, SLOT(quit()));
-    timer->setSingleShot(true);
-    timer->start(1000);
+        if (ui.fiducialTable->fiducialSize_ == 0) {
+            setFiducialTable(0, padPos.x() + currentPosition.x,
+                             padPos.y() + currentPosition.y);
+        } else if (ui.fiducialTable->fiducialSize_ == 1) {
+            setFiducialTable(1, padPos.x() + currentPosition.x,
+                             padPos.y() + currentPosition.y);
+        } else {
+            ui.fiducialTable->clear();
+            ui.fiducialTable->fiducialSize_ = 0;
+            initFiducialTable();
+            setFiducialTable(0, padPos.x() + currentPosition.x,
+                             padPos.y() + currentPosition.y);
+        }
 
-    loop.exec(); //blocks untill either signalPosition or timeout was fired
-
-    // Is timeout ocurred?
-    if (!timer->isActive()) {
-        qnode.sendTask(pap_common::VISION, pap_vision::START_PAD_FINDER);
+    }else{
         QMessageBox msgBox;
         const QString title = "Nothing received";
         msgBox.setWindowTitle(title);
@@ -1867,23 +1872,6 @@ void MainWindow::setFiducial(QPointF point) {
         msgBox.close();
         return;
     }
-
-    qnode.sendTask(pap_common::VISION, pap_vision::START_PAD_FINDER);
-    ros::Duration(0.5).sleep();
-    if (ui.fiducialTable->fiducialSize_ == 0) {
-        setFiducialTable(0, padPosition_.x() + currentPosition.x,
-                         padPosition_.y() + currentPosition.y);
-    } else if (ui.fiducialTable->fiducialSize_ == 1) {
-        setFiducialTable(1, padPosition_.x() + currentPosition.x,
-                         padPosition_.y() + currentPosition.y);
-    } else {
-        ui.fiducialTable->clear();
-        ui.fiducialTable->fiducialSize_ = 0;
-        initFiducialTable();
-        setFiducialTable(0, padPosition_.x() + currentPosition.x,
-                         padPosition_.y() + currentPosition.y);
-    }
-
 }
 
 void MainWindow::initFiducialTable(void) {

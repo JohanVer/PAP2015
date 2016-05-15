@@ -286,17 +286,44 @@ cv:Mat composed_img = cv::imread(string(getenv("PAPRESOURCES")) + "training_data
         // This state is for manually selecting of the fiducials
     case pap_vision::START_PAD_FINDER:
         if (command->data1 == 1.0) {
-            selectPad = true;
             selectPoint.x = command->data2;
             selectPoint.y = command->data3;
             //ROS_INFO("Pixel %f %f", selectPoint.x, selectPoint.y);
-        } else {
-            selectPad = false;
-            selectPoint.x = 0.0;
-            selectPoint.y = 0.0;
+            std::vector<cv::Mat> images;
+            gatherImages(1, images, pap_vision::CAMERA_SELECT::CAMERA_TOP);
+            std::vector<RotatedRect> pads;
+            cv::Point2f position = finder.findPads(&(images.front()), true, selectPoint, pads);
+            if (position.x != 0.0 && position.y != 0.0) {
+                std::cerr << "Fiducial found" << std::endl;
+                pap_common::VisionResult res;
+                res.data1 = position.y;
+                res.data2 = position.x;
+                res.cameraSelect = 0;
+
+                cv_bridge::CvImage out_msg;
+                cv::Mat outputRGB;
+                cvtColor(images.front(), outputRGB, CV_BGR2RGB);
+
+                std_msgs::Header header;
+                id_counter1++;
+                header.seq = id_counter1;
+                header.stamp = ros::Time::now();
+                header.frame_id = "camera1";
+
+                out_msg.header = header;
+                out_msg.encoding = sensor_msgs::image_encodings::RGB8;
+                out_msg.image = outputRGB;
+
+                image_pub_.publish(out_msg.toImageMsg());
+                as_.setSucceeded(res);
+            }
+            else{
+                std::cerr << "No fiducial found...\n";
+                as_.setAborted();
+            }
         }
-        visionState = PAD;
-        as_.setSucceeded();
+
+        as_.setAborted();
         break;
 
     case pap_vision::SEARCH_CIRCLE:{

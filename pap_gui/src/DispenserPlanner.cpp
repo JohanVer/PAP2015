@@ -58,7 +58,6 @@ std::vector<dispenseInfo> DispenserPlanner::planDispensing(
             if (nozzleDiameter > inHeight) {
                 distanceFromEdgeCal = -distanceFromEdgeCal;
             }
-            //	distanceFromEdgeCal = 0.0;
         }
     } else {
         numberOfLines = inWidth / (nozzleDiameter + distanceFromEdge * 2);
@@ -75,7 +74,6 @@ std::vector<dispenseInfo> DispenserPlanner::planDispensing(
             if (nozzleDiameter > inWidth) {
                 distanceFromEdgeCal = -distanceFromEdgeCal;
             }
-            //distanceFromEdgeCal = 0.0;
         }
     }
 
