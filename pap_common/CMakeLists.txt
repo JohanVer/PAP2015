@@ -56,6 +56,7 @@ find_package(catkin REQUIRED genmsg actionlib_msgs actionlib)
    VisionStatus.msg
    PlacerStatus.msg
    DispenseTask.msg
+   DispenseTasks.msg
    DispenseStatus.msg
  )
 

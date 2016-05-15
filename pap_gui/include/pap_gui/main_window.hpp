@@ -39,7 +39,7 @@
 #include "DispenserPlanner.hpp"
 #include <tf/transform_broadcaster.h>
 #include <algorithm>
-#include "CommonDataClasses.hpp"
+#include <pap_common/CommonDataClasses.hpp>
 #include "packageDialog.hpp"
 #include <motorController/sendfunctions.h>
 #include <pap_common/VisionResult.h>

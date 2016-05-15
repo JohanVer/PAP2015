@@ -27,7 +27,7 @@
 #include <QRectF>
 #include "visualization_msgs/Marker.h"
 #include "visualization_msgs/MarkerArray.h"
-#include "CommonDataClasses.hpp"
+#include <pap_common/CommonDataClasses.hpp>
 
 
 /*class componentEntry {

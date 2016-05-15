@@ -2302,23 +2302,25 @@ void MainWindow::on_startDispense_button_clicked() {
                         QPen(Qt::blue, nozzleDiameter * pxFactor, Qt::SolidLine));
 
             padParser.transformDispenserInfo(&dispInfo[j]);
-            qnode.sendDispenserTask(dispInfo[j]);
 
-            QEventLoop loop;
-            QTimer *timer = new QTimer(this);
-
-            connect(&qnode, SIGNAL(dispenserFinished()), &loop, SLOT(quit()));
-            connect(timer, SIGNAL(timeout()), &loop, SLOT(quit()));
-            timer->setSingleShot(true);
-            timer->start(10000);
-
-            loop.exec(); //blocks untill either signalPosition or timeout was fired
-
-            // Is timeout ocurred?
-            if (!timer->isActive()) {
-                return;
-            }
         }
+        qnode.sendDispenserTask(dispInfo);
+
+        QEventLoop loop;
+        QTimer *timer = new QTimer(this);
+
+        connect(&qnode, SIGNAL(dispenserFinished()), &loop, SLOT(quit()));
+        connect(timer, SIGNAL(timeout()), &loop, SLOT(quit()));
+        timer->setSingleShot(true);
+        timer->start(10000);
+
+        loop.exec(); //blocks untill either signalPosition or timeout was fired
+
+        // Is timeout ocurred?
+        if (!timer->isActive()) {
+            return;
+        }
+
         scenePads_.addEllipse((copy[i].rect.y()) * pxFactor - 1.0,
                               -(copy[i].rect.x() * pxFactor), 1, 1,
                               QPen(Qt::green, 2, Qt::SolidLine));
@@ -2338,38 +2340,49 @@ void MainWindow::dispenseSinglePad(QPointF point) {
         std::vector<dispenseInfo> dispInfo = dispenserPlanner.planDispensing(
                     padParser.padInformationArrayPrint_[id_], nozzleDiameter);
 
+
         for (size_t j = 0; j < dispInfo.size(); j++) {
+            if(dispInfo.at(j).type == dispenser_line_type::DISPENSE){
             scenePads_.addLine(
                         QLineF(dispInfo[j].yPos * pxFactor,
                                - (dispInfo[j].xPos * pxFactor),
                                dispInfo[j].yPos2 * pxFactor,
                                -(dispInfo[j].xPos2 * pxFactor)),
                         QPen(Qt::blue, nozzleDiameter * pxFactor, Qt::SolidLine));
+            }else{
+                scenePads_.addLine(
+                            QLineF(dispInfo[j].yPos * pxFactor,
+                                   - (dispInfo[j].xPos * pxFactor),
+                                   dispInfo[j].yPos2 * pxFactor,
+                                   -(dispInfo[j].xPos2 * pxFactor)),
+                            QPen(Qt::gray, nozzleDiameter * pxFactor, Qt::SolidLine));
+            }
 
             padParser.transformDispenserInfo(&dispInfo[j]);
-            qnode.sendDispenserTask(dispInfo[j]);
 
-            QEventLoop loop;
-            QTimer *timer = new QTimer(this);
-
-            connect(&qnode, SIGNAL(dispenserFinished()), &loop, SLOT(quit()));
-            connect(timer, SIGNAL(timeout()), &loop, SLOT(quit()));
-            timer->setSingleShot(true);
-            timer->start(10000);
-
-            loop.exec(); //blocks untill either signalPosition or timeout was fired
-
-            // Is timeout ocurred?
-            if (!timer->isActive()) {
-                return;
-            }
-            //ROS_INFO(" GUI: Print: X %f Y %f X2 %f Y2 %f",dispInfo[j].xPos *pxFactor ,(padParser.height_-dispInfo[j].yPos)*pxFactor,dispInfo[j].xPos2*pxFactor,(padParser.height_-dispInfo[j].yPos2)*pxFactor);
-
-            processAllCallbacks();
-            ROS_INFO("GUI: Dispensing finished....");
-            qnode.sendTask(pap_common::PLACER, pap_common::GOTO, currentPosition.x,
-                           currentPosition.y, 45.0);
         }
+        qnode.sendDispenserTask(dispInfo);
+
+        QEventLoop loop;
+        QTimer *timer = new QTimer(this);
+
+        connect(&qnode, SIGNAL(dispenserFinished()), &loop, SLOT(quit()));
+        connect(timer, SIGNAL(timeout()), &loop, SLOT(quit()));
+        timer->setSingleShot(true);
+        timer->start(10000);
+
+        loop.exec(); //blocks untill either signalPosition or timeout was fired
+
+        // Is timeout ocurred?
+        if (!timer->isActive()) {
+            return;
+        }
+
+        processAllCallbacks();
+        ROS_INFO("GUI: Dispensing finished....");
+        qnode.sendTask(pap_common::PLACER, pap_common::GOTO, currentPosition.x,
+                       currentPosition.y, 45.0);
+
     } else {
         ROS_ERROR("No pad selected...");
     }

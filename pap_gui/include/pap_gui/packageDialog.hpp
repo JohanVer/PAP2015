@@ -9,7 +9,7 @@
 #include <QDialog>
 #include <QVector>
 #include "ui_packageDialog.h"
-#include "CommonDataClasses.hpp"
+#include <pap_common/CommonDataClasses.hpp>
 
 namespace Ui { class PackageDialog;}
 

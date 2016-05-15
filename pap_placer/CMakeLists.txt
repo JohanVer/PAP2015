@@ -29,6 +29,15 @@ find_package(catkin REQUIRED COMPONENTS
   pcb_cv
 )
 
+# Find the QtWidgets library
+set(CMAKE_PREFIX_PATH $ENV{HOME}/Qt/5.6/gcc_64)
+set(CMAKE_INCLUDE_PATH $ENV{HOME}/Qt/5.6/gcc_64)
+
+# Find includes in corresponding build directories
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+
+find_package(Qt5Widgets)
+
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
 
@@ -122,7 +131,7 @@ include_directories(
  add_library(pap_placer
    src/placerNode.cpp
  )
-target_link_libraries ( pap_placer  ${catkin_LIBRARIES}  )
+target_link_libraries ( pap_placer Qt5::Widgets  ${catkin_LIBRARIES}  )
 ## Declare a cpp executable
 # add_executable(pap_placer_node src/pap_placer_node.cpp)
 

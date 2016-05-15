@@ -9,6 +9,7 @@
 #include "pap_common/ArduinoMsg.h"
 #include "pap_common/PlacerStatus.h"
 #include "pap_common/DispenseTask.h"
+#include <pap_common/DispenseTasks.h>
 #include <pap_common/task_message_def.h>
 #include <pap_common/status_message_def.h>
 #include <pap_common/arduino_message_def.h>
@@ -26,6 +27,7 @@
 #include <pap_common/VisionAction.h>
 #include <pcb_cv/sendfunctions.h>
 #include <pap_common/arduinosendfunctions.h>
+#include <pap_common/CommonDataClasses.hpp>
 
 /* Constant parameter definitions */
 #define DISPENSER_TOLERANCE 0.1
@@ -85,7 +87,7 @@ enum STATE {
 void statusCallback(const pap_common::StatusConstPtr& statusMsg);
 void visionStatusCallback(const pap_common::VisionStatusConstPtr& statusMsg);
 void placerCallback(const pap_common::TaskConstPtr& taskMsg);
-void dispenserCallbackPlacer(const pap_common::DispenseTaskConstPtr& taskMsg);
+void dispenserCallbackPlacer(const pap_common::DispenseTasksConstPtr &taskMsg);
 
 void sendPlacerStatus(pap_common::PROCESS process,
                       pap_common::PLACER_STATUS status);

@@ -9,7 +9,7 @@
 #include <QMessageBox>
 #include <QRectF>
 #include "ui_slotselectordialog.h"
-#include "CommonDataClasses.hpp"
+#include <pap_common/CommonDataClasses.hpp>
 
 
 namespace Ui {

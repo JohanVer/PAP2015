@@ -5,3 +5,4 @@ float32 yPos1
 float32 yPos2
 float32 waitTime
 float32 velocity
+int32 type

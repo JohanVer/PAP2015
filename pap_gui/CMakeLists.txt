@@ -80,7 +80,6 @@ add_library(pap_gui
    include/pap_gui/ClickGraphicsView.hpp
    include/pap_gui/main_window.hpp
    include/pap_gui/SlotGraphicsView.hpp
-   include/pap_gui/CommonDataClasses.hpp
    include/pap_gui/MyContextMenuTable.hpp
    include/pap_gui/slotselectordialog.h
    include/pap_gui/DatabaseClass.hpp

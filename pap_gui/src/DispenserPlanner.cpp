@@ -105,7 +105,7 @@ std::vector<dispenseInfo> DispenserPlanner::planDispensing(
             outInfo.yPos = yCoord;
             outInfo.xPos2 = xCoord2;
             outInfo.yPos2 = yCoord2;
-            outInfo.type = 1;
+            outInfo.type = dispenser_line_type::DISPENSE;
             outInfo.velocity = VELOCITY_DISPENSE;
             outInfo.time = 1;
             outVector.push_back(outInfo);
@@ -133,27 +133,64 @@ std::vector<dispenseInfo> DispenserPlanner::planDispensing(
             outInfo.yPos = yCoord;
             outInfo.xPos2 = xCoord2;
             outInfo.yPos2 = yCoord2;
-            outInfo.type = 1;
+            outInfo.type = dispenser_line_type::DISPENSE;
             outInfo.velocity = VELOCITY_DISPENSE;
             outInfo.time = 1;
             outVector.push_back(outInfo);
         }
     }
 
-    for(size_t i = 0; i < outVector.size(); i++){
-        tf::Point to_tf_1(outVector.at(i).xPos, outVector.at(i).yPos, 0);
-        tf::Point to_tf_2(outVector.at(i).xPos2, outVector.at(i).yPos2, 0);
+    // Create connecting lines
+    std::vector<dispenseInfo> conn_outVector;
+    for(size_t i = 0; i < outVector.size()-1; i++){
+
+        // Actual line
+        dispenseInfo act = outVector.at(i);
+        conn_outVector.push_back(act);
+
+        // Next line
+        dispenseInfo &next = outVector.at(i+1);
+
+        // Switch necessary ?
+        if(i % 2 == 0){
+            // Switch direction of next line
+            double x_t = next.xPos2;
+            double y_t = next.yPos2;
+            next.xPos2 = next.xPos;
+            next.yPos2 = next.yPos;
+            next.xPos = x_t;
+            next.yPos = y_t;
+        }
+
+        // Connect line
+        dispenseInfo new_dis;
+        new_dis.xPos = act.xPos2;
+        new_dis.yPos = act.yPos2;
+        new_dis.xPos2 = next.xPos;
+        new_dis.yPos2 = next.yPos;
+        new_dis.type = dispenser_line_type::NOT_DISPENSE;
+        new_dis.time = 0;
+        new_dis.velocity = act.velocity;
+        conn_outVector.push_back(new_dis);
+    }
+
+    conn_outVector.push_back(outVector.back());
+
+    // Rotate coordinates
+    for(size_t i = 0; i < conn_outVector.size(); i++){
+        tf::Point to_tf_1(conn_outVector.at(i).xPos, conn_outVector.at(i).yPos, 0);
+        tf::Point to_tf_2(conn_outVector.at(i).xPos2, conn_outVector.at(i).yPos2, 0);
 
         tf::Point transformed_1 = rotation_ * to_tf_1;
         tf::Point transformed_2 = rotation_ * to_tf_2;
 
-        outVector.at(i).xPos = transformed_1.x() + inX;
-        outVector.at(i).yPos = transformed_1.y() + inY;
+        conn_outVector.at(i).xPos = transformed_1.x() + inX;
+        conn_outVector.at(i).yPos = transformed_1.y() + inY;
 
-        outVector.at(i).xPos2 = transformed_2.x() + inX;
-        outVector.at(i).yPos2 = transformed_2.y() + inY;
+        conn_outVector.at(i).xPos2 = transformed_2.x() + inX;
+        conn_outVector.at(i).yPos2 = transformed_2.y() + inY;
     }
 
     ROS_INFO("Planned %d lines...", numberOfLines);
-    return outVector;
+    return conn_outVector;
 }

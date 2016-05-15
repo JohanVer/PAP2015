@@ -35,6 +35,7 @@
 #include "pap_common/Status.h"
 #include "pap_common/VisionStatus.h"
 #include "pap_common/DispenseTask.h"
+#include "pap_common/DispenseTasks.h"
 #include "pap_common/ArduinoMsg.h"
 #include <pap_common/task_message_def.h>
 #include <pap_common/status_message_def.h>
@@ -96,7 +97,7 @@ public:
 	void sendTask(pap_common::DESTINATION destination,pap_common::TASK task, float x, float y, float z );
 	void sendTask(pap_common::DESTINATION destination,pap_vision::VISION task,float x, float y, float z);
 	void sendTask(pap_common::DESTINATION destination, pap_common::TASK task,ComponentPlacerData componentData);
-	void sendDispenserTask(dispenseInfo dispenseTask);
+    void sendDispenserTask(std::vector<dispenseInfo> dispenseTask);
 
 	void statusCallback(const pap_common::StatusConstPtr&  statusMsg);
 	void placerStatusCallback(const pap_common::PlacerStatusConstPtr&  statusMsg);

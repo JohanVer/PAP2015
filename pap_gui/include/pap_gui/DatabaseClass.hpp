@@ -16,7 +16,7 @@
 #include <QString>
 #include <QStandardItemModel>
 #include <QTableWidget>
-#include "CommonDataClasses.hpp"
+#include <pap_common/CommonDataClasses.hpp>
 
 
 class DatabaseClass {

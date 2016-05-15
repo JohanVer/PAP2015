@@ -8,7 +8,7 @@
 #ifndef PAP2015_PAP_GUI_SRC_DISPENSERPLANNER_HPP_
 #define PAP2015_PAP_GUI_SRC_DISPENSERPLANNER_HPP_
 
-#include <pap_gui/CommonDataClasses.hpp>
+#include <pap_common/CommonDataClasses.hpp>
 #include <vector>
 #include <math.h>
 #include <ros/ros.h>
