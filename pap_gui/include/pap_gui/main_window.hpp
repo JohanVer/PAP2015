@@ -274,6 +274,8 @@ private slots:
 
     void on_scanButton_clicked();
 
+    void on_disp_settings_apply_clicked();
+
 private:
 
 	Ui::MainWindowDesign ui;
@@ -336,6 +338,12 @@ private:
     std::vector<tapeCalibrationValue> tapeCalibrationValues;
 
     cv::Size2d pic_size_;
+
+    // Dispenser settings:
+
+    double edge_percentage_;
+    double dispenser_velocity_;
+    double nozzle_diameter_;
 };
 
 }  // namespace pap_gui

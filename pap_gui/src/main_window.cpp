@@ -215,6 +215,11 @@ MainWindow::MainWindow(int version, int argc, char** argv, QWidget *parent) :
         // Show Ros status dockwidget
         ui.dock_status->show();
     }
+
+     edge_percentage_ = 0.1;
+     dispenser_velocity_ = 1.0;
+     nozzle_diameter_ = 0.16;
+
 }
 
 MainWindow::~MainWindow() {
@@ -2263,7 +2268,7 @@ void MainWindow::on_resetDispense_button_clicked() {
 
 void MainWindow::on_startDispense_button_clicked() {
     float pxFactor = padParser.pixelConversionFactor;
-    float nozzleDiameter = ui.nozzleDispCombo->currentText().toFloat();
+    float nozzleDiameter = nozzle_diameter_;
 
     size_t initialIter = 0;
     if (dispenserPaused) {
@@ -2287,7 +2292,7 @@ void MainWindow::on_startDispense_button_clicked() {
             return;
         }
         std::vector<dispenseInfo> dispInfo = dispenserPlanner.planDispensing(
-                    copy[i], nozzleDiameter);
+                    copy[i], nozzleDiameter, edge_percentage_, dispenser_velocity_ );
 
         //copy.erase(copy.begin());
 
@@ -2334,11 +2339,11 @@ void MainWindow::on_startDispense_button_clicked() {
 
 void MainWindow::dispenseSinglePad(QPointF point) {
     id_ = padParser.searchId(point, ui.padView_Image->width());
-    float nozzleDiameter = ui.nozzleDispCombo->currentText().toFloat();
+    float nozzleDiameter = nozzle_diameter_;
     float pxFactor = padParser.pixelConversionFactor;
     if (id_ != -1) {
         std::vector<dispenseInfo> dispInfo = dispenserPlanner.planDispensing(
-                    padParser.padInformationArrayPrint_[id_], nozzleDiameter);
+                    padParser.padInformationArrayPrint_[id_], nozzleDiameter, edge_percentage_, dispenser_velocity_);
 
 
         for (size_t j = 0; j < dispInfo.size(); j++) {
@@ -2867,3 +2872,10 @@ void pap_gui::MainWindow::on_scanButton_clicked()
     }
 }
 
+
+void pap_gui::MainWindow::on_disp_settings_apply_clicked()
+{
+    nozzle_diameter_ =  ui.nozzleDispCombo->currentText().toFloat();
+    edge_percentage_ = ui.edge_perc_edit->text().toFloat();
+    dispenser_velocity_ = ui.dispenser_vel_edit->text().toFloat();
+}

@@ -14,8 +14,6 @@
 #include <ros/ros.h>
 #include <tf/tf.h>
 
-#define PERCENTAGE_EDGE_DISTANCE 0.1
-#define VELOCITY_DISPENSE 0.5
 
 class DispenserPlanner {
 public:
@@ -25,7 +23,7 @@ public:
 	// Planer function for dispensing one pad
 	// Input: 1. Size of pad,2. Position of pad, 3. Rotation of pad 4. Nozzle diameter
 	// Output:Start/Stop positions , Velocity/Time
-	std::vector<dispenseInfo> planDispensing(PadInformation padInfo, float nozzleDiameter);
+    std::vector<dispenseInfo> planDispensing(PadInformation padInfo, float nozzleDiameter, double percentage_edge_dist = 0.1, double velocity = 1);
 };
 
 #endif /* PAP2015_PAP_GUI_SRC_DISPENSERPLANNER_HPP_ */

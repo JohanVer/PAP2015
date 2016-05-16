@@ -29,8 +29,10 @@ GerberPadParser::GerberPadParser() {
 }
 
 GerberPadParser::~GerberPadParser() {
-    delete background_item_;
-    background_item_ = NULL;
+    if(background_item_){
+        delete background_item_;
+        background_item_ = NULL;
+    }
 }
 
 float GerberPadParser::strToFloat(const std::string &in){
@@ -54,7 +56,7 @@ void GerberPadParser::parseShapes(std::string fileName){
             std::string s;
             if (!getline( ss, s, ' ' )) break;
             if(s.size() && s != "x")
-            record.push_back( s );
+                record.push_back( s );
         }
 
         data.push_back( record );

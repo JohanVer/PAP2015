@@ -17,7 +17,7 @@ DispenserPlanner::~DispenserPlanner() {
 }
 
 std::vector<dispenseInfo> DispenserPlanner::planDispensing(
-        PadInformation padInfoIn, float nozzleDiameter) {
+        PadInformation padInfoIn, float nozzleDiameter, double percentage_edge_dist, double velocity) {
     float inX = padInfoIn.rect.x();
     float inY = padInfoIn.rect.y();
     float inRot = padInfoIn.rotation;
@@ -25,7 +25,7 @@ std::vector<dispenseInfo> DispenserPlanner::planDispensing(
     float inHeight = padInfoIn.rect.height();
 
     std::vector<dispenseInfo> outVector;
-    float distanceFromEdge = PERCENTAGE_EDGE_DISTANCE * nozzleDiameter;
+    float distanceFromEdge = percentage_edge_dist * nozzleDiameter;
     bool useHeightLines = false;
 
     tf::Quaternion rotQuat;
@@ -106,7 +106,7 @@ std::vector<dispenseInfo> DispenserPlanner::planDispensing(
             outInfo.xPos2 = xCoord2;
             outInfo.yPos2 = yCoord2;
             outInfo.type = dispenser_line_type::DISPENSE;
-            outInfo.velocity = VELOCITY_DISPENSE;
+            outInfo.velocity = velocity;
             outInfo.time = 1;
             outVector.push_back(outInfo);
         } else {
@@ -134,7 +134,7 @@ std::vector<dispenseInfo> DispenserPlanner::planDispensing(
             outInfo.xPos2 = xCoord2;
             outInfo.yPos2 = yCoord2;
             outInfo.type = dispenser_line_type::DISPENSE;
-            outInfo.velocity = VELOCITY_DISPENSE;
+            outInfo.velocity = velocity;
             outInfo.time = 1;
             outVector.push_back(outInfo);
         }
