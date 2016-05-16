@@ -827,12 +827,12 @@
              <item>
               <layout class="QVBoxLayout" name="verticalLayout_17">
                <property name="sizeConstraint">
-                <enum>QLayout::SetMaximumSize</enum>
+                <enum>QLayout::SetDefaultConstraint</enum>
                </property>
                <item>
                 <layout class="QHBoxLayout" name="horizontalLayout_17">
                  <property name="sizeConstraint">
-                  <enum>QLayout::SetMaximumSize</enum>
+                  <enum>QLayout::SetDefaultConstraint</enum>
                  </property>
                  <item>
                   <widget class="QGroupBox" name="groupBox_17">

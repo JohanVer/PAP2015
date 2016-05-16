@@ -5,27 +5,26 @@
 #TODO
 
 Johan:
- 
-* CHECKED Tape Calibration: Goto state in placer (for tape position,manual control)
-* CHECKED LED-Controller: Test new LED functions: Slider for dimming, blinking, color selection
-* CHECKED Dispenser-Planner: Sort dispenser tasks due to distances
-* CHECKED Dispenser-Planner: Check middle points of dispenser planning
 * Dispenser-Planner: Modify dispenser height
-* CHECKED Dispenser-Planner: Pause-Button, Exclude-Function
-* CHECKED Implement GUI for slot selection
+* Documentation: PCB_CV (Algorithms, Stitcher...)
+* Documentation: MOTOR_CONTROLLER (Low Level, Interface)
+* Documentation: PAD_FINDER_LEARNER
+* Documentation: ARDUINO
 
 Nikolas:
 
-* CHECKED Placer-Planner: Implement possibility to choose a tape
-* CHECKED Placer-Planner: Use the functions "calibrateTape" and "positionOfComponent"
-* CHECKED Placer-Planner: Check the parsed positions (after the point there are only zeros)
 * Placer-Planner: Implement the second nozzle
 * Placer-Planner: Implement complete (all parts with one click magic) assembling of smd parts
 * Placer-Planner: Test the part rotation procedure (does the system rotate the part in the right direction?)
-* CHECKED GUI: Reimplementation of slotSelector + functionalities 
-* CHECKED GUI: Database functions: Add/Edit/Delete packages 
-* CHECKED Implement guided selecting of the boxes for complete assembly
-* Camera calibration using checkerboard
+* Placer-Planner: Placing with both nozzles. Checking if actual nozzles are compatible to parts which should be assembled
+
+* Documentation: PAP_PLACER
+* Documentation: PAP_GUI
+* Documentation: ROBOT_SIMULATION
+
+Both:
+
+* Slides
 
 
 #DEPENDENCIES
