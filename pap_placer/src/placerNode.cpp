@@ -345,6 +345,82 @@ bool calibrateQR() {
     return true;
 }
 
+bool calibrateDispenserAmount(double tip_diameter, double init_vel){
+    ROS_INFO("PlacerState: Calibrate dispensing amount/n");
+
+    Offset begin_despensing_p;
+    begin_despensing_p.x = 200;
+    begin_despensing_p.y = 200;
+    begin_despensing_p.z = 50;
+
+    const size_t num_blobs = 5;
+    const double length_blobs = 3.0;
+    const double gap_length = 4.0;
+    const double init_wait = 0;
+    const double des_width = tip_diameter;
+    const double learning_rate = 0.5;
+
+
+    double velocity = init_vel;
+    double error_width = 0;
+    // Generate blobs
+    for(size_t i = 0; i < num_blobs; i++){
+        dispenseInfo blob;
+        blob.time = init_wait;
+        blob.velocity = velocity;
+        blob.type = dispenser_types::DISPENSE;
+
+        blob.xPos = begin_despensing_p.x + i*length_blobs + i *gap_length;
+        blob.yPos = begin_despensing_p.y;
+
+        blob.xPos2 = begin_despensing_p.x + (i+1) * length_blobs + i *gap_length;
+        blob.yPos2 = begin_despensing_p.y;
+
+        std::cerr << "New blob: " << blob.xPos << " / " << blob.yPos << " /2/ " << blob.xPos2 << " / " << blob.yPos2 << " / " <<  std::endl;
+
+        std::vector<dispenseInfo> blobs;
+        blobs.push_back(blob);
+
+        if(!dispensePCB(blobs, 20.0)) return false;
+
+        // Drive with camera to center of blob
+        double blob_center_x = blob.xPos + (blob.xPos2 -blob.xPos) / 2;
+        double blob_center_y = blob.yPos;
+
+        if(!driveToCoord(blob_center_x, blob_center_y, 27.0))
+            return false;
+
+        ros::Duration(3.0).sleep();
+
+        // Measure width of blob with pcv_cv
+        pap_common::VisionResult res;
+
+        ROS_INFO("Placerstate: componentFinder started");
+        //if(!vision_send_functions::sendVisionTask(*vision_action_client, pap_vision::START_CHIP_FINDER,
+        //                                          pap_vision::CAMERA_TOP, 0, 0, 0, res))
+        //    return false;
+
+        //error_width = res.data4 -  des_width;
+
+        //std::cerr << "Detected dispenser blob width: " << res.data4 << " ... error is: " << error_width;
+        //std::cerr << "Old velocity: " << velocity << " new velocity: " << velocity + learning_rate * error_width << std::endl;
+
+        //velocity = velocity + learning_rate * error_width;
+    }
+
+    std::cerr << "Width error was: " << error_width << std::endl;
+
+    //placeController.setDispenserVel(velocity);
+
+    processAllStatusCallbacks();
+    if(!driveToCoord(placeController.lastDestination_.x, placeController.lastDestination_.y, 27.0))
+        return false;
+
+
+    return true;
+
+}
+
 // Calibrate cam distortion using checkerboard
 bool calibrateTopCamDistortion() {
 
@@ -638,14 +714,14 @@ bool placeComponent() {
 }
 
 // Dispense process
-bool dispensePCB(std::vector<dispenseInfo> dispense_task) {
+bool dispensePCB(std::vector<dispenseInfo> dispense_task, double dispense_height) {
 
     Offset dispCoord;
 
     dispenseInfo begin = dispense_task.front();
     dispCoord.x = begin.xPos;
     dispCoord.y = begin.yPos;
-    dispCoord.z = DISPENSER_HEIGHT;
+    dispCoord.z = dispense_height;
     ROS_INFO("Go to: x:%f y:%f z:%f", dispCoord.x, dispCoord.y, dispCoord.z);
     if(!driveToCoord(dispCoord.x, dispCoord.y, dispCoord.z))
         return false;
@@ -656,9 +732,13 @@ bool dispensePCB(std::vector<dispenseInfo> dispense_task) {
 
     for(size_t i = 0; i < dispense_task.size(); i++){
         dispenseInfo goal = dispense_task.at(i);
+        double velocity = goal.velocity;
 
-        if(goal.type == dispenser_line_type::DISPENSE){
+        if(goal.type == dispenser_types::DISPENSE){
             switchDispenser(true);
+            if(placeController.getDispenserVel()){
+                velocity = placeController.getDispenserVel();
+            }
         }
         else{
             switchDispenser(false);
@@ -666,15 +746,15 @@ bool dispensePCB(std::vector<dispenseInfo> dispense_task) {
 
         ROS_INFO("PlacerState: GOTOCOORD: x=%f y=%f z=%f",
                  goal.xPos2,
-                 goal.yPos2, DISPENSER_HEIGHT);
+                 goal.yPos2, dispense_height);
 
 
         if(!motor_send_functions::sendMotorControllerAction(*motor_action_client, pap_common::COORD_VEL,
                                                             goal.xPos2,
                                                             goal.yPos2,
-                                                            DISPENSER_HEIGHT,
-                                                            goal.velocity,
-                                                            goal.velocity)){
+                                                            dispense_height,
+                                                            velocity,
+                                                            velocity)){
             return false;
         }
 
@@ -1088,6 +1168,14 @@ void placerCallback(const pap_common::TaskConstPtr& taskMsg) {
             }
             break;
         }
+
+        case pap_common::ADJUST_DISPENSER: {
+            std::cerr << "Starting dispenser amount init...\n";
+            if(!calibrateDispenserAmount(taskMsg->data1, taskMsg->data2)){
+                ROS_ERROR("Error while calibrating dispenser amount.../n");
+            }
+        }
+            break;
         }
     }
     }
@@ -1095,6 +1183,7 @@ void placerCallback(const pap_common::TaskConstPtr& taskMsg) {
 
 void dispenserCallbackPlacer(const pap_common::DispenseTasksConstPtr& taskMsg) {
     std::cerr << "received dispenser task\n";
+
     Offset tipOffset = placeController.tip1Offset;
 
     std::vector<dispenseInfo> dispense_task;
@@ -1112,7 +1201,7 @@ void dispenserCallbackPlacer(const pap_common::DispenseTasksConstPtr& taskMsg) {
     }
 
     //ROS_INFO("Dispensing...");
-    dispensePCB(dispense_task);
+    dispensePCB(dispense_task, DISPENSER_HEIGHT);
 }
 
 void sendPlacerStatus(pap_common::PROCESS process,

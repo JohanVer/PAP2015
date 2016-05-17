@@ -55,10 +55,14 @@ public:
 	float x;
 	float y;
 	float rot;
+    float width;
+    float height;
 	smdPart(){
 		x = 0.0;
 		y = 0.0;
 		rot = 0.0;
+        width = 0.0;
+        height = 0.0;
 	}
 };
 

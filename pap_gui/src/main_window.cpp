@@ -2299,12 +2299,21 @@ void MainWindow::on_startDispense_button_clicked() {
         //std::sort(copy.begin(), copy.end(), compareClass(currentPosition.x,currentPosition.y));
 
         for (size_t j = 0; j < dispInfo.size(); j++) {
+            if(dispInfo.at(j).type == dispenser_types::DISPENSE){
             scenePads_.addLine(
                         QLineF(dispInfo[j].yPos * pxFactor,
                                - (dispInfo[j].xPos * pxFactor),
                                dispInfo[j].yPos2 * pxFactor,
                                -(dispInfo[j].xPos2 * pxFactor)),
                         QPen(Qt::blue, nozzleDiameter * pxFactor, Qt::SolidLine));
+            }else{
+                scenePads_.addLine(
+                            QLineF(dispInfo[j].yPos * pxFactor,
+                                   - (dispInfo[j].xPos * pxFactor),
+                                   dispInfo[j].yPos2 * pxFactor,
+                                   -(dispInfo[j].xPos2 * pxFactor)),
+                            QPen(Qt::gray, nozzleDiameter * pxFactor, Qt::SolidLine));
+            }
 
             padParser.transformDispenserInfo(&dispInfo[j]);
 
@@ -2347,7 +2356,7 @@ void MainWindow::dispenseSinglePad(QPointF point) {
 
 
         for (size_t j = 0; j < dispInfo.size(); j++) {
-            if(dispInfo.at(j).type == dispenser_line_type::DISPENSE){
+            if(dispInfo.at(j).type == dispenser_types::DISPENSE){
             scenePads_.addLine(
                         QLineF(dispInfo[j].yPos * pxFactor,
                                - (dispInfo[j].xPos * pxFactor),
@@ -2878,4 +2887,9 @@ void pap_gui::MainWindow::on_disp_settings_apply_clicked()
     nozzle_diameter_ =  ui.nozzleDispCombo->currentText().toFloat();
     edge_percentage_ = ui.edge_perc_edit->text().toFloat();
     dispenser_velocity_ = ui.dispenser_vel_edit->text().toFloat();
+
+    qnode.sendTask(pap_common::PLACER, pap_common::ADJUST_DISPENSER,
+                   nozzle_diameter_, dispenser_velocity_, 0);
+
 }
+

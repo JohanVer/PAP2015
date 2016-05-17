@@ -276,6 +276,7 @@ private slots:
 
     void on_disp_settings_apply_clicked();
 
+
 private:
 
 	Ui::MainWindowDesign ui;

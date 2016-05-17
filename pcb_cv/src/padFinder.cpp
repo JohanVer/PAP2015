@@ -298,6 +298,12 @@ bool padFinder::findChipAvg(std::vector<cv::Mat> *input, enum pap_vision::CAMERA
 
 bool padFinder::findChip(cv::Mat* input, unsigned int camera_select, smdPart &part_out) {
     float pxToMM = 0.0;
+    bool consider_every_size = false;
+
+
+    if(partWidth_ == 0 && partHeight_ == 0){
+        consider_every_size = true;
+    }
 
     if (camera_select == pap_vision::CAMERA_TOP) {
         pxToMM = pxRatioSlot;
@@ -330,7 +336,7 @@ bool padFinder::findChip(cv::Mat* input, unsigned int camera_select, smdPart &pa
             continue;
         }
 
-        if ((rect.size.width / pxToMM
+        if (consider_every_size || (rect.size.width / pxToMM
              > ((partWidth_) / 100.0) * (100.0 - ERROR_PERCENT_CHIP)
              && rect.size.width / pxToMM
              < ((partWidth_) / 100.0) * (100.0 + ERROR_PERCENT_CHIP)
@@ -356,6 +362,8 @@ bool padFinder::findChip(cv::Mat* input, unsigned int camera_select, smdPart &pa
             smdPart smd;
             smd.x = rect.center.x;
             smd.y = rect.center.y;
+            smd.width = rect.size.height;
+            smd.height = rect.size.width;
             if(smd.rot == -90.0 | smd.rot == 90.0){
                 smd.rot = 0.0;
             }
@@ -375,6 +383,8 @@ bool padFinder::findChip(cv::Mat* input, unsigned int camera_select, smdPart &pa
         circle(final, Point2f(part_out.x, part_out.y), 5, CV_RGB(0, 0, 255), 3);
         part_out.x = (part_out.x - (input->cols / 2 - 1)) / pxToMM;
         part_out.y = ((input->rows / 2 - 1) - part_out.y) / pxToMM;
+        part_out.width = part_out.width / pxToMM;
+        part_out.height = part_out.height / pxToMM;
         std::cerr << "Success \n";
         return true;
     }else{

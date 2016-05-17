@@ -125,4 +125,6 @@ bool driveAroundPosition(Offset position, int distance_x, int distance_y);
 bool driveToCoord(const double &x, const double &y, const double &z);
 void processAllStatusCallbacks();
 
+bool dispensePCB(std::vector<dispenseInfo> dispense_task, double dispense_height);
+
 #endif // PLACER_NODE_H_

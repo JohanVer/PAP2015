@@ -40,7 +40,7 @@
        <locale language="English" country="Australia"/>
       </property>
       <property name="currentIndex">
-       <number>1</number>
+       <number>5</number>
       </property>
       <widget class="QWidget" name="ComponentPlacement">
        <attribute name="title">
@@ -1171,7 +1171,7 @@
                         <item>
                          <widget class="QPushButton" name="disp_settings_apply">
                           <property name="text">
-                           <string>Apply</string>
+                           <string>Apply and Calibrate</string>
                           </property>
                          </widget>
                         </item>

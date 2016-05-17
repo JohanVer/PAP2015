@@ -147,6 +147,9 @@ public:
 	void setTip2Offset(float xDiff, float yDiff);
 	void setDispenserOffset(float xDiff, float yDiff);
 
+    void setDispenserVel(double vel);
+    double getDispenserVel();
+
 
 	void systemCalibration();
 	void updatePlacementData(ComponentPlacerData *data);
@@ -154,6 +157,8 @@ public:
 	int getBoxNumber();
 
 private:
+
+    double corr_dispenser_vel_;
 
     TIP tip;
 

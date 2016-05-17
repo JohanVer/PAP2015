@@ -12,10 +12,15 @@
 #include <QRectF>
 #include <QString>
 
-namespace dispenser_line_type {
+namespace dispenser_types {
 enum DispenserType{
     DISPENSE,
     NOT_DISPENSE
+};
+
+enum DispenserTask{
+    INIT,
+    DISPENSING
 };
 }
 

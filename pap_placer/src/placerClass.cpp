@@ -17,6 +17,8 @@
  ** Constructor
  *****************************************************************************/
 PlaceController::PlaceController() {
+    corr_dispenser_vel_ = 0.0;
+
 	MovingHeight_ = 45.0;
 
 	idleCoordinates_.x = 5.0;
@@ -335,6 +337,14 @@ void PlaceController::setTip1Offset(float xDiff, float yDiff) {
 void PlaceController::setTip2Offset(float xDiff, float yDiff) {
 	tip2Offset.x = tip2Offset.x + xDiff;
 	tip2Offset.y = tip2Offset.y + yDiff;
+}
+
+void PlaceController::setDispenserVel(double vel){
+    corr_dispenser_vel_ = vel;
+}
+
+double PlaceController::getDispenserVel(){
+    return corr_dispenser_vel_;
 }
 
 
