@@ -1,5 +1,6 @@
 <launch>
   <include file="$(find pap_common)/launch/startCamera.launch" /> 
+  <param name="fakePadPos" type="bool" value="false" />
   <node name="Userinterface" pkg="pap_gui" type="pap_gui_node" output="screen" />
   <node name="Placer" pkg="pap_placer" type="pap_placer_node" output="screen" />
   <node name="Motor_controller" pkg="motor_controller" type="motor_controller_node" output="screen" />

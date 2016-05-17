@@ -23,7 +23,8 @@ using namespace std;
  *****************************************************************************/
 
 enum TIP {
-    LEFT_TIP, RIGHT_TIP
+    LEFT_TIP = 1,
+    RIGHT_TIP = 2
 };
 
 class dispenseInfos{

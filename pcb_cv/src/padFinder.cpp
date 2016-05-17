@@ -671,6 +671,8 @@ bool padFinder::findSMDTape(cv::Mat &final, bool searchTapeRotation, smdPart &ou
 
 cv::Point2f padFinder::findPads(cv::Mat* input, bool startSelect,
                                 cv::Point2f selectPad, std::vector<RotatedRect> &pads) {
+    std::cerr << "StartSelect: " << startSelect << std::endl;
+
     cv::Point2f outputPosition;
     outputPosition.x = 0.0;
     outputPosition.y = 0.0;
@@ -696,8 +698,6 @@ cv::Point2f padFinder::findPads(cv::Mat* input, bool startSelect,
 
     for (int i = 0; i < contours.size(); i++) {
 
-        //cv::drawContours(final, contours, i, CV_RGB(0, 255, 255), 2);
-
         // Approximate contour with accuracy proportional
         // to the contour perimeter
         cv::approxPolyDP(cv::Mat(contours[i]), approx,
@@ -714,7 +714,6 @@ cv::Point2f padFinder::findPads(cv::Mat* input, bool startSelect,
             continue;
         }
 
-        //if(hierarchy[i][2] != -1 && cv::contourArea(contours.at(hierarchy[i][2])) / area > 0.05){
         if(hierarchy[i][2] != -1 && cv::contourArea(contours.at(hierarchy[i][2])) > MIN_VIA_AREA){
             // Is circle
             //RotatedRect viaPad = minAreaRect(contours[i]);
@@ -740,10 +739,10 @@ cv::Point2f padFinder::findPads(cv::Mat* input, bool startSelect,
                 padPoints.push_back(mc);
                 padRects.push_back(pad);
 
+                std::cerr << "SelectPad: " << selectPad << std::endl;
                 if (startSelect
                         && cv::pointPolygonTest(contours[i], selectPad, false)
                         == 1.0) {
-                    drawRotatedRect(final, pad, CV_RGB(0, 0, 255));
 
                     // TODO: Change into middle coordinate of the camera
                     outputPosition.x = (mc.x - (input->cols / 2 - 1))
@@ -751,9 +750,8 @@ cv::Point2f padFinder::findPads(cv::Mat* input, bool startSelect,
                     outputPosition.y = ((input->rows / 2 - 1) - mc.y)
                             / pxRatioPcb_y;
 
-                } else {
-                    drawRotatedRect(final, pad, CV_RGB(255, 0, 0));
                 }
+                drawRotatedRect(final, pad, CV_RGB(255, 0, 0));
             }
         }
     }

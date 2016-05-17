@@ -53,6 +53,8 @@ bool QNode::init() {
     ros::NodeHandle n_;
     if (n_.getParam("/fakePadPos", fakePadPos_)) {
         ROS_INFO("GUI: Param: %d", fakePadPos_);
+    }else{
+        fakePadPos_ = false;
     }
     image_transport::ImageTransport it_(n_);
     // Add your ros communications here.

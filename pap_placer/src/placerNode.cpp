@@ -550,10 +550,7 @@ bool singleCompPlacement() {
     /*if(!checkCompPickUp())
         return false;*/
 
-    /*if(!placeComponent())
-        return false;*/
-
-    if(!homeSystem())
+    if(!placeComponent())
         return false;
 
     return true;
@@ -604,7 +601,7 @@ bool pickUpComponent() {
                      pap_common::PLACER_ACTIVE);
     ros::Duration(1).sleep();
 
-    if (placeController.getTip()) {		// Activate tip
+    if (placeController.getTip() == TIP::RIGHT_TIP) {		// Activate tip
         moveTip(TIP::RIGHT_TIP, true);
     } else {
         moveTip(TIP::LEFT_TIP, true);
@@ -621,7 +618,7 @@ bool pickUpComponent() {
 
     switchVacuum(true);
 
-    if (placeController.getTip()) {
+    if (placeController.getTip() == TIP::RIGHT_TIP) {
         forwardVacuum(TIP::RIGHT_TIP, true);
     } else {
         forwardVacuum(TIP::LEFT_TIP, true);
@@ -629,7 +626,7 @@ bool pickUpComponent() {
 
     ros::Duration(1).sleep();
 
-    if (placeController.getTip()) {		// Release tip
+    if (placeController.getTip() == TIP::RIGHT_TIP) {		// Release tip
         moveTip(TIP::RIGHT_TIP, false);
     } else {
         moveTip(TIP::LEFT_TIP, false);
@@ -637,7 +634,7 @@ bool pickUpComponent() {
     ros::Duration(1).sleep();
 
     int rotation = (int) placeController.getCompPickUpCoordinates().rot;
-    //sendStepperTask((placeController.getTip() + 1), rotation);	// Turn component
+    arduino_client->sendStepperTask(placeController.getTip(), rotation);	// Turn component
     ROS_INFO("Placer - Rotation: rot:%d", rotation);
     ros::Duration(1).sleep();
     return true;
@@ -676,7 +673,7 @@ bool placeComponent() {
     sendPlacerStatus(pap_common::PLACECOMPONENT_STATE,
                      pap_common::PLACER_ACTIVE);
 
-    if (placeController.getTip()) {  // Activate cylinder
+    if (placeController.getTip() == TIP::RIGHT_TIP) {  // Activate cylinder
         moveTip(TIP::RIGHT_TIP, true);
     } else {
         moveTip(TIP::LEFT_TIP, true);
@@ -692,14 +689,14 @@ bool placeComponent() {
 
     switchVacuum(false);
 
-    if (placeController.getTip()) {
+    if (placeController.getTip() == TIP::RIGHT_TIP) {
         forwardVacuum(TIP::RIGHT_TIP, false);
     } else {
         forwardVacuum(TIP::LEFT_TIP, false);
     }
     ros::Duration(1).sleep();
 
-    if (placeController.getTip()) {		// Release tip
+    if (placeController.getTip() == TIP::RIGHT_TIP) {		// Release tip
         moveTip(TIP::RIGHT_TIP, false);
     } else {
         moveTip(TIP::LEFT_TIP, false);
@@ -786,7 +783,7 @@ bool pickUp(double height){
                      pap_common::PLACER_ACTIVE);
     ros::Duration(1).sleep();
 
-    if (placeController.getTip()) {		// Activate tip
+    if (placeController.getTip() == TIP::RIGHT_TIP) {		// Activate tip
         moveTip(TIP::RIGHT_TIP, true);
     } else {
         moveTip(TIP::LEFT_TIP, true);
@@ -801,7 +798,7 @@ bool pickUp(double height){
 
     switchVacuum(true);
 
-    if (placeController.getTip()) {
+    if (placeController.getTip() == TIP::RIGHT_TIP) {
         forwardVacuum(TIP::RIGHT_TIP, true);
     } else {
         forwardVacuum(TIP::LEFT_TIP, true);
@@ -809,7 +806,7 @@ bool pickUp(double height){
 
     ros::Duration(1).sleep();
 
-    if (placeController.getTip()) {		// Release tip
+    if (placeController.getTip() == TIP::RIGHT_TIP) {		// Release tip
         moveTip(TIP::RIGHT_TIP, false);
     } else {
         moveTip(TIP::LEFT_TIP, false);
@@ -825,7 +822,7 @@ bool placeComp(double height){
     sendPlacerStatus(pap_common::PLACECOMPONENT_STATE,
                      pap_common::PLACER_ACTIVE);
 
-    if (placeController.getTip()) {  // Activate cylinder
+    if (placeController.getTip() == TIP::RIGHT_TIP) {  // Activate cylinder
         moveTip(TIP::RIGHT_TIP, true);
     } else {
         moveTip(TIP::LEFT_TIP, true);
@@ -840,14 +837,14 @@ bool placeComp(double height){
 
     switchVacuum(false);
 
-    if (placeController.getTip()) {
+    if (placeController.getTip() == TIP::RIGHT_TIP) {
         forwardVacuum(TIP::RIGHT_TIP, false);
     } else {
         forwardVacuum(TIP::LEFT_TIP, false);
     }
     ros::Duration(1).sleep();
 
-    if (placeController.getTip()) {		// Release tip
+    if (placeController.getTip() == TIP::RIGHT_TIP) {		// Release tip
         moveTip(TIP::RIGHT_TIP, false);
     } else {
         moveTip(TIP::LEFT_TIP, false);
@@ -1136,10 +1133,6 @@ void placerCallback(const pap_common::TaskConstPtr& taskMsg) {
                 ROS_ERROR("Placer: Single component placement failed");
                 // TODO: Handle
                 break;
-            }
-            if(! homeSystem()) {
-                ROS_ERROR("Placer: HOMING failed");
-                // TODO: Handle result
             }
             break;
         }

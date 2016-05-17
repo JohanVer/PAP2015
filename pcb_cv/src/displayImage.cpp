@@ -266,7 +266,7 @@ cv:Mat composed_img = cv::imread(string(getenv("PAPRESOURCES")) + "training_data
         if (command->data1 == 1.0) {
             selectPoint.x = command->data2;
             selectPoint.y = command->data3;
-            //ROS_INFO("Pixel %f %f", selectPoint.x, selectPoint.y);
+            ROS_INFO("Pixel %f %f", selectPoint.x, selectPoint.y);
             std::vector<cv::Mat> images;
             gatherImages(1, images, pap_vision::CAMERA_SELECT::CAMERA_TOP);
             std::vector<RotatedRect> pads;
@@ -300,8 +300,6 @@ cv:Mat composed_img = cv::imread(string(getenv("PAPRESOURCES")) + "training_data
                 as_.setAborted();
             }
         }
-
-        as_.setAborted();
         break;
 
     case pap_vision::SEARCH_CIRCLE:{

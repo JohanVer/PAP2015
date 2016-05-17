@@ -185,6 +185,12 @@ MainWindow::MainWindow(int version, int argc, char** argv, QWidget *parent) :
     ui.padView_Image->setScene(&scenePads_);
     ui.padView_Image->show();
 
+    ui.camera1->setScene(&scene_);
+    ui.camera1->show();
+
+    ui.camera2->setScene(&scene2_);
+    ui.camera2->show();
+
     currentPosition.x = 0.0;
     currentPosition.y = 0.0;
     //ui.checkBox_box->setDisabled(true);
@@ -216,9 +222,9 @@ MainWindow::MainWindow(int version, int argc, char** argv, QWidget *parent) :
         ui.dock_status->show();
     }
 
-     edge_percentage_ = 0.1;
-     dispenser_velocity_ = 1.0;
-     nozzle_diameter_ = 0.16;
+    edge_percentage_ = 0.1;
+    dispenser_velocity_ = 1.0;
+    nozzle_diameter_ = 0.16;
 
 }
 
@@ -1159,26 +1165,28 @@ void MainWindow::closeEvent(QCloseEvent *event) {
 void MainWindow::cameraUpdated(int index) {
     if (index == 1) {
         int width = ui.camera1->width();
-        int height = ui.camera1->height() - 2;
+        int height = ui.camera1->height();
 
         QImage camera1Scaled = qnode.getCamera1()->scaled(width, height,
-                                                          Qt::KeepAspectRatio);
-        cameraPicture1 = QPixmap::fromImage(camera1Scaled);
+                                                          Qt::IgnoreAspectRatio);
+
         scene_.clear();
+        cameraPicture1 = QPixmap::fromImage(camera1Scaled);
+
         scene_.addPixmap(cameraPicture1);
-        ui.camera1->setScene(&scene_);
-        ui.camera1->show();
     } else if (index == 2) {
         int width = ui.camera2->width();
-        int height = ui.camera2->height() - 2;
+        int height = ui.camera2->height();
+
+
         QImage camera2Scaled = qnode.getCamera2()->scaled(width, height,
-                                                          Qt::KeepAspectRatio);
-        cameraPicture2 = QPixmap::fromImage(camera2Scaled);
+                                                          Qt::IgnoreAspectRatio);
         scene2_.clear();
+        cameraPicture2 = QPixmap::fromImage(camera2Scaled);
+
         scene2_.addPixmap(cameraPicture2);
-        ui.camera2->setScene(&scene2_);
-        ui.camera2->show();
     }
+
 }
 
 void MainWindow::on_startHoming_clicked(bool check) {
@@ -1765,20 +1773,6 @@ void MainWindow::on_startChipFinder_Button_clicked() {
     displaySMDCoords(0.0, 0.0, 0.0, 1);
 }
 
-void MainWindow::on_startSmallSMDFinder_Button_clicked() {
-    if (ui.SmallSMD_Combo->currentText() == "0805") {
-        qnode.sendTask(pap_common::VISION, pap_vision::START_SMALL_FINDER, 1.25,
-                       2.0, 0.0);
-    } else if (ui.SmallSMD_Combo->currentText() == "0603") {
-        qnode.sendTask(pap_common::VISION, pap_vision::START_SMALL_FINDER, 0.8,
-                       1.6, 0.0);
-    } else if (ui.SmallSMD_Combo->currentText() == "0402") {
-        qnode.sendTask(pap_common::VISION, pap_vision::START_SMALL_FINDER, 0.5,
-                       1.0, 0.0);
-    }
-    displaySMDCoords(0.0, 0.0, 0.0, 0);
-    displaySMDCoords(0.0, 0.0, 0.0, 1);
-}
 
 void MainWindow::on_startTapeFinder_Button_clicked() {
     if (ui.tapeFinder_Combo->currentText() == "0805") {
@@ -1846,8 +1840,8 @@ void MainWindow::setFiducial(QPointF point) {
     float percentageX = (100.0 / (float) ui.camera1->width()) * point.x();
     float percentageY = (100.0 / (float) ui.camera1->height()) * point.y();
 
-    float indexXFull = (640.0 / 100.0) * percentageX;
-    float indexYFull = (480.0 / 100.0) * percentageY;
+    float indexXFull = ((640.0) / 100.0) * percentageX;
+    float indexYFull = ((480.0) / 100.0) * percentageY;
 
     pap_common::VisionResult res;
     std::cerr << "Sending fiducial search task \n";
@@ -2300,12 +2294,12 @@ void MainWindow::on_startDispense_button_clicked() {
 
         for (size_t j = 0; j < dispInfo.size(); j++) {
             if(dispInfo.at(j).type == dispenser_types::DISPENSE){
-            scenePads_.addLine(
-                        QLineF(dispInfo[j].yPos * pxFactor,
-                               - (dispInfo[j].xPos * pxFactor),
-                               dispInfo[j].yPos2 * pxFactor,
-                               -(dispInfo[j].xPos2 * pxFactor)),
-                        QPen(Qt::blue, nozzleDiameter * pxFactor, Qt::SolidLine));
+                scenePads_.addLine(
+                            QLineF(dispInfo[j].yPos * pxFactor,
+                                   - (dispInfo[j].xPos * pxFactor),
+                                   dispInfo[j].yPos2 * pxFactor,
+                                   -(dispInfo[j].xPos2 * pxFactor)),
+                            QPen(Qt::blue, nozzleDiameter * pxFactor, Qt::SolidLine));
             }else{
                 scenePads_.addLine(
                             QLineF(dispInfo[j].yPos * pxFactor,
@@ -2357,12 +2351,12 @@ void MainWindow::dispenseSinglePad(QPointF point) {
 
         for (size_t j = 0; j < dispInfo.size(); j++) {
             if(dispInfo.at(j).type == dispenser_types::DISPENSE){
-            scenePads_.addLine(
-                        QLineF(dispInfo[j].yPos * pxFactor,
-                               - (dispInfo[j].xPos * pxFactor),
-                               dispInfo[j].yPos2 * pxFactor,
-                               -(dispInfo[j].xPos2 * pxFactor)),
-                        QPen(Qt::blue, nozzleDiameter * pxFactor, Qt::SolidLine));
+                scenePads_.addLine(
+                            QLineF(dispInfo[j].yPos * pxFactor,
+                                   - (dispInfo[j].xPos * pxFactor),
+                                   dispInfo[j].yPos2 * pxFactor,
+                                   -(dispInfo[j].xPos2 * pxFactor)),
+                            QPen(Qt::blue, nozzleDiameter * pxFactor, Qt::SolidLine));
             }else{
                 scenePads_.addLine(
                             QLineF(dispInfo[j].yPos * pxFactor,

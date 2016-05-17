@@ -178,7 +178,6 @@ public Q_SLOTS:
     // Buttons
     void on_scanQRButton_clicked();
     void on_startChipFinder_Button_clicked();
-    void on_startSmallSMDFinder_Button_clicked();
     void on_startTapeFinder_Button_clicked();
     void on_startPadFinder_Button_clicked();
     void on_StartStopVision_Button_clicked();

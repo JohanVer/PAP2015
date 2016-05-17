@@ -32,7 +32,7 @@ PlaceController::PlaceController() {
     // Absolut offests
 	pcbOriginOffset.x = 300;
 	pcbOriginOffset.y = 145;
-	pcbOriginOffset.z = 27.0;//25.6;
+    pcbOriginOffset.z = 25.6;
 	pickUpAreaOffset.x = 108.42;	// + tape_x -> 449.85 = max.x destination
 	pickUpAreaOffset.y = 261;
 	pickUpAreaOffset.z = suckingHeight_;
@@ -234,14 +234,8 @@ Offset PlaceController::getCompPlaceCoordinates() {
     Offset temp;
     switch (tip) {
     case LEFT_TIP:
-        temp.x = currentComponent.destX + tip2Offset.x;
-        temp.y = currentComponent.destY + tip2Offset.y;
-        /*temp.x = currentComponent.destX
-                + (tip1Offset.x - camClibrationOffset_.x
-                        + tip1ClibrationOffset_.x) + 0.7;
-        temp.y = currentComponent.destY
-                + (tip1Offset.y - camClibrationOffset_.y
-                        + tip1ClibrationOffset_.y) - 0.4;*/
+        temp.x = currentComponent.destX + tip1Offset.x;
+        temp.y = currentComponent.destY + tip1Offset.y;
         temp.z = 45.0;
         temp.rot = currentComponent.rotation;
         break;
