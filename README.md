@@ -6,18 +6,21 @@
 
 Johan:
 * Dispenser-Planner: Modify dispenser height
+* Background image fix 
+* Calibration button should not make a difference by pressing it twice
+* All in one window calibration
+* Saving all parameters and calibration value in a xml file
 * Documentation: PCB_CV (Algorithms, Stitcher...)
 * Documentation: MOTOR_CONTROLLER (Low Level, Interface)
 * Documentation: PAD_FINDER_LEARNER
 * Documentation: ARDUINO
 
 Nikolas:
-
+* Placer-Planner: Wait until all motors have reached the position before starting the next task
 * Placer-Planner: Implement the second nozzle
 * Placer-Planner: Implement complete (all parts with one click magic) assembling of smd parts
 * Placer-Planner: Test the part rotation procedure (does the system rotate the part in the right direction?)
 * Placer-Planner: Placing with both nozzles. Checking if actual nozzles are compatible to parts which should be assembled
-
 * Documentation: PAP_PLACER
 * Documentation: PAP_GUI
 * Documentation: ROBOT_SIMULATION
