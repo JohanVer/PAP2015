@@ -17,6 +17,7 @@ Johan:
 
 Nikolas:
 * Placer-Planner: Wait until all motors have reached the position before starting the next task
+* Calibration: Implement Dispenser Needle calibration
 * Placer-Planner: Implement the second nozzle
 * Placer-Planner: Implement complete (all parts with one click magic) assembling of smd parts
 * Placer-Planner: Test the part rotation procedure (does the system rotate the part in the right direction?)
