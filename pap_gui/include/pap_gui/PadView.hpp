@@ -41,6 +41,7 @@ private:
 QGraphicsRectItem *temp_rect;
 double x_press, y_press;
 double width_press_, height_press_;
+bool drawing;
 };
 
 

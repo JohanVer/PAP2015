@@ -23,15 +23,30 @@ public:
 	virtual ~ClickGraphicsView();
 
 	Q_SIGNALS:
-	void sendMousePoint(QPointF point);
-	void setFiducial(QPointF point);
+
 
 	public Q_SLOTS:
-	void mousePressEvent(QMouseEvent * e);
-	void contextMenuEvent(QContextMenuEvent *event);
+    virtual void wheelEvent(QWheelEvent * event);
 
 	private:
 	QGraphicsScene * scene;
+};
+
+class CameraGraphicsScene: public QGraphicsScene {
+Q_OBJECT
+public:
+    explicit CameraGraphicsScene(QWidget *parent = 0);
+
+Q_SIGNALS:
+    void setFiducial(QPointF point);
+    void sendMousePoint(QPointF point);
+
+public Q_SLOTS:
+void mousePressEvent(QGraphicsSceneMouseEvent *event);
+void contextMenuEvent(QGraphicsSceneContextMenuEvent *event);
+
+private:
+
 };
 
 #endif /* PAP_GUI_SRC_CLICKGRAPHICSVIEW_H_ */

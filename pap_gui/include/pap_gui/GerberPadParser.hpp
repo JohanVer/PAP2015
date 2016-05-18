@@ -46,7 +46,6 @@ public:
 	float parseFloat(std::string line, std::size_t start, std::size_t end);
 	void loadFile(std::string fileName,bool bottomLayer);
 	void parseShapes(std::string fileName);
-    void parseShapes2(std::string fileName);
 	bool searchShape(int shapeIndex, PadInformation* pad);
 	void setSize(float height, float width);
 	QRectF renderImage(QGraphicsScene* scene, int width, int height);

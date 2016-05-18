@@ -807,7 +807,7 @@
       </widget>
       <widget class="QWidget" name="tab_5">
        <attribute name="title">
-        <string>PCB Dispenser</string>
+        <string>PCB View/ Dispenser</string>
        </attribute>
        <layout class="QGridLayout" name="gridLayout_2">
         <item row="0" column="0">
@@ -819,16 +819,44 @@
            </sizepolicy>
           </property>
           <property name="title">
-           <string>GroupBox</string>
+           <string/>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_28">
            <item>
-            <layout class="QHBoxLayout" name="horizontalLayout_16">
+            <layout class="QHBoxLayout" name="horizontalLayout_9">
              <item>
               <layout class="QVBoxLayout" name="verticalLayout_17">
-               <property name="sizeConstraint">
-                <enum>QLayout::SetDefaultConstraint</enum>
-               </property>
+               <item>
+                <widget class="ClickGraphicsView" name="camera1_2">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="minimumSize">
+                  <size>
+                   <width>320</width>
+                   <height>240</height>
+                  </size>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>640</width>
+                   <height>480</height>
+                  </size>
+                 </property>
+                 <property name="cursor" stdset="0">
+                  <cursorShape>CrossCursor</cursorShape>
+                 </property>
+                 <property name="verticalScrollBarPolicy">
+                  <enum>Qt::ScrollBarAlwaysOff</enum>
+                 </property>
+                 <property name="horizontalScrollBarPolicy">
+                  <enum>Qt::ScrollBarAlwaysOff</enum>
+                 </property>
+                </widget>
+               </item>
                <item>
                 <layout class="QHBoxLayout" name="horizontalLayout_17">
                  <property name="sizeConstraint">
@@ -937,19 +965,6 @@
                      </widget>
                     </item>
                     <item>
-                     <widget class="QPushButton" name="padViewGenerate_button">
-                      <property name="sizePolicy">
-                       <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-                        <horstretch>0</horstretch>
-                        <verstretch>0</verstretch>
-                       </sizepolicy>
-                      </property>
-                      <property name="text">
-                       <string>Generate Pad Image</string>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
                      <widget class="QPushButton" name="scanButton">
                       <property name="sizePolicy">
                        <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
@@ -961,6 +976,22 @@
                        <string>Scan Pcb</string>
                       </property>
                      </widget>
+                    </item>
+                    <item>
+                     <spacer name="verticalSpacer_14">
+                      <property name="orientation">
+                       <enum>Qt::Vertical</enum>
+                      </property>
+                      <property name="sizeType">
+                       <enum>QSizePolicy::Minimum</enum>
+                      </property>
+                      <property name="sizeHint" stdset="0">
+                       <size>
+                        <width>20</width>
+                        <height>40</height>
+                       </size>
+                      </property>
+                     </spacer>
                     </item>
                    </layout>
                   </widget>
@@ -974,7 +1005,7 @@
                     </sizepolicy>
                    </property>
                    <property name="title">
-                    <string>Dispensing</string>
+                    <string>Dispenser/Fiducial</string>
                    </property>
                    <layout class="QVBoxLayout" name="verticalLayout_22">
                     <item>
@@ -986,11 +1017,68 @@
                        </sizepolicy>
                       </property>
                       <property name="currentIndex">
-                       <number>1</number>
+                       <number>0</number>
                       </property>
+                      <widget class="QWidget" name="tab_14">
+                       <attribute name="title">
+                        <string>Fiducial</string>
+                       </attribute>
+                       <layout class="QVBoxLayout" name="verticalLayout_30">
+                        <item>
+                         <widget class="MyContextMenuTable" name="fiducialTable">
+                          <property name="sizePolicy">
+                           <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+                            <horstretch>0</horstretch>
+                            <verstretch>0</verstretch>
+                           </sizepolicy>
+                          </property>
+                          <property name="maximumSize">
+                           <size>
+                            <width>300</width>
+                            <height>150</height>
+                           </size>
+                          </property>
+                          <property name="font">
+                           <font>
+                            <pointsize>9</pointsize>
+                           </font>
+                          </property>
+                          <attribute name="horizontalHeaderDefaultSectionSize">
+                           <number>80</number>
+                          </attribute>
+                         </widget>
+                        </item>
+                        <item>
+                         <widget class="QPushButton" name="calcOrientation_Button">
+                          <property name="sizePolicy">
+                           <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                            <horstretch>0</horstretch>
+                            <verstretch>0</verstretch>
+                           </sizepolicy>
+                          </property>
+                          <property name="text">
+                           <string>Calculate Orientation</string>
+                          </property>
+                         </widget>
+                        </item>
+                        <item>
+                         <widget class="QPushButton" name="goToPCBButton">
+                          <property name="sizePolicy">
+                           <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                            <horstretch>0</horstretch>
+                            <verstretch>0</verstretch>
+                           </sizepolicy>
+                          </property>
+                          <property name="text">
+                           <string>Go to PCB</string>
+                          </property>
+                         </widget>
+                        </item>
+                       </layout>
+                      </widget>
                       <widget class="QWidget" name="tab_3">
                        <attribute name="title">
-                        <string>Control</string>
+                        <string>Dispenser</string>
                        </attribute>
                        <layout class="QVBoxLayout" name="verticalLayout_59">
                         <item>
@@ -1033,17 +1121,20 @@
                          </widget>
                         </item>
                         <item>
-                         <widget class="QPushButton" name="goToPCBButton">
-                          <property name="sizePolicy">
-                           <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-                            <horstretch>0</horstretch>
-                            <verstretch>0</verstretch>
-                           </sizepolicy>
+                         <spacer name="verticalSpacer_5">
+                          <property name="orientation">
+                           <enum>Qt::Vertical</enum>
                           </property>
-                          <property name="text">
-                           <string>Go to PCB</string>
+                          <property name="sizeType">
+                           <enum>QSizePolicy::Minimum</enum>
                           </property>
-                         </widget>
+                          <property name="sizeHint" stdset="0">
+                           <size>
+                            <width>20</width>
+                            <height>40</height>
+                           </size>
+                          </property>
+                         </spacer>
                         </item>
                        </layout>
                       </widget>
@@ -1175,6 +1266,19 @@
                           </property>
                          </widget>
                         </item>
+                        <item>
+                         <spacer name="verticalSpacer_7">
+                          <property name="orientation">
+                           <enum>Qt::Vertical</enum>
+                          </property>
+                          <property name="sizeHint" stdset="0">
+                           <size>
+                            <width>20</width>
+                            <height>40</height>
+                           </size>
+                          </property>
+                         </spacer>
+                        </item>
                        </layout>
                       </widget>
                      </widget>
@@ -1183,22 +1287,6 @@
                   </widget>
                  </item>
                 </layout>
-               </item>
-               <item>
-                <widget class="QTableWidget" name="padTable">
-                 <property name="sizePolicy">
-                  <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-                   <horstretch>0</horstretch>
-                   <verstretch>0</verstretch>
-                  </sizepolicy>
-                 </property>
-                 <property name="maximumSize">
-                  <size>
-                   <width>537</width>
-                   <height>1000</height>
-                  </size>
-                 </property>
-                </widget>
                </item>
               </layout>
              </item>
@@ -1401,7 +1489,7 @@
       </widget>
       <widget class="QWidget" name="tab">
        <attribute name="title">
-        <string>Cameras</string>
+        <string>Computer Vision</string>
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_57">
         <item>
@@ -1426,8 +1514,17 @@
                     <verstretch>0</verstretch>
                    </sizepolicy>
                   </property>
+                  <property name="font">
+                   <font>
+                    <weight>75</weight>
+                    <bold>true</bold>
+                   </font>
+                  </property>
                   <property name="text">
                    <string>Head-Camera</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignCenter</set>
                   </property>
                  </widget>
                 </item>
@@ -1477,7 +1574,7 @@
                 <item>
                  <widget class="ClickGraphicsView" name="camera1">
                   <property name="sizePolicy">
-                   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                   <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
                     <horstretch>0</horstretch>
                     <verstretch>0</verstretch>
                    </sizepolicy>
@@ -1490,8 +1587,8 @@
                   </property>
                   <property name="maximumSize">
                    <size>
-                    <width>448</width>
-                    <height>308</height>
+                    <width>1280</width>
+                    <height>1280</height>
                    </size>
                   </property>
                   <property name="verticalScrollBarPolicy">
@@ -1517,8 +1614,17 @@
                     <verstretch>0</verstretch>
                    </sizepolicy>
                   </property>
+                  <property name="font">
+                   <font>
+                    <weight>75</weight>
+                    <bold>true</bold>
+                   </font>
+                  </property>
                   <property name="text">
                    <string>Bottom-Camera</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignCenter</set>
                   </property>
                  </widget>
                 </item>
@@ -1564,9 +1670,9 @@
                    </widget>
                   </item>
                   <item>
-                   <widget class="QGraphicsView" name="camera2">
+                   <widget class="ClickGraphicsView" name="camera2">
                     <property name="sizePolicy">
-                     <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                     <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
                       <horstretch>0</horstretch>
                       <verstretch>0</verstretch>
                      </sizepolicy>
@@ -1579,8 +1685,8 @@
                     </property>
                     <property name="maximumSize">
                      <size>
-                      <width>448</width>
-                      <height>308</height>
+                      <width>1280</width>
+                      <height>1280</height>
                      </size>
                     </property>
                     <property name="verticalScrollBarPolicy">
@@ -1608,8 +1714,14 @@
              <layout class="QHBoxLayout" name="horizontalLayout_7">
               <item>
                <widget class="QTabWidget" name="tabWidget">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
                 <property name="currentIndex">
-                 <number>1</number>
+                 <number>2</number>
                 </property>
                 <widget class="QWidget" name="tab_7">
                  <attribute name="title">
@@ -1713,6 +1825,22 @@
                     </item>
                    </widget>
                   </item>
+                  <item>
+                   <spacer name="verticalSpacer_13">
+                    <property name="orientation">
+                     <enum>Qt::Vertical</enum>
+                    </property>
+                    <property name="sizeType">
+                     <enum>QSizePolicy::Expanding</enum>
+                    </property>
+                    <property name="sizeHint" stdset="0">
+                     <size>
+                      <width>20</width>
+                      <height>40</height>
+                     </size>
+                    </property>
+                   </spacer>
+                  </item>
                  </layout>
                 </widget>
                 <widget class="QWidget" name="tab_8">
@@ -1780,6 +1908,22 @@
                     </item>
                    </layout>
                   </item>
+                  <item>
+                   <spacer name="verticalSpacer_12">
+                    <property name="orientation">
+                     <enum>Qt::Vertical</enum>
+                    </property>
+                    <property name="sizeType">
+                     <enum>QSizePolicy::Expanding</enum>
+                    </property>
+                    <property name="sizeHint" stdset="0">
+                     <size>
+                      <width>20</width>
+                      <height>40</height>
+                     </size>
+                    </property>
+                   </spacer>
+                  </item>
                  </layout>
                 </widget>
                 <widget class="QWidget" name="tab_9">
@@ -1799,6 +1943,19 @@
                      <string>Start Pad Finder</string>
                     </property>
                    </widget>
+                  </item>
+                  <item>
+                   <spacer name="verticalSpacer_11">
+                    <property name="orientation">
+                     <enum>Qt::Vertical</enum>
+                    </property>
+                    <property name="sizeHint" stdset="0">
+                     <size>
+                      <width>20</width>
+                      <height>40</height>
+                     </size>
+                    </property>
+                   </spacer>
                   </item>
                  </layout>
                 </widget>
@@ -1850,6 +2007,19 @@
                     </item>
                    </layout>
                   </item>
+                  <item>
+                   <spacer name="verticalSpacer_10">
+                    <property name="orientation">
+                     <enum>Qt::Vertical</enum>
+                    </property>
+                    <property name="sizeHint" stdset="0">
+                     <size>
+                      <width>20</width>
+                      <height>40</height>
+                     </size>
+                    </property>
+                   </spacer>
+                  </item>
                  </layout>
                 </widget>
                 <widget class="QWidget" name="tab_11">
@@ -1882,6 +2052,19 @@
                      <string>Stitch</string>
                     </property>
                    </widget>
+                  </item>
+                  <item>
+                   <spacer name="verticalSpacer_9">
+                    <property name="orientation">
+                     <enum>Qt::Vertical</enum>
+                    </property>
+                    <property name="sizeHint" stdset="0">
+                     <size>
+                      <width>20</width>
+                      <height>40</height>
+                     </size>
+                    </property>
+                   </spacer>
                   </item>
                  </layout>
                 </widget>
@@ -1916,50 +2099,38 @@
                     </property>
                    </widget>
                   </item>
-                 </layout>
-                </widget>
-                <widget class="QWidget" name="tab_13">
-                 <attribute name="title">
-                  <string>Fiducial</string>
-                 </attribute>
-                 <layout class="QVBoxLayout" name="verticalLayout_62">
                   <item>
-                   <layout class="QVBoxLayout" name="verticalLayout_61">
-                    <item>
-                     <widget class="MyContextMenuTable" name="fiducialTable">
-                      <property name="font">
-                       <font>
-                        <pointsize>9</pointsize>
-                       </font>
-                      </property>
-                      <attribute name="horizontalHeaderDefaultSectionSize">
-                       <number>80</number>
-                      </attribute>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QPushButton" name="calcOrientation_Button">
-                      <property name="sizePolicy">
-                       <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                        <horstretch>0</horstretch>
-                        <verstretch>0</verstretch>
-                       </sizepolicy>
-                      </property>
-                      <property name="text">
-                       <string>Calculate Orientation</string>
-                      </property>
-                     </widget>
-                    </item>
-                   </layout>
+                   <spacer name="verticalSpacer_8">
+                    <property name="orientation">
+                     <enum>Qt::Vertical</enum>
+                    </property>
+                    <property name="sizeType">
+                     <enum>QSizePolicy::Expanding</enum>
+                    </property>
+                    <property name="sizeHint" stdset="0">
+                     <size>
+                      <width>20</width>
+                      <height>40</height>
+                     </size>
+                    </property>
+                   </spacer>
                   </item>
                  </layout>
-                 <zorder>startChipFinder_Button</zorder>
-                 <zorder></zorder>
-                 <zorder>cameraSelect_Chip</zorder>
-                 <zorder>calcOrientation_Button</zorder>
-                 <zorder>fiducialTable</zorder>
                 </widget>
                </widget>
+              </item>
+              <item>
+               <spacer name="horizontalSpacer_2">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
               </item>
               <item>
                <layout class="QVBoxLayout" name="verticalLayout_69">
@@ -2002,6 +2173,9 @@
                   <property name="text">
                    <string>Off</string>
                   </property>
+                  <property name="alignment">
+                   <set>Qt::AlignCenter</set>
+                  </property>
                  </widget>
                 </item>
                </layout>
@@ -2019,7 +2193,7 @@
       </widget>
       <widget class="QWidget" name="tab_2">
        <attribute name="title">
-        <string>Control</string>
+        <string>Manual Control</string>
        </attribute>
        <widget class="QWidget" name="horizontalLayoutWidget_2">
         <property name="geometry">

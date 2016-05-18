@@ -300,7 +300,7 @@ private:
 	Offset currentPosition;
 	// Structures for holding the camera1 image (top camera)
 	QPixmap cameraPicture1, cameraPicture2;
-	QGraphicsScene scene_, scene2_;
+    CameraGraphicsScene scene_, scene2_;
 	DispenserPlanner dispenserPlanner;
 
 	// Structures for holding the rendered image of the pcb
@@ -337,7 +337,7 @@ private:
 
     std::vector<tapeCalibrationValue> tapeCalibrationValues;
 
-    cv::Size2d pic_size_;
+    cv::Size2d pic_offset_;
 
     // Dispenser settings:
 

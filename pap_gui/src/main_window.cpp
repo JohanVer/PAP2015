@@ -80,9 +80,9 @@ MainWindow::MainWindow(int version, int argc, char** argv, QWidget *parent) :
     QObject::connect(&qnode,
                      SIGNAL(smdCoordinates(float ,float ,float ,unsigned int)), this,
                      SLOT(displaySMDCoords(float ,float ,float,unsigned int )));
-    QWidget::connect(ui.camera1, SIGNAL(sendMousePoint(QPointF)), this,
+    QWidget::connect(&scene_, SIGNAL(sendMousePoint(QPointF)), this,
                      SLOT(setCamera1Point(QPointF)));
-    QWidget::connect(ui.camera1, SIGNAL(setFiducial(QPointF)), this,
+    QWidget::connect(&scene_, SIGNAL(setFiducial(QPointF)), this,
                      SLOT(setFiducial(QPointF)));
 
     QWidget::connect(&qnode, SIGNAL(signalPosition(float,float)), this,
@@ -175,7 +175,7 @@ MainWindow::MainWindow(int version, int argc, char** argv, QWidget *parent) :
     updateDatabaseTable();
 
     initFiducialTable();
-    initPadTable(1);
+    //initPadTable(1);
     id_ = 0;
     sizeDefined_ = false;
     padFileLoaded_ = false;
@@ -187,6 +187,9 @@ MainWindow::MainWindow(int version, int argc, char** argv, QWidget *parent) :
 
     ui.camera1->setScene(&scene_);
     ui.camera1->show();
+
+    ui.camera1_2->setScene(&scene_);
+    ui.camera1_2->show();
 
     ui.camera2->setScene(&scene2_);
     ui.camera2->show();
@@ -1164,27 +1167,17 @@ void MainWindow::closeEvent(QCloseEvent *event) {
 
 void MainWindow::cameraUpdated(int index) {
     if (index == 1) {
-        int width = ui.camera1->width();
-        int height = ui.camera1->height();
-
-        QImage camera1Scaled = qnode.getCamera1()->scaled(width, height,
-                                                          Qt::IgnoreAspectRatio);
-
         scene_.clear();
-        cameraPicture1 = QPixmap::fromImage(camera1Scaled);
+        QGraphicsPixmapItem* item = new QGraphicsPixmapItem(QPixmap::fromImage(*(qnode.getCamera1())));
+        scene_.addItem(item);
 
-        scene_.addPixmap(cameraPicture1);
+        //ui.camera1->fitInView(scene_.sceneRect(), Qt::KeepAspectRatioByExpanding);
+
     } else if (index == 2) {
-        int width = ui.camera2->width();
-        int height = ui.camera2->height();
-
-
-        QImage camera2Scaled = qnode.getCamera2()->scaled(width, height,
-                                                          Qt::IgnoreAspectRatio);
         scene2_.clear();
-        cameraPicture2 = QPixmap::fromImage(camera2Scaled);
-
-        scene2_.addPixmap(cameraPicture2);
+        QGraphicsPixmapItem* item = new QGraphicsPixmapItem(QPixmap::fromImage(*(qnode.getCamera2())));
+        scene2_.addItem(item);
+        //ui.camera2->fitInView(scene2_.sceneRect(), Qt::KeepAspectRatioByExpanding);
     }
 
 }
@@ -1837,11 +1830,8 @@ void MainWindow::on_scanQRButton_clicked() {
 }
 
 void MainWindow::setFiducial(QPointF point) {
-    float percentageX = (100.0 / (float) ui.camera1->width()) * point.x();
-    float percentageY = (100.0 / (float) ui.camera1->height()) * point.y();
-
-    float indexXFull = ((640.0) / 100.0) * percentageX;
-    float indexYFull = ((480.0) / 100.0) * percentageY;
+    float indexXFull = point.x();
+    float indexYFull = point.y();
 
     pap_common::VisionResult res;
     std::cerr << "Sending fiducial search task \n";
@@ -1890,6 +1880,7 @@ void MainWindow::initFiducialTable(void) {
 
 void MainWindow::initPadTable(int rows) {
     // Set size of table
+    /*
     ui.padTable->setRowCount(rows);
     ui.padTable->setColumnCount(6);
 
@@ -1901,6 +1892,7 @@ void MainWindow::initPadTable(int rows) {
     }
     ui.padTable->setHorizontalHeaderLabels(hLabels);
     ui.padTable->setVerticalHeaderLabels(vLabels);
+    */
 }
 
 void MainWindow::setFiducialTable(int number, float xGlobal, float yGlobal) {
@@ -1962,6 +1954,17 @@ void MainWindow::sendGotoFiducial(int indexOfFiducial) {
 void MainWindow::on_inputPad_Button_clicked() {
     //get a filename to open
 
+    if (!sizeDefined_) {
+        QMessageBox msgBox;
+        const QString title = "Not initialized";
+        msgBox.setWindowTitle(title);
+        msgBox.setText(
+                    "Make sure that size is set!");
+        msgBox.exec();
+        msgBox.close();
+        return;
+    }
+
     std::string package_path = ros::package::getPath("PAP_resources");
     QString gerberFile = QFileDialog::getOpenFileName(this, tr("Open Whl file"),
                                                       QString((package_path+"/dispensing").c_str()), tr("Text Files (*.txt  *.Whl)"));
@@ -1974,7 +1977,6 @@ void MainWindow::on_inputPad_Button_clicked() {
     gerberFile = QFileDialog::getOpenFileName(this, tr("Open PasteBot/Top file"),
                                               QString((package_path+"/dispensing").c_str()), tr("Text Files (*.txt  *.PasteBot *.PasteTop)"));
 
-
     bottomLayer_ = false;
     if (gerberFile.contains(".PasteBot")) {
         bottomLayer_ = true;
@@ -1983,11 +1985,24 @@ void MainWindow::on_inputPad_Button_clicked() {
     }
     const char *filenamePaste = gerberFile.toLatin1().data();
 
+    padParser.pixelConversionFactor = 30;
     // First load shape data from .Whl file
     padParser.loadFile(filenamePaste, bottomLayer_);
-    // Then load cad file .PasteBot
-    padParser.setTable(ui.padTable);
+
+    // Build image with QGraphicsItem
+    pic_offset_.width = 0;
+    pic_offset_.height =  -qnode.pcbHeight_ * padParser.pixelConversionFactor;
+    std::cerr << "Background size: " << pic_offset_ << std::endl;
+    padParser.deleteBackground();
+    QImage background = QImage(qnode.pcbWidth_*padParser.pixelConversionFactor, qnode.pcbHeight_ * padParser.pixelConversionFactor, QImage::Format_ARGB32);
+    background.fill(qRgba(0,255,0,200));
+    padParser.setBackGround(background.copy());
+
+    //padParser.setTable(ui.padTable);
     padFileLoaded_ = true;
+
+    //Render image
+    redrawPadView();
 }
 
 void MainWindow::on_padViewSetSize_button_clicked() {
@@ -2022,8 +2037,8 @@ void MainWindow::on_padViewGenerate_button_clicked() {
     // Build image with QGraphicsItem
     padParser.pixelConversionFactor = 30;
     padParser.deleteBackground();
-    pic_size_.width = ui.padView_Image->width();
-    pic_size_.height = ui.padView_Image->height();
+    pic_offset_.width = ui.padView_Image->width();
+    pic_offset_.height = ui.padView_Image->height();
 
     redrawPadView();
 
@@ -2049,8 +2064,8 @@ void MainWindow::gotoPad(QPointF padPos) {
 }
 
 void MainWindow::redrawPadView(){
-    padParser.renderImage(&scenePads_, pic_size_.width, pic_size_.height);
-    padParser.setTable(ui.padTable);
+    padParser.renderImage(&scenePads_, pic_offset_.width, pic_offset_.height);
+    //padParser.setTable(ui.padTable);
     qnode.sendPcbImage(padParser.getMarkerList());
 }
 
@@ -2090,6 +2105,22 @@ void MainWindow::on_calcOrientation_Button_clicked() {
         global2.setX(0);
         global2.setY(0);
     } else {
+
+        for(size_t row = 0; row < ui.fiducialTable->rowCount(); row++){
+            for(size_t col = 0; col < ui.fiducialTable->columnCount(); col++){
+                QTableWidgetItem* item = ui.fiducialTable->item(row,col);
+                if (!item || item->text().isEmpty())
+                {
+                    QMessageBox msgBox;
+                    const QString title = "Calibration failed";
+                    msgBox.setWindowTitle(title);
+                    msgBox.setText("Calibration table not complete");
+                    msgBox.exec();
+                    msgBox.close();
+                    return;
+                }
+            }
+        }
 
         local1.setX(ui.fiducialTable->item(0, 2)->text().toFloat() + xCamera);
         local1.setY(ui.fiducialTable->item(0, 3)->text().toFloat() + yCamera);
@@ -2863,13 +2894,14 @@ void pap_gui::MainWindow::on_scanButton_clicked()
 
         // Render visualization and set up table
 
-        padParser.setTable(ui.padTable);
+        //padParser.setTable(ui.padTable);
         padFileLoaded_ = true;
 
-        pic_size_ = cv_ptr->image.size();
+        pic_offset_.width = -cv_ptr->image.size().width;
+        pic_offset_.height = 0;
 
         padParser.pixelConversionFactor = px_factor_x;
-        padParser.renderImage(&scenePads_, pic_size_.width, pic_size_.height);
+        padParser.renderImage(&scenePads_, pic_offset_.width, pic_offset_.height);
 
         qnode.sendPcbImage(padParser.getMarkerList());
     }

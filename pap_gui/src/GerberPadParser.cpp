@@ -26,6 +26,8 @@ GerberPadParser::GerberPadParser() {
 
     rotation_.setOrigin(tf::Vector3(0, 0, 0));
     rotation_.setRotation(tf::Quaternion(0, 0, 0, 1));
+
+    background_ = QImage();
 }
 
 GerberPadParser::~GerberPadParser() {
@@ -73,7 +75,7 @@ void GerberPadParser::parseShapes(std::string fileName){
         int dcode = 0;
         if(((data.at(i)).at(0)).substr(0,1) == "D"){
             dcode =  std::stoi(((data.at(i)).at(0)).substr(1,((data.at(i)).at(0)).size()));
-            std::cout << "DCode: " << dcode << std::endl;
+            //std::cout << "DCode: " << dcode << std::endl;
             std::string shape_str = ((data.at(i)).at(1));
 
             ShapeInformation shape;
@@ -91,7 +93,7 @@ void GerberPadParser::parseShapes(std::string fileName){
                 shape.rotation = rot;
                 shapeInformationArray_.push_back(shape);
 
-                std::cout << "Detected rectangle with: " << width << " / " << height << " / " << rot << std::endl;
+                //std::cout << "Detected rectangle with: " << width << " / " << height << " / " << rot << std::endl;
             }
             else if(shape_str == "square"){
                 double lenght = strToFloat((data.at(i)).at(2));
@@ -106,7 +108,7 @@ void GerberPadParser::parseShapes(std::string fileName){
                 shape.rotation = rot;
                 shapeInformationArray_.push_back(shape);
 
-                std::cout << "Detected square with: " << lenght << " / " << rot << std::endl;
+                //std::cout << "Detected square with: " << lenght << " / " << rot << std::endl;
             }/*
             else if(shape_str == "roundrect"){
                 double width = strToFloat((data.at(i)).at(2));
@@ -128,152 +130,6 @@ void GerberPadParser::parseShapes(std::string fileName){
         }
 
         std::cerr << std::endl;
-    }
-}
-
-void GerberPadParser::parseShapes2(std::string fileName) {
-    std::ifstream infile;
-    shapeInformationArray_.clear();
-    infile.open(fileName.c_str(), std::ios::in);
-    std::string line;
-    while (std::getline(infile, line)) {
-        if (line[0] == '%') {
-            continue;
-        }
-
-        // D-Codes
-        if (line[0] == 'D') {
-            std::size_t emptyFound = line.find(" ");
-            if (emptyFound != std::string::npos) {
-                QString* dCodeIndexStr = new QString(
-                            line.substr(1, emptyFound - 1).c_str());
-                int dCode = dCodeIndexStr->toInt();
-                //ROS_INFO("D-Code : %d ", dCode);
-                std::size_t wordFound = line.find_first_not_of(" ", emptyFound);
-                if (wordFound != std::string::npos) {
-                    std::size_t emptyFound2 = line.find(" ", wordFound);
-                    if (emptyFound2 != std::string::npos) {
-
-                        // String
-                        std::string shapeStr = line.substr(wordFound,
-                                                           emptyFound2 - wordFound);
-                        //ROS_INFO("Shapestr : %s", shapeStr.c_str());
-
-                        if (shapeStr == "square") {
-                            size_t xFound = line.find("x", emptyFound2 + 1);
-                            if (xFound != std::string::npos) {
-
-                                // Arguments
-                                QString* firstArgStr = new QString(
-                                            line.substr(emptyFound2,
-                                                        xFound - emptyFound2).c_str());
-                                float firstArg = firstArgStr->toFloat();
-                                QString* secondArgStr =
-                                        new QString(
-                                            line.substr(xFound + 1,
-                                                        line.size()
-                                                        - (xFound + 1)).c_str());
-                                float secondArg = secondArgStr->toFloat();
-                                ROS_INFO(
-                                            "D-Code: %d Square X: %f, Rotation: %f",
-                                            dCode, firstArg, secondArg);
-                                ShapeInformation shape;
-                                shape.shapeIndex = dCode;
-                                shape.shapeStr = shapeStr;
-                                shape.padDimensions.setX(firstArg * 25.4);
-                                shape.padDimensions.setY(firstArg * 25.4);
-                                shape.rotation = secondArg;
-                                shapeInformationArray_.push_back(shape);
-                            } else {
-                                // Arguments
-                                QString* firstArgStr = new QString(
-                                            line.substr(emptyFound2,
-                                                        xFound - emptyFound2).c_str());
-                                float firstArg = firstArgStr->toFloat();
-
-                                ROS_INFO("D-Code: %d Square X: %f, Rotation: 0",
-                                         dCode, firstArg);
-                                ShapeInformation shape;
-                                shape.shapeIndex = dCode;
-                                shape.shapeStr = shapeStr;
-                                shape.padDimensions.setX(firstArg * 25.4);
-                                shape.padDimensions.setY(firstArg * 25.4);
-                                shape.rotation = 0.0;
-                                shapeInformationArray_.push_back(shape);
-                            }
-                        }
-
-                        else if (shapeStr == "draw") {
-                            QString* drawArgStr = new QString(
-                                        line.substr(emptyFound2,
-                                                    line.size() - emptyFound2).c_str());
-                            float drawArg = drawArgStr->toFloat();
-                            //ROS_INFO("Arg : %f", drawArg);
-                            ShapeInformation shape;
-                            shape.shapeIndex = dCode;
-                            shape.shapeStr = shapeStr;
-                            shape.padDimensions.setX(drawArg);
-                            shapeInformationArray_.push_back(shape);
-                        }
-
-                        else if (shapeStr == "rectangle"
-                                 || shapeStr == "oval") {
-                            size_t xFound = line.find("x", emptyFound2 + 1);
-                            float secondArg = 0.0;
-                            float thirdArg = 0.0;
-
-                            if (xFound != std::string::npos) {
-
-                                // Arguments
-                                QString* firstArgStr = new QString(
-                                            line.substr(emptyFound2,
-                                                        xFound - emptyFound2).c_str());
-                                float firstArg = firstArgStr->toFloat();
-
-                                size_t xFound2 = line.find("x", xFound + 1);
-                                if (xFound2 != std::string::npos) {
-
-                                    QString* secondArgStr =
-                                            new QString(
-                                                line.substr(xFound + 1,
-                                                            xFound2
-                                                            - (xFound
-                                                               + 1)).c_str());
-                                    secondArg = secondArgStr->toFloat();
-
-                                    QString* thirdArgStr =
-                                            new QString(
-                                                line.substr(xFound2 + 1,
-                                                            line.size()
-                                                            - (xFound2
-                                                               + 1)).c_str());
-                                    thirdArg = thirdArgStr->toFloat();
-
-                                } else {
-                                    QString* secondArgStr =
-                                            new QString(
-                                                line.substr(xFound + 1,
-                                                            line.size()
-                                                            - (xFound
-                                                               + 1)).c_str());
-                                    secondArg = secondArgStr->toFloat();
-                                }
-                                ROS_INFO(
-                                            "D-Code: %d Rectangle X: %f, Y: %f, Rotation %f",
-                                            dCode, firstArg, secondArg, thirdArg);
-                                ShapeInformation shape;
-                                shape.shapeIndex = dCode;
-                                shape.shapeStr = shapeStr;
-                                shape.padDimensions.setY(firstArg * 25.4);
-                                shape.padDimensions.setX(secondArg * 25.4);
-                                shape.rotation = thirdArg;
-                                shapeInformationArray_.push_back(shape);
-                            }
-                        }
-                    }
-                }
-            }
-        }
     }
 }
 
@@ -349,17 +205,6 @@ void GerberPadParser::loadFile(std::string fileName, bool bottomLayer) {
     padInformationArray_.clear();
     padInformationArrayPrint_.clear();
 
-    // Outlines are part of the first entry!
-
-    PadInformation outerRect;
-    outerRect.rect.setY(width_ / 2 + pcbSize.x());
-    outerRect.rect.setX(height_ / 2 + pcbSize.y());
-    outerRect.rotation = outerRectRot_;
-    outerRect.rect.setHeight(width_);
-    outerRect.rect.setWidth(height_);
-    padInformationArray_.push_back(outerRect);
-    padInformationArrayPrint_.push_back(outerRect);
-
     float xParsed, yParsed = 0.0;
     std::string line;
     int gCode, dCodeShape = 0;
@@ -385,7 +230,7 @@ void GerberPadParser::loadFile(std::string fileName, bool bottomLayer) {
                     if (gCode == CHANGE_SHAPE) {
                         dCodeShape = dCodeIndexStr->toInt();
                     }
-                    ROS_INFO("D-Code %d ", dCodeShape);
+                    //ROS_INFO("D-Code %d ", dCodeShape);
                 }
             }
             continue;
@@ -396,7 +241,7 @@ void GerberPadParser::loadFile(std::string fileName, bool bottomLayer) {
             QString* mCodeIndexStr = new QString(line.substr(1, 2).c_str());
             int mCodeIndex = mCodeIndexStr->toInt();
             if (mCodeIndex == ENDOFFILE_GERBER) {
-                ROS_INFO("End of file reached");
+                //ROS_INFO("End of file reached");
                 break;
             }
             continue;
@@ -416,11 +261,11 @@ void GerberPadParser::loadFile(std::string fileName, bool bottomLayer) {
                 bottomLayer_ = bottomLayer;
                 newPad.rect.setX((yParsed * 25.4));
                 if (bottomLayer) {
-                    ROS_INFO("Bottom layer detected");
+                    //ROS_INFO("Bottom layer detected");
                     newPad.rect.setY((xParsed * 25.4));
 
                 } else {
-                    ROS_INFO("Top layer detected");
+                    //ROS_INFO("Top layer detected");
                     newPad.rect.setY((xParsed * 25.4));
                 }
                 //newPad.rect.setY(yParsed * 25.4);
@@ -428,11 +273,11 @@ void GerberPadParser::loadFile(std::string fileName, bool bottomLayer) {
                 if (searchShape(dCodeShape, &newPad)) {
                     padInformationArray_.push_back(newPad);
                     padInformationArrayPrint_.push_back(newPad);
-                    ROS_INFO(
-                                "Shape: %d , X-pos: %f , Y-pos: %f, X-Size: %f, Y-Size: %f, Rotation %f, Type: %s  ",
-                                dCodeShape, newPad.rect.x(), newPad.rect.y(),
-                                newPad.rect.width(), newPad.rect.height(),
-                                newPad.rotation, newPad.shapeStr.c_str());
+                    //ROS_INFO(
+                    //            "Shape: %d , X-pos: %f , Y-pos: %f, X-Size: %f, Y-Size: %f, Rotation %f, Type: %s  ",
+                    //            dCodeShape, newPad.rect.x(), newPad.rect.y(),
+                    //            newPad.rect.width(), newPad.rect.height(),
+                    //            newPad.rotation, newPad.shapeStr.c_str());
                 }
             }
         }
@@ -477,9 +322,9 @@ QRectF GerberPadParser::renderImage(QGraphicsScene* scene, int width,
     qDeleteAll(scene->items());
 
     if(!background_.isNull()){
-        std::cerr << "Inserting background...\n";
+        std::cerr << "Inserting background at : " << -width << "...\n";
         background_item_ = new QGraphicsPixmapItem(QPixmap::fromImage(background_));
-        background_item_->setPos(-width,0);
+        background_item_->setPos(width,height);
         scene->addItem(background_item_);
     }
 
@@ -515,11 +360,8 @@ QRectF GerberPadParser::renderImage(QGraphicsScene* scene, int width,
         QGraphicsRectItem* rect =  new QGraphicsRectItem(pad.x(), pad.y(), pad.width(), pad.height());
         //gen_data_.push_back(rect);
         rect->setPen(QPen(Qt::red, 1, Qt::SolidLine));
-        if (i != 0) {
-            rect->setBrush(Qt::red);
-        } else {
-            rect->setBrush(Qt::green);
-        }
+        rect->setBrush(Qt::red);
+
         rect->setTransformOriginPoint(padInfo.rect.x() * pixelConversionFactor,
                                       (padInfo.rect.y() * pixelConversionFactor));
         rect->setRotation(padInfo.rotation);
@@ -534,7 +376,6 @@ int GerberPadParser::searchId(QPointF position, int height) {
     QPointF convPoint;
     convPoint.setX(position.x());
     convPoint.setY(position.y());
-    // First rect is outline
     for (std::size_t i = 0; i < printedRects.size(); i++) {
         if (printedRects[i].contains(convPoint)) {
             return i;
@@ -656,17 +497,17 @@ void GerberPadParser::rotatePads(void) {
     // coordinate system
 
     tf::Transform backTransform = transformIntoGlobalPoint_;
-    for (size_t i = 0; i < padInformationArray_.size(); i++) {
+    for (size_t i = 0; i < padInformationArrayPrint_.size(); i++) {
 
         tf::Point pointToTransform;
         // This point should be transformed
-        pointToTransform.setX(padInformationArray_[i].rect.x());
-        pointToTransform.setY(padInformationArray_[i].rect.y());
+        pointToTransform.setX(padInformationArrayPrint_[i].rect.x());
+        pointToTransform.setY(padInformationArrayPrint_[i].rect.y());
         pointToTransform.setZ(0.0);
 
         float width, height = 0.0;
-        width = padInformationArray_[i].rect.width();
-        height = padInformationArray_[i].rect.height();
+        width = padInformationArrayPrint_[i].rect.width();
+        height = padInformationArrayPrint_[i].rect.height();
 
         pointToTransform = transformIntoGlobalPoint_ * pointToTransform;
         pointToTransform = rotation_ * pointToTransform;
@@ -677,7 +518,7 @@ void GerberPadParser::rotatePads(void) {
         padInformationArray_[i].rect.setY(pointToTransform.y());
         padInformationArray_[i].rect.setWidth(width);
         padInformationArray_[i].rect.setHeight(height);
-        padInformationArray_[i].rotation = padInformationArray_[i].rotation
+        padInformationArray_[i].rotation = padInformationArrayPrint_[i].rotation
                 - (differenceAngle_ * (180.0 / M_PI));
     }
 

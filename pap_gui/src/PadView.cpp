@@ -13,6 +13,7 @@
 
 graphicsScene::graphicsScene(QWidget *parent) :
     QGraphicsScene(parent) {
+    drawing  = false;
 
 }
 
@@ -57,38 +58,43 @@ void graphicsScene::mousePressEvent(QGraphicsSceneMouseEvent* event){
 
         this->addItem(temp_rect);
         update(QRectF(x_press, y_press, 1,1));
+        drawing = true;
     }
 }
 
 void graphicsScene::mouseMoveEvent(QGraphicsSceneMouseEvent* event){
 
-    width_press_ = event->scenePos().x() - x_press;
-    height_press_ = event->scenePos().y() - y_press;
+    if(drawing){
+        width_press_ = event->scenePos().x() - x_press;
+        height_press_ = event->scenePos().y() - y_press;
 
-    temp_rect->setRect(x_press, y_press, width_press_ , height_press_);
-    //temp_rect = new QGraphicsRectItem(x_press, y_press, width_press_ , height_press_);
-    update(QRectF(x_press, y_press, width_press_, height_press_));
+        temp_rect->setRect(x_press, y_press, width_press_ , height_press_);
+        //temp_rect = new QGraphicsRectItem(x_press, y_press, width_press_ , height_press_);
+        update(QRectF(x_press, y_press, width_press_, height_press_));
+    }
 }
 
 void graphicsScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *event){
+    if(drawing){
+        QMessageBox msgBox;
+        msgBox.setWindowTitle("New pad");
+        msgBox.setText("Create new pad?");
+        msgBox.setStandardButtons(QMessageBox::Yes);
+        msgBox.addButton(QMessageBox::No);
+        msgBox.setDefaultButton(QMessageBox::Yes);
 
-    QMessageBox msgBox;
-    msgBox.setWindowTitle("New pad");
-    msgBox.setText("Create new pad?");
-    msgBox.setStandardButtons(QMessageBox::Yes);
-    msgBox.addButton(QMessageBox::No);
-    msgBox.setDefaultButton(QMessageBox::Yes);
+        if (msgBox.exec() == QMessageBox::Yes) {
+            std::cerr << "Creating new pad...\n";
+            Q_EMIT createPad(QRectF(x_press, y_press, width_press_, height_press_));
+        }else{
+            this->removeItem(temp_rect);
+            delete temp_rect;
+            temp_rect = NULL;
+        }
 
-    if (msgBox.exec() == QMessageBox::Yes) {
-        std::cerr << "Creating new pad...\n";
-        Q_EMIT createPad(QRectF(x_press, y_press, width_press_, height_press_));
-    }else{
-        this->removeItem(temp_rect);
-        delete temp_rect;
-        temp_rect = NULL;
+        update(QRectF(x_press, y_press, width_press_, height_press_));
+        drawing = false;
     }
-
-    update(QRectF(x_press, y_press, width_press_, height_press_));
 }
 
 
@@ -113,6 +119,7 @@ void PadView::wheelEvent(QWheelEvent * event) {
     }
 
     else {
+        this->setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
         if (event->delta() > 0) {
             scale(1.2, 1.2);
         } else {
