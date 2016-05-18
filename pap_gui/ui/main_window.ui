@@ -40,7 +40,7 @@
        <locale language="English" country="Australia"/>
       </property>
       <property name="currentIndex">
-       <number>4</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="ComponentPlacement">
        <attribute name="title">
@@ -1017,7 +1017,7 @@
                        </sizepolicy>
                       </property>
                       <property name="currentIndex">
-                       <number>0</number>
+                       <number>2</number>
                       </property>
                       <widget class="QWidget" name="tab_14">
                        <attribute name="title">
@@ -1258,6 +1258,13 @@
                            </widget>
                           </item>
                          </layout>
+                        </item>
+                        <item>
+                         <widget class="QPushButton" name="calibrate_dispenser_button">
+                          <property name="text">
+                           <string>Calibrate Dispenser Nozzle</string>
+                          </property>
+                         </widget>
                         </item>
                         <item>
                          <widget class="QPushButton" name="disp_settings_apply">

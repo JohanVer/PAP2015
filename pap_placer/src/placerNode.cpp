@@ -87,10 +87,7 @@ bool calibrateOffsets() {
         return false;
 
     if(!calibrateTip1())
-        return false;
-
-    //if(!calibrateDispenser())
-    //    return false;
+        return false;  
 
     //if(!calibrateTip2())
     //    return false;
@@ -194,8 +191,11 @@ bool calibrateDispenser() {
     if(!driveToCoord(dispenser.x, dispenser.y, dispenser.z))
         return false;
 
-    ros::Duration(3).sleep();
+    ros::Duration(1).sleep();
     arduino_client->LEDTask(pap_common::SETBOTTOMLED, 0);
+    ros::Duration(0.5).sleep();
+    arduino_client->LEDTask(pap_common::SETBRIGHTNESSRING, 40);
+    ros::Duration(0.5).sleep();
 
     ROS_INFO("Placerstate: DISPENSER - Start Vision");
     pap_common::VisionResult res;
@@ -203,7 +203,7 @@ bool calibrateDispenser() {
         return false;
 
     ROS_INFO("Placerstate: DISPENSER - cameraOffset received");
-    placeController.updatedispenserTipOffset(res.data2, res.data1);
+    placeController.updatedispenserTipOffset(res.data1, res.data2);
 
     arduino_client->LEDTask(pap_common::RESETBOTTOMLED, 0);
 
@@ -238,7 +238,7 @@ bool calibrateTip2() {
         return false;
 
     ROS_INFO("Placerstate: TIP2 - cameraOffset received");
-    placeController.updateTip2Offset(res.data2, res.data1);
+    placeController.updateTip2Offset(res.data1, res.data2);
 
     arduino_client->LEDTask(pap_common::RESETBOTTOMLED, 0);
 
@@ -738,6 +738,7 @@ bool dispensePCB(std::vector<dispenseInfo> dispense_task, double dispense_height
             }
         }
         else{
+            velocity = DISPENSER_CONN_SPEED;
             switchDispenser(false);
         }
 
@@ -1169,6 +1170,13 @@ void placerCallback(const pap_common::TaskConstPtr& taskMsg) {
             }
         }
             break;
+
+        case pap_common::CALIBRATE_DISPENSER: {
+            std::cerr << "Starting dispenser calibration ...\n";
+            if(!calibrateDispenser())
+                std::cerr << "Failed to calibrate dispenser nozzle ...\n";
+        }
+            break;
         }
     }
     }
@@ -1177,7 +1185,7 @@ void placerCallback(const pap_common::TaskConstPtr& taskMsg) {
 void dispenserCallbackPlacer(const pap_common::DispenseTasksConstPtr& taskMsg) {
     std::cerr << "received dispenser task\n";
 
-    Offset tipOffset = placeController.tip1Offset;
+    Offset tipOffset = placeController.dispenserTipOffset;
 
     std::vector<dispenseInfo> dispense_task;
     for(size_t i = 0; i < taskMsg->lines.size(); i++){

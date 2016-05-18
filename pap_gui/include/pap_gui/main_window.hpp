@@ -276,6 +276,8 @@ private slots:
     void on_disp_settings_apply_clicked();
 
 
+    void on_calibrate_dispenser_button_clicked();
+
 private:
 
 	Ui::MainWindowDesign ui;

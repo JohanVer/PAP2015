@@ -47,9 +47,9 @@ PlaceController::PlaceController() {
     tip1Offset.x = -95;
     tip1Offset.y = 0;
     tip1Offset.z = 50;
-	dispenserTipOffset.x = -53.42;
-	dispenserTipOffset.y = 37.89;
-	dispenserTipOffset.z = 49-10;
+    dispenserTipOffset.x = -53.2;
+    dispenserTipOffset.y = 37,31;
+    dispenserTipOffset.z = 37;
 
 	// Calibration offsets - QR Code positions
 	SLOT_QR_Offset_.x = 109.92;

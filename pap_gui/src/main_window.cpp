@@ -2919,3 +2919,8 @@ void pap_gui::MainWindow::on_disp_settings_apply_clicked()
 
 }
 
+
+void pap_gui::MainWindow::on_calibrate_dispenser_button_clicked()
+{
+    qnode.sendTask(pap_common::PLACER, pap_common::CALIBRATE_DISPENSER);
+}
