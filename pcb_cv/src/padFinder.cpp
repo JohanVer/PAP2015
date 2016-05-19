@@ -364,10 +364,15 @@ bool padFinder::findChip(cv::Mat* input, unsigned int camera_select, smdPart &pa
             smd.y = rect.center.y;
             smd.width = rect.size.height;
             smd.height = rect.size.width;
-            if(smd.rot == -90.0 | smd.rot == 90.0){
+            smd.rot = rect.angle;       // Range [-90,0)
+            if(smd.rot == -90.0){       // Now: (-90,0]
                 smd.rot = 0.0;
             }
-            smd.rot = rect.angle;
+
+            if(rect.size.height > rect.size.width) {    // Now: (-90,90]
+                smd.rot += 90;
+            }
+
             smdObjects.push_back(smd);
             cv::drawContours(final, contours, i, CV_RGB(0, 255, 0), 2);
         }

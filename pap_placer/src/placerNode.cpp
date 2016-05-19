@@ -92,9 +92,6 @@ bool calibrateOffsets() {
     //if(!calibrateTip2())
     //    return false;
 
-    if(!homeSystem())
-        return false;
-
     return true;
 }
 
@@ -544,14 +541,39 @@ bool singleCompPlacement() {
             return false;
     }
 
-    if(!pickUpComponent())
+    ROS_INFO("PLACER: Going to pickup coords");
+    Offset pickupCoord = placeController.getCompPickUpCoordinates();
+    ROS_INFO("PLACER: Go to x:%f y:%f z:%f", pickupCoord.x, pickupCoord.y, pickupCoord.z);
+    if(!driveToCoord(pickupCoord.x, pickupCoord.y, pickupCoord.z))
         return false;
 
-    /*if(!checkCompPickUp())
-        return false;*/
+    ROS_INFO("PLACER: Picking up component");
+    pickupCoord.z = placeController.getCompSuckingHeight();
+    pickUp(pickupCoord.z);
 
-    if(!placeComponent())
+    int rotation = (int) placeController.getCompPickUpCoordinates().rot;
+    ROS_INFO("PLACER: Rotate component by %d", rotation);
+    arduino_client->sendStepperTask(placeController.getTip(), rotation);
+    ros::Duration(1).sleep();
+
+    ROS_INFO("PLACER: Check pickup");
+    Offset botCam = placeController.getBottomCamCoordinates();
+    ROS_INFO("PLACER: Go to x:%f y:%f z:%f", botCam.x, botCam.y, botCam.z);
+    if(!driveToCoord(botCam.x, botCam.y, botCam.z))
         return false;
+
+    ros::Duration(5).sleep();
+
+    ROS_INFO("PLACER: Going to place coord");
+    sendPlacerStatus(pap_common::GOTOPCBCOMP_STATE, pap_common::PLACER_ACTIVE);
+    Offset placeCoord = placeController.getCompPlaceCoordinates();
+    ROS_INFO("PLACER: Go to x:%f y:%f z:%f", placeCoord.x, placeCoord.y, placeCoord.z);
+    if(!driveToCoord(placeCoord.x, placeCoord.y, placeCoord.z))
+        return false;
+
+    ROS_INFO("PLACER: Placing component");
+    placeCoord.z = placeController.getCompPlaceHeight();
+    placeComp(placeCoord.z);
 
     return true;
 }
@@ -585,128 +607,6 @@ bool goToBox() {
     ROS_INFO("PickUp correction offset: x:%f y:%f, rot:%f",res.data1, res.data2, res.data3);
 
     ros::Duration(3).sleep();
-    return true;
-}
-
-bool pickUpComponent() {
-
-    ROS_INFO("Placerstate: GOTOPICKUPCOOR");
-    Offset pickupCoord = placeController.getCompPickUpCoordinates();
-    ROS_INFO("Go to: x:%f y:%f z:%f", pickupCoord.x, pickupCoord.y, pickupCoord.z);
-    if(!driveToCoord(pickupCoord.x, pickupCoord.y, pickupCoord.z))
-        return false;
-
-    ROS_INFO("PlacerState: STARTPICKUP");
-    sendPlacerStatus(pap_common::STARTPICKUP_STATE,
-                     pap_common::PLACER_ACTIVE);
-    ros::Duration(1).sleep();
-
-    if (placeController.getTip() == TIP::RIGHT_TIP) {		// Activate tip
-        moveTip(TIP::RIGHT_TIP, true);
-    } else {
-        moveTip(TIP::LEFT_TIP, true);
-    }
-    ros::Duration(1).sleep();
-
-    //Offset suckCoord = placeController.getCompPickUpCoordinates();
-    pickupCoord.z = placeController.getCompSuckingHeight();
-    ROS_INFO("Go to: x:%f y:%f z:%f", pickupCoord.x, pickupCoord.y, pickupCoord.z);
-    if(!motor_send_functions::sendMotorControllerAction(*motor_action_client, pap_common::COORD,
-                                                        pickupCoord.x, pickupCoord.y, pickupCoord.z)){
-        return false;
-    }
-
-    switchVacuum(true);
-
-    if (placeController.getTip() == TIP::RIGHT_TIP) {
-        forwardVacuum(TIP::RIGHT_TIP, true);
-    } else {
-        forwardVacuum(TIP::LEFT_TIP, true);
-    }
-
-    ros::Duration(1).sleep();
-
-    if (placeController.getTip() == TIP::RIGHT_TIP) {		// Release tip
-        moveTip(TIP::RIGHT_TIP, false);
-    } else {
-        moveTip(TIP::LEFT_TIP, false);
-    }
-    ros::Duration(1).sleep();
-
-    int rotation = (int) placeController.getCompPickUpCoordinates().rot;
-    arduino_client->sendStepperTask(placeController.getTip(), rotation);	// Turn component
-    ROS_INFO("Placer - Rotation: rot:%d", rotation);
-    ros::Duration(1).sleep();
-    return true;
-}
-
-bool checkCompPickUp() {
-
-    ROS_INFO("PlacerState: GOTOBOTTOMCAM");
-    Offset botCam = placeController.getBottomCamCoordinates();
-    ROS_INFO("Go to: x:%f y:%f z:%f", botCam.x, botCam.y, botCam.z);
-
-    if(!driveToCoord(botCam.x, botCam.y, botCam.z))
-        return false;
-
-    ROS_INFO("Placerstate: GOTOBOTTOMCAM - Vision started");
-    float length = placeController.getComponentLenth();
-    float width = placeController.getComponentWidth();
-
-    /*sendTask(pap_common::VISION,						// TODO: Start appropriate vision here!
-     pap_vision::CHIP_BOTTOM, width, length,
-     0);*/
-
-    ROS_INFO("Placerstate: CHECKCOMPPICKUP - Got feedback from vision");
-    return true;
-}
-
-bool placeComponent() {
-    ROS_INFO("Placerstate: GOTOPLACECOORD");
-    sendPlacerStatus(pap_common::GOTOPCBCOMP_STATE, pap_common::PLACER_ACTIVE);
-    Offset placeCoord = placeController.getCompPlaceCoordinates();
-    ROS_INFO("Go to: x:%f y:%f z:%f", placeCoord.x, placeCoord.y, placeCoord.z);
-    if(!driveToCoord(placeCoord.x, placeCoord.y, placeCoord.z))
-        return false;
-
-    ROS_INFO("PlacerState: PLACECOMPONENT");
-    sendPlacerStatus(pap_common::PLACECOMPONENT_STATE,
-                     pap_common::PLACER_ACTIVE);
-
-    if (placeController.getTip() == TIP::RIGHT_TIP) {  // Activate cylinder
-        moveTip(TIP::RIGHT_TIP, true);
-    } else {
-        moveTip(TIP::LEFT_TIP, true);
-    }
-    ros::Duration(1).sleep();
-
-    placeCoord.z = placeController.getCompPlaceHeight();
-    ROS_INFO("Go to: x:%f y:%f z:%f", placeCoord.x, placeCoord.y, placeCoord.z);
-    if(!motor_send_functions::sendMotorControllerAction(*motor_action_client, pap_common::COORD,
-                                                        placeCoord.x, placeCoord.y, placeCoord.z)){
-        return false;
-    }
-
-    switchVacuum(false);
-
-    if (placeController.getTip() == TIP::RIGHT_TIP) {
-        forwardVacuum(TIP::RIGHT_TIP, false);
-    } else {
-        forwardVacuum(TIP::LEFT_TIP, false);
-    }
-    ros::Duration(1).sleep();
-
-    if (placeController.getTip() == TIP::RIGHT_TIP) {		// Release tip
-        moveTip(TIP::RIGHT_TIP, false);
-    } else {
-        moveTip(TIP::LEFT_TIP, false);
-    }
-
-    ros::Duration(1).sleep();
-
-    // Indicates placement finished & if complPlacement gui sends new data and restarts process
-    sendPlacerStatus(pap_common::PLACECOMPONENT_STATE,
-                     pap_common::PLACER_FINISHED);
     return true;
 }
 
@@ -779,7 +679,6 @@ bool goToPCBOrigin() {
 
 bool pickUp(double height){
     processAllStatusCallbacks();
-    ROS_INFO("PlacerState: STARTPICKUP");
     sendPlacerStatus(pap_common::STARTPICKUP_STATE,
                      pap_common::PLACER_ACTIVE);
     ros::Duration(1).sleep();
@@ -817,9 +716,9 @@ bool pickUp(double height){
     return true;
 }
 
+
 bool placeComp(double height){
     processAllStatusCallbacks();
-
     sendPlacerStatus(pap_common::PLACECOMPONENT_STATE,
                      pap_common::PLACER_ACTIVE);
 

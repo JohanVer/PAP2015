@@ -197,12 +197,12 @@ Offset PlaceController::getCompPickUpCoordinates() {
         temp.y = pickUpAreaOffset.y
                 + BoxOffsetTable[currentComponent.box].y
                 + PickUpCorrection.y;
-        temp.rot = PickUpCorrection.rot;
+        temp.rot = PickUpCorrection.rot + fmod(currentComponent.rotation,180);
     } else if ((currentComponent.box >= 67) && (currentComponent.box <= 86)) {
         // Its a tape
         temp.x = currentComponent.tapeX;
         temp.y = currentComponent.tapeY;
-        temp.rot = currentComponent.tapeRot;
+        temp.rot = currentComponent.tapeRot + fmod(currentComponent.rotation,180);
     }
 
     switch (tip) {
@@ -237,13 +237,13 @@ Offset PlaceController::getCompPlaceCoordinates() {
         temp.x = currentComponent.destX + tip1Offset.x;
         temp.y = currentComponent.destY + tip1Offset.y;
         temp.z = 45.0;
-        temp.rot = currentComponent.rotation;
+        temp.rot = currentComponent.rotation;   // Not used
         break;
     case RIGHT_TIP:
         temp.x = currentComponent.destX + tip2Offset.x;
         temp.y = currentComponent.destY + tip2Offset.y;
         temp.z = 45.0;
-        temp.rot = currentComponent.rotation;
+        temp.rot = currentComponent.rotation;   // Not used
         break;
     }
     return temp;
