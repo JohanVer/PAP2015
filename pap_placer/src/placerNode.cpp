@@ -918,6 +918,7 @@ void processAllStatusCallbacks(){
     }
 }
 
+
 /*****************************************************************************
  * Callback functions - Implementation
  *****************************************************************************/
@@ -1111,12 +1112,3 @@ void sendPlacerStatus(pap_common::PROCESS process,
     statusMsg.status = status;
     placerStatus_publisher_.publish(statusMsg);
 }
-
-void sendPlacerInfo(int state) {
-    pap_common::PlacerStatus statusMsg;
-    statusMsg.process = pap_common::INFO;
-    statusMsg.status = state;
-    placerStatus_publisher_.publish(statusMsg);
-}
-
-

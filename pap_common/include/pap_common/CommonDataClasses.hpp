@@ -24,6 +24,11 @@ enum DispenserTask{
 };
 }
 
+enum TIP {
+    LEFT_TIP = 1,
+    RIGHT_TIP = 2
+};
+
 class databaseEntry {
 public:
     QString package;

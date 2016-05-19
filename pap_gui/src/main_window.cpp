@@ -528,7 +528,7 @@ void MainWindow::on_startPlacementButton_clicked() {
         if (msgBox.exec() == QMessageBox::Yes) {
             completePlacementRunning = true;
             componentIndicator = 0;
-            updatePlacementData(componentList[componentIndicator]);
+            updatePlacementData(componentList[componentIndicator], TIP::LEFT_TIP);
             qnode.sendTask(pap_common::PLACER, pap_common::COMPLETEPLACEMENT,
                            placementData);
             ui.label_placement->setText("Running ...");
@@ -975,8 +975,9 @@ void MainWindow::on_goToPCBButton_clicked() {
     qnode.sendTask(pap_common::PLACER, pap_common::GOTOPCB, placementData);
 }
 
+
 // Package that is going to be sent to placeController
-void MainWindow::updatePlacementData(componentEntry &singleComponentIn) {
+void MainWindow::updatePlacementData(componentEntry &singleComponentIn, TIP usedTip) {
 
     componentEntry entryToTransform;
     entryToTransform = singleComponentIn;
@@ -1020,7 +1021,6 @@ void MainWindow::on_placeSingleComponentButton_clicked() {
         showSelectCompMessage();
         return;
     }
-    // Do not need to check if package known -> if not no slot can be assigned!
 
     // Missing slots?
     if (componentList.at(currentComp).box == -1) {
@@ -1031,15 +1031,14 @@ void MainWindow::on_placeSingleComponentButton_clicked() {
         return;
     }
 
+    updateCurrentNozzles();
+
     // Start placement process
     if (!completePlacementRunning && !singlePlacementRunning) {
         QMessageBox msgBox;
         QString message =
-                QString(
-                    "You are about to start a single placement process. Please make sure component %1 is in slot %2. \n\nClick yes to start process.").arg(
-                    QString::fromStdString(
-                        componentList.at(currentComp).name)).arg(
-                    componentList.at(currentComp).box);
+                QString("You are about to start a single placement process. Please make sure component %1 is in slot %2. \n\nClick yes to start process.").arg(
+                    QString::fromStdString(componentList.at(currentComp).name)).arg(componentList.at(currentComp).box);
         msgBox.setWindowTitle("Confirm to start placement");
         msgBox.setText(message);
         msgBox.setStandardButtons(QMessageBox::Yes);
@@ -1048,7 +1047,7 @@ void MainWindow::on_placeSingleComponentButton_clicked() {
         if (msgBox.exec() == QMessageBox::Yes) {
             ROS_INFO("GUI: Placement started");
             singlePlacementRunning = true;
-            updatePlacementData(componentList[currentComp]);
+            updatePlacementData(componentList[currentComp], TIP::LEFT_TIP);
             qnode.sendTask(pap_common::PLACER, pap_common::SINGLEPLACEMENT,
                            placementData);
             ui.label_placement->setText("Running ...");
@@ -1063,6 +1062,42 @@ void MainWindow::on_placeSingleComponentButton_clicked() {
         msgBox.setText("Another placement process has not finished yet.");
         msgBox.exec();
         msgBox.close();
+    }
+}
+
+
+//void MainWindow:startCompletePlacement() {
+    // Create placementPlanner
+    // Send current componentList zu planner
+    // Send currently used nozzles to planner
+
+    // Get component ID for both tip if tip works for components
+    // Placement planner keeps track of placed/missing components
+
+    // Update placement data - left tip - if available
+    // Update placement data - right tip - if available
+
+    // Tell placer to start
+    // Placer checks if one or both tips have new data available
+    // Set completeplacement flag
+//}
+
+void MainWindow::updateCurrentNozzles() {
+    // Get current nozzles
+    QString leftNozzle = ui.leftNozzle_comboBox->currentText();
+    QString rightNozzle = ui.rightNozzle_comboBox->currentText();
+
+    float currentLeftNozzle, currentRightNozzle = 0;
+    if(leftNozzle == "-") {
+        currentLeftNozzle = -1;
+    } else {
+        currentLeftNozzle = leftNozzle.toFloat();
+    }
+
+    if(rightNozzle == "-") {
+        currentRightNozzle = -1;
+    } else {
+        currentRightNozzle = rightNozzle.toFloat();
     }
 }
 
@@ -1309,7 +1344,7 @@ void MainWindow::placerStatusUpdated(int state, int status) {
         if (componentIndicator < (componentList.size()-1)
                 && componentIndicator != -1) {
             componentIndicator++;
-            updatePlacementData(componentList[componentIndicator]);
+            updatePlacementData(componentList[componentIndicator], TIP::LEFT_TIP);
             ROS_INFO("GUI: Next component. Indicator: [%i]",
                      componentIndicator);
             ROS_INFO("ComponentList size: [%d]", componentList.size());

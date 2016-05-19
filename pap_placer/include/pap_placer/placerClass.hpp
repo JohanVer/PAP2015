@@ -10,6 +10,7 @@
 #include <pap_common/task_message_def.h>
 #include <pap_common/status_message_def.h>
 #include <pap_common/vision_message_def.h>
+#include <pap_common/CommonDataClasses.hpp>
 #include <stdio.h>
 #include <cstdio>
 
@@ -22,10 +23,6 @@ using namespace std;
  ** Class implementation
  *****************************************************************************/
 
-enum TIP {
-    LEFT_TIP = 1,
-    RIGHT_TIP = 2
-};
 
 class dispenseInfos{
 public:

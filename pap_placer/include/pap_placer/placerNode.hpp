@@ -90,10 +90,7 @@ void visionStatusCallback(const pap_common::VisionStatusConstPtr& statusMsg);
 void placerCallback(const pap_common::TaskConstPtr& taskMsg);
 void dispenserCallbackPlacer(const pap_common::DispenseTasksConstPtr &taskMsg);
 
-void sendPlacerStatus(pap_common::PROCESS process,
-                      pap_common::PLACER_STATUS status);
-void sendPlacerInfo(int state);
-
+void sendPlacerStatus(pap_common::PROCESS process, pap_common::PLACER_STATUS status);
 
 // Placer functions
 bool pickUp(double height);
@@ -110,9 +107,6 @@ bool calibrateBottomCamDistortion();
 
 bool singleCompPlacement();
 bool goToBox();
-bool pickUpComponent();
-bool checkCompPickUp();
-bool placeComponent();
 
 bool dispensePCB();
 bool goToPCBOrigin();

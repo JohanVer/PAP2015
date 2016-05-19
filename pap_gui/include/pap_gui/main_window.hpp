@@ -96,6 +96,7 @@ public:
 	void closeEvent(QCloseEvent *event); // Overloaded function
 	void showNoMasterMessage();
 	void showSelectCompMessage();
+    void updateCurrentNozzles();
 
 public Q_SLOTS:
 	/******************************************
@@ -220,7 +221,7 @@ public Q_SLOTS:
     void dispenseSinglePad(QPointF point);
 
     void on_goToPCBButton_clicked();
-    void updatePlacementData(componentEntry &singleComponentIn);
+    void updatePlacementData(componentEntry &singleComponentIn, TIP usedTip);
 
     void keyPressEvent(QKeyEvent *e);
     void keyReleaseEvent(QKeyEvent *e);
