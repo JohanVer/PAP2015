@@ -6,9 +6,10 @@
 
 Johan:
 * Dispenser-Planner: Modify dispenser height
-* Background image fix 
-* Calibration button should not make a difference by pressing it twice
-* All in one window calibration
+* CHECKED Background image fix 
+* CHECKED Calibration button should not make a difference by pressing it twice
+* CHECKED All in one window calibration
+* Implement Dot planner and add parameters to gui
 * Saving all parameters and calibration value in a xml file
 * Documentation: PCB_CV (Algorithms, Stitcher...)
 * Documentation: MOTOR_CONTROLLER (Low Level, Interface)
