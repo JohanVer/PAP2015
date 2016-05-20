@@ -99,6 +99,9 @@ public:
     pap_vision::VISION finderType;
     ComponentPlacerData currentComponent;
 
+    // Twp tip placement
+
+
 	Offset SLOT_QR_Offset_, PCB_QR_Offset_;
 	Offset TAPE_QR_Offset_, BottomCam_QR_Offset_;
     Offset Checkerboard_top1_Offset_, Checkerboard_top2_Offset_;

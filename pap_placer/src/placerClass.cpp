@@ -293,6 +293,17 @@ int PlaceController::getTip() {
 * Update placement data
 ******************************************************/
 void PlaceController::updatePlacementData(ComponentPlacerData * data) {
+    // Now: get tip info -> distinguish -> need to comp infos stores (for each tip, if both used)
+    /*if(tip == TIP::LEFT_TIP) {
+        leftTipComponent.box = data->box;
+        ...
+        componentWaiting = true;
+    } else {
+        rightTipComponent.box = data->box;
+        ...
+        componentWaiting = true;
+    }*/
+
     currentComponent.box = data->box;
     currentComponent.destX = data->destX;
     currentComponent.destY = data->destY;

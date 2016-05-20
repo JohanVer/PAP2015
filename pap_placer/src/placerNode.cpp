@@ -558,14 +558,29 @@ bool singleCompPlacement() {
     ros::Duration(1).sleep();
 
     ROS_INFO("PLACER: Check pickup");
-    Offset botCam = placeController.getBottomCamCoordinates();
-    ROS_INFO("PLACER: Go to x:%f y:%f z:%f", botCam.x, botCam.y, botCam.z);
-    if(!driveToCoord(botCam.x, botCam.y, botCam.z))
+    Offset checkCoord = placeController.getTip1Coordinates();
+    checkCoord.z += placeController.currentComponent.height;
+    ROS_INFO("PLACER: Go to x:%f y:%f z:%f", checkCoord.x, checkCoord.y, checkCoord.z);
+    if(!driveToCoord(checkCoord.x, checkCoord.y, checkCoord.z))
         return false;
 
-    ros::Duration(5).sleep();
+    ros::Duration(2.0).sleep();
+    if (placeController.getTip() == TIP::RIGHT_TIP) {		// Set tip
+        moveTip(TIP::RIGHT_TIP, true);
+    } else {
+        moveTip(TIP::LEFT_TIP, true);
+    }
+    ros::Duration(1).sleep();
+    arduino_client->LEDTask(pap_common::SETBOTTOMLED, 0);
+    ros::Duration(5).sleep();   
+    arduino_client->LEDTask(pap_common::RESETBOTTOMLED, 0);
+    if (placeController.getTip() == TIP::RIGHT_TIP) {		// Release tip
+        moveTip(TIP::RIGHT_TIP, false);
+    } else {
+        moveTip(TIP::LEFT_TIP, false);
+    }
 
-    ROS_INFO("PLACER: Going to place coord");
+   /* ROS_INFO("PLACER: Going to place coord");
     sendPlacerStatus(pap_common::GOTOPCBCOMP_STATE, pap_common::PLACER_ACTIVE);
     Offset placeCoord = placeController.getCompPlaceCoordinates();
     ROS_INFO("PLACER: Go to x:%f y:%f z:%f", placeCoord.x, placeCoord.y, placeCoord.z);
@@ -574,7 +589,7 @@ bool singleCompPlacement() {
 
     ROS_INFO("PLACER: Placing component");
     placeCoord.z = placeController.getCompPlaceHeight();
-    placeComp(placeCoord.z);
+    placeComp(placeCoord.z);*/
 
     return true;
 }
@@ -972,6 +987,11 @@ void placerCallback(const pap_common::TaskConstPtr& taskMsg) {
             tempComponent.tapeX = taskMsg->velX;
             tempComponent.tapeY = taskMsg->velY;
             tempComponent.tapeRot = taskMsg->velZ;
+            // Distinguish both tips
+            // Write update function with tip as parameter
+            // Flag to indicate which data has been updated, if then start complete process is running
+            // it can distiguish if both or only on tip used etc..
+            // placeController.updatePlacementData(&tempComponent, RIGHT_TIP/LEFT_TIP)
             placeController.updatePlacementData(&tempComponent);
         }
 
