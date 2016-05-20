@@ -229,6 +229,9 @@ MainWindow::MainWindow(int version, int argc, char** argv, QWidget *parent) :
     dispenser_velocity_ = 1.0;
     nozzle_diameter_ = 0.16;
 
+
+    tip_thresholding_on = false;
+
 }
 
 MainWindow::~MainWindow() {
@@ -2231,7 +2234,7 @@ void MainWindow::keyReleaseEvent(QKeyEvent *e) {
 
 void MainWindow::on_startTipFinder_Button_clicked() {
     qnode.sendTask(pap_common::VISION, pap_vision::SEARCH_CIRCLE,
-                   ui.radius_edit->text().toFloat(), 0.0, 0.0);
+                   ui.radius_edit->text().toFloat(), 0.0, (float)tip_thresholding_on);
     displaySMDCoords(0.0, 0.0, 0.0, 0);
     displaySMDCoords(0.0, 0.0, 0.0, 1);
 }
@@ -2914,8 +2917,8 @@ void pap_gui::MainWindow::on_disp_settings_apply_clicked()
     edge_percentage_ = ui.edge_perc_edit->text().toFloat();
     dispenser_velocity_ = ui.dispenser_vel_edit->text().toFloat();
 
-    qnode.sendTask(pap_common::PLACER, pap_common::ADJUST_DISPENSER,
-                   nozzle_diameter_, dispenser_velocity_, 0);
+    //qnode.sendTask(pap_common::PLACER, pap_common::ADJUST_DISPENSER,
+    //               nozzle_diameter_, dispenser_velocity_, 0);
 
 }
 
@@ -2923,4 +2926,9 @@ void pap_gui::MainWindow::on_disp_settings_apply_clicked()
 void pap_gui::MainWindow::on_calibrate_dispenser_button_clicked()
 {
     qnode.sendTask(pap_common::PLACER, pap_common::CALIBRATE_DISPENSER);
+}
+
+void pap_gui::MainWindow::on_radioButton_clicked(bool checked)
+{
+    tip_thresholding_on = checked;
 }

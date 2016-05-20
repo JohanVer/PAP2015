@@ -78,8 +78,8 @@ public:
     bool findChip(cv::Mat* input, unsigned int camera_select, smdPart &part_out);
     bool findSMDTapeAvg(std::vector<cv::Mat> *input, bool searchTapeRotation, smdPart &out);
     bool findSMDTape(cv::Mat &final, bool searchTapeRotation, smdPart &out);
-    bool findTipAvg(std::vector<cv::Mat> *input, enum pap_vision::CAMERA_SELECT camera_select, smdPart &tip);
-    bool findTip(cv::Mat &final, smdPart &out);
+    bool findTipAvg(std::vector<cv::Mat> *input, enum pap_vision::CAMERA_SELECT camera_select, smdPart &tip, bool thresholding);
+    bool findTip(cv::Mat &final, smdPart &out, bool thresholding);
 
     void appendImage(cv::Mat image, cv::Point3d coord);
     void saveStitchingImages();

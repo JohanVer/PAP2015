@@ -21,6 +21,8 @@ PcbCvInterface::PcbCvInterface() : as_(nh_, "vision_actions", boost::bind(&PcbCv
     img_gather_counter = 0;
     gather_top_images_ = false;
     gather_bottom_images_ = false;
+
+    tip_thresholding = false;
 }
 
 void PcbCvInterface::gatherImages(size_t num_images, std::vector<cv::Mat> &images, enum pap_vision::CAMERA_SELECT camera_sel ){
@@ -304,12 +306,14 @@ cv:Mat composed_img = cv::imread(string(getenv("PAPRESOURCES")) + "training_data
 
     case pap_vision::SEARCH_CIRCLE:{
         finder.setSize(command->data1, command->data2);
+
+        bool thresholding = (bool) command->data3;
         cameraSelect = command->cameraSelect;
         std::vector<cv::Mat> images;
         gatherImages(command->numAverages, images, (pap_vision::CAMERA_SELECT) cameraSelect);
 
         smdPart tip;
-        if(finder.findTipAvg(&images, (pap_vision::CAMERA_SELECT) cameraSelect, tip)){
+        if(finder.findTipAvg(&images, (pap_vision::CAMERA_SELECT) cameraSelect, tip,thresholding)){
             pap_common::VisionResult res;
             res.data1 = tip.x;
             res.data2 = tip.y;
@@ -504,7 +508,7 @@ void PcbCvInterface::imageCallback2(const sensor_msgs::ImageConstPtr& msg) {
             break;
 
         case CIRCLE:
-            if(finder.findTip(input2, smd)){
+            if(finder.findTip(input2, smd, tip_thresholding)){
                 visionMsg.task = pap_vision::SEARCH_CIRCLE;
                 visionMsg.data1 = smd.x;
                 visionMsg.data2 = smd.y;
@@ -607,6 +611,7 @@ void PcbCvInterface::parseTask(const pap_common::TaskConstPtr& taskMsg) {
 
         case pap_vision::SEARCH_CIRCLE:
             finder.setSize(taskMsg->data1, taskMsg->data2);
+            tip_thresholding = (bool) taskMsg->data3;
             visionState = CIRCLE;
             break;
         }

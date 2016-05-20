@@ -170,13 +170,13 @@ void padFinder::setLabel(cv::Mat& im, const std::string label,
     cv::putText(im, label, pt, fontface, scale, CV_RGB(0, 0, 0), thickness, 8);
 }
 
-bool padFinder::findTipAvg(std::vector<cv::Mat> *input, enum pap_vision::CAMERA_SELECT camera_select, smdPart &tip){
+bool padFinder::findTipAvg(std::vector<cv::Mat> *input, enum pap_vision::CAMERA_SELECT camera_select, smdPart &tip, bool thresholding){
     size_t num_img = input->size();
     size_t num_avg = 0;
 
     for(size_t i = 0; i < num_img; i++){
         smdPart tip_temp;
-        if(findTip(input->at(i),tip_temp)){
+        if(findTip(input->at(i),tip_temp,thresholding)){
             tip.x += tip_temp.x;
             tip.y += tip_temp.y;
             tip.rot += tip_temp.rot;
@@ -213,7 +213,7 @@ void padFinder::saveStitchingImages(){
     myfile.close();
 }
 
-bool padFinder::findTip(cv::Mat &final, smdPart &out) {
+bool padFinder::findTip(cv::Mat &final, smdPart &out, bool thresholding) {
     cv::Mat gray;
     std::vector<smdPart> tipObjects;
     cv::cvtColor(final, gray, CV_BGR2GRAY);
@@ -224,30 +224,41 @@ bool padFinder::findTip(cv::Mat &final, smdPart &out) {
     float radiusMin = ((partWidth_) / 100.0) * (100.0 - ERROR_PERCENT_TIP);
     float radiusMax = ((partWidth_) / 100.0) * (100.0 + ERROR_PERCENT_TIP);
 
-    cv::threshold(gray, gray, 255, 255, CV_THRESH_BINARY | CV_THRESH_OTSU);
+    if(thresholding){
+        cv::threshold(gray, gray, 255, 255, CV_THRESH_BINARY | CV_THRESH_OTSU);
+        cv::Mat bF;
+        cv::bilateralFilter(gray, bF, 15, 800 , 800);
 
-    cv::Mat bF;
-    cv::bilateralFilter(gray, bF, 15, 800 , 800);
-    //cv::imshow("Thresholded tip", bF);
-    //cv::waitKey(0);
-    cv::HoughCircles(bF, circles, CV_HOUGH_GRADIENT, 1, 50, 70,
-                     40, radiusMin, radiusMax);
+        //cv::imshow("Thresholded tip", bF);
+        //cv::waitKey(0);
+        cv::HoughCircles(bF, circles, CV_HOUGH_GRADIENT, 1, 50, 70,
+                         40, radiusMin, radiusMax);
+    }else{
+        cv::adaptiveThreshold(gray, gray, 255, ADAPTIVE_THRESH_GAUSSIAN_C,
+                              CV_THRESH_BINARY, 801, 2.0);
+        cv::Mat bF;
+        cv::bilateralFilter(gray, bF, 15, 800 , 800);
+        cv::HoughCircles(bF, circles, CV_HOUGH_GRADIENT, 1, 50, 50,
+                         40, radiusMin, radiusMax);
+        //cv::imshow("Thresholded tip", bF);
+        //cv::waitKey(0);
+    }
 
 
     std::cerr << "Circles: " << circles.size() << std::endl;
     for (size_t i = 0; i < circles.size(); i++) {
         Point center(cvRound(circles[i][0]), cvRound(circles[i][1]));
         int radius = cvRound(circles[i][2]);
-            // draw the circle center
-            //cv::circle( final, center, 3, Scalar(255,0,0), -1, 8, 0 );
-            // draw the circle outline
-            cv::circle(final, center, radius, Scalar(0, 0, 255), 3, 8, 0);
+        // draw the circle center
+        //cv::circle( final, center, 3, Scalar(255,0,0), -1, 8, 0 );
+        // draw the circle outline
+        cv::circle(final, center, radius, Scalar(0, 0, 255), 3, 8, 0);
 
-            smdPart part;
-            part.x = center.x;
-            part.y = center.y;
-            part.rot = radius;
-            tipObjects.push_back(part);
+        smdPart part;
+        part.x = center.x;
+        part.y = center.y;
+        part.rot = radius;
+        tipObjects.push_back(part);
     }
 
     if (circlesSorted.size() > 1) {
@@ -337,13 +348,13 @@ bool padFinder::findChip(cv::Mat* input, unsigned int camera_select, smdPart &pa
         }
 
         if (consider_every_size || (rect.size.width / pxToMM
-             > ((partWidth_) / 100.0) * (100.0 - ERROR_PERCENT_CHIP)
-             && rect.size.width / pxToMM
-             < ((partWidth_) / 100.0) * (100.0 + ERROR_PERCENT_CHIP)
-             && rect.size.height / pxToMM
-             > ((partHeight_) / 100.0) * (100.0 - ERROR_PERCENT_CHIP)
-             && rect.size.height / pxToMM
-             < ((partHeight_) / 100.0) * (100.0 + ERROR_PERCENT_CHIP))
+                                    > ((partWidth_) / 100.0) * (100.0 - ERROR_PERCENT_CHIP)
+                                    && rect.size.width / pxToMM
+                                    < ((partWidth_) / 100.0) * (100.0 + ERROR_PERCENT_CHIP)
+                                    && rect.size.height / pxToMM
+                                    > ((partHeight_) / 100.0) * (100.0 - ERROR_PERCENT_CHIP)
+                                    && rect.size.height / pxToMM
+                                    < ((partHeight_) / 100.0) * (100.0 + ERROR_PERCENT_CHIP))
                 || (rect.size.height / pxToMM
                     > ((partWidth_) / 100.0) * (100.0 - ERROR_PERCENT_CHIP)
                     && rect.size.height / pxToMM
@@ -636,19 +647,19 @@ bool padFinder::findSMDTape(cv::Mat &final, bool searchTapeRotation, smdPart &ou
 
                     if (approx.size() >= 2 && approx.size() <= 6) {
 
-                            smdPart smd;
-                            smd.x = mc.x;
-                            smd.y = mc.y;
-                            smd.rot = rect.angle;
-                            if (rect.size.height < rect.size.width) {
-                                smd.rot = std::fabs(smd.rot);
-                            } else {
-                                smd.rot = -(90.0 + smd.rot);
-                            }
-                            smdObjects.push_back(smd);
-                            drawRotatedRect(final, rect, CV_RGB(0, 0, 255));
-                            circle(final, Point2f(smd.x, smd.y), 5,
-                                   CV_RGB(255, 0, 0), 3);
+                        smdPart smd;
+                        smd.x = mc.x;
+                        smd.y = mc.y;
+                        smd.rot = rect.angle;
+                        if (rect.size.height < rect.size.width) {
+                            smd.rot = std::fabs(smd.rot);
+                        } else {
+                            smd.rot = -(90.0 + smd.rot);
+                        }
+                        smdObjects.push_back(smd);
+                        drawRotatedRect(final, rect, CV_RGB(0, 0, 255));
+                        circle(final, Point2f(smd.x, smd.y), 5,
+                               CV_RGB(255, 0, 0), 3);
                     }
 
                 }

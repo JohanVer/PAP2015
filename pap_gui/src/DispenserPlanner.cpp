@@ -107,7 +107,7 @@ std::vector<dispenseInfo> DispenserPlanner::planDispensing(
             outInfo.yPos2 = yCoord2;
             outInfo.type = dispenser_types::DISPENSE;
             outInfo.velocity = velocity;
-            outInfo.time = 1;
+            outInfo.time = 0;
             outVector.push_back(outInfo);
         } else {
             dispenseInfo outInfo;
@@ -135,7 +135,7 @@ std::vector<dispenseInfo> DispenserPlanner::planDispensing(
             outInfo.yPos2 = yCoord2;
             outInfo.type = dispenser_types::DISPENSE;
             outInfo.velocity = velocity;
-            outInfo.time = 1;
+            outInfo.time = 0;
             outVector.push_back(outInfo);
         }
     }

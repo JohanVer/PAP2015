@@ -83,6 +83,8 @@ private:
 
     int calibrationIteration;
 
+    bool tip_thresholding;
+
 };
 
 }

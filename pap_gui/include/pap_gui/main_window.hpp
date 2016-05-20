@@ -278,6 +278,8 @@ private slots:
 
     void on_calibrate_dispenser_button_clicked();
 
+    void on_radioButton_clicked(bool checked);
+
 private:
 
 	Ui::MainWindowDesign ui;
@@ -346,6 +348,8 @@ private:
     double edge_percentage_;
     double dispenser_velocity_;
     double nozzle_diameter_;
+
+    bool tip_thresholding_on;
 };
 
 }  // namespace pap_gui

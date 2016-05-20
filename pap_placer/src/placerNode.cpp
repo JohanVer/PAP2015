@@ -92,8 +92,8 @@ bool calibrateOffsets() {
     //if(!calibrateTip2())
     //    return false;
 
-    if(!homeSystem())
-        return false;
+    //if(!homeSystem())
+    //    return false;
 
     return true;
 }
@@ -125,7 +125,7 @@ bool calibrateCamera() {
     ros::Duration(0.5).sleep();
 
     pap_common::VisionResult res;
-    if(!vision_send_functions::sendVisionTask(*vision_action_client, pap_vision::SEARCH_CIRCLE, pap_vision::CAMERA_BOTTOM, CAMERA_DIAMETER_VISION, 0.0, 0.0, res, 50))
+    if(!vision_send_functions::sendVisionTask(*vision_action_client, pap_vision::SEARCH_CIRCLE, pap_vision::CAMERA_BOTTOM, CAMERA_DIAMETER_VISION, 0.0, (float) true, res, 50))
         return false;
 
     ROS_INFO("Placerstate: CAMERA - cameraOffset received");
@@ -163,7 +163,7 @@ bool calibrateTip1() {
     ROS_INFO("Placerstate: TIP1 - Start Vision");
 
     pap_common::VisionResult res;
-    if(!vision_send_functions::sendVisionTask(*vision_action_client, pap_vision::SEARCH_CIRCLE, pap_vision::CAMERA_BOTTOM, TIP1_DIAMETER_VISION, 0.0, 0.0, res, 50))
+    if(!vision_send_functions::sendVisionTask(*vision_action_client, pap_vision::SEARCH_CIRCLE, pap_vision::CAMERA_BOTTOM, TIP1_DIAMETER_VISION, 0.0, (float) true, res, 50))
         return true;
 
     ROS_INFO("Placerstate: TIP1 - cameraOffset received");
@@ -194,12 +194,12 @@ bool calibrateDispenser() {
     ros::Duration(1).sleep();
     arduino_client->LEDTask(pap_common::SETBOTTOMLED, 0);
     ros::Duration(0.5).sleep();
-    arduino_client->LEDTask(pap_common::SETBRIGHTNESSRING, 40);
+    arduino_client->LEDTask(pap_common::SETBRIGHTNESSRING, 255);
     ros::Duration(0.5).sleep();
 
     ROS_INFO("Placerstate: DISPENSER - Start Vision");
     pap_common::VisionResult res;
-    if(!vision_send_functions::sendVisionTask(*vision_action_client, pap_vision::SEARCH_CIRCLE, pap_vision::CAMERA_BOTTOM, DISPENSER_DIAMETER_VISION, 0.0, 0.0, res, 50))
+    if(!vision_send_functions::sendVisionTask(*vision_action_client, pap_vision::SEARCH_CIRCLE, pap_vision::CAMERA_BOTTOM, DISPENSER_DIAMETER_VISION, 0.0, (float) true, res, 50))
         return false;
 
     ROS_INFO("Placerstate: DISPENSER - cameraOffset received");
@@ -349,8 +349,8 @@ bool calibrateDispenserAmount(double tip_diameter, double init_vel){
     ROS_INFO("PlacerState: Calibrate dispensing amount/n");
 
     Offset begin_despensing_p;
-    begin_despensing_p.x = 200;
-    begin_despensing_p.y = 200;
+    begin_despensing_p.x = 30;
+    begin_despensing_p.y = 5;
     begin_despensing_p.z = 50;
 
     const size_t num_blobs = 5;
@@ -360,6 +360,7 @@ bool calibrateDispenserAmount(double tip_diameter, double init_vel){
     const double des_width = tip_diameter;
     const double learning_rate = 0.5;
 
+    Offset tipOffset = placeController.dispenserTipOffset;
 
     double velocity = init_vel;
     double error_width = 0;
@@ -381,16 +382,16 @@ bool calibrateDispenserAmount(double tip_diameter, double init_vel){
         std::vector<dispenseInfo> blobs;
         blobs.push_back(blob);
 
-        if(!dispensePCB(blobs, 20.0)) return false;
+        if(!dispensePCB(blobs, 3.64)) return false;
 
         // Drive with camera to center of blob
-        double blob_center_x = blob.xPos + (blob.xPos2 -blob.xPos) / 2;
-        double blob_center_y = blob.yPos;
+        //double blob_center_x = blob.xPos + (blob.xPos2 -blob.xPos) / 2;
+        //double blob_center_y = blob.yPos;
 
-        if(!driveToCoord(blob_center_x, blob_center_y, 27.0))
-            return false;
+        //if(!driveToCoord(blob_center_x, blob_center_y, 27.0))
+        //    return false;
 
-        ros::Duration(3.0).sleep();
+        ros::Duration(5.0).sleep();
 
         // Measure width of blob with pcv_cv
         pap_common::VisionResult res;
