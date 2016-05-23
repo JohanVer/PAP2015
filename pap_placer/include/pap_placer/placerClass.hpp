@@ -56,6 +56,9 @@ public:
 	float length, width, height;
 	int box;
 	float tapeX, tapeY, tapeRot;
+    bool isWaiting;
+    pap_vision::VISION finderType;
+
 
 	ComponentPlacerData() {
 		destX = 0.0;
@@ -68,6 +71,7 @@ public:
 		tapeX = 0.0;
 		tapeY = 0.0;
 		tapeRot = 0.0;
+        isWaiting = false;
 	}
 private:
 };
@@ -99,6 +103,9 @@ public:
     pap_vision::VISION finderType;
     ComponentPlacerData currentComponent;
 
+    ComponentPlacerData leftTipComponent, rightTipComponent;
+
+
     // Twp tip placement
 
 
@@ -129,18 +136,22 @@ public:
     Offset getDispenserCoordinates();
 
 
-	Offset getBoxCoordinates();
-	Offset getCompPickUpCoordinates();
+    Offset getBoxCoordinates(TIP usedTip);
+    Offset getCompPickUpCoordinates(TIP usedTip);
+
 	Offset getPCBCalibCoordinates();
 	Offset getPCBCompCoordinates();
-	Offset getCompPlaceCoordinates();
+    Offset getCompPlaceCoordinates(TIP usedTip);
 
-	float getCompSuckingHeight();
-	float getCompPlaceHeight();
-	float getComponentLenth();
-	float getComponentWidth();
+    float getCompSuckingHeight(TIP usedTip);
+    float getCompPlaceHeight(TIP usedTip);
 
-    int getTip();
+    int getBoxNumber(TIP usedTip);
+    float getComponentHeight(TIP usedTip);
+    float getComponentLenth(TIP usedTip);
+    float getComponentWidth(TIP usedTip);
+    pap_vision::VISION getFinderType(TIP usedTip);
+
 	void setPickUpCorrectionOffset(float xDiff, float yDiff, float rotDiff);
 	void setPlaceCorrectionOffset(float xDiff, float yDiff, float rotDiff);
 	void setBottomCamCorrectionOffset(float xDiff, float yDiff);
@@ -153,15 +164,13 @@ public:
 
 
 	void systemCalibration();
-	void updatePlacementData(ComponentPlacerData *data);
+    void updatePlacementData(ComponentPlacerData& data, TIP usedTip);
 	bool getCalibrationStatus();
-	int getBoxNumber();
+
 
 private:
 
     double corr_dispenser_vel_;
-
-    TIP tip;
 
 	// Correction feedback from vision for pick-up and place
 	Offset PickUpCorrection, PlaceCorrection;

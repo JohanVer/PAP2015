@@ -92,7 +92,6 @@ PlaceController::PlaceController() {
 //	tip1ClibrationOffset_.y = 0.0;
 
 	// Default tip/visual finder
-	tip = LEFT_TIP;
     finderType = pap_vision::START_CHIP_FINDER;
 	pickRelQR_ = false;
 }
@@ -168,57 +167,67 @@ Offset PlaceController::getPCBCalibCoordinates() {
     return pcbOriginOffset;
 }
 
-Offset PlaceController::getBoxCoordinates() {
+Offset PlaceController::getBoxCoordinates(TIP usedTip) {
 
 	Offset temp;
 	temp.x = pickUpAreaOffset.x;
 	temp.y = pickUpAreaOffset.y;
 	temp.z = pickUpAreaOffset.z;
-	if (currentComponent.box < 67) { //47
-		temp.x += BoxOffsetTable[currentComponent.box].x;
-		temp.y += BoxOffsetTable[currentComponent.box].y;
-	} else if ((currentComponent.box >= 67) && (currentComponent.box <= 86)) {
+
+    ComponentPlacerData* currentComp;
+    if(usedTip == TIP::LEFT_TIP) {
+        currentComp = &leftTipComponent;
+    } else {
+        currentComp = &rightTipComponent;
+    }
+
+    if (currentComp->box < 67) { //47
+        temp.x += BoxOffsetTable[currentComp->box].x;
+        temp.y += BoxOffsetTable[currentComp->box].y;
+    } else if ((currentComp->box >= 67) && (currentComp->box <= 86)) {
 		// Its a tape
-		if(TapeOffsetTable[currentComponent.box - 67].x+temp.x < 450.0) temp.x += TapeOffsetTable[currentComponent.box - 67].x; else temp.x = 449.9;
-		temp.y += TapeOffsetTable[currentComponent.box - 67].y;
+        if(TapeOffsetTable[currentComp->box - 67].x+temp.x < 450.0) temp.x += TapeOffsetTable[currentComp->box - 67].x; else temp.x = 449.9;
+        temp.y += TapeOffsetTable[currentComp->box - 67].y;
 	}
 
 	return temp;
 }
 
-Offset PlaceController::getCompPickUpCoordinates() {
-    Offset temp;
-    temp.z = suckingHeight_ + 10.0; // Sucking Height plus 10 mm for safety
+Offset PlaceController::getCompPickUpCoordinates(TIP usedTip) {
 
-    if (currentComponent.box < 67) {
-        temp.x = pickUpAreaOffset.x
-                + BoxOffsetTable[currentComponent.box].x
-                + PickUpCorrection.x;
-        temp.y = pickUpAreaOffset.y
-                + BoxOffsetTable[currentComponent.box].y
-                + PickUpCorrection.y;
-        temp.rot = PickUpCorrection.rot + fmod(currentComponent.rotation,180);
-    } else if ((currentComponent.box >= 67) && (currentComponent.box <= 86)) {
-        // Its a tape
-        temp.x = currentComponent.tapeX;
-        temp.y = currentComponent.tapeY;
-        temp.rot = currentComponent.tapeRot + fmod(currentComponent.rotation,180);
+    Offset temp;
+    ComponentPlacerData* currentComp;
+    temp.z = suckingHeight_ + 10.0; // Sucking Height plus 10 mm
+
+    if(usedTip == TIP::LEFT_TIP) {
+        currentComp = &leftTipComponent;
+        temp.x = tip1Offset.x;
+        temp.y = tip1Offset.y;
+    } else {
+        currentComp = &rightTipComponent;
+        temp.x = tip2Offset.x;
+        temp.y = tip2Offset.y;
     }
 
-    switch (tip) {
-    case LEFT_TIP:
-        temp.x += tip1Offset.x;
-        temp.y += tip1Offset.y;
-        break;
-    case RIGHT_TIP:
-        temp.x += tip2Offset.x;
-        temp.y += tip2Offset.y;
-        break;
+    if (currentComp->box < 67) {
+        temp.x += (pickUpAreaOffset.x
+                + BoxOffsetTable[currentComp->box].x
+                + PickUpCorrection.x);
+        temp.y += (pickUpAreaOffset.y
+                + BoxOffsetTable[currentComp->box].y
+                + PickUpCorrection.y);
+        temp.rot = PickUpCorrection.rot + fmod(currentComp->rotation,180);
+
+    } else if ((currentComp->box >= 67) && (currentComp->box <= 86)) {
+        // Its a tape
+        temp.x += currentComp->tapeX;
+        temp.y += currentComp->tapeY;
+        temp.rot = currentComp->tapeRot + fmod(currentComp->rotation,180);
     }
     return temp;
 }
 
-float PlaceController::getCompSuckingHeight() {
+float PlaceController::getCompSuckingHeight(TIP usedTip) {
     if(pickRelQR_){
         return largeBoxHeight_;
     }
@@ -226,36 +235,45 @@ float PlaceController::getCompSuckingHeight() {
     if ((currentComponent.box >= 67) && (currentComponent.box <= 86)) {
         return pickUpAreaOffset.z;
     } else {
-        return pickUpAreaOffset.z + currentComponent.height;
+        if(usedTip == TIP::LEFT_TIP) {
+            return pickUpAreaOffset.z + leftTipComponent.height;
+        } else {
+            return pickUpAreaOffset.z + rightTipComponent.height;
+        }
     }
 }
 
-Offset PlaceController::getCompPlaceCoordinates() {
+Offset PlaceController::getCompPlaceCoordinates(TIP usedTip) {
     Offset temp;
-    switch (tip) {
+    switch (usedTip) {
     case LEFT_TIP:
-        temp.x = currentComponent.destX + tip1Offset.x;
-        temp.y = currentComponent.destY + tip1Offset.y;
+        temp.x = leftTipComponent.destX + tip1Offset.x;
+        temp.y = leftTipComponent.destY + tip1Offset.y;
         temp.z = 45.0;
-        temp.rot = currentComponent.rotation;   // Not used
+        temp.rot = leftTipComponent.rotation;   // Not used
         break;
     case RIGHT_TIP:
-        temp.x = currentComponent.destX + tip2Offset.x;
-        temp.y = currentComponent.destY + tip2Offset.y;
+        temp.x = rightTipComponent.destX + tip2Offset.x;
+        temp.y = rightTipComponent.destY + tip2Offset.y;
         temp.z = 45.0;
-        temp.rot = currentComponent.rotation;   // Not used
+        temp.rot = rightTipComponent.rotation;   // Not used
         break;
     }
     return temp;
 }
 
-float PlaceController::getCompPlaceHeight() {
+float PlaceController::getCompPlaceHeight(TIP usedTip) {
     if(pickRelQR_){
         return largeBoxHeight_;
     }
 
-    ROS_INFO("PCBOrigin: %f, CompHeight: %f",pcbOriginOffset.z ,currentComponent.height);
-    return pcbOriginOffset.z + currentComponent.height;
+    if(usedTip == TIP::LEFT_TIP) {
+        ROS_INFO("PCBOrigin: %f, CompHeight: %f",pcbOriginOffset.z ,leftTipComponent.height);
+        return pcbOriginOffset.z + leftTipComponent.height;
+    } else {
+        ROS_INFO("PCBOrigin: %f, CompHeight: %f",pcbOriginOffset.z ,rightTipComponent.height);
+        return pcbOriginOffset.z + rightTipComponent.height;
+    }
 }
 
 
@@ -272,58 +290,78 @@ void PlaceController::setPickUpCorrectionOffset(float xDiff, float yDiff, float 
 /******************************************************
 * Getter functions - dimensions, boxNum
 ******************************************************/
-float PlaceController::getComponentLenth() {
-    return currentComponent.length;
+float PlaceController::getComponentHeight(TIP usedTip) {
+    if(usedTip == TIP::LEFT_TIP) {
+        return leftTipComponent.height;
+    } else {
+        return rightTipComponent.height;
+    }
 }
 
-float PlaceController::getComponentWidth() {
-    return currentComponent.width;
+float PlaceController::getComponentLenth(TIP usedTip) {
+    if(usedTip == TIP::LEFT_TIP) {
+        return leftTipComponent.length;
+    } else {
+        return rightTipComponent.length;
+    }
 }
 
-int PlaceController::getBoxNumber() {
-    return currentComponent.box;
+float PlaceController::getComponentWidth(TIP usedTip) {
+    if(usedTip == TIP::LEFT_TIP) {
+        return leftTipComponent.width;
+    } else {
+        return rightTipComponent.width;
+    }
 }
 
-int PlaceController::getTip() {
-    return tip;	// Left tip
+int PlaceController::getBoxNumber(TIP usedTip) {
+    if(usedTip == TIP::LEFT_TIP) {
+        return leftTipComponent.box;
+    } else {
+        return rightTipComponent.box;
+    }
 }
 
+pap_vision::VISION PlaceController::getFinderType(TIP usedTip) {
+    if(usedTip == TIP::LEFT_TIP) {
+        return leftTipComponent.finderType;
+    } else {
+        return rightTipComponent.finderType;
+    }
+}
 
 /******************************************************
 * Update placement data
 ******************************************************/
-void PlaceController::updatePlacementData(ComponentPlacerData * data) {
-    // Now: get tip info -> distinguish -> need to comp infos stores (for each tip, if both used)
-    /*if(tip == TIP::LEFT_TIP) {
-        leftTipComponent.box = data->box;
-        ...
-        componentWaiting = true;
-    } else {
-        rightTipComponent.box = data->box;
-        ...
-        componentWaiting = true;
-    }*/
+void PlaceController::updatePlacementData(ComponentPlacerData& data, TIP usedTip) {
 
-    currentComponent.box = data->box;
-    currentComponent.destX = data->destX;
-    currentComponent.destY = data->destY;
-    currentComponent.height = data->height;
-    currentComponent.length = data->length;
-    currentComponent.width = data->width;
-    currentComponent.rotation = data->rotation;
-    currentComponent.tapeX = data->tapeX;
-    currentComponent.tapeY = data->tapeY;
-    currentComponent.tapeRot = data->tapeRot;
-
-    // Select corresponding finderType
-    if(currentComponent.box <= 46) {
-        //finderType = pap_vision::START_SMALL_FINDER;    // SmallFinder
-        finderType = pap_vision::START_CHIP_FINDER;     // ChipFinder
-    } else if (currentComponent.box <= 66) {
-        finderType = pap_vision::START_CHIP_FINDER;     // ChipFinder
+    ComponentPlacerData* compToUpdate;
+    if(usedTip == TIP::LEFT_TIP) {
+        compToUpdate = &leftTipComponent;
+        std::cerr << "Placement data for left tip is updated" << std::endl;
     } else {
-        finderType = pap_vision::START_CHIP_FINDER;     // ChipFinder
-        //finderType = pap_vision::START_TAPE_FINDER;     // TapeFinder
+        compToUpdate = &rightTipComponent;
+        std::cerr << "Placement data for right tip is updated" << std::endl;
+    }
+
+
+    compToUpdate->box = data.box;
+    compToUpdate->destX = data.destX;
+    compToUpdate->destY = data.destY;
+    compToUpdate->height = data.height;
+    compToUpdate->length = data.length;
+    compToUpdate->width = data.width;
+    compToUpdate->rotation = data.rotation;
+    compToUpdate->tapeX = data.tapeX;
+    compToUpdate->tapeY = data.tapeY;
+    compToUpdate->tapeRot = data.tapeRot;
+    compToUpdate->isWaiting = true;
+
+    // Select corresponding vision
+    if(compToUpdate->box <= 66) {
+        compToUpdate->finderType = pap_vision::START_CHIP_FINDER;
+    } else {
+        compToUpdate->finderType = pap_vision::START_TAPE_FINDER;
     }
 }
 

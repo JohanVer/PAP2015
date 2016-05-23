@@ -304,7 +304,7 @@ bool calibrateQR() {
     if(!driveToCoord(gotoOffset.x, gotoOffset.y, gotoOffset.z))
         return false;
 
-    pickUp(placeController.largeBoxHeight_+1);
+    pickUp(placeController.largeBoxHeight_+1, TIP::LEFT_TIP);
 
     ROS_INFO("PlacerState: CAM_QR");
     std::cerr << "Goto tip1\n";
@@ -334,7 +334,7 @@ bool calibrateQR() {
     if(!driveToCoord(QROffset.x, QROffset.y, QROffset.z))
         return false;
 
-    placeComp(placeController.largeBoxHeight_+1);
+    placeComp(placeController.largeBoxHeight_+1, TIP::LEFT_TIP);
 
     if(!homeSystem())
         return false;
@@ -461,7 +461,7 @@ bool calibrateBottomCamDistortion() {
     if(!driveToCoord(gotoOffset.x, gotoOffset.y, gotoOffset.z))
         return false;
 
-    pickUp(placeController.largeBoxHeight_+1);
+    pickUp(placeController.largeBoxHeight_+1, TIP::LEFT_TIP);
 
     gotoOffset = placeController.getTip1Coordinates();
     gotoOffset.z += 1.0;
@@ -488,7 +488,7 @@ bool calibrateBottomCamDistortion() {
     if(!driveToCoord(gotoOffset.x, gotoOffset.y, gotoOffset.z))
         return false;
 
-    placeComp(placeController.largeBoxHeight_+1);
+    placeComp(placeController.largeBoxHeight_+1, TIP::LEFT_TIP);
 
 
     ROS_INFO("PlacerState: Calibrate bottom cam distortion - Checkerboard 2");
@@ -497,7 +497,7 @@ bool calibrateBottomCamDistortion() {
     if(!driveToCoord(gotoOffset.x, gotoOffset.y, gotoOffset.z))
         return false;
 
-    pickUp(placeController.largeBoxHeight_+1);
+    pickUp(placeController.largeBoxHeight_+1, TIP::LEFT_TIP);
 
     gotoOffset = placeController.getTip1Coordinates();
     gotoOffset.z += 1.0;
@@ -524,7 +524,7 @@ bool calibrateBottomCamDistortion() {
     if(!driveToCoord(gotoOffset.x, gotoOffset.y, gotoOffset.z))
         return false;
 
-    placeComp(placeController.largeBoxHeight_+1);
+    placeComp(placeController.largeBoxHeight_+1, TIP::LEFT_TIP);
 
     if(!homeSystem())
         return false;
@@ -536,86 +536,89 @@ bool calibrateBottomCamDistortion() {
 // Placement process
 bool singleCompPlacement() {
 
-    int box = placeController.getBoxNumber();
+    TIP activeTip;
+    if(placeController.leftTipComponent.isWaiting) {
+        activeTip = TIP::LEFT_TIP;
+    } else if(placeController.rightTipComponent.isWaiting) {
+        activeTip = TIP::RIGHT_TIP;
+    } else {
+        std::cerr << "No component data available" << std::endl;
+        return false;
+    }
+
+    int box = placeController.getBoxNumber(activeTip);
     if(box < 67) {
-        if(!goToBox())
+        if(!goToBox(activeTip))
             return false;
     }
 
     ROS_INFO("PLACER: Going to pickup coords");
-    Offset pickupCoord = placeController.getCompPickUpCoordinates();
+    Offset pickupCoord = placeController.getCompPickUpCoordinates(activeTip);
     ROS_INFO("PLACER: Go to x:%f y:%f z:%f", pickupCoord.x, pickupCoord.y, pickupCoord.z);
     if(!driveToCoord(pickupCoord.x, pickupCoord.y, pickupCoord.z))
         return false;
 
     ROS_INFO("PLACER: Picking up component");
-    pickupCoord.z = placeController.getCompSuckingHeight();
-    pickUp(pickupCoord.z);
+    pickupCoord.z = placeController.getCompSuckingHeight(activeTip);
+    pickUp(pickupCoord.z, activeTip);
 
-    int rotation = (int) placeController.getCompPickUpCoordinates().rot;
+    int rotation = (int) placeController.getCompPickUpCoordinates(activeTip).rot;
     ROS_INFO("PLACER: Rotate component by %d", rotation);
-    arduino_client->sendStepperTask(placeController.getTip(), rotation);
+    arduino_client->sendStepperTask(activeTip, rotation);
     ros::Duration(1).sleep();
 
     ROS_INFO("PLACER: Check pickup");
     Offset checkCoord = placeController.getTip1Coordinates();
-    checkCoord.z += placeController.currentComponent.height;
+    checkCoord.z += placeController.getComponentHeight(activeTip);
     ROS_INFO("PLACER: Go to x:%f y:%f z:%f", checkCoord.x, checkCoord.y, checkCoord.z);
     if(!driveToCoord(checkCoord.x, checkCoord.y, checkCoord.z))
         return false;
 
     ros::Duration(2.0).sleep();
-    if (placeController.getTip() == TIP::RIGHT_TIP) {		// Set tip
-        moveTip(TIP::RIGHT_TIP, true);
-    } else {
-        moveTip(TIP::LEFT_TIP, true);
-    }
+    moveTip(activeTip, true);           // Set tip
+
     ros::Duration(1).sleep();
     arduino_client->LEDTask(pap_common::SETBOTTOMLED, 0);
     ros::Duration(5).sleep();   
     arduino_client->LEDTask(pap_common::RESETBOTTOMLED, 0);
-    if (placeController.getTip() == TIP::RIGHT_TIP) {		// Release tip
-        moveTip(TIP::RIGHT_TIP, false);
-    } else {
-        moveTip(TIP::LEFT_TIP, false);
-    }
+    moveTip(activeTip, false);           // Release tip
 
-   /* ROS_INFO("PLACER: Going to place coord");
+    ROS_INFO("PLACER: Going to place coord");
     sendPlacerStatus(pap_common::GOTOPCBCOMP_STATE, pap_common::PLACER_ACTIVE);
-    Offset placeCoord = placeController.getCompPlaceCoordinates();
+    Offset placeCoord = placeController.getCompPlaceCoordinates(activeTip);
     ROS_INFO("PLACER: Go to x:%f y:%f z:%f", placeCoord.x, placeCoord.y, placeCoord.z);
     if(!driveToCoord(placeCoord.x, placeCoord.y, placeCoord.z))
         return false;
 
     ROS_INFO("PLACER: Placing component");
-    placeCoord.z = placeController.getCompPlaceHeight();
-    placeComp(placeCoord.z);*/
+    placeCoord.z = placeController.getCompPlaceHeight(activeTip);
+    placeComp(placeCoord.z, activeTip);
 
     return true;
 }
 
-bool goToBox() {
+bool goToBox(TIP usedTip) {
     ROS_INFO("Placerstate: GOTOBOX");
     sendPlacerStatus(pap_common::IDLE_STATE, pap_common::PLACER_IDLE);
     sendPlacerStatus(pap_common::GOTOBOX_STATE, pap_common::PLACER_ACTIVE);
 
-    arduino_client->setLEDTask(placeController.getBoxNumber());
-    Offset boxCoords = placeController.getBoxCoordinates();
+    arduino_client->setLEDTask(placeController.getBoxNumber(usedTip));
+    Offset boxCoords = placeController.getBoxCoordinates(usedTip);
     ROS_INFO("Go to: x:%f y:%f z:%f", boxCoords.x, boxCoords.y, boxCoords.z);
 
     if(!driveToCoord(boxCoords.x, boxCoords.y, boxCoords.z))
         return false;
 
     ROS_INFO("Placerstate: GOTOBOX - Vision started");
-    float length = placeController.currentComponent.length;
-    float width = placeController.currentComponent.width;
-    float height = placeController.currentComponent.height;
+    float length = placeController.getComponentLenth(usedTip);
+    float width = placeController.getComponentWidth(usedTip);
+    float height = placeController.getComponentHeight(usedTip);
     pap_common::VisionResult res;
 
     std::cerr << "sizes: " << length << ", " << width << ", " << height << std::endl;
 
     ROS_INFO("Placerstate: componentFinder started");
-    if(!vision_send_functions::sendVisionTask(*vision_action_client, placeController.finderType,
+    if(!vision_send_functions::sendVisionTask(*vision_action_client, placeController.getFinderType(usedTip),
                                               pap_vision::CAMERA_TOP, length, width, height, res))
         return false;
 
@@ -693,17 +696,12 @@ bool goToPCBOrigin() {
 }
 
 
-bool pickUp(double height){
+bool pickUp(double height, TIP usedTip){
     processAllStatusCallbacks();
     sendPlacerStatus(pap_common::STARTPICKUP_STATE,
                      pap_common::PLACER_ACTIVE);
     ros::Duration(1).sleep();
-
-    if (placeController.getTip() == TIP::RIGHT_TIP) {		// Activate tip
-        moveTip(TIP::RIGHT_TIP, true);
-    } else {
-        moveTip(TIP::LEFT_TIP, true);
-    }
+    moveTip(usedTip, true);         // Activate tip
     ros::Duration(1).sleep();
 
     if(!motor_send_functions::sendMotorControllerAction(*motor_action_client, pap_common::COORD,
@@ -713,36 +711,21 @@ bool pickUp(double height){
     }
 
     switchVacuum(true);
-
-    if (placeController.getTip() == TIP::RIGHT_TIP) {
-        forwardVacuum(TIP::RIGHT_TIP, true);
-    } else {
-        forwardVacuum(TIP::LEFT_TIP, true);
-    }
-
+    forwardVacuum(usedTip, true);
     ros::Duration(1).sleep();
 
-    if (placeController.getTip() == TIP::RIGHT_TIP) {		// Release tip
-        moveTip(TIP::RIGHT_TIP, false);
-    } else {
-        moveTip(TIP::LEFT_TIP, false);
-    }
+    moveTip(usedTip, false);		// Release tip
     ros::Duration(1).sleep();
-
     return true;
 }
 
 
-bool placeComp(double height){
+bool placeComp(double height, TIP usedTip){
     processAllStatusCallbacks();
     sendPlacerStatus(pap_common::PLACECOMPONENT_STATE,
                      pap_common::PLACER_ACTIVE);
 
-    if (placeController.getTip() == TIP::RIGHT_TIP) {  // Activate cylinder
-        moveTip(TIP::RIGHT_TIP, true);
-    } else {
-        moveTip(TIP::LEFT_TIP, true);
-    }
+    moveTip(usedTip, true);         // Activate cylinder
     ros::Duration(1).sleep();
 
     if(!motor_send_functions::sendMotorControllerAction(*motor_action_client, pap_common::COORD,
@@ -752,20 +735,10 @@ bool placeComp(double height){
     }
 
     switchVacuum(false);
-
-    if (placeController.getTip() == TIP::RIGHT_TIP) {
-        forwardVacuum(TIP::RIGHT_TIP, false);
-    } else {
-        forwardVacuum(TIP::LEFT_TIP, false);
-    }
+    forwardVacuum(usedTip, false);
     ros::Duration(1).sleep();
 
-    if (placeController.getTip() == TIP::RIGHT_TIP) {		// Release tip
-        moveTip(TIP::RIGHT_TIP, false);
-    } else {
-        moveTip(TIP::LEFT_TIP, false);
-    }
-
+    moveTip(usedTip, false);		// Release tip
     ros::Duration(1).sleep();
 
     // Indicates placement finished & if complPlacement gui sends new data and restarts process
@@ -970,12 +943,10 @@ void statusCallback(const pap_common::StatusConstPtr& statusMsg) {
 void placerCallback(const pap_common::TaskConstPtr& taskMsg) {
 
     switch (taskMsg->destination) {
-
     case pap_common::PLACER: {
 
-        if (taskMsg->task == pap_common::SINGLEPLACEMENT
-                || taskMsg->task == pap_common::COMPLETEPLACEMENT) {
-
+        switch (taskMsg->task) {       
+        case pap_common::UPDATE_PLACER: {
             ComponentPlacerData tempComponent;
             tempComponent.destX = taskMsg->data1;
             tempComponent.destY = taskMsg->data2;
@@ -987,15 +958,21 @@ void placerCallback(const pap_common::TaskConstPtr& taskMsg) {
             tempComponent.tapeX = taskMsg->velX;
             tempComponent.tapeY = taskMsg->velY;
             tempComponent.tapeRot = taskMsg->velZ;
-            // Distinguish both tips
-            // Write update function with tip as parameter
-            // Flag to indicate which data has been updated, if then start complete process is running
-            // it can distiguish if both or only on tip used etc..
-            // placeController.updatePlacementData(&tempComponent, RIGHT_TIP/LEFT_TIP)
-            placeController.updatePlacementData(&tempComponent);
-        }
+            placeController.updatePlacementData(tempComponent, (TIP)taskMsg->tip);
+        } break;
 
-        switch (taskMsg->task) {
+        case pap_common::START_SINGLE_PLACEMENT: {
+            if(!singleCompPlacement()) {
+                ROS_ERROR("Placer: Single component placement failed");
+                // TODO: Handle
+            }
+        } break;
+
+        case pap_common::START_COMPLETE_PLACEMENT: {
+//          if(!singleCompPlacement()) {
+//              ROS_ERROR("Placer: Single component placement failed");
+//          }
+        } break;
 
         case pap_common::HOMING: {
             if(! homeSystem()) {
@@ -1007,8 +984,8 @@ void placerCallback(const pap_common::TaskConstPtr& taskMsg) {
 
         case pap_common::STOP: {
             ROS_INFO("Placer: Stop called.");
-            //completePlacement = false; ??
-            // TODO: Handle
+            //complete/single Placement = false
+            // Set left and right tip comp waiting to false!
             break;
         }
 
@@ -1051,19 +1028,14 @@ void placerCallback(const pap_common::TaskConstPtr& taskMsg) {
         }
 
         case pap_common::SINGLEPLACEMENT: {
-            if(!singleCompPlacement()) {
-                ROS_ERROR("Placer: Single component placement failed");
-                // TODO: Handle
-                break;
-            }
             break;
         }
 
         case pap_common::COMPLETEPLACEMENT: {
-            if(!singleCompPlacement()) {
-                ROS_ERROR("Placer: Complete component placement failed");
+            //if(!singleCompPlacement()) {
+            //    ROS_ERROR("Placer: Complete component placement failed");
                 // TODO: Handle
-            }
+            //}
             break;
         }
 

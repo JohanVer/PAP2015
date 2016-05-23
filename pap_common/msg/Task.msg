@@ -11,3 +11,4 @@ float32 height
 float32 velX
 float32 velY
 float32 velZ
+int32 tip

@@ -93,8 +93,8 @@ void dispenserCallbackPlacer(const pap_common::DispenseTasksConstPtr &taskMsg);
 void sendPlacerStatus(pap_common::PROCESS process, pap_common::PLACER_STATUS status);
 
 // Placer functions
-bool pickUp(double height);
-bool placeComp(double height);
+bool pickUp(double height, TIP usedTip);
+bool placeComp(double height, TIP usedTip);
 
 bool calibrateOffsets();
 bool calibrateCamera();
@@ -106,7 +106,8 @@ bool calibrateTopCamDistortion();
 bool calibrateBottomCamDistortion();
 
 bool singleCompPlacement();
-bool goToBox();
+
+bool goToBox(TIP usedTip);
 
 bool dispensePCB();
 bool goToPCBOrigin();
