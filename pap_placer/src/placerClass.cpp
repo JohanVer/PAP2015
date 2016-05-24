@@ -139,20 +139,19 @@ Offset PlaceController::getBottomCamCoordinates() {
     return temp;
 }
 
-Offset PlaceController::getTip1Coordinates() {
-    Offset tip1Coordinate;
-    tip1Coordinate.x = cameraBottomOffset.x + tip1Offset.x;
-    tip1Coordinate.y = cameraBottomOffset.y + tip1Offset.y;
-    tip1Coordinate.z = tip1Offset.z;
-    return tip1Coordinate;
-}
+Offset PlaceController::getTipCoordinates(TIP usedTip) {
 
-Offset PlaceController::getTip2Coordinates() {
-    Offset tip2Coordinate;
-    tip2Coordinate.x = cameraBottomOffset.x + tip2Offset.x;
-    tip2Coordinate.y = cameraBottomOffset.y + tip2Offset.y;
-    tip2Coordinate.z = tip2Offset.z;
-    return tip2Coordinate;
+    Offset tipCoordinate;
+    if(usedTip == TIP::LEFT_TIP) {
+        tipCoordinate.x = cameraBottomOffset.x + tip1Offset.x;
+        tipCoordinate.y = cameraBottomOffset.y + tip1Offset.y;
+        tipCoordinate.z = tip1Offset.z;
+    } else {
+        tipCoordinate.x = cameraBottomOffset.x + tip2Offset.x;
+        tipCoordinate.y = cameraBottomOffset.y + tip2Offset.y;
+        tipCoordinate.z = tip2Offset.z;
+    }
+    return tipCoordinate;
 }
 
 Offset PlaceController::getDispenserCoordinates() {

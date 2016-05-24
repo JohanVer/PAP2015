@@ -106,6 +106,7 @@ bool calibrateTopCamDistortion();
 bool calibrateBottomCamDistortion();
 
 bool singleCompPlacement();
+bool multipleCompPlacement();
 
 bool goToBox(TIP usedTip);
 

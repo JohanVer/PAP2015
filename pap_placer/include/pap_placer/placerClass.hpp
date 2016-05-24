@@ -131,8 +131,7 @@ public:
 
     // Get current offsets (init/calibrated)
     Offset getBottomCamCoordinates();
-    Offset getTip1Coordinates();
-    Offset getTip2Coordinates();
+    Offset getTipCoordinates(TIP usedTip);
     Offset getDispenserCoordinates();
 
 

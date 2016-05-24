@@ -144,7 +144,7 @@ bool calibrateCamera() {
 
 bool calibrateTip1() {
     ROS_INFO("PlacerState: TIP1 ");
-    Offset tip1 = placeController.getTip1Coordinates();
+    Offset tip1 = placeController.getTipCoordinates(TIP::LEFT_TIP);
     ROS_INFO("Go to: x:%f y:%f z:%f", tip1.x, tip1.y, tip1.z);
 
     if(!driveToCoord(tip1.x, tip1.y, tip1.z))
@@ -169,7 +169,7 @@ bool calibrateTip1() {
     arduino_client->LEDTask(pap_common::RESETBOTTOMLED, 0);
 
     ROS_INFO("PlacerState: CORRECTED_TIP1");
-    tip1 = placeController.getTip1Coordinates();
+    tip1 = placeController.getTipCoordinates(TIP::LEFT_TIP);
     ROS_INFO("Go to: x:%f y:%f z:%f", tip1.x, tip1.y, tip1.z);
 
     if(!driveToCoord(tip1.x, tip1.y, tip1.z))
@@ -217,7 +217,7 @@ bool calibrateDispenser() {
 
 bool calibrateTip2() {
     ROS_INFO("PlacerState: TIP2 ");
-    Offset tip2 = placeController.getTip2Coordinates();
+    Offset tip2 = placeController.getTipCoordinates(TIP::RIGHT_TIP);
     ROS_INFO("Go to: x:%f y:%f z:%f", tip2.x, tip2.y, tip2.z);
 
     if(!driveToCoord(tip2.x, tip2.y, tip2.z))
@@ -240,7 +240,7 @@ bool calibrateTip2() {
     arduino_client->LEDTask(pap_common::RESETBOTTOMLED, 0);
 
     ROS_INFO("PlacerState: CORRECTED_TIP2");
-    tip2 = placeController.getTip2Coordinates();
+    tip2 = placeController.getTipCoordinates(TIP::RIGHT_TIP);
     ROS_INFO("Go to: x:%f y:%f z:%f", tip2.x, tip2.y, tip2.z);
 
     if(!driveToCoord(tip2.x, tip2.y, tip2.z))
@@ -308,7 +308,7 @@ bool calibrateQR() {
 
     ROS_INFO("PlacerState: CAM_QR");
     std::cerr << "Goto tip1\n";
-    Offset QROffset = placeController.getTip1Coordinates();
+    Offset QROffset = placeController.getTipCoordinates(TIP::LEFT_TIP);
     QROffset.z += 1.0;
     ROS_INFO("Go to: x:%f y:%f z:%f", QROffset.x, QROffset.y, QROffset.z);
 
@@ -463,7 +463,7 @@ bool calibrateBottomCamDistortion() {
 
     pickUp(placeController.largeBoxHeight_+1, TIP::LEFT_TIP);
 
-    gotoOffset = placeController.getTip1Coordinates();
+    gotoOffset = placeController.getTipCoordinates(TIP::LEFT_TIP);
     gotoOffset.z += 1.0;
     ROS_INFO("Go to: x:%f y:%f z:%f", gotoOffset.x, gotoOffset.y, gotoOffset.z);
     if(!driveToCoord(gotoOffset.x, gotoOffset.y, gotoOffset.z))
@@ -499,7 +499,7 @@ bool calibrateBottomCamDistortion() {
 
     pickUp(placeController.largeBoxHeight_+1, TIP::LEFT_TIP);
 
-    gotoOffset = placeController.getTip1Coordinates();
+    gotoOffset = placeController.getTipCoordinates(TIP::LEFT_TIP);
     gotoOffset.z += 1.0;
     ROS_INFO("Go to: x:%f y:%f z:%f", gotoOffset.x, gotoOffset.y, gotoOffset.z);
     if(!driveToCoord(gotoOffset.x, gotoOffset.y, gotoOffset.z))
@@ -529,6 +529,110 @@ bool calibrateBottomCamDistortion() {
     if(!homeSystem())
         return false;
 
+    return true;
+}
+
+bool multipleCompPlacement() {
+
+    if(placeController.leftTipComponent.isWaiting && placeController.rightTipComponent.isWaiting) {
+
+        // Pick-up component with left tip
+        ROS_INFO("PLACER: Going to pickup coords of left tip");
+        Offset pickupCoord = placeController.getCompPickUpCoordinates(TIP::LEFT_TIP);
+        ROS_INFO("PLACER: Go to x:%f y:%f z:%f", pickupCoord.x, pickupCoord.y, pickupCoord.z);
+        if(!driveToCoord(pickupCoord.x, pickupCoord.y, pickupCoord.z))
+            return false;
+
+        ROS_INFO("PLACER: Picking up component with left tip");
+        pickupCoord.z = placeController.getCompSuckingHeight(TIP::LEFT_TIP);
+        pickUp(pickupCoord.z, TIP::LEFT_TIP);
+
+        int rotation = (int) placeController.getCompPickUpCoordinates(TIP::LEFT_TIP).rot;
+        ROS_INFO("PLACER: Rotate component by %d", rotation);
+        arduino_client->sendStepperTask(TIP::LEFT_TIP, rotation);
+        ros::Duration(1).sleep();
+
+        // Pick-up component with right tip
+        ROS_INFO("PLACER: Going to pickup coords of right tip");
+        pickupCoord = placeController.getCompPickUpCoordinates(TIP::RIGHT_TIP);
+        ROS_INFO("PLACER: Go to x:%f y:%f z:%f", pickupCoord.x, pickupCoord.y, pickupCoord.z);
+        if(!driveToCoord(pickupCoord.x, pickupCoord.y, pickupCoord.z))
+            return false;
+
+        ROS_INFO("PLACER: Picking up component with right tip");
+        pickupCoord.z = placeController.getCompSuckingHeight(TIP::RIGHT_TIP);
+        pickUp(pickupCoord.z, TIP::RIGHT_TIP);
+
+        rotation = (int) placeController.getCompPickUpCoordinates(TIP::LEFT_TIP).rot;
+        ROS_INFO("PLACER: Rotate component by %d", rotation);
+        arduino_client->sendStepperTask(TIP::RIGHT_TIP, rotation);
+        ros::Duration(1).sleep();
+
+        // Check left tip pick-up
+        ROS_INFO("PLACER: Check left tip pickup");
+        Offset checkCoord = placeController.getTipCoordinates(TIP::LEFT_TIP);
+        checkCoord.z += placeController.getComponentHeight(TIP::LEFT_TIP);
+        ROS_INFO("PLACER: Go to x:%f y:%f z:%f", checkCoord.x, checkCoord.y, checkCoord.z);
+        if(!driveToCoord(checkCoord.x, checkCoord.y, checkCoord.z))
+            return false;
+
+        ros::Duration(2.0).sleep();
+        moveTip(TIP::LEFT_TIP, true);           // Set tip
+
+        ros::Duration(1).sleep();
+        arduino_client->LEDTask(pap_common::SETBOTTOMLED, 0);
+        ros::Duration(5).sleep();
+        arduino_client->LEDTask(pap_common::RESETBOTTOMLED, 0);
+        moveTip(TIP::LEFT_TIP, false);           // Release tip
+
+        // Check right tip pick-up
+        ROS_INFO("PLACER: Check right tip pickup");
+        checkCoord = placeController.getTipCoordinates(TIP::RIGHT_TIP);
+        checkCoord.z += placeController.getComponentHeight(TIP::RIGHT_TIP);
+        ROS_INFO("PLACER: Go to x:%f y:%f z:%f", checkCoord.x, checkCoord.y, checkCoord.z);
+        if(!driveToCoord(checkCoord.x, checkCoord.y, checkCoord.z))
+            return false;
+
+        ros::Duration(2.0).sleep();
+        moveTip(TIP::RIGHT_TIP, true);           // Set tip
+
+        ros::Duration(1).sleep();
+        arduino_client->LEDTask(pap_common::SETBOTTOMLED, 0);
+        ros::Duration(5).sleep();
+        arduino_client->LEDTask(pap_common::RESETBOTTOMLED, 0);
+        moveTip(TIP::RIGHT_TIP, false);           // Release tip
+
+        // Place left tip component
+        ROS_INFO("PLACER: Going to left tip place coord");
+        sendPlacerStatus(pap_common::GOTOPCBCOMP_STATE, pap_common::PLACER_ACTIVE);
+        Offset placeCoord = placeController.getCompPlaceCoordinates(TIP::LEFT_TIP);
+        ROS_INFO("PLACER: Go to x:%f y:%f z:%f", placeCoord.x, placeCoord.y, placeCoord.z);
+        if(!driveToCoord(placeCoord.x, placeCoord.y, placeCoord.z))
+            return false;
+
+        ROS_INFO("PLACER: Placing component");
+        placeCoord.z = placeController.getCompPlaceHeight(TIP::LEFT_TIP);
+        placeComp(placeCoord.z, TIP::LEFT_TIP);
+
+        // Place right tip component
+        ROS_INFO("PLACER: Going to right tip place coord");
+        sendPlacerStatus(pap_common::GOTOPCBCOMP_STATE, pap_common::PLACER_ACTIVE);
+        placeCoord = placeController.getCompPlaceCoordinates(TIP::RIGHT_TIP);
+        ROS_INFO("PLACER: Go to x:%f y:%f z:%f", placeCoord.x, placeCoord.y, placeCoord.z);
+        if(!driveToCoord(placeCoord.x, placeCoord.y, placeCoord.z))
+            return false;
+
+        ROS_INFO("PLACER: Placing component");
+        placeCoord.z = placeController.getCompPlaceHeight(TIP::RIGHT_TIP);
+        placeComp(placeCoord.z, TIP::RIGHT_TIP);
+
+    } else {
+        if(!singleCompPlacement()) {
+            std::cerr << "Single component placement failed" << std::endl;
+            return false;
+        }
+    }
+    // Send signal for next components
     return true;
 }
 
@@ -568,7 +672,7 @@ bool singleCompPlacement() {
     ros::Duration(1).sleep();
 
     ROS_INFO("PLACER: Check pickup");
-    Offset checkCoord = placeController.getTip1Coordinates();
+    Offset checkCoord = placeController.getTipCoordinates(activeTip);
     checkCoord.z += placeController.getComponentHeight(activeTip);
     ROS_INFO("PLACER: Go to x:%f y:%f z:%f", checkCoord.x, checkCoord.y, checkCoord.z);
     if(!driveToCoord(checkCoord.x, checkCoord.y, checkCoord.z))
