@@ -613,6 +613,7 @@ bool multipleCompPlacement() {
         ROS_INFO("PLACER: Placing component");
         placeCoord.z = placeController.getCompPlaceHeight(TIP::LEFT_TIP);
         placeComp(placeCoord.z, TIP::LEFT_TIP);
+        placeController.leftTipComponent.isWaiting = false;
 
         // Place right tip component
         ROS_INFO("PLACER: Going to right tip place coord");
@@ -625,6 +626,11 @@ bool multipleCompPlacement() {
         ROS_INFO("PLACER: Placing component");
         placeCoord.z = placeController.getCompPlaceHeight(TIP::RIGHT_TIP);
         placeComp(placeCoord.z, TIP::RIGHT_TIP);
+        placeController.rightTipComponent.isWaiting = false;
+
+        // Indicates placement finished & if complPlacement gui sends new data and restarts process
+        sendPlacerStatus(pap_common::PLACECOMPONENT_STATE,
+                         pap_common::PLACER_FINISHED);
 
     } else {
         if(!singleCompPlacement()) {
@@ -632,7 +638,6 @@ bool multipleCompPlacement() {
             return false;
         }
     }
-    // Send signal for next components
     return true;
 }
 
@@ -698,6 +703,15 @@ bool singleCompPlacement() {
     placeCoord.z = placeController.getCompPlaceHeight(activeTip);
     placeComp(placeCoord.z, activeTip);
 
+    if(activeTip == TIP::LEFT_TIP) {
+        placeController.leftTipComponent.isWaiting = false;
+    } else {
+        placeController.rightTipComponent.isWaiting = false;
+    }
+
+    // Indicates placement finished
+    sendPlacerStatus(pap_common::PLACECOMPONENT_STATE,
+                     pap_common::PLACER_FINISHED);
     return true;
 }
 
@@ -844,11 +858,6 @@ bool placeComp(double height, TIP usedTip){
 
     moveTip(usedTip, false);		// Release tip
     ros::Duration(1).sleep();
-
-    // Indicates placement finished & if complPlacement gui sends new data and restarts process
-    sendPlacerStatus(pap_common::PLACECOMPONENT_STATE,
-                     pap_common::PLACER_FINISHED);
-
     return true;
 }
 
@@ -1068,14 +1077,13 @@ void placerCallback(const pap_common::TaskConstPtr& taskMsg) {
         case pap_common::START_SINGLE_PLACEMENT: {
             if(!singleCompPlacement()) {
                 ROS_ERROR("Placer: Single component placement failed");
-                // TODO: Handle
             }
         } break;
 
         case pap_common::START_COMPLETE_PLACEMENT: {
-//          if(!singleCompPlacement()) {
-//              ROS_ERROR("Placer: Single component placement failed");
-//          }
+          if(!multipleCompPlacement()) {
+              ROS_ERROR("Placer: Multiple component placement failed");
+          }
         } break;
 
         case pap_common::HOMING: {
