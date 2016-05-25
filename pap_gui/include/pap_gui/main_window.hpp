@@ -37,6 +37,7 @@
 #include <QPainter>
 #include <QSize>
 #include "DispenserPlanner.hpp"
+#include "PlacementPlanner.hpp"
 #include <tf/transform_broadcaster.h>
 #include <algorithm>
 #include <pap_common/CommonDataClasses.hpp>
@@ -221,7 +222,7 @@ public Q_SLOTS:
     void dispenseSinglePad(QPointF point);
 
     void on_goToPCBButton_clicked();
-    void updatePlacementData(componentEntry &singleComponentIn, TIP usedTip);
+    void updatePlacementData(componentEntry &singleComponentIn);
 
     void keyPressEvent(QKeyEvent *e);
     void keyReleaseEvent(QKeyEvent *e);
@@ -241,6 +242,8 @@ public Q_SLOTS:
     void updateCompDimensions();
 
     int angleToSteps(float angle);
+    void transformAllComp(vector<ComponentPlacerData> allCompData);
+    void transformSingleComp(int currentComp, ComponentPlacerData& singleCompData);
 
     // Print Buttons
     void on_printButton_offsets_clicked();
@@ -287,6 +290,8 @@ private:
 	QNode qnode;
 	bool bottomLayer_;
 	bool alreadyFlipped_;
+
+    float currentLeftNozzle, currentRightNozzle;
 
 	// List of all components that need to be placed
 	QVector<componentEntry> componentList;

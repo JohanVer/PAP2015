@@ -345,7 +345,7 @@ void QNode::LEDTask(int task, int data) {
 }
 
 void QNode::sendTask(pap_common::DESTINATION destination, pap_common::TASK task,
-                     ComponentPlacerData componentData) {
+                     ComponentPlacerData componentData, TIP usedTip) {
     pap_common::Task taskMsg;
     taskMsg.destination = destination;
     taskMsg.task = task;
@@ -359,6 +359,7 @@ void QNode::sendTask(pap_common::DESTINATION destination, pap_common::TASK task,
     taskMsg.velX = componentData.tapeX;
     taskMsg.velY = componentData.tapeY;
     taskMsg.velZ = componentData.tapeRot;
+    taskMsg.tip = usedTip;
     task_publisher.publish(taskMsg);
 }
 

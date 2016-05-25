@@ -96,7 +96,7 @@ public:
 	void sendTask(pap_common::DESTINATION,pap_vision::VISION);
 	void sendTask(pap_common::DESTINATION destination,pap_common::TASK task, float x, float y, float z );
 	void sendTask(pap_common::DESTINATION destination,pap_vision::VISION task,float x, float y, float z);
-	void sendTask(pap_common::DESTINATION destination, pap_common::TASK task,ComponentPlacerData componentData);
+    void sendTask(pap_common::DESTINATION destination, pap_common::TASK task,ComponentPlacerData componentData, TIP usedTip);
     void sendDispenserTask(std::vector<dispenseInfo> dispenseTask);
 
 	void statusCallback(const pap_common::StatusConstPtr&  statusMsg);

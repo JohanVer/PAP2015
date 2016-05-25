@@ -531,9 +531,9 @@ void MainWindow::on_startPlacementButton_clicked() {
         if (msgBox.exec() == QMessageBox::Yes) {
             completePlacementRunning = true;
             componentIndicator = 0;
-            updatePlacementData(componentList[componentIndicator], TIP::LEFT_TIP);
-            qnode.sendTask(pap_common::PLACER, pap_common::COMPLETEPLACEMENT,
-                           placementData);
+            //updatePlacementData(componentList[componentIndicator], TIP::LEFT_TIP);
+            //qnode.sendTask(pap_common::PLACER, pap_common::COMPLETEPLACEMENT,
+            //               placementData);
             ui.label_placement->setText("Running ...");
             ui.label_compLeft->setText(
                         QString::number(componentList.size()));
@@ -975,12 +975,78 @@ void MainWindow::updateDatabaseTable() {
 
 void MainWindow::on_goToPCBButton_clicked() {
     ui.tab_manager->setCurrentIndex(1);
-    qnode.sendTask(pap_common::PLACER, pap_common::GOTOPCB, placementData);
+    qnode.sendTask(pap_common::PLACER, pap_common::GOTOPCB);
+}
+
+void MainWindow::transformSingleComp(int currentComp, ComponentPlacerData& singleCompData) {
+
+    componentEntry entryToTransform;
+    entryToTransform = componentList[currentComp];
+    padParser.transformComponent(&entryToTransform);
+
+    // Is it a tape?
+    if ((entryToTransform.box >= 67) && (entryToTransform.box <= 86)) {
+        unsigned int tape_nr = entryToTransform.box - 67;
+        tapeCalibrationValue tapePartPos = calculatePosOfTapePart(tape_nr,
+                                                                  tapeCompCounter[tape_nr]);
+        singleCompData.tapeX = tapePartPos.x;
+        singleCompData.tapeY = tapePartPos.y;
+        singleCompData.tapeRot = tapePartPos.rot;
+        tapeCompCounter[tape_nr]++;
+    } else {
+        singleCompData.tapeX = 0.0;
+        singleCompData.tapeY = 0.0;
+        singleCompData.tapeRot = 0.0;
+    }
+
+    singleCompData.destX = entryToTransform.posX;
+    singleCompData.destY = entryToTransform.posY;
+    singleCompData.box = entryToTransform.box;
+    singleCompData.height = entryToTransform.height;
+    singleCompData.length = entryToTransform.length;
+    singleCompData.width = entryToTransform.width;
+    singleCompData.rotation = entryToTransform.rotation;
+}
+
+void MainWindow::transformAllComp(vector<ComponentPlacerData> allCompData) {
+
+    for(int i = 0; i < componentList.size(); i++) {
+
+        componentEntry tmpCompEntry;
+        ComponentPlacerData tmpCompPlaceData;
+
+        tmpCompEntry = componentList.at(i);
+        padParser.transformComponent(&tmpCompEntry);
+
+        // Is it a tape?
+        if ((tmpCompEntry.box >= 67) && (tmpCompEntry.box <= 86)) {
+            unsigned int tape_nr = tmpCompEntry.box - 67;
+            tapeCalibrationValue tapePartPos = calculatePosOfTapePart(tape_nr,
+                                                                      tapeCompCounter[tape_nr]);
+            tmpCompPlaceData.tapeX = tapePartPos.x;
+            tmpCompPlaceData.tapeY = tapePartPos.y;
+            tmpCompPlaceData.tapeRot = tapePartPos.rot;
+            tapeCompCounter[tape_nr]++;
+        } else {
+            tmpCompPlaceData.tapeX = 0.0;
+            tmpCompPlaceData.tapeY = 0.0;
+            tmpCompPlaceData.tapeRot = 0.0;
+        }
+
+        tmpCompPlaceData.destX = tmpCompEntry.posX;
+        tmpCompPlaceData.destY = tmpCompEntry.posY;
+        tmpCompPlaceData.box = tmpCompEntry.box;
+        tmpCompPlaceData.height = tmpCompEntry.height;
+        tmpCompPlaceData.length = tmpCompEntry.length;
+        tmpCompPlaceData.width = tmpCompEntry.width;
+        tmpCompPlaceData.rotation = tmpCompEntry.rotation;
+        allCompData.push_back(tmpCompPlaceData);
+    }
 }
 
 
 // Package that is going to be sent to placeController
-void MainWindow::updatePlacementData(componentEntry &singleComponentIn, TIP usedTip) {
+void MainWindow::updatePlacementData(componentEntry &singleComponentIn) {
 
     componentEntry entryToTransform;
     entryToTransform = singleComponentIn;
@@ -1034,8 +1100,6 @@ void MainWindow::on_placeSingleComponentButton_clicked() {
         return;
     }
 
-    updateCurrentNozzles();
-
     // Start placement process
     if (!completePlacementRunning && !singlePlacementRunning) {
         QMessageBox msgBox;
@@ -1048,11 +1112,24 @@ void MainWindow::on_placeSingleComponentButton_clicked() {
         msgBox.addButton(QMessageBox::No);
         msgBox.setDefaultButton(QMessageBox::No);
         if (msgBox.exec() == QMessageBox::Yes) {
-            ROS_INFO("GUI: Placement started");
+
             singlePlacementRunning = true;
-            updatePlacementData(componentList[currentComp], TIP::LEFT_TIP);
-            qnode.sendTask(pap_common::PLACER, pap_common::SINGLEPLACEMENT,
-                           placementData);
+            ComponentPlacerData compPlaceData;
+            transformSingleComp(currentComp, compPlaceData);
+            updateCurrentNozzles();
+
+            //updatePlacementData(componentList[currentComp]);
+            //componentEntry singleComp = componentList[currentComp];
+
+
+            //PlacementPlanner.updateComponentList();
+            //PlacementPlanner.startSingleCompPlacement();
+
+            ROS_INFO("GUI: Placement started");
+
+
+            //qnode.sendTask(pap_common::PLACER, pap_common::SINGLEPLACEMENT,
+            //               placementData, TIP::LEFT_TIP);
             ui.label_placement->setText("Running ...");
             ui.label_compLeft->setText(QString::number(1));
             ui.label_currentComp->setText(
@@ -1067,7 +1144,6 @@ void MainWindow::on_placeSingleComponentButton_clicked() {
         msgBox.close();
     }
 }
-
 
 //void MainWindow:startCompletePlacement() {
     // Create placementPlanner
@@ -1090,15 +1166,14 @@ void MainWindow::updateCurrentNozzles() {
     QString leftNozzle = ui.leftNozzle_comboBox->currentText();
     QString rightNozzle = ui.rightNozzle_comboBox->currentText();
 
-    float currentLeftNozzle, currentRightNozzle = 0;
     if(leftNozzle == "-") {
-        currentLeftNozzle = -1;
+        currentLeftNozzle = 0.0;
     } else {
         currentLeftNozzle = leftNozzle.toFloat();
     }
 
     if(rightNozzle == "-") {
-        currentRightNozzle = -1;
+        currentRightNozzle = 0.0;
     } else {
         currentRightNozzle = rightNozzle.toFloat();
     }
@@ -1347,12 +1422,12 @@ void MainWindow::placerStatusUpdated(int state, int status) {
         if (componentIndicator < (componentList.size()-1)
                 && componentIndicator != -1) {
             componentIndicator++;
-            updatePlacementData(componentList[componentIndicator], TIP::LEFT_TIP);
+            updatePlacementData(componentList[componentIndicator]);
             ROS_INFO("GUI: Next component. Indicator: [%i]",
                      componentIndicator);
             ROS_INFO("ComponentList size: [%d]", componentList.size());
-            qnode.sendTask(pap_common::PLACER, pap_common::COMPLETEPLACEMENT,
-                           placementData);
+            //qnode.sendTask(pap_common::PLACER, pap_common::COMPLETEPLACEMENT,
+            //               placementData);
             ui.label_compLeft->setText(
                         QString::number(componentList.size() - componentIndicator));
             ui.label_currentComp->setText(

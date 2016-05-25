@@ -73,6 +73,7 @@ add_library(pap_gui
    src/SlotGraphicsView.cpp
    src/MyContextMenuTable.cpp
    src/DispenserPlanner.cpp
+   src/PlacementPlanner.cpp
    src/GerberPadParser.cpp
    src/PadView.cpp
    src/stitchWaypointMaker.cpp
@@ -86,6 +87,7 @@ add_library(pap_gui
    include/pap_gui/packageDialog.hpp
    include/pap_gui/versionSelectorDialog.h
    include/pap_gui/DispenserPlanner.hpp
+   include/pap_gui/PlacementPlanner.hpp
    include/pap_gui/PadView.hpp
    include/pap_gui/GerberPadParser.hpp
    include/pap_gui/qnode.hpp
