@@ -27,19 +27,27 @@ public:
     // Function to update current tip diameters
     void setTipDiameters(float leftTip, float rightTip);
 
-    //
-    //void startSingleCompPlacement(ComponentPlacerData& compToPlace);
+    // Gets componentToPlace, selects best tip available and sends componentData +
+    // startSinglePlacement command to placeController.
+    bool startSingleCompPlacement(pap_gui::QNode& node, ComponentPlacerData& compToPlace, bool& singlePlacementRunning);
 
-
-    // void startCompletePlacement(vector<ComponentPlacerData>& allCompToPlace);
+    // Gets list of componentsToPlace, ...,
+    void startCompletePlacement(pap_gui::QNode& node, vector<ComponentPlacerData>& allCompToPlace, bool& completePlacementRunning);
 
     // PlaceController feedback -> planner can select next components
     // and send update/placement commands to controller
     //bool placementStepFinished();
 
 private:
+     bool checkTipSize(float tipDiameter, float length, float width);
+     bool boxReachable(int box, TIP usedTip);
+
     float leftTipDiameter, rightTipDiameter;
 
+    vector<ComponentPlacerData> plannerCompList;
+    //vector<bool>
+    //std::queue<bool> tip1Comps;
+    //std::queue<bool> tip2Comps;
 
 };
 

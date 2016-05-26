@@ -291,7 +291,8 @@ private:
 	bool bottomLayer_;
 	bool alreadyFlipped_;
 
-    float currentLeftNozzle, currentRightNozzle;
+    //float currentLeftNozzle, currentRightNozzle;
+    PlacementPlanner placementPlanner;
 
 	// List of all components that need to be placed
 	QVector<componentEntry> componentList;

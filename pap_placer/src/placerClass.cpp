@@ -337,12 +337,11 @@ void PlaceController::updatePlacementData(ComponentPlacerData& data, TIP usedTip
     ComponentPlacerData* compToUpdate;
     if(usedTip == TIP::LEFT_TIP) {
         compToUpdate = &leftTipComponent;
-        std::cerr << "Placement data for left tip is updated" << std::endl;
+        std::cerr << "PlaceController: Placement data for left tip is updated" << std::endl;
     } else {
         compToUpdate = &rightTipComponent;
-        std::cerr << "Placement data for right tip is updated" << std::endl;
+        std::cerr << "PlaceController: Placement data for right tip is updated" << std::endl;
     }
-
 
     compToUpdate->box = data.box;
     compToUpdate->destX = data.destX;

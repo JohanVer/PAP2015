@@ -562,6 +562,10 @@ void MainWindow::on_stopPlacementButton_clicked() {
     ui.label_placement->setText("Stopped ...");
     qnode.sendTask(pap_common::PLACER, pap_common::STOP);
     componentIndicator = -1;
+
+    // Reset flags
+    completePlacementRunning = false;
+    singlePlacementRunning = false;
 }
 
 /********************************************************************"*********
@@ -1113,29 +1117,15 @@ void MainWindow::on_placeSingleComponentButton_clicked() {
         msgBox.setDefaultButton(QMessageBox::No);
         if (msgBox.exec() == QMessageBox::Yes) {
 
-            singlePlacementRunning = true;
             ComponentPlacerData compPlaceData;
             transformSingleComp(currentComp, compPlaceData);
             updateCurrentNozzles();
-
-            //updatePlacementData(componentList[currentComp]);
-            //componentEntry singleComp = componentList[currentComp];
-
-
-            //PlacementPlanner.updateComponentList();
-            //PlacementPlanner.startSingleCompPlacement();
-
-            ROS_INFO("GUI: Placement started");
-
-
-            //qnode.sendTask(pap_common::PLACER, pap_common::SINGLEPLACEMENT,
-            //               placementData, TIP::LEFT_TIP);
-            ui.label_placement->setText("Running ...");
-            ui.label_compLeft->setText(QString::number(1));
-            ui.label_currentComp->setText(
-                        QString::fromStdString(componentList.at(currentComp).name));
-        } else {
-            ROS_INFO("GUI: Nothing happend");
+            if(placementPlanner.startSingleCompPlacement(qnode, compPlaceData, singlePlacementRunning)) {
+                ui.label_placement->setText("Running ...");
+                ui.label_compLeft->setText(QString::number(1));
+                ui.label_currentComp->setText(
+                            QString::fromStdString(componentList.at(currentComp).name));
+            }
         }
     } else {
         QMessageBox msgBox;
@@ -1165,6 +1155,7 @@ void MainWindow::updateCurrentNozzles() {
     // Get current nozzles
     QString leftNozzle = ui.leftNozzle_comboBox->currentText();
     QString rightNozzle = ui.rightNozzle_comboBox->currentText();
+    float currentLeftNozzle, currentRightNozzle = 0.0;
 
     if(leftNozzle == "-") {
         currentLeftNozzle = 0.0;
@@ -1177,6 +1168,8 @@ void MainWindow::updateCurrentNozzles() {
     } else {
         currentRightNozzle = rightNozzle.toFloat();
     }
+
+    placementPlanner.setTipDiameters(currentLeftNozzle, currentRightNozzle);
 }
 
 void MainWindow::showSelectCompMessage() {

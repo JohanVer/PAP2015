@@ -648,10 +648,12 @@ bool singleCompPlacement() {
     TIP activeTip;
     if(placeController.leftTipComponent.isWaiting) {
         activeTip = TIP::LEFT_TIP;
+        std::cerr << "PlaceController: Left tip used" << std::endl;
     } else if(placeController.rightTipComponent.isWaiting) {
         activeTip = TIP::RIGHT_TIP;
+        std::cerr << "PlaceController: Right tip used" << std::endl;
     } else {
-        std::cerr << "No component data available" << std::endl;
+        std::cerr << "PlaceController: No component data available for placement" << std::endl;
         return false;
     }
 
@@ -1060,6 +1062,7 @@ void placerCallback(const pap_common::TaskConstPtr& taskMsg) {
 
         switch (taskMsg->task) {       
         case pap_common::UPDATE_PLACER: {
+
             ComponentPlacerData tempComponent;
             tempComponent.destX = taskMsg->data1;
             tempComponent.destY = taskMsg->data2;
@@ -1076,12 +1079,16 @@ void placerCallback(const pap_common::TaskConstPtr& taskMsg) {
 
         case pap_common::START_SINGLE_PLACEMENT: {
             if(!singleCompPlacement()) {
+                placeController.leftTipComponent.isWaiting = false;
+                placeController.leftTipComponent.isWaiting = false;
                 ROS_ERROR("Placer: Single component placement failed");
             }
         } break;
 
         case pap_common::START_COMPLETE_PLACEMENT: {
           if(!multipleCompPlacement()) {
+              placeController.leftTipComponent.isWaiting = false;
+              placeController.leftTipComponent.isWaiting = false;
               ROS_ERROR("Placer: Multiple component placement failed");
           }
         } break;
@@ -1095,9 +1102,9 @@ void placerCallback(const pap_common::TaskConstPtr& taskMsg) {
         }
 
         case pap_common::STOP: {
+            placeController.leftTipComponent.isWaiting = false;
+            placeController.rightTipComponent.isWaiting = false;
             ROS_INFO("Placer: Stop called.");
-            //complete/single Placement = false
-            // Set left and right tip comp waiting to false!
             break;
         }
 
