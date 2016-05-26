@@ -529,17 +529,18 @@ void MainWindow::on_startPlacementButton_clicked() {
         msgBox.addButton(QMessageBox::No);
         msgBox.setDefaultButton(QMessageBox::No);
         if (msgBox.exec() == QMessageBox::Yes) {
-            completePlacementRunning = true;
-            componentIndicator = 0;
-            //updatePlacementData(componentList[componentIndicator], TIP::LEFT_TIP);
-            //qnode.sendTask(pap_common::PLACER, pap_common::COMPLETEPLACEMENT,
-            //               placementData);
-            ui.label_placement->setText("Running ...");
-            ui.label_compLeft->setText(
-                        QString::number(componentList.size()));
-            ui.label_currentComp->setText(
-                        QString::fromStdString(
-                            componentList.at(componentIndicator).name));
+
+            vector<ComponentPlacerData> allCompData;
+            transformAllComp(allCompData);
+            updateCurrentNozzles();
+            if(placementPlanner.startCompletePlacement(qnode, allCompData, completePlacementRunning)) {
+                ui.label_placement->setText("Running ...");
+                ui.label_compLeft->setText(
+                            QString::number(componentList.size()));
+                ui.label_currentComp->setText(
+                            QString::fromStdString(
+                                componentList.at(componentIndicator).name));
+            }
         }
     } else {
         QMessageBox msgBox;

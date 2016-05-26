@@ -330,6 +330,16 @@ pap_vision::VISION PlaceController::getFinderType(TIP usedTip) {
 }
 
 /******************************************************
+* Transforms angle to stepps
+******************************************************/
+int PlaceController::angleToSteps(float angle) {
+    int steps = round(angle / 1.8);
+    steps = steps%200;				// 200 steps = full rotation
+    ROS_INFO("Angle: %f, Steps: %d", angle, steps);
+    return steps;
+}
+
+/******************************************************
 * Update placement data
 ******************************************************/
 void PlaceController::updatePlacementData(ComponentPlacerData& data, TIP usedTip) {

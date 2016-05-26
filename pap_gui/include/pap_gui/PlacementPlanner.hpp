@@ -32,7 +32,7 @@ public:
     bool startSingleCompPlacement(pap_gui::QNode& node, ComponentPlacerData& compToPlace, bool& singlePlacementRunning);
 
     // Gets list of componentsToPlace, ...,
-    void startCompletePlacement(pap_gui::QNode& node, vector<ComponentPlacerData>& allCompToPlace, bool& completePlacementRunning);
+    bool startCompletePlacement(pap_gui::QNode& node, vector<ComponentPlacerData>& allCompToPlace, bool& completePlacementRunning);
 
     // PlaceController feedback -> planner can select next components
     // and send update/placement commands to controller

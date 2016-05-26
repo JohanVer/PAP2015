@@ -33,7 +33,6 @@ QNode::QNode(int argc, char** argv) : init_argc(argc), init_argv(argv) {
     fakePadPos_ = false;
     pcbWidth_ = 0;
     pcbHeight_ = 0;
-
 }
 
 QNode::~QNode() {
@@ -291,16 +290,17 @@ void QNode::sendRelaisTask(int relaisNumber, bool value) {
     arduino_publisher_.publish(arduinoMsg);
 }
 
-void QNode::sendStepperTask(int StepperNumber, int rotationAngle) {
+
+void QNode::sendStepperTask(int StepperNumber, int steps) {
     pap_common::ArduinoMsg arduinoMsg;
     if (StepperNumber == 2) {
         arduinoMsg.command = pap_common::RUNSTEPPER1;
-        arduinoMsg.data = rotationAngle;
+        arduinoMsg.data = steps;
         arduino_publisher_.publish(arduinoMsg);
     }
     if (StepperNumber == 1) {
         arduinoMsg.command = pap_common::RUNSTEPPER2;
-        arduinoMsg.data = rotationAngle;
+        arduinoMsg.data = steps;
         arduino_publisher_.publish(arduinoMsg);
     }
 }

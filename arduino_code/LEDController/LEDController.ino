@@ -75,16 +75,13 @@ void messageCb( const pap_common::ArduinoMsg& arduinoMsg){
   
   if(arduinoMsg.command == RUNSTEPPER1) {
     
-    //int steps = round(arduinoMsg.data/1.8);    // Resolution of 1.8°
-    int steps = arduinoMsg.data;
-    
-    if((previousSteps1 + steps) >= 100) {
-      steps = steps - 200;                     // Rotation = 200 Steps
-    }     
-    else if((previousSteps1 + steps) <= -100) {
+    int steps = arduinoMsg.data;    
+    if((previousSteps1 + steps) > 100) {
+      steps = steps - 200;                     // full rotation = 200 Steps
+    } else if((previousSteps1 + steps) < -100) {
       steps = 200 - steps;
-    }         
-    previousSteps1 = previousSteps1 + steps;   
+    }
+    previousSteps1 = previousSteps1 + steps;
     stepper1.step(steps);
   }
   

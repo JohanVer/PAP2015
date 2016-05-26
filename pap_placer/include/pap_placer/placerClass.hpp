@@ -160,7 +160,7 @@ public:
 
     void setDispenserVel(double vel);
     double getDispenserVel();
-
+    int angleToSteps(float angle);
 
 	void systemCalibration();
     void updatePlacementData(ComponentPlacerData& data, TIP usedTip);
@@ -168,8 +168,9 @@ public:
 
 
 private:
-
     double corr_dispenser_vel_;
+
+
 
 	// Correction feedback from vision for pick-up and place
 	Offset PickUpCorrection, PlaceCorrection;

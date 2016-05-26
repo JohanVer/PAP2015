@@ -12,7 +12,7 @@ class ArduinoSender
 public:
     ArduinoSender(ros::NodeHandle &node_handle);
     void sendRelaisTask(int relaisNumber, bool value);
-    void sendStepperTask(int StepperNumber, int rotationAngle);
+    void sendStepperTask(int StepperNumber, int steps);
     void resetStepper();
     void setLEDTask(int LEDnumber);
     void resetLEDTask(int LEDnumber);

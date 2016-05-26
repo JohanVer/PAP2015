@@ -673,11 +673,6 @@ bool singleCompPlacement() {
     pickupCoord.z = placeController.getCompSuckingHeight(activeTip);
     pickUp(pickupCoord.z, activeTip);
 
-    int rotation = (int) placeController.getCompPickUpCoordinates(activeTip).rot;
-    ROS_INFO("PLACER: Rotate component by %d", rotation);
-    arduino_client->sendStepperTask(activeTip, rotation);
-    ros::Duration(1).sleep();
-
     ROS_INFO("PLACER: Check pickup");
     Offset checkCoord = placeController.getTipCoordinates(activeTip);
     checkCoord.z += placeController.getComponentHeight(activeTip);
@@ -685,12 +680,16 @@ bool singleCompPlacement() {
     if(!driveToCoord(checkCoord.x, checkCoord.y, checkCoord.z))
         return false;
 
-    ros::Duration(2.0).sleep();
     moveTip(activeTip, true);           // Set tip
-
-    ros::Duration(1).sleep();
     arduino_client->LEDTask(pap_common::SETBOTTOMLED, 0);
-    ros::Duration(5).sleep();   
+    ros::Duration(1.0).sleep();
+
+    ros::Duration(5).sleep();
+    float rotation = placeController.getCompPickUpCoordinates(activeTip).rot;
+    int steps = placeController.angleToSteps(rotation);
+    arduino_client->sendStepperTask(activeTip, steps);
+    ros::Duration(5).sleep();
+
     arduino_client->LEDTask(pap_common::RESETBOTTOMLED, 0);
     moveTip(activeTip, false);           // Release tip
 
@@ -739,7 +738,7 @@ bool goToBox(TIP usedTip) {
 
     ROS_INFO("Placerstate: componentFinder started");
     if(!vision_send_functions::sendVisionTask(*vision_action_client, placeController.getFinderType(usedTip),
-                                              pap_vision::CAMERA_TOP, length, width, height, res))
+                                              pap_vision::CAMERA_TOP, length, width, height, res, 100))
         return false;
 
     placeController.setPickUpCorrectionOffset(res.data1, res.data2, res.data3);
@@ -811,7 +810,7 @@ bool goToPCBOrigin() {
     ROS_INFO("Go to: x:%f y:%f z:%f", pcbCoords.x, pcbCoords.y, pcbCoords.z);
     if(!driveToCoord(pcbCoords.x, pcbCoords.y, pcbCoords.z))
         return false;
-
+    arduino_client->LEDTask(pap_common::SETTOPLED, 0);
     return true;
 }
 

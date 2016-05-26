@@ -22,16 +22,16 @@ void ArduinoSender::sendRelaisTask(int relaisNumber, bool value) {
     pub_.publish(arduinoMsg);
 }
 
-void ArduinoSender::sendStepperTask(int StepperNumber, int rotationAngle) {
+void ArduinoSender::sendStepperTask(int StepperNumber, int steps) {
     pap_common::ArduinoMsg arduinoMsg;
     if (StepperNumber == 2) {
         arduinoMsg.command = pap_common::RUNSTEPPER1;
-        arduinoMsg.data = rotationAngle;
+        arduinoMsg.data = steps;
         pub_.publish(arduinoMsg);
     }
     if (StepperNumber == 1) {
         arduinoMsg.command = pap_common::RUNSTEPPER2;
-        arduinoMsg.data = rotationAngle;
+        arduinoMsg.data = steps;
         pub_.publish(arduinoMsg);
     }
 }

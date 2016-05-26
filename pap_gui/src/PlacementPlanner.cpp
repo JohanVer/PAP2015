@@ -89,7 +89,7 @@ bool PlacementPlanner::checkTipSize(float tipDiameter, float length, float width
 }
 
 
-void PlacementPlanner::startCompletePlacement(pap_gui::QNode& node, vector<ComponentPlacerData>& allCompToPlace, bool& completePlacementRunning) {
+bool PlacementPlanner::startCompletePlacement(pap_gui::QNode& node, vector<ComponentPlacerData>& allCompToPlace, bool& completePlacementRunning) {
 
     // Update planner component list
     plannerCompList.clear();
@@ -104,5 +104,5 @@ void PlacementPlanner::startCompletePlacement(pap_gui::QNode& node, vector<Compo
 //                           compToPlace, TIP::RIGHT_TIP);
 //    node.sendTask(pap_common::PLACER, pap_common::START_COMPLETE_PLACEMENT);
 
-
+    return true;
 }

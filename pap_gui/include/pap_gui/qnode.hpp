@@ -104,7 +104,7 @@ public:
 	void visionStatusCallback(const pap_common::VisionStatusConstPtr&  statusMsg);
 	void qrCodeCallback(const std_msgs::StringConstPtr& qrMsg);
 	void sendRelaisTask(int relaisNumber,bool value);
-	void sendStepperTask(int StepperNumber, int rotationAngle);
+    void sendStepperTask(int StepperNumber, int steps);
 	void resetStepper();
 	void setLEDTask(int LEDnumber);
 	void resetLEDTask(int LEDnumber);
