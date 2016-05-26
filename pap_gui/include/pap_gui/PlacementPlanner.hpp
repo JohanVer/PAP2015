@@ -14,40 +14,44 @@
 #include <math.h>
 #include <ros/ros.h>
 #include <tf/tf.h>
+#include <queue>          // std::queue
 
 
 class PlacementPlanner {
 public:
-    // Set qnode reference in constructor
     PlacementPlanner();
 	virtual ~PlacementPlanner();
 
-    //void updatePlacementData();
-
-    // Function to update current tip diameters
+    // Update both tip diameters
     void setTipDiameters(float leftTip, float rightTip);
 
     // Gets componentToPlace, selects best tip available and sends componentData +
-    // startSinglePlacement command to placeController.
+    // start placement command to placeController.
+    // Returns true if process successfully started, false otherwise
     bool startSingleCompPlacement(pap_gui::QNode& node, ComponentPlacerData& compToPlace, bool& singlePlacementRunning);
 
-    // Gets list of componentsToPlace, ...,
+    // Gets list of componentsToPlace, sorts components to best suitable tips, sends componentData +
+    // start placement command to placeController.
+    // Returns true if process successfully started, false otherwise
     bool startCompletePlacement(pap_gui::QNode& node, vector<ComponentPlacerData>& allCompToPlace, bool& completePlacementRunning);
 
-    // PlaceController feedback -> planner can select next components
-    // and send update/placement commands to controller
-    //bool placementStepFinished();
+    // Last task finished -> update components and start next placement task
+    // Returns false if no components left to place, otherwise true
+    bool sendNextTask(pap_gui::QNode& node, int& compNumLeftTip, int& compNumRightTip);
 
 private:
+     // Returns true if tipDiameter suits component diameters for a safe pick-up,
+     // otherwise returns false
      bool checkTipSize(float tipDiameter, float length, float width);
+
+     // Checks if box can be reach by usedTip, if thats the case returns
+     // true, otherwise false
      bool boxReachable(int box, TIP usedTip);
 
     float leftTipDiameter, rightTipDiameter;
 
-    vector<ComponentPlacerData> plannerCompList;
-    //vector<bool>
-    //std::queue<bool> tip1Comps;
-    //std::queue<bool> tip2Comps;
+    std::queue<ComponentPlacerData> leftTipQueue;
+    std::queue<ComponentPlacerData> rightTipQueue;
 
 };
 

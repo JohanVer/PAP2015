@@ -1409,41 +1409,29 @@ void MainWindow::placerStatusUpdated(int state, int status) {
     }
 
 
-    // Placement running
+    // Complete PCB placement running
     if (state == pap_common::PLACECOMPONENT_STATE
             && status == pap_common::PLACER_FINISHED
             && completePlacementRunning) {
-        if (componentIndicator < (componentList.size()-1)
-                && componentIndicator != -1) {
-            componentIndicator++;
-            updatePlacementData(componentList[componentIndicator]);
-            ROS_INFO("GUI: Next component. Indicator: [%i]",
-                     componentIndicator);
-            ROS_INFO("ComponentList size: [%d]", componentList.size());
-            //qnode.sendTask(pap_common::PLACER, pap_common::COMPLETEPLACEMENT,
-            //               placementData);
-            ui.label_compLeft->setText(
-                        QString::number(componentList.size() - componentIndicator));
-            ui.label_currentComp->setText(
-                        QString::fromStdString(
-                            componentList.at(componentIndicator).name));
+
+        int compNumLeftTip, compNumRightTip = 0;
+        if(placementPlanner.sendNextTask(qnode, compNumLeftTip, compNumRightTip)){
+//            ui.label_compLeft->setText(
+//                        QString::number(componentList.size() - componentIndicator));
+//            ui.label_currentComp->setText(
+//                        QString::fromStdString(
+//                            componentList.at(componentIndicator).name));
+
         } else {
-            // no more components - stop placer (Homing)
-            ROS_INFO("GUI: Stop placer - HOMING");
+            ROS_INFO("GUI: Complete PCB placement finished");
             ui.label_placement->setText("Finished");
             ui.label_currentComp->setText("-");
             ui.label_compLeft->setText(QString::number(0));
             completePlacementRunning = false;
-            ros::Duration(1).sleep();
-            if(componentIndicator != -1) {
-                qnode.sendTask(pap_common::PLACER, pap_common::HOMING);
-            }
-
-
-
         }
     }
 
+    // Single component placement running
     if (state == pap_common::PLACECOMPONENT_STATE
             && status == pap_common::PLACER_FINISHED
             && singlePlacementRunning) {
