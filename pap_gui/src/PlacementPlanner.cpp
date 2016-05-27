@@ -97,47 +97,67 @@ bool PlacementPlanner::startCompletePlacement(pap_gui::QNode& node, vector<Compo
 
     // Check list size etc.
     std::cerr << "Planner compList size: " << allCompToPlace.size() << std::endl;
+    int nonSuitableComps = 0;
 
-    // Check which tips are available
-    if((leftTipDiameter > 0.0) && (rightTipDiameter > 0.0)) {
-        // Create component queues for both tips
+    for(int i = 0; i <  allCompToPlace.size(); i++) {
 
+        float length = allCompToPlace[i].length;
+        float width = allCompToPlace[i].width;
+        int box = allCompToPlace[i].box;
 
-        // Update placement data and start placement process
-//        node.sendTask(pap_common::PLACER, pap_common::UPDATE_PLACER,
-//                               compToPlace, TIP::LEFT_TIP);
-//        node.sendTask(pap_common::PLACER, pap_common::UPDATE_PLACER,
-//                               compToPlace, TIP::RIGHT_TIP);
-//        node.sendTask(pap_common::PLACER, pap_common::START_COMPLETE_PLACEMENT);
-        return true;
+        // Select tip and push component to corresponding queue
+        if(checkTipSize(rightTipDiameter, length, width) && boxReachable(box, TIP::RIGHT_TIP)) {            // Right nozzle suitable
+            rightTipQueue.push(allCompToPlace[i]);
 
-    } else if(leftTipDiameter > 0.0) {
-        // Create component queue for left tip
+        } else if(checkTipSize(leftTipDiameter, length, width) && boxReachable(box, TIP::LEFT_TIP)) {       // Left nozzle suitable
+            leftTipQueue.push(allCompToPlace[i]);
 
+        } else {       // No nozzles suitable
+            nonSuitableComps++;
+        }
+    }
 
-        // Update placement data and start process
-//        node.sendTask(pap_common::PLACER, pap_common::UPDATE_PLACER,
-//                               compToPlace, TIP::LEFT_TIP);
-//        node.sendTask(pap_common::PLACER, pap_common::START_SINGLE_PLACEMENT);
-        return true;
+    if((nonSuitableComps > 0) && (nonSuitableComps < allCompToPlace.size())) {
+        std::cerr << "There are " << nonSuitableComps << "non-suitable components" << std::endl;
 
-    } else if(rightTipDiameter > 0.0) {
-        // Create component queue for right tip
+        // Move message box from main_window to planner
+        // Implement reset-function if placer-stop is called -> empty queues!
+        // Any way to remove entries from visible table? to vizualize process -> show comp names!
+        // Ask to start process anyways
+        // If not return false;
 
-
-        // Update placement data and start process
-//        node.sendTask(pap_common::PLACER, pap_common::UPDATE_PLACER,
-//                               compToPlace, TIP::RIGHT_TIP);
-//        node.sendTask(pap_common::PLACER, pap_common::START_SINGLE_PLACEMENT);
-        return true;
-
-    } else {
-        QMessageBox msgBox;
-        msgBox.setText("No suitable tips available or box cannot be reached.");
-        msgBox.exec();
-        msgBox.close();
+    } else if(nonSuitableComps == allCompToPlace.size()) {      // Both queues are empty!!
+        std::cerr << "Not able to place any components (" << nonSuitableComps << ")." << std::endl;
         return false;
     }
+
+    ComponentPlacerData compToPlaceLeft, compToPlaceRight;
+
+    // Check queues and send data to palceController
+    if(leftTipQueue.empty()) {                              // Right tip queue is non-empty
+        compToPlaceRight = rightTipQueue.front();
+        rightTipQueue.pop();
+        node.sendTask(pap_common::PLACER, pap_common::UPDATE_PLACER,
+                               compToPlaceRight, TIP::RIGHT_TIP);
+
+    } else if(rightTipQueue.empty()) {                      // Left tip queue is non-empty
+        compToPlaceLeft = leftTipQueue.front();
+        leftTipQueue.pop();
+        node.sendTask(pap_common::PLACER, pap_common::UPDATE_PLACER,
+                               compToPlaceLeft, TIP::LEFT_TIP);
+
+    } else {                                                // Both queues are non-empty
+        compToPlaceLeft = leftTipQueue.front();
+        leftTipQueue.pop();
+        compToPlaceRight = rightTipQueue.front();
+        rightTipQueue.pop();
+        node.sendTask(pap_common::PLACER, pap_common::UPDATE_PLACER,
+                               compToPlaceLeft, TIP::LEFT_TIP);
+        node.sendTask(pap_common::PLACER, pap_common::UPDATE_PLACER,
+                               compToPlaceRight, TIP::RIGHT_TIP);
+    }
+
+    return true;
 }
 
 bool PlacementPlanner::sendNextTask(pap_gui::QNode& node, int& compNumLeftTip, int& compNumRightTip) {
