@@ -39,6 +39,9 @@ public:
     // Returns false if no components left to place, otherwise true
     bool sendNextTask(pap_gui::QNode& node, int& compNumLeftTip, int& compNumRightTip);
 
+    // Clears component placement queues of both tips
+    void resetQueues();
+
 private:
      // Returns true if tipDiameter suits component diameters for a safe pick-up,
      // otherwise returns false

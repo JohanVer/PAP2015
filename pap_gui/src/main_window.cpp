@@ -34,7 +34,6 @@
 /*****************************************************************************
  ** Namespaces
  ****************************************************************************/
-
 namespace pap_gui {
 
 using namespace Qt;
@@ -136,11 +135,9 @@ MainWindow::MainWindow(int version, int argc, char** argv, QWidget *parent) :
     connect(ui.xManPos, SIGNAL(released()), this, SLOT(releasexManPos()));
     connect(ui.xManNeg, SIGNAL(released()), this, SLOT(releasexManNeg()));
     connect(ui.YManPos, SIGNAL(released()), this, SLOT(releaseyManPos()));
-
     connect(ui.YManNeg, SIGNAL(released()), this, SLOT(releaseyManNeg()));
     connect(ui.ZManPos, SIGNAL(released()), this, SLOT(releasezManPos()));
     connect(ui.ZManNeg, SIGNAL(released()), this, SLOT(releasezManNeg()));
-
 
     // New pad creation
     QWidget::connect(&scenePads_, SIGNAL(createPad(QRectF)), this,
@@ -184,13 +181,10 @@ MainWindow::MainWindow(int version, int argc, char** argv, QWidget *parent) :
 
     ui.padView_Image->setScene(&scenePads_);
     ui.padView_Image->show();
-
     ui.camera1->setScene(&scene_);
     ui.camera1->show();
-
     ui.camera1_2->setScene(&scene_);
     ui.camera1_2->show();
-
     ui.camera2->setScene(&scene2_);
     ui.camera2->show();
 
@@ -228,14 +222,9 @@ MainWindow::MainWindow(int version, int argc, char** argv, QWidget *parent) :
     edge_percentage_ = 0.1;
     dispenser_velocity_ = 1.0;
     nozzle_diameter_ = 0.16;
-
-
     tip_thresholding_on = false;
-
 }
 
-MainWindow::~MainWindow() {
-}
 
 /********************************************************************"*********
  ** Implementation "Complete PCB"-Tab
@@ -389,7 +378,6 @@ void MainWindow::updateCompDimensions() {
 }
 
 void MainWindow::on_clearTableButton_clicked() {
-
     componentCount = 0;
     componentList.clear();
     packageList.clear();
@@ -400,7 +388,7 @@ void MainWindow::on_clearTableButton_clicked() {
 }
 
 void MainWindow::on_startSlotWizard_clicked() {
-
+    QMessageBox msgBox;
     // Check if table empty
     if (!componentList.isEmpty()) {
 
@@ -411,23 +399,18 @@ void MainWindow::on_startSlotWizard_clicked() {
                     SLOT(setLedFromSelection(int)));
             slotWizard.exec();
             updateComponentInformation();
+            return;
         } else {
-            QMessageBox msgBox;
-            QString message =
-                    QString(
-                        "There are still %1 unknown packages which are needed to perform a complete PCB placement.").arg(
+            QString message = QString(
+                        "There are still %1 unknown packages which are needed to perform a complete PCB placement.\nPlease add, delete or replace them first.").arg(
                         missingPackageList.size());
             msgBox.setText(message);
-            msgBox.exec();
-            msgBox.close();
         }
-
     } else {
-        QMessageBox msgBox;
         msgBox.setText("Component table empty. Please load gerber file first.");
-        msgBox.exec();
-        msgBox.close();
     }
+    msgBox.exec();
+    msgBox.close();
 }
 
 void MainWindow::on_compDeleteButton_clicked() {
@@ -470,7 +453,7 @@ void MainWindow::on_compOrientButton_clicked() {
 
 void MainWindow::on_compPackageButton_clicked() {
 
-    /* Get current component */
+    // Get current component
     int currentComponent = ui.tableWidget->currentRow();
 
     /* If no component selected */
@@ -507,8 +490,8 @@ void MainWindow::on_startPlacementButton_clicked() {
         msgBox.close();
         return;
     }
-    // Do not need to check if package known -> if not no slot can be assigned.
-    // Missing slots?
+
+    // Missing slots? (all packages known -> if not slot cannot be assigned.)
     if (emptySlots()) {
         QMessageBox msgBox;
         msgBox.setText("There are still components without assigned slot.");
@@ -518,29 +501,13 @@ void MainWindow::on_startPlacementButton_clicked() {
     }
     // Start placement process
     if (!completePlacementRunning && !singlePlacementRunning) {
-        QMessageBox msgBox;
-        QString message =
-                QString(
-                    "You are about to start a complete placement process with %1 components. Please make sure all components are in their corresponding slots.\n\nClick yes to start process.").arg(
-                    componentList.size());
-        msgBox.setWindowTitle("Confirm to start placement");
-        msgBox.setText(message);
-        msgBox.setStandardButtons(QMessageBox::Yes);
-        msgBox.addButton(QMessageBox::No);
-        msgBox.setDefaultButton(QMessageBox::No);
-        if (msgBox.exec() == QMessageBox::Yes) {
-
-            vector<ComponentPlacerData> allCompData;
-            transformAllComp(allCompData);
-            updateCurrentNozzles();
-            if(placementPlanner.startCompletePlacement(qnode, allCompData, completePlacementRunning)) {
-                ui.label_placement->setText("Running ...");
-                ui.label_compLeft->setText(
-                            QString::number(componentList.size()));
-                ui.label_currentComp->setText(
-                            QString::fromStdString(
-                                componentList.at(componentIndicator).name));
-            }
+        vector<ComponentPlacerData> allCompData;
+        transformAllComp(allCompData);
+        updateCurrentNozzles();
+        if(placementPlanner.startCompletePlacement(qnode, allCompData, completePlacementRunning)) {
+            ui.label_placement->setText("Running ...");
+            ui.label_compLeft->setText(QString::number(componentList.size()));
+            //ui.label_currentComp->setText(QString::fromStdString(componentList.at(componentIndicator).name));
         }
     } else {
         QMessageBox msgBox;
@@ -559,10 +526,13 @@ bool MainWindow::emptySlots() {
 }
 
 void MainWindow::on_stopPlacementButton_clicked() {
-    // Placer will stop/home once current comp placed
+
     ui.label_placement->setText("Stopped ...");
     qnode.sendTask(pap_common::PLACER, pap_common::STOP);
     componentIndicator = -1;
+
+    // Clear component queues
+    placementPlanner.resetQueues();
 
     // Reset flags
     completePlacementRunning = false;
@@ -1049,43 +1019,6 @@ void MainWindow::transformAllComp(vector<ComponentPlacerData> allCompData) {
     }
 }
 
-
-// Package that is going to be sent to placeController
-void MainWindow::updatePlacementData(componentEntry &singleComponentIn) {
-
-    componentEntry entryToTransform;
-    entryToTransform = singleComponentIn;
-
-    ROS_INFO("GUI: placerInfo - before: x=%f, y=%f", entryToTransform.posX,
-             entryToTransform.posY);
-    padParser.transformComponent(&entryToTransform);
-    ROS_INFO("GUI: placerInfo - after: x=%f, y=%f", entryToTransform.posX,
-             entryToTransform.posY);
-
-    // Is it a tape?
-    if ((entryToTransform.box >= 67) && (entryToTransform.box <= 86)) {
-        unsigned int tape_nr = entryToTransform.box - 67;
-        tapeCalibrationValue tapePartPos = calculatePosOfTapePart(tape_nr,
-                                                                  tapeCompCounter[tape_nr]);
-        placementData.tapeX = tapePartPos.x;
-        placementData.tapeY = tapePartPos.y;
-        placementData.tapeRot = tapePartPos.rot;
-        tapeCompCounter[tape_nr]++;
-    } else {
-        placementData.tapeX = 0.0;
-        placementData.tapeY = 0.0;
-        placementData.tapeRot = 0.0;
-    }
-
-    placementData.destX = entryToTransform.posX;
-    placementData.destY = entryToTransform.posY;
-    placementData.box = entryToTransform.box;
-    placementData.height = entryToTransform.height;
-    placementData.length = entryToTransform.length;
-    placementData.width = entryToTransform.width;
-    placementData.rotation = entryToTransform.rotation;
-}
-
 void MainWindow::on_placeSingleComponentButton_clicked() {
 
     int currentComp = ui.tableWidget->currentRow();
@@ -1107,26 +1040,14 @@ void MainWindow::on_placeSingleComponentButton_clicked() {
 
     // Start placement process
     if (!completePlacementRunning && !singlePlacementRunning) {
-        QMessageBox msgBox;
-        QString message =
-                QString("You are about to start a single placement process. Please make sure component %1 is in slot %2. \n\nClick yes to start process.").arg(
-                    QString::fromStdString(componentList.at(currentComp).name)).arg(componentList.at(currentComp).box);
-        msgBox.setWindowTitle("Confirm to start placement");
-        msgBox.setText(message);
-        msgBox.setStandardButtons(QMessageBox::Yes);
-        msgBox.addButton(QMessageBox::No);
-        msgBox.setDefaultButton(QMessageBox::No);
-        if (msgBox.exec() == QMessageBox::Yes) {
-
-            ComponentPlacerData compPlaceData;
-            transformSingleComp(currentComp, compPlaceData);
-            updateCurrentNozzles();
-            if(placementPlanner.startSingleCompPlacement(qnode, compPlaceData, singlePlacementRunning)) {
-                ui.label_placement->setText("Running ...");
-                ui.label_compLeft->setText(QString::number(1));
-                ui.label_currentComp->setText(
-                            QString::fromStdString(componentList.at(currentComp).name));
-            }
+        ComponentPlacerData compPlaceData;
+        transformSingleComp(currentComp, compPlaceData);
+        updateCurrentNozzles();
+        if(placementPlanner.startSingleCompPlacement(qnode, compPlaceData, singlePlacementRunning)) {
+            ui.label_placement->setText("Running ...");
+            ui.label_compLeft->setText(QString::number(1));
+            ui.label_currentComp->setText(
+                        QString::fromStdString(componentList.at(currentComp).name));
         }
     } else {
         QMessageBox msgBox;
@@ -2786,6 +2707,9 @@ void MainWindow::on_printButton_offsets_clicked() {
     qnode.sendTask(pap_common::PLACER, pap_common::PRINT_OFFSET);
 }
 
+MainWindow::~MainWindow() {
+}
+
 }
 // namespace pap_gui
 
@@ -3024,3 +2948,6 @@ void pap_gui::MainWindow::on_radioButton_clicked(bool checked)
 {
     tip_thresholding_on = checked;
 }
+
+
+

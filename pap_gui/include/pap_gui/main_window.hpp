@@ -61,15 +61,15 @@
 
 class tapeCalibrationValue {
 public:
-	float x, y, rot;
-	int index;
+    float x, y, rot;
+    int index;
 
-	tapeCalibrationValue(){
-		x = 0;
-		y = 0;
-		rot = 0;
-		index = 0;
-	}
+    tapeCalibrationValue(){
+        x = 0;
+        y = 0;
+        rot = 0;
+        index = 0;
+    }
 };
 
 /*****************************************************************************
@@ -88,45 +88,45 @@ class MainWindow : public QMainWindow {
 Q_OBJECT
 
 public:
-	MainWindow(int verions, int argc, char** argv, QWidget *parent = 0);
-	~MainWindow();
+    MainWindow(int verions, int argc, char** argv, QWidget *parent = 0);
+    ~MainWindow();
 
-	void ReadSettings(); // Load up qt program settings at startup
-	void WriteSettings(); // Save qt program settings when closing
+    void ReadSettings(); // Load up qt program settings at startup
+    void WriteSettings(); // Save qt program settings when closing
 
-	void closeEvent(QCloseEvent *event); // Overloaded function
-	void showNoMasterMessage();
-	void showSelectCompMessage();
+    void closeEvent(QCloseEvent *event); // Overloaded function
+    void showNoMasterMessage();
+    void showSelectCompMessage();
     void updateCurrentNozzles();
 
 public Q_SLOTS:
-	/******************************************
-	** Auto-connections (connectSlotsByName())
-	*******************************************/
-	void on_actionAbout_triggered();
-	void on_button_connect_clicked(bool check );
-	void on_startHoming_clicked(bool check);
-	void on_switchCurrent_clicked(bool check);
-	void on_gotoCoord_clicked(bool check);
-	void on_xManPos_pressed();
-	void on_xManNeg_pressed();
-	void on_YManPos_pressed();
-	void on_YManNeg_pressed();
-	void on_ZManPos_pressed();
-	void on_ZManNeg_pressed();
-	void on_connectButton_clicked(bool check);
-	void on_checkbox_use_environment_stateChanged(int state);
-	void cameraUpdated(int index);
+    /******************************************
+    ** Auto-connections (connectSlotsByName())
+    *******************************************/
+    void on_actionAbout_triggered();
+    void on_button_connect_clicked(bool check );
+    void on_startHoming_clicked(bool check);
+    void on_switchCurrent_clicked(bool check);
+    void on_gotoCoord_clicked(bool check);
+    void on_xManPos_pressed();
+    void on_xManNeg_pressed();
+    void on_YManPos_pressed();
+    void on_YManNeg_pressed();
+    void on_ZManPos_pressed();
+    void on_ZManNeg_pressed();
+    void on_connectButton_clicked(bool check);
+    void on_checkbox_use_environment_stateChanged(int state);
+    void cameraUpdated(int index);
     void statusUpdated();
-	void placerStatusUpdated(int indicator, int state);
-	void on_valveToggle1_clicked(bool check);
-	void on_valveToggle2_clicked(bool check);
-	void on_valveToggle3_clicked(bool check);
-	void on_valveToggle4_clicked(bool check);
-	void on_valveToggle5_clicked(bool check);
-	void on_valveToggle6_clicked(bool check);
-	void on_valveToggle7_clicked(bool check);
-	void on_valveToggle8_clicked(bool check);
+    void placerStatusUpdated(int indicator, int state);
+    void on_valveToggle1_clicked(bool check);
+    void on_valveToggle2_clicked(bool check);
+    void on_valveToggle3_clicked(bool check);
+    void on_valveToggle4_clicked(bool check);
+    void on_valveToggle5_clicked(bool check);
+    void on_valveToggle6_clicked(bool check);
+    void on_valveToggle7_clicked(bool check);
+    void on_valveToggle8_clicked(bool check);
     void releasexManPos();
     void releaseyManPos();
     void releasezManPos();
@@ -192,7 +192,7 @@ public Q_SLOTS:
 
     void on_calibrateTapeButton_clicked(void);
     void calibrateTape(int tapeNumber, float componentWidth,
-    		float componentHeight);
+            float componentHeight);
     tapeCalibrationValue calculatePosOfTapePart(int numOfTape, int numOfPart);
     // Display Functions
     void displaySMDCoords(float x,float y,float rot, unsigned int cameraSelect);
@@ -212,7 +212,7 @@ public Q_SLOTS:
     void padPressed(int numberOfFiducial,QPointF padPos);
     void on_calcOrientation_Button_clicked();
     void sendTransforms(double x, double y, double z, double nozzle_1,
-    		double nozzle_2);
+            double nozzle_2);
 
     //Dispense button
 
@@ -222,7 +222,6 @@ public Q_SLOTS:
     void dispenseSinglePad(QPointF point);
 
     void on_goToPCBButton_clicked();
-    void updatePlacementData(componentEntry &singleComponentIn);
 
     void keyPressEvent(QKeyEvent *e);
     void keyReleaseEvent(QKeyEvent *e);
@@ -286,52 +285,52 @@ private slots:
 
 private:
 
-	Ui::MainWindowDesign ui;
-	QNode qnode;
-	bool bottomLayer_;
-	bool alreadyFlipped_;
+    Ui::MainWindowDesign ui;
+    QNode qnode;
+    bool bottomLayer_;
+    bool alreadyFlipped_;
 
-    //float currentLeftNozzle, currentRightNozzle;
+    float currentLeftNozzle, currentRightNozzle;
     PlacementPlanner placementPlanner;
 
-	// List of all components that need to be placed
-	QVector<componentEntry> componentList;
-	// List of all types of components/packages used in componentlist
-	QVector<string> packageList;
-	// List of all unkown/missing packages used in packageList
-	QVector<string> missingPackageList;
-	// List of all packages in database
-	QVector<databaseEntry> databaseVector;
+    // List of all components that need to be placed
+    QVector<componentEntry> componentList;
+    // List of all types of components/packages used in componentlist
+    QVector<string> packageList;
+    // List of all unkown/missing packages used in packageList
+    QVector<string> missingPackageList;
+    // List of all packages in database
+    QVector<databaseEntry> databaseVector;
 
-	//DatabaseClass database;
-	ComponentPlacerData placementData;
-	int tapeCompCounter[20];
+    //DatabaseClass database;
+    ComponentPlacerData placementData;
+    int tapeCompCounter[20];
 
-	// Current position
-	Offset currentPosition;
-	// Structures for holding the camera1 image (top camera)
-	QPixmap cameraPicture1, cameraPicture2;
+    // Current position
+    Offset currentPosition;
+    // Structures for holding the camera1 image (top camera)
+    QPixmap cameraPicture1, cameraPicture2;
     CameraGraphicsScene scene_, scene2_;
-	DispenserPlanner dispenserPlanner;
+    DispenserPlanner dispenserPlanner;
 
-	// Structures for holding the rendered image of the pcb
-	QPixmap renderedPadsPixmap;
-	graphicsScene scenePads_;
+    // Structures for holding the rendered image of the pcb
+    QPixmap renderedPadsPixmap;
+    graphicsScene scenePads_;
 
     QPixmap stitched_img_;
 
-	// Variables of the valves
-	bool valve1Active_;
-	bool valve2Active_;
-	bool valve3Active_;
-	bool valve4Active_;
-	bool valve5Active_;
-	bool valve6Active_;
-	bool valve7Active_;
-	bool valve8Active_;
-	bool visionStarted_, sizeDefined_,padFileLoaded_;
-	float tip1Pos_,tip2Pos_;
-	// Variables for fiducial marking
+    // Variables of the valves
+    bool valve1Active_;
+    bool valve2Active_;
+    bool valve3Active_;
+    bool valve4Active_;
+    bool valve5Active_;
+    bool valve6Active_;
+    bool valve7Active_;
+    bool valve8Active_;
+    bool visionStarted_, sizeDefined_,padFileLoaded_;
+    float tip1Pos_,tip2Pos_;
+    // Variables for fiducial marking
     QTableView tableView;
     int fiducialSize_;
     QPointF padPosition_;
@@ -362,3 +361,5 @@ private:
 }  // namespace pap_gui
 
 #endif // pap_gui_MAIN_WINDOW_H
+
+
