@@ -57,6 +57,7 @@ public:
 	int box;
 	float tapeX, tapeY, tapeRot;
     bool isWaiting;
+    std::string name;
     pap_vision::VISION finderType;
 
 
@@ -71,6 +72,7 @@ public:
 		tapeX = 0.0;
 		tapeY = 0.0;
 		tapeRot = 0.0;
+        name = "-";
         isWaiting = false;
 	}
 private:

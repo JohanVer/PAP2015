@@ -166,13 +166,10 @@ MainWindow::MainWindow(int version, int argc, char** argv, QWidget *parent) :
     rotTapeCalibration = 0.0;
 
     /* Load database */
-    //database.load();
-    //database.getAll(&databaseVector);
-    loadDatabaseContent();
+    dataIO.loadDatabase(databaseVector);
     updateDatabaseTable();
 
     initFiducialTable();
-    //initPadTable(1);
     id_ = 0;
     sizeDefined_ = false;
     padFileLoaded_ = false;
@@ -190,7 +187,6 @@ MainWindow::MainWindow(int version, int argc, char** argv, QWidget *parent) :
 
     currentPosition.x = 0.0;
     currentPosition.y = 0.0;
-    //ui.checkBox_box->setDisabled(true);
     for (size_t i = 0; i < 20; i++) {
         tapeCompCounter[i] = 0;
     }
@@ -474,6 +470,8 @@ void MainWindow::on_compPackageButton_clicked() {
             ui.label_compPackage->setText(text);
             componentList[currentComponent].package = text.toStdString();
         }
+        updateCompDimensions();
+        updateComponentInformation();
         updateComponentTable();
         updateMissingPackageList();
         updateMissingPackageTable();
@@ -505,9 +503,9 @@ void MainWindow::on_startPlacementButton_clicked() {
         transformAllComp(allCompData);
         updateCurrentNozzles();
         if(placementPlanner.startCompletePlacement(qnode, allCompData, completePlacementRunning)) {
-            ui.label_placement->setText("Running ...");
-            ui.label_compLeft->setText(QString::number(componentList.size()));
-            //ui.label_currentComp->setText(QString::fromStdString(componentList.at(componentIndicator).name));
+            ui.label_compTotalLeft->setText(QString::number(placementPlanner.leftTipQueue.size()));
+            ui.label_compTotalRight->setText(QString::number(placementPlanner.rightTipQueue.size()));
+            updatePlacementInfo();
         }
     } else {
         QMessageBox msgBox;
@@ -527,12 +525,11 @@ bool MainWindow::emptySlots() {
 
 void MainWindow::on_stopPlacementButton_clicked() {
 
-    ui.label_placement->setText("Stopped ...");
     qnode.sendTask(pap_common::PLACER, pap_common::STOP);
-    componentIndicator = -1;
 
     // Clear component queues
     placementPlanner.resetQueues();
+    //updatePlacementInfo();
 
     // Reset flags
     completePlacementRunning = false;
@@ -645,57 +642,6 @@ void MainWindow::setLedFromSelection(int selection) {
         qnode.setLEDTask(selection);
     } else {
         qnode.LEDTask(pap_common::RESETALLLED, 0);
-    }
-}
-
-void MainWindow::loadDatabaseContent() {
-
-    std::fstream databaseFile;
-    std::string fileName = std::string(getenv("PAPRESOURCES"))
-            + "database/database.txt";
-    databaseFile.open(fileName.c_str(),
-                      std::fstream::in | std::fstream::out | std::fstream::app);
-
-    /* ok, proceed  */
-    if (databaseFile.is_open()) {
-
-        std::string lineString;
-        while (getline(databaseFile, lineString)) {
-
-            QString componentString = QString::fromStdString(lineString);
-            QRegExp sep(",");
-            bool ok;
-
-            /* Filter only valid database entries */
-            if (!(componentString.at(0) == (char) 42)) {
-
-                databaseEntry newDatabaseEntry;
-                newDatabaseEntry.package = componentString.section(sep, 0, 0);
-                newDatabaseEntry.length =
-                        componentString.section(sep, 1, 1).toFloat(&ok);
-                newDatabaseEntry.width =
-                        componentString.section(sep, 2, 2).toFloat(&ok);
-                newDatabaseEntry.height =
-                        componentString.section(sep, 3, 3).toFloat(&ok);
-                newDatabaseEntry.pins =
-                        componentString.section(sep, 4, 4).toInt(&ok);
-                databaseVector.append(newDatabaseEntry);
-            }
-        }
-
-    } else {
-        QMessageBox msgBox;
-        msgBox.setText("Could not open database!");
-        msgBox.exec();
-        msgBox.close();
-    }
-
-    databaseFile.close();
-    if (databaseVector.isEmpty()) {
-        QMessageBox msgBox;
-        msgBox.setText("Empty database.");
-        msgBox.exec();
-        msgBox.close();
     }
 }
 
@@ -880,17 +826,10 @@ void MainWindow::updateComponentTable() {
     // Table settings
     ui.tableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
     ui.tableWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
-    //ui.tableWidget->verticalHeader()->setVisible(false);
     ui.tableWidget->setSizePolicy(QSizePolicy::Expanding,
                                   QSizePolicy::Expanding);
     ui.tableWidget->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-
-    //ui.tableWidget->setWindowTitle("QTableWidget");
     ui.tableWidget->show();
-
-    // Set number of components
-    ui.label_compTotal->setText(QString::number(componentList.size()));
-    ui.label_compLeft->setText(QString::number(0));
 }
 
 void MainWindow::updateDatabaseTable() {
@@ -981,9 +920,10 @@ void MainWindow::transformSingleComp(int currentComp, ComponentPlacerData& singl
     singleCompData.length = entryToTransform.length;
     singleCompData.width = entryToTransform.width;
     singleCompData.rotation = entryToTransform.rotation;
+    singleCompData.name = entryToTransform.name;
 }
 
-void MainWindow::transformAllComp(vector<ComponentPlacerData> allCompData) {
+void MainWindow::transformAllComp(vector<ComponentPlacerData>& allCompData) {
 
     for(int i = 0; i < componentList.size(); i++) {
 
@@ -1015,6 +955,7 @@ void MainWindow::transformAllComp(vector<ComponentPlacerData> allCompData) {
         tmpCompPlaceData.length = tmpCompEntry.length;
         tmpCompPlaceData.width = tmpCompEntry.width;
         tmpCompPlaceData.rotation = tmpCompEntry.rotation;
+        tmpCompPlaceData.name = tmpCompEntry.name;
         allCompData.push_back(tmpCompPlaceData);
     }
 }
@@ -1044,10 +985,9 @@ void MainWindow::on_placeSingleComponentButton_clicked() {
         transformSingleComp(currentComp, compPlaceData);
         updateCurrentNozzles();
         if(placementPlanner.startSingleCompPlacement(qnode, compPlaceData, singlePlacementRunning)) {
-            ui.label_placement->setText("Running ...");
-            ui.label_compLeft->setText(QString::number(1));
-            ui.label_currentComp->setText(
-                        QString::fromStdString(componentList.at(currentComp).name));
+            ui.label_compTotalLeft->setText(QString::number(placementPlanner.leftTipQueue.size()));
+            ui.label_compTotalRight->setText(QString::number(placementPlanner.rightTipQueue.size()));
+            updatePlacementInfo();
         }
     } else {
         QMessageBox msgBox;
@@ -1057,21 +997,29 @@ void MainWindow::on_placeSingleComponentButton_clicked() {
     }
 }
 
-//void MainWindow:startCompletePlacement() {
-    // Create placementPlanner
-    // Send current componentList zu planner
-    // Send currently used nozzles to planner
+void MainWindow::updatePlacementInfo() {
+    if(placementPlanner.compToPlaceLeft.isWaiting) {
+        ui.label_placementLeft->setText("Running");
+        ui.label_currentCompLeft->setText(QString::fromStdString(placementPlanner.compToPlaceLeft.name));
+        ui.label_compTotalLeft->setText(QString::number(placementPlanner.leftTipQueue.size()));
+    } else {
+        ui.label_placementLeft->setText("Not running");
+        ui.label_compTotalLeft->setText(QString::number(placementPlanner.leftTipQueue.size()));
+        ui.label_currentCompLeft->setText("-");
+        ui.label_compTotalLeft->setText(QString::number(0));
+    }
 
-    // Get component ID for both tip if tip works for components
-    // Placement planner keeps track of placed/missing components
-
-    // Update placement data - left tip - if available
-    // Update placement data - right tip - if available
-
-    // Tell placer to start
-    // Placer checks if one or both tips have new data available
-    // Set completeplacement flag
-//}
+    if(placementPlanner.compToPlaceRight.isWaiting) {
+        ui.label_placementRight->setText("Running");
+        ui.label_currentCompRight->setText(QString::fromStdString(placementPlanner.compToPlaceRight.name));
+        ui.label_compTotalRight->setText(QString::number(placementPlanner.rightTipQueue.size()));
+    } else {
+        ui.label_placementRight->setText("Not running");
+        ui.label_compTotalRight->setText(QString::number(placementPlanner.rightTipQueue.size()));
+        ui.label_currentCompRight->setText("-");
+        ui.label_compTotalRight->setText(QString::number(0));
+    }
+}
 
 void MainWindow::updateCurrentNozzles() {
     // Get current nozzles
@@ -1227,10 +1175,6 @@ void MainWindow::on_switchCurrent_clicked(bool check) {
 }
 
 void MainWindow::on_gotoCoord_clicked(bool check) {
-    //qnode.sendTask(pap_common::CONTROLLER, pap_common::COORD,
-    //		(ui.xLineEdit->text()).toFloat(), (ui.yLineEdit->text()).toFloat(),
-    //		(ui.zLineEdit->text()).toFloat());
-
     qnode.sendTask(pap_common::PLACER, pap_common::GOTO,
                    (ui.xLineEdit->text()).toFloat(), (ui.yLineEdit->text()).toFloat(),
                    (ui.zLineEdit->text()).toFloat());
@@ -1335,21 +1279,10 @@ void MainWindow::placerStatusUpdated(int state, int status) {
             && status == pap_common::PLACER_FINISHED
             && completePlacementRunning) {
 
-        int compNumLeftTip, compNumRightTip = 0;
-        if(placementPlanner.sendNextTask(qnode, compNumLeftTip, compNumRightTip)){
-//            ui.label_compLeft->setText(
-//                        QString::number(componentList.size() - componentIndicator));
-//            ui.label_currentComp->setText(
-//                        QString::fromStdString(
-//                            componentList.at(componentIndicator).name));
-
-        } else {
-            ROS_INFO("GUI: Complete PCB placement finished");
-            ui.label_placement->setText("Finished");
-            ui.label_currentComp->setText("-");
-            ui.label_compLeft->setText(QString::number(0));
+        if(!placementPlanner.sendNextTask(qnode)){
             completePlacementRunning = false;
         }
+        updatePlacementInfo();
     }
 
     // Single component placement running
@@ -1357,9 +1290,7 @@ void MainWindow::placerStatusUpdated(int state, int status) {
             && status == pap_common::PLACER_FINISHED
             && singlePlacementRunning) {
         singlePlacementRunning = false;
-        ui.label_placement->setText("Finished");
-        ui.label_currentComp->setText("-");
-        ui.label_compLeft->setText(QString::number(0));
+        updatePlacementInfo();
     }
 
     QPixmap statePixmap(QSize(20, 20));

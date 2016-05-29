@@ -37,10 +37,14 @@ public:
 
     // Last task finished -> update components and start next placement task
     // Returns false if no components left to place, otherwise true
-    bool sendNextTask(pap_gui::QNode& node, int& compNumLeftTip, int& compNumRightTip);
+    bool sendNextTask(pap_gui::QNode& node);
 
     // Clears component placement queues of both tips
     void resetQueues();
+
+    ComponentPlacerData compToPlaceLeft, compToPlaceRight;
+    std::queue<ComponentPlacerData> leftTipQueue;
+    std::queue<ComponentPlacerData> rightTipQueue;
 
 private:
      // Returns true if tipDiameter suits component diameters for a safe pick-up,
@@ -51,11 +55,10 @@ private:
      // true, otherwise false
      bool boxReachable(int box, TIP usedTip);
 
+     // Resets given component data to default values
+     void resetCompData(ComponentPlacerData& comp);
+
     float leftTipDiameter, rightTipDiameter;
-
-    std::queue<ComponentPlacerData> leftTipQueue;
-    std::queue<ComponentPlacerData> rightTipQueue;
-
 };
 
 #endif /* PAP2015_PAP_GUI_SRC_PLACEMENTPLANNER_HPP_ */

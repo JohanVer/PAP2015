@@ -9,14 +9,14 @@
 #include <string>
 #include <QMessageBox>
 
-DatabaseClass::DatabaseClass() {
+DataIO::DataIO() {
 	// Init global variables
 }
 
-DatabaseClass::~DatabaseClass() {
+DataIO::~DataIO() {
 }
 
-void DatabaseClass::load() {
+void DataIO::loadDatabase(QVector<databaseEntry>& database) {
 
 	std::fstream databaseFile;
 	std::string fileName = std::string(getenv("PAPRESOURCES"))
@@ -27,7 +27,7 @@ void DatabaseClass::load() {
 	/* ok, proceed  */
 	if (databaseFile.is_open()) {
 
-		std::string lineString;
+        std::string lineString;
 		while (getline(databaseFile, lineString)) {
 
 			QString componentString = QString::fromStdString(lineString);
@@ -47,7 +47,7 @@ void DatabaseClass::load() {
 						componentString.section(sep, 3, 3).toFloat(&ok);
 				newDatabaseEntry.pins =
 						componentString.section(sep, 4, 4).toInt(&ok);
-				databaseVector.append(newDatabaseEntry);
+                database.append(newDatabaseEntry);
 			}
 		}
 
@@ -57,16 +57,12 @@ void DatabaseClass::load() {
 
 	databaseFile.close();
 
-	if (databaseVector.isEmpty()) {
+    if (database.isEmpty()) {
 		QMessageBox msgBox;
 		msgBox.setText("No database found or not able to read database.");
 		msgBox.exec();
 		msgBox.close();
 	}
-}
-
-void DatabaseClass::getAll(QVector<databaseEntry> * database) {
-	database = &databaseVector;
 }
 
 

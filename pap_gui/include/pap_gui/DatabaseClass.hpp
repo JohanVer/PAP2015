@@ -19,12 +19,12 @@
 #include <pap_common/CommonDataClasses.hpp>
 
 
-class DatabaseClass {
+class DataIO {
 public:
-	DatabaseClass();
-	virtual ~DatabaseClass();
-	void load(void);
-	void getAll(QVector<databaseEntry> *database);
+    DataIO();
+    virtual ~DataIO();
+    void loadDatabase(QVector<databaseEntry>& database);
+    //void loadGerberFile(QVector<componentEntry>& components);
 
 private:
 	std::vector<ShapeInformation> shapeInformationArray_;

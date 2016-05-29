@@ -58,6 +58,7 @@
 #include "opencv2/highgui/highgui.hpp"
 #include <opencv/cv.h>
 #include <opencv/highgui.h>
+#include "DatabaseClass.hpp"
 
 class tapeCalibrationValue {
 public:
@@ -147,21 +148,21 @@ public Q_SLOTS:
 
     void on_startPlacementButton_clicked();
     void on_stopPlacementButton_clicked();
+    void on_placeSingleComponentButton_clicked();
+    void updatePlacementInfo();
+
 
     bool emptySlots();
 
     void on_tableWidget_clicked();
 
-    // Single Component Tab
-
-
     void on_turnLeftTipButton_clicked();
     void on_turnRightTipButton_clicked();
     void updateComponentTable();
     void updateComponentInformation();
-    void loadDatabaseContent();
     void updateDatabaseTable();
-    void on_placeSingleComponentButton_clicked();
+
+
 
     void on_setLEDButton_clicked();
     void setLedFromSelection(int);
@@ -241,7 +242,7 @@ public Q_SLOTS:
     void updateCompDimensions();
 
     int angleToSteps(float angle);
-    void transformAllComp(vector<ComponentPlacerData> allCompData);
+    void transformAllComp(vector<ComponentPlacerData>& allCompData);
     void transformSingleComp(int currentComp, ComponentPlacerData& singleCompData);
 
     // Print Buttons
@@ -292,6 +293,7 @@ private:
 
     float currentLeftNozzle, currentRightNozzle;
     PlacementPlanner placementPlanner;
+    DataIO dataIO;
 
     // List of all components that need to be placed
     QVector<componentEntry> componentList;
