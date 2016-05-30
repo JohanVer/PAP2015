@@ -41,30 +41,132 @@ private:
 
 void insertStatusInStatusMsg(int num_of_controller, const controllerStatus& c_status, bool connected, pap_common::Status& msg);
 
+//!
+//! \brief The ControllerInterface class implements the ros interface for motor control.
+//! This class serves as module which can be used together with plugins
+//! which are implementing various virtual functions.
+//!
 class ControllerInterface
 {
 public:
 
     ControllerInterface();
+
+    //!
+    //! \brief publishControllerStatus publishes controller status via ros topic
+    //! \param publisher ros publisher
+    //! \param c1 controller status message for controller 1
+    //! \param c2 controller status message for controller 2
+    //! \param c3 controller status message for controller 3
+    //!
     void publishControllerStatus(const ros::Publisher& publisher ,const controllerStatus& c1, const controllerStatus& c2, const controllerStatus& c3);
+
+    //!
+    //! \brief initInterface initializes interface
+    //!
     void initInterface();
+
+    //!
+    //! \brief startInterface starts interface
+    //!
     void startInterface();
+
+    //!
+    //! \brief checkAllControllers gets all controller status messages
+    //! \param[out] c1 controller status of controller 1
+    //! \param[out] c2 controller status of controller 2
+    //! \param[out] c3 controller status of controller 3
+    //! \return true if successfull
+    //!
     bool checkAllControllers(controllerStatus& c1, controllerStatus& c2, controllerStatus& c3);
+
+    //!
+    //! \brief checkTimeout checks if timer has expired
+    //! \param start_t start time of timer
+    //! \param timeout timer value
+    //! \return true if expired
+    //!
     bool checkTimeout(ros::WallTime start_t, double timeout);
+
+    //!
+    //! \brief waitForArrival blocks until all axes have arrived
+    //! \param timeout timeout value
+    //! \return true if successfull
+    //!
     bool waitForArrival(double timeout);
 
-    // Necessary virtual functions
+    // Necessary virtual functions/////////////////////////////////////////////////////////////////////////////////////
+    //!
+    //! \brief sendHoming sends homing command to parker device
+    //! \return true if successfull
+    //!
     virtual bool sendHoming() = 0;
+
+    //!
+    //! \brief getFullStatusController gets full status of controller (with position data)
+    //! \param addressDevice device address
+    //! \return full status message
+    //!
     virtual controllerStatus getFullStatusController(enum pap_common::MOTOR addressDevice) = 0;
+
+    //!
+    //! \brief gotoCoord drives with all three axis controller to specified position
+    //! \param x x-position
+    //! \param y y-position
+    //! \param z z-position
+    //! \param velX x-velocity
+    //! \param velY y-velocity
+    //! \param velZ z-velocity
+    //! \return error code (ERROR_CODES)
+    //!
     virtual int  gotoCoord(float x, float y, float z, float velX = 50.0, float velY = 300.0, float velZ = 100.0 ) = 0;
+
+    //!
+    //! \brief energizeAxis energize or deenergize axis controller
+    //! \param adressDevice device address
+    //! \param trigger if true axis is energized
+    //! \return true if successfull
+    //!
     virtual bool energizeAxis(enum pap_common::MOTOR adressDevice, bool trigger) = 0;
+
+    //!
+    //! \brief searchForDevices searches available devices and connects to them
+    //!
     virtual void searchForDevices() = 0;
+
+    //!
+    //! \brief connectToBus connects to serial bus
+    //!
     virtual void connectToBus() = 0;
+
+    //!
+    //! \brief isConnected checks if specified device is connected
+    //! \param device device name
+    //! \return true if connected
+    //!
     virtual bool isConnected(enum pap_common::MOTOR device) = 0;
 
-    // Optional virtual functions
+    // Optional virtual functions/////////////////////////////////////////////////////////////////////////////////////
+    //!
+    //! \brief stop stops motion of specified device
+    //! \param deviceAddress device address
+    //! \return true if successfull
+    //!
     virtual bool stop(enum pap_common::MOTOR deviceAddress);
+
+    //!
+    //! \brief manual manual control
+    //! \param deviceAddress device address
+    //! \param direction forward = 1 backward = 0
+    //! \return true if successfull
+    //!
     virtual bool manual(enum pap_common::MOTOR, unsigned char direction);
+
+    //!
+    //! \brief disconnect disconnects from specified device
+    //! \param device device name
+    //! \return true if disconnected successfully
+    //!
     virtual bool disconnect(enum pap_common::MOTOR device);
 
 private:

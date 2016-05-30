@@ -11,17 +11,5 @@
 #include <motorController/controller_interface.h>
 #include <memory>
 
-class ControllerNode{
-public:
-
-
-    ControllerNode();
-
-
-private:
-
-
-};
-
 
 #endif // CONTROLLERNODE_H
