@@ -37,20 +37,57 @@ enum VISION_PROCESS {
         CHIP, SMALL_SMD, TAPE, PAD, IDLE, CIRCLE, QRCODE
 };
 
+//!
+//! \brief The PcbCvInterface class provides a bridge between ros and all computer vision algorithms used by the PAP software
+//!
 class PcbCvInterface{
 public:
 
     PcbCvInterface();
 
+    //!
+    //! \brief imageCallback1 callback for top camera. Processes image and sends it to other nodes.
+    //! \param msg camera image
+    //!
     void imageCallback1(const sensor_msgs::ImageConstPtr& msg);
+
+    //!
+    //! \brief imageCallback2 callback for bottom camera. Processes image and sends it to other nodes.
+    //! \param msg camera image
+    //!
     void imageCallback2(const sensor_msgs::ImageConstPtr& msg);
+
+    //!
+    //! \brief parseTask parses incoming task message and starts the corresponding vision algorithm
+    //! \param taskMsg task message
+    //!
     void parseTask(const pap_common::TaskConstPtr& taskMsg);
+
+    //!
+    //! \brief runVision starts vision ros interface
+    //!
     void runVision();
+
+    //!
+    //! \brief createCrosshairs creates crosshair augmentation on given image
+    //! \param input image to augment
+    //!
     void createCrosshairs(cv::Mat &input);
+
+    //!
+    //! \brief gatherImages gathers a certain number of images from the top or bottom camera.
+    //! \param num_images number of images to gather
+    //! \param images image storage
+    //! \param camera_sel selects which camera should be used
+    //!
     void gatherImages(size_t num_images, std::vector<cv::Mat> &images, enum pap_vision::CAMERA_SELECT camera_sel );
 
 private:
 
+    //!
+    //! \brief execute_action handler for incomming action requests. Starts corresponding vision algorithm and directly sends feedback.
+    //! \param command action message
+    //!
     void execute_action(const pap_common::VisionGoalConstPtr &command);
 
     stitcher::PcbStitcher stitcher_;

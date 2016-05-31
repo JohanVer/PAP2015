@@ -6,8 +6,14 @@
 #include <pap_common/VisionAction.h>
 #include <pap_common/vision_message_def.h>
 
+//!
+//! These functions can be used to send action requests to the pcb_cv node
+//!
 namespace vision_send_functions{
 
+//!
+//! \brief Ros Action client
+//!
 typedef actionlib::SimpleActionClient<pap_common::VisionAction> Client;
 
 bool sendVisionTask(Client &action_client, enum pap_vision::VISION task);
