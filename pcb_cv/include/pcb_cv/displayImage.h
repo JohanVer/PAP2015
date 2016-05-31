@@ -44,6 +44,7 @@ class PcbCvInterface{
 public:
 
     PcbCvInterface();
+    ~PcbCvInterface();
 
     //!
     //! \brief imageCallback1 callback for top camera. Processes image and sends it to other nodes.
@@ -98,8 +99,6 @@ private:
     unsigned int cameraSelect;
     cv::Point2f selectPoint;
 
-    CvCapture* capture;
-    CvCapture* capture2;
     image_transport::Publisher image_pub_;
     image_transport::Publisher image_pub_2;
 
@@ -107,7 +106,6 @@ private:
     bool gather_bottom_images_, gather_top_images_;
     std::vector<cv::Mat> top_buffer_;
     std::vector<cv::Mat> bottom_buffer_;
-
 
     VISION_PROCESS visionState ;
     pap_vision::VISION_QR_CALIBRATION qrCalAction;

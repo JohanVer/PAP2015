@@ -22,6 +22,7 @@
 #include <iostream>
 #include <fstream>
 #include <dlib/svm.h>
+#include <ros/package.h>
 
 // SVM definitions that are used in pad-detection
 
@@ -76,6 +77,17 @@ class padFinder {
 public:
     padFinder();
     ~padFinder();
+
+    //!
+    //! \brief loadParams loads parameter from parameter server
+    //!
+    void loadParams();
+
+    //!
+    //! \brief saveOffsetsToFile saves all pixel factors to yaml file
+    //! \return true if successfull
+    //!
+    bool saveOffsetsToFile();
 
     //!
     //! \brief classifyPixels uses a SVM to classify which pixels belong to pads. This function creates a binary image output.
@@ -248,7 +260,7 @@ public:
 	void setPixelRatioBottom(float value){
 		pxRatioBottom = value;
 	}
-    float pxRatioSlot,pxRatioTape,pxRatioBottom;
+    double pxRatioSlot,pxRatioTape,pxRatioBottom;
     double pxRatioPcb_x, pxRatioPcb_y;
 private:
     // privat

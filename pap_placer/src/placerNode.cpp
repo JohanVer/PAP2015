@@ -26,6 +26,7 @@ int main(int argc, char **argv) {
         return 0;
     }
     ROS_INFO("Place controller started");
+    placeController.loadParams();
 
     ros::NodeHandle n_;
     task_publisher = n_.advertise<pap_common::Task>("task", 1000);
@@ -34,7 +35,6 @@ int main(int argc, char **argv) {
     placerTaskSubscriber_ = n_.subscribe("task", 10, &placerCallback);
     dispenserTaskSubscriber_ = n_.subscribe("/dispenseTask", 100, &dispenserCallbackPlacer);
 
-    // motor_action_client = std::unique_ptr<Client>(new Client("motor_controller_actions", true));
     motor_action_client = std::unique_ptr<motor_send_functions::Client>(new motor_send_functions::Client("motor_controller_actions", true));
     vision_action_client = std::unique_ptr<vision_send_functions::Client>(new vision_send_functions::Client("vision_actions", true));
     arduino_client = std::unique_ptr<arduino_send_functions::ArduinoSender>(new arduino_send_functions::ArduinoSender(n_));

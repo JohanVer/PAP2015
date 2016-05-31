@@ -1,4 +1,6 @@
 <launch>
+  <rosparam command="load" file="$(find PAP_resources)/parameters/ratios.yaml" />
+  <rosparam command="load" file="$(find PAP_resources)/parameters/offsets.yaml" />
   <include file="$(find pap_common)/launch/startCamera.launch" /> 
   <param name="fakePadPos" type="bool" value="false" />
   <node name="Userinterface" pkg="pap_gui" type="pap_gui_node" output="screen" />

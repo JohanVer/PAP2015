@@ -13,6 +13,9 @@
 #include <pap_common/CommonDataClasses.hpp>
 #include <stdio.h>
 #include <cstdio>
+#include <iostream>
+#include <fstream>
+#include <ros/package.h>
 
 
 /*****************************************************************************
@@ -80,10 +83,10 @@ private:
 
 class Offset {
 public:
-	float x;
-	float y;
-	float z;
-	float rot;
+    double x;
+    double y;
+    double z;
+    double rot;
 private:
 };
 
@@ -91,6 +94,10 @@ class PlaceController {
 public:
 	PlaceController();
 	~PlaceController();
+
+    void loadParams();
+
+    bool saveOffsetsToFile();
 
 	dispenseInfos dispenseTask;
     Offset cameraBottomOffset;

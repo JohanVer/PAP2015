@@ -23,6 +23,12 @@ PcbCvInterface::PcbCvInterface() : as_(nh_, "vision_actions", boost::bind(&PcbCv
     gather_bottom_images_ = false;
 
     tip_thresholding = false;
+
+    std::cerr << "Starting pcb_cv ...\n";
+}
+
+PcbCvInterface::~PcbCvInterface(){
+    finder.saveOffsetsToFile();
 }
 
 void PcbCvInterface::gatherImages(size_t num_images, std::vector<cv::Mat> &images, enum pap_vision::CAMERA_SELECT camera_sel ){
@@ -131,9 +137,11 @@ void PcbCvInterface::execute_action(const pap_common::VisionGoalConstPtr& comman
 
                 double pxRatioSlot;
                 if(finder.getPixelConvValAvg(&images, pxRatioSlot)){
+                    pap_common::VisionResult res;
+                    res.data1 = pxRatioSlot;
                     finder.setPixelRatioSlot(pxRatioSlot);
                     std::cerr << "Set slot px ratio to: " << pxRatioSlot << std::endl;
-                    as_.setSucceeded();
+                    as_.setSucceeded(res);
                 }
                 else as_.setAborted();
 
@@ -144,9 +152,11 @@ void PcbCvInterface::execute_action(const pap_common::VisionGoalConstPtr& comman
             {
                 double pxRatioPcb;
                 if(finder.getPixelConvValAvg(&images, pxRatioPcb)) {
+                    pap_common::VisionResult res;
+                    res.data1 = pxRatioPcb;
                     std::cerr << "Set pcb px ratio to: " << pxRatioPcb << std::endl;
                     finder.setPixelRatioPcb(pxRatioPcb);
-                    as_.setSucceeded();
+                    as_.setSucceeded(res);
                 }
                 else as_.setAborted();
 
@@ -157,9 +167,11 @@ void PcbCvInterface::execute_action(const pap_common::VisionGoalConstPtr& comman
             {
                 double pxRatioTape;
                 if(finder.getPixelConvValAvg(&images, pxRatioTape)) {
+                    pap_common::VisionResult res;
+                    res.data1 = pxRatioTape;
                     finder.setPixelRatioTape(pxRatioTape);
                     std::cerr << "Set tape px ratio to: " << pxRatioTape << std::endl;
-                    as_.setSucceeded();
+                    as_.setSucceeded(res);
                 }
                 else as_.setAborted();
             }
@@ -170,9 +182,11 @@ void PcbCvInterface::execute_action(const pap_common::VisionGoalConstPtr& comman
             if((pap_vision::VISION_QR_CALIBRATION) command->data1 == pap_vision::BOTTOM_CAM){
                 double pxRatioBottom;
                 if(finder.getPixelConvValAvg(&images, pxRatioBottom)) {
+                    pap_common::VisionResult res;
+                    res.data1 = pxRatioBottom;
                     std::cerr << "Set bottom px ratio to: " << pxRatioBottom << std::endl;
                     finder.setPixelRatioBottom(pxRatioBottom);
-                    as_.setSucceeded();
+                    as_.setSucceeded(res);
                 }
                 else as_.setAborted();
             }

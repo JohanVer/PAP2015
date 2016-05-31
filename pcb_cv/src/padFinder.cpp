@@ -32,6 +32,44 @@ using namespace cv;
 // Tips
 #define ERROR_PERCENT_TIP 6.0
 
+template<typename T>
+bool getPAPParam(ros::NodeHandle &nh, const std::string &param_name, T &param){
+    if (!nh.getParam(param_name, param))
+    {
+        std::cerr << "Could not load param: " << param_name << std::endl;
+        return false;
+    }else{
+        std::cout << "Loaded param: " << param_name << " : " << param << std::endl;
+        return true;
+    }
+}
+
+bool padFinder::saveOffsetsToFile(){
+    std::cerr << "Saving all pixel factors to file...\n";
+    ofstream param_file;
+    std::string package_path = ros::package::getPath("PAP_resources");
+    param_file.open(package_path + "/parameters/ratios.yaml");
+
+    param_file << "px_slot" << ": " << pxRatioSlot << std::endl;
+    param_file << "px_tape" << ": " << pxRatioTape << std::endl;
+    param_file << "px_pcb/x" << ": " << pxRatioPcb_x << std::endl;
+    param_file << "px_pcb/y" << ": " << pxRatioPcb_y << std::endl;
+    param_file << "px_bottom" << ": " << pxRatioBottom << std::endl;
+
+    param_file.close();
+
+    return true;
+}
+
+void padFinder::loadParams(){
+    ros::NodeHandle nh;
+    getPAPParam<double>(nh, "px_slot", pxRatioSlot);
+    getPAPParam<double>(nh, "px_tape", pxRatioTape);
+    getPAPParam<double>(nh, "px_pcb/x", pxRatioPcb_x);
+    getPAPParam<double>(nh, "px_pcb/y", pxRatioPcb_y);
+    getPAPParam<double>(nh, "px_bottom", pxRatioBottom);
+}
+
 padFinder::padFinder() {
     foundVia = false;
     partWidth_ = 0.0;
@@ -41,6 +79,8 @@ padFinder::padFinder() {
     pxRatioPcb_x = PIXEL_TO_MM_PCB;
     pxRatioPcb_y = PIXEL_TO_MM_PCB;
     pxRatioBottom = PIXEL_TO_MM_BOTTOM;
+
+    loadParams();
 
     scanner.set_config(zbar::ZBAR_NONE, zbar::ZBAR_CFG_ENABLE, 1);
     dlib::deserialize(string(getenv("PAPRESOURCES")) + "trained_functions/linear_svm_function.dat") >> learned_funct_;
@@ -76,7 +116,6 @@ cv::Mat padFinder::classifyPixels(const cv::Mat &in){
 }
 
 padFinder::~padFinder() {
-
 }
 
 void padFinder::setSize(float width, float height) {

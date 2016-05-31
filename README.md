@@ -11,7 +11,7 @@ Johan:
 * CHECKED All in one window calibration
 * Implement Dot planner and add parameters to gui
 * Saving all parameters and calibration value in a xml file
-* Documentation: PCB_CV (Algorithms, Stitcher...)
+* CHECKED Documentation: PCB_CV (Algorithms, Stitcher...)
 * CHECKED Documentation: MOTOR_CONTROLLER (Low Level, Interface)
 * Documentation: PAD_FINDER_LEARNER
 * Documentation: ARDUINO

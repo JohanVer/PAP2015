@@ -13,57 +13,119 @@
 #include <pap_placer/placerClass.hpp>
 #include <pap_placer/offsetTable.hpp>
 
+template<typename T>
+bool getPAPParam(ros::NodeHandle &nh,const std::string &param_name, T &param){
+
+    if (!nh.getParam(param_name, param))
+    {
+        std::cerr << "Could not load param: " << param_name << std::endl;
+        return false;
+    }else{
+        std::cout << "Loaded param: " << param_name << " : " << param << std::endl;
+        return true;
+    }
+}
+
+bool PlaceController::saveOffsetsToFile(){
+    ofstream param_file;
+    std::string package_path = ros::package::getPath("PAP_resources");
+    param_file.open(package_path + "/parameters/offsets.yaml");
+    param_file << "tip1Offset/x" << ": " << tip1Offset.x << std::endl;
+    param_file << "tip1Offset/y" << ": " << tip1Offset.y << std::endl;
+    param_file << "tip1Offset/z" << ": " << tip1Offset.z << std::endl;
+
+    param_file << "tip2Offset/x" << ": " << tip2Offset.x << std::endl;
+    param_file << "tip2Offset/y" << ": " << tip2Offset.y << std::endl;
+    param_file << "tip2Offset/z" << ": " << tip2Offset.z << std::endl;
+
+    param_file << "camOffset/x" << ": " << cameraBottomOffset.x << std::endl;
+    param_file << "camOffset/y" << ": " << cameraBottomOffset.y << std::endl;
+    param_file << "camOffset/z" << ": " << cameraBottomOffset.z << std::endl;
+
+    param_file << "dispenserOffset/x" << ": " << dispenserTipOffset.x << std::endl;
+    param_file << "dispenserOffset/y" << ": " << dispenserTipOffset.y << std::endl;
+    param_file << "dispenserOffset/z" << ": " << dispenserTipOffset.z << std::endl;
+
+    param_file.close();
+    std::cout << "Saved all offsets to file...\n";
+    return true;
+}
+
+void PlaceController::loadParams(){
+    ros::NodeHandle nh;
+    //Load parameters
+    getPAPParam<double>(nh, "tip1Offset/x", tip1Offset.x);
+    getPAPParam<double>(nh, "tip1Offset/y", tip1Offset.y);
+    getPAPParam<double>(nh, "tip1Offset/z", tip1Offset.z);
+
+    getPAPParam<double>(nh, "tip2Offset/x", tip2Offset.x);
+    getPAPParam<double>(nh, "tip2Offset/y", tip2Offset.y);
+    getPAPParam<double>(nh, "tip2Offset/z", tip2Offset.z);
+
+    getPAPParam<double>(nh, "camOffset/x", cameraBottomOffset.x);
+    getPAPParam<double>(nh, "camOffset/y", cameraBottomOffset.y);
+    getPAPParam<double>(nh, "camOffset/z", cameraBottomOffset.z);
+
+    getPAPParam<double>(nh, "dispenserOffset/x", dispenserTipOffset.x);
+    getPAPParam<double>(nh, "dispenserOffset/y", dispenserTipOffset.y);
+    getPAPParam<double>(nh, "dispenserOffset/z", dispenserTipOffset.z);
+}
+
 /*****************************************************************************
  ** Constructor
  *****************************************************************************/
 PlaceController::PlaceController() {
-    corr_dispenser_vel_ = 0.0;
+    //Relative offsets to camera
 
-	MovingHeight_ = 45.0;
+    tip1Offset.x = -95;
+    tip1Offset.y = 0;
+    tip1Offset.z = 50;
 
-	idleCoordinates_.x = 5.0;
-	idleCoordinates_.y = 5.0;
-	idleCoordinates_.z = 0.0;
+    tip2Offset.x = -94.08;
+    tip2Offset.y = 64.709;
+    tip2Offset.z = 50;
 
-	// Height for sucking a component (normal chip, not a tape)
-	suckingHeight_ = 20.2;
-    largeBoxHeight_ = 18.2;
-
-    // Absolut offests
-	pcbOriginOffset.x = 300;
-	pcbOriginOffset.y = 145;
-    pcbOriginOffset.z = 25.6;
-	pickUpAreaOffset.x = 108.42;	// + tape_x -> 449.85 = max.x destination
-	pickUpAreaOffset.y = 261;
-	pickUpAreaOffset.z = suckingHeight_;
     cameraBottomOffset.x = 236;
     cameraBottomOffset.y = 195.65;
     cameraBottomOffset.z = 8.17;
 
-    //Relative offsets to camera
-	tip2Offset.x = -94.08;
-	tip2Offset.y = 64.709;
-    tip2Offset.z = 50;
-    tip1Offset.x = -95;
-    tip1Offset.y = 0;
-    tip1Offset.z = 50;
     dispenserTipOffset.x = -52.499;
     dispenserTipOffset.y = 38.988;
     dispenserTipOffset.z = 36;
 
-	// Calibration offsets - QR Code positions
-	SLOT_QR_Offset_.x = 109.92;
-	SLOT_QR_Offset_.y = 261.008;
-	SLOT_QR_Offset_.z = pickUpAreaOffset.z;
-	PCB_QR_Offset_.x = 293.04;
-	PCB_QR_Offset_.y = 133.027;
-	PCB_QR_Offset_.z = pcbOriginOffset.z;
-	TAPE_QR_Offset_.x = 389.554;
-	TAPE_QR_Offset_.y = 110.429;
-	TAPE_QR_Offset_.z = pickUpAreaOffset.z;
+    corr_dispenser_vel_ = 0.0;
+
+    MovingHeight_ = 45.0;
+
+    idleCoordinates_.x = 5.0;
+    idleCoordinates_.y = 5.0;
+    idleCoordinates_.z = 0.0;
+
+    // Height for sucking a component (normal chip, not a tape)
+    suckingHeight_ = 20.2;
+    largeBoxHeight_ = 18.2;
+
+    // Absolut offests
+    pcbOriginOffset.x = 300;
+    pcbOriginOffset.y = 145;
+    pcbOriginOffset.z = 25.6;
+    pickUpAreaOffset.x = 108.42;	// + tape_x -> 449.85 = max.x destination
+    pickUpAreaOffset.y = 261;
+    pickUpAreaOffset.z = suckingHeight_;
+
+    // Calibration offsets - QR Code positions
+    SLOT_QR_Offset_.x = 109.92;
+    SLOT_QR_Offset_.y = 261.008;
+    SLOT_QR_Offset_.z = pickUpAreaOffset.z;
+    PCB_QR_Offset_.x = 293.04;
+    PCB_QR_Offset_.y = 133.027;
+    PCB_QR_Offset_.z = pcbOriginOffset.z;
+    TAPE_QR_Offset_.x = 389.554;
+    TAPE_QR_Offset_.y = 110.429;
+    TAPE_QR_Offset_.z = pickUpAreaOffset.z;
     BottomCam_QR_Offset_.x = 218;
     BottomCam_QR_Offset_.y = 177;
-	BottomCam_QR_Offset_.z = 20.15;
+    BottomCam_QR_Offset_.z = 20.15;
 
     Checkerboard_top1_Offset_.x = 377;
     Checkerboard_top1_Offset_.y = 77;
@@ -79,25 +141,27 @@ PlaceController::PlaceController() {
     Checkerboard_bottom2_Offset_.y = 155.2;
     Checkerboard_bottom2_Offset_.z = 18.6;
 
-	// Correction offsets
-	PickUpCorrection.x = 0;
-	PickUpCorrection.y = 0;
-	PickUpCorrection.z = 0;
-	PickUpCorrection.rot = 0.0;
+    // Correction offsets
+    PickUpCorrection.x = 0;
+    PickUpCorrection.y = 0;
+    PickUpCorrection.z = 0;
+    PickUpCorrection.rot = 0.0;
 
-	// Calibration offsets
-//	camClibrationOffset_.x = 0.0;
-//	camClibrationOffset_.y = 0.0;
-//	tip1ClibrationOffset_.x = 0.0;
-//	tip1ClibrationOffset_.y = 0.0;
+    // Calibration offsets
+    //	camClibrationOffset_.x = 0.0;
+    //	camClibrationOffset_.y = 0.0;
+    //	tip1ClibrationOffset_.x = 0.0;
+    //	tip1ClibrationOffset_.y = 0.0;
 
-	// Default tip/visual finder
+    // Default tip/visual finder
     finderType = pap_vision::START_CHIP_FINDER;
-	pickRelQR_ = false;
+    pickRelQR_ = false;
 }
 
 PlaceController::~PlaceController() {
+    saveOffsetsToFile();
 }
+
 
 
 /******************************************************
@@ -168,10 +232,10 @@ Offset PlaceController::getPCBCalibCoordinates() {
 
 Offset PlaceController::getBoxCoordinates(TIP usedTip) {
 
-	Offset temp;
-	temp.x = pickUpAreaOffset.x;
-	temp.y = pickUpAreaOffset.y;
-	temp.z = pickUpAreaOffset.z;
+    Offset temp;
+    temp.x = pickUpAreaOffset.x;
+    temp.y = pickUpAreaOffset.y;
+    temp.z = pickUpAreaOffset.z;
 
     ComponentPlacerData* currentComp;
     if(usedTip == TIP::LEFT_TIP) {
@@ -184,12 +248,12 @@ Offset PlaceController::getBoxCoordinates(TIP usedTip) {
         temp.x += BoxOffsetTable[currentComp->box].x;
         temp.y += BoxOffsetTable[currentComp->box].y;
     } else if ((currentComp->box >= 67) && (currentComp->box <= 86)) {
-		// Its a tape
+        // Its a tape
         if(TapeOffsetTable[currentComp->box - 67].x+temp.x < 450.0) temp.x += TapeOffsetTable[currentComp->box - 67].x; else temp.x = 449.9;
         temp.y += TapeOffsetTable[currentComp->box - 67].y;
-	}
+    }
 
-	return temp;
+    return temp;
 }
 
 Offset PlaceController::getCompPickUpCoordinates(TIP usedTip) {
@@ -210,10 +274,10 @@ Offset PlaceController::getCompPickUpCoordinates(TIP usedTip) {
 
     if (currentComp->box < 67) {
         temp.x += (pickUpAreaOffset.x
-                + BoxOffsetTable[currentComp->box].x
+                   + BoxOffsetTable[currentComp->box].x
                 + PickUpCorrection.x);
         temp.y += (pickUpAreaOffset.y
-                + BoxOffsetTable[currentComp->box].y
+                   + BoxOffsetTable[currentComp->box].y
                 + PickUpCorrection.y);
         temp.rot = PickUpCorrection.rot + fmod(currentComp->rotation,180);
 
@@ -377,17 +441,17 @@ void PlaceController::updatePlacementData(ComponentPlacerData& data, TIP usedTip
 
 void PlaceController::setTip1Offset(float xDiff, float yDiff) {
 
-	tip1Offset.x = tip1Offset.x + camClibrationOffset_.x + xDiff;
-	tip1Offset.y = tip1Offset.y + camClibrationOffset_.y + yDiff;
-	ROS_INFO("x/yDiff:: x:%f y:%f", xDiff, yDiff);
-	ROS_INFO("camClibrationOffset_: x:%f y:%f", camClibrationOffset_.x,
-			camClibrationOffset_.y);
-	ROS_INFO("tip1offset: x:%f y:%f", tip1Offset.x, tip1Offset.y);
+    tip1Offset.x = tip1Offset.x + camClibrationOffset_.x + xDiff;
+    tip1Offset.y = tip1Offset.y + camClibrationOffset_.y + yDiff;
+    ROS_INFO("x/yDiff:: x:%f y:%f", xDiff, yDiff);
+    ROS_INFO("camClibrationOffset_: x:%f y:%f", camClibrationOffset_.x,
+             camClibrationOffset_.y);
+    ROS_INFO("tip1offset: x:%f y:%f", tip1Offset.x, tip1Offset.y);
 }
 
 void PlaceController::setTip2Offset(float xDiff, float yDiff) {
-	tip2Offset.x = tip2Offset.x + xDiff;
-	tip2Offset.y = tip2Offset.y + yDiff;
+    tip2Offset.x = tip2Offset.x + xDiff;
+    tip2Offset.y = tip2Offset.y + yDiff;
 }
 
 void PlaceController::setDispenserVel(double vel){
