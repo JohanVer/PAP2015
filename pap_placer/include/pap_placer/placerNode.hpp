@@ -84,34 +84,97 @@ enum STATE {
     DISPENSETASK
 };
 
-/* Call back functions */
+
+//!
+//! \brief statusCallback process feedback from motor controller
+//! \param statusMsg received status message
+//!
 void statusCallback(const pap_common::StatusConstPtr& statusMsg);
+
+//!
+//! \brief visionStatusCallback processes feedback from vision
+//! \param statusMsg received status message
+//!
 void visionStatusCallback(const pap_common::VisionStatusConstPtr& statusMsg);
+
+//!
+//! \brief placerCallback handles new placement commands
+//! \param taskMsg new placement controller task
+//!
 void placerCallback(const pap_common::TaskConstPtr& taskMsg);
+
+//!
+//! \brief dispenserCallbackPlacer handles new dispensing commands
+//! \param taskMsg new dispenser command
+//!
 void dispenserCallbackPlacer(const pap_common::DispenseTasksConstPtr &taskMsg);
 
+//!
+//! \brief sendPlacerStatus broadcasts current placer status
+//! \param process process the placer want to update
+//! \param status placer status within this process
+//
 void sendPlacerStatus(pap_common::PROCESS process, pap_common::PLACER_STATUS status);
 
+
 // Placer functions
-bool pickUp(double height, TIP usedTip);
-bool placeComp(double height, TIP usedTip);
-
-bool calibrateOffsets();
-bool calibrateCamera();
-bool calibrateTip1();
-bool calibrateDispenser();
-bool calibrateTip2();
-
-bool calibrateTopCamDistortion();
-bool calibrateBottomCamDistortion();
-
 bool singleCompPlacement();
 bool multipleCompPlacement();
-
 bool goToBox(TIP usedTip);
-
-bool dispensePCB();
+bool pickUp(double height, TIP usedTip);
+bool placeComp(double height, TIP usedTip);
 bool goToPCBOrigin();
+bool dispensePCB();
+
+//!
+//! \brief calibrateOffsets starts offset calibration procedure of both tips and
+//! dispenser tip relative to top camera
+//! \return true if calibration succesfull, otherwise false
+//!
+bool calibrateOffsets();
+
+
+//!
+//! \brief calibrateCamera
+//! \return
+//!
+bool calibrateCamera();
+
+//!
+//! \brief calibrateTip1
+//! \return
+//!
+bool calibrateTip1();
+
+//!
+//! \brief calibrateDispenser
+//! \return
+//!
+bool calibrateDispenser();
+
+//!
+//! \brief calibrateTip2
+//! \return
+//!
+bool calibrateTip2();
+
+//!
+//!//! \brief calibrateTopCamDistortion
+//!//! \return
+//!
+bool calibrateTopCamDistortion();
+
+//!
+//! \brief calibrateBottomCamDistortion
+//! \return
+//!
+bool calibrateBottomCamDistortion();
+
+
+
+
+
+
 
 /* General local functions */
 void switchDispenser(bool activate);
