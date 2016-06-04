@@ -63,7 +63,6 @@ SlotSelectorDialog::SlotSelectorDialog(QVector<componentEntry>* packageList, QVe
 	safetyFactor = 0.8;
 	generatePartList();
 	paintSlots();
-	ui->graphicsView->scale(-1.5, 1.5);
 }
 
 int SlotSelectorDialog::searchId(QPointF position) {
@@ -385,38 +384,42 @@ void SlotSelectorDialog::paintSlots(void) {
 			nameFound = false;
 			rect->setPen(QPen(Qt::blue, 1, Qt::SolidLine));
 			rect->setBrush(Qt::blue);
-		}
+        }
 		sceneSlots_.addItem(rect);
 
 		// Print box numbers
-		QGraphicsTextItem * text = new QGraphicsTextItem;
-		text->setPos(slot.pos.x() + slot.pos.width(), slot.pos.y());
+        QGraphicsTextItem * text = new QGraphicsTextItem;
+        text->setPos(slot.pos.x() + slot.pos.width(), slot.pos.y());
         //text->scale(-1, 1);
-        text->setScale(0.2);
-		text->setDefaultTextColor(Qt::white);
-		text->setPlainText(QString::number(i));
-		sceneSlots_.addItem(text);
+        //text->scale();
+        text->setScale(-0.2);
+        text->scale();
+        text->setDefaultTextColor(Qt::black);
+        text->setPlainText(QString::number(i));
+        sceneSlots_.addItem(text);
 
-		// Print name
-		if (nameFound) {
-			QGraphicsTextItem * text = new QGraphicsTextItem;
-			text->setPos(slot.pos.x() + slot.pos.width(), slot.pos.y() + 4);
+        // Print name
+        if (nameFound) {
+            QGraphicsTextItem * text = new QGraphicsTextItem;
+            text->setPos(slot.pos.x() + slot.pos.width(), slot.pos.y() + 4);
             //text->scale(-1, 1);
             text->setScale(0.2);
-			text->setDefaultTextColor(Qt::white);
-			if (slot.index >= 67) {
+            text->setDefaultTextColor(Qt::white);
+            if (slot.index >= 67) {
                 text->setRotation(90);
-				text->setPos(text->pos().x() - 5, text->pos().y() + 4);
-			}
-			text->setPlainText(value.c_str());
-			sceneSlots_.addItem(text);
-		}
-	}
+                text->setPos(text->pos().x() - 5, text->pos().y() + 4);
+            }
+            text->setPlainText(value.c_str());
+            sceneSlots_.addItem(text);
+        }
+    }
+
 	ui->graphicsView->setScene(&sceneSlots_);
-	if (!alreadyflipped) {
+    ui->graphicsView->scale(-1.5, 1.5);
+    if (!alreadyflipped) {
 		alreadyflipped = true;
 
-	}
+    }
 	ui->graphicsView->show();
 }
 

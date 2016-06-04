@@ -1,6 +1,9 @@
 #ifndef OFFSETTABLE_H_
 #define OFFSETTABLE_H_
 
+//!
+//! \brief BoxOffsetTable provides a coordinate look-up table for all boxes available
+//!
 const Offset BoxOffsetTable[67] = {
 		// Small boxes
 		{ 0.00, 0.00 }, { 16.66, 0.0 }, { 33.32, 0.0 }, { 49.98, 0.0 }, { 66.64, 0.0 }, { 83.30, 0.0 },
@@ -21,8 +24,10 @@ const Offset BoxOffsetTable[67] = {
 		{ 269.69, -5.0 }, { 269.69, -38.28 }, { 269.69, -71.56 }, { 269.69, -104.84 },
 		{ 302.97, -5.0 }, { 302.97, -38.28 }, { 302.97, -71.56 }, { 302.97, -104.84 }};
 
-// TODO: Y-Values have to be checked again!
-// X-Offsets are set to max. x coordinates we can set!
+
+//!
+//! \brief TapeOffsetTable provides a coordinate look-up table for all tapes available
+//!
 const Offset TapeOffsetTable[20] = { 	{ 341.43, -40.0 }, { 341.43, -51.0 }, { 341.43, -62.0 }, { 341.43, -73.0 },
 										{ 341.43, -84.0 }, { 341.43, -95.0 }, { 341.43, -106.0 }, { 341.43, -117.0 },
 										{ 341.43,-128.0 }, { 341.43, -139.0 }, { 341.43, -150.0 }, { 341.43,-161.0 },

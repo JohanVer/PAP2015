@@ -433,7 +433,7 @@
            <x>0</x>
            <y>30</y>
            <width>111</width>
-           <height>121</height>
+           <height>161</height>
           </rect>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_21">
@@ -472,6 +472,13 @@
             </property>
            </widget>
           </item>
+          <item>
+           <widget class="QLabel" name="label_6">
+            <property name="text">
+             <string>Nozzle (mm):</string>
+            </property>
+           </widget>
+          </item>
          </layout>
         </widget>
         <widget class="QWidget" name="verticalLayoutWidget_12">
@@ -480,7 +487,7 @@
            <x>110</x>
            <y>30</y>
            <width>91</width>
-           <height>121</height>
+           <height>161</height>
           </rect>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_25">
@@ -546,20 +553,16 @@
             </property>
            </widget>
           </item>
-         </layout>
-        </widget>
-        <widget class="QWidget" name="verticalLayoutWidget_2">
-         <property name="geometry">
-          <rect>
-           <x>140</x>
-           <y>160</y>
-           <width>81</width>
-           <height>62</height>
-          </rect>
-         </property>
-         <layout class="QVBoxLayout" name="verticalLayout_33">
           <item>
            <widget class="QComboBox" name="leftNozzle_comboBox">
+            <property name="editable">
+             <bool>false</bool>
+            </property>
+            <item>
+             <property name="text">
+              <string>0.7</string>
+             </property>
+            </item>
             <item>
              <property name="text">
               <string>1.0</string>
@@ -572,31 +575,17 @@
             </item>
             <item>
              <property name="text">
-              <string>2.5</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>-</string>
-             </property>
-            </item>
-           </widget>
-          </item>
-          <item>
-           <widget class="QComboBox" name="rightNozzle_comboBox">
-            <item>
-             <property name="text">
-              <string>1.0</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>1.3</string>
+              <string>1.8</string>
              </property>
             </item>
             <item>
              <property name="text">
               <string>2.5</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>3.8</string>
              </property>
             </item>
             <item>
@@ -905,39 +894,13 @@
          <string>Place single comp.</string>
         </property>
        </widget>
-       <widget class="QWidget" name="verticalLayoutWidget">
-        <property name="geometry">
-         <rect>
-          <x>20</x>
-          <y>580</y>
-          <width>131</width>
-          <height>61</height>
-         </rect>
-        </property>
-        <layout class="QVBoxLayout" name="verticalLayout_31">
-         <item>
-          <widget class="QLabel" name="label_6">
-           <property name="text">
-            <string>Left nozzle (mm):</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLabel" name="label_14">
-           <property name="text">
-            <string>Right nozzle (mm):</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </widget>
        <widget class="QWidget" name="verticalLayoutWidget_4">
         <property name="geometry">
          <rect>
           <x>230</x>
           <y>450</y>
           <width>91</width>
-          <height>121</height>
+          <height>161</height>
          </rect>
         </property>
         <layout class="QVBoxLayout" name="verticalLayout_48">
@@ -998,6 +961,45 @@
            <property name="alignment">
             <set>Qt::AlignCenter</set>
            </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QComboBox" name="rightNozzle_comboBox">
+           <item>
+            <property name="text">
+             <string>0.7</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>1.0</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>1.3</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>1.8</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>2.5</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>3.8</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>-</string>
+            </property>
+           </item>
           </widget>
          </item>
         </layout>

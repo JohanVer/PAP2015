@@ -17,175 +17,215 @@
 #include <fstream>
 #include <ros/package.h>
 
-
-/*****************************************************************************
- ** Namespace
- *****************************************************************************/
 using namespace std;
-/*****************************************************************************
- ** Class implementation
- *****************************************************************************/
 
 
-class dispenseInfos{
-public:
-	dispenseInfos(){
-		xPos = 0.0;
-		yPos = 0.0;
-		xPos2 = 0.0;
-		yPos2 = 0.0;
-		type = Point;
-		rotation = 0.0;
-		velocity = 0.0;
-		time = 0.0;
-	}
-
-	enum dispensePadType {
-		Point, Long
-	};
-
-	int type;
-	float xPos, yPos, xPos2, yPos2;
-	float rotation;
-	float velocity;
-	float time;
-};
-
-class ComponentPlacerData {
-public:
-	float destX;
-	float destY;
-	float rotation;
-	float length, width, height;
-	int box;
-	float tapeX, tapeY, tapeRot;
-    bool isWaiting;
-    std::string name;
-    pap_vision::VISION finderType;
-
-
-	ComponentPlacerData() {
-		destX = 0.0;
-		destY = 0.0;
-		rotation = 0.0;
-		length = 0.0;
-		width = 0.0;
-		height = 0.0;
-		box = 0;
-		tapeX = 0.0;
-		tapeY = 0.0;
-		tapeRot = 0.0;
-        name = "-";
-        isWaiting = false;
-	}
-private:
-};
-
-class Offset {
-public:
-    double x;
-    double y;
-    double z;
-    double rot;
-private:
-};
-
+//!
+//! \brief The PlaceController class provides all calibration, placement and dispensing functionalities
+//!
 class PlaceController {
 public:
 	PlaceController();
 	~PlaceController();
 
+    //!
+    //! \brief loadParams restores default parameters (px ratios, offsets)
+    //!
     void loadParams();
 
+    //!
+    //! \brief saveOffsetsToFile stores latest parameter values (px ratios, offsets)
+    //!
     bool saveOffsetsToFile();
 
-	dispenseInfos dispenseTask;
-    Offset cameraBottomOffset;
-	// These offsets are relative to camera
-	Offset tip2Offset, tip1Offset, dispenserTipOffset;
-
-	// Current destination coordinates for gotocoord state
-	Offset currentDestination_, lastDestination_;
-	Offset idleCoordinates_;
-	float MovingHeight_;
-	bool pickRelQR_;
-    pap_vision::VISION finderType;
-    ComponentPlacerData currentComponent;
-
-    ComponentPlacerData leftTipComponent, rightTipComponent;
-
-
-    // Twp tip placement
-
-
-	Offset SLOT_QR_Offset_, PCB_QR_Offset_;
-	Offset TAPE_QR_Offset_, BottomCam_QR_Offset_;
-    Offset Checkerboard_top1_Offset_, Checkerboard_top2_Offset_;
-    Offset Checkerboard_bottom1_Offset_, Checkerboard_bottom2_Offset_;
-
-	Offset camClibrationOffset_;
-	Offset tip1ClibrationOffset_;
-	Offset dispenserCalibrationOffset_;
-
-	Offset pickUpAreaOffset;
-    Offset pcbOriginOffset;
-
-    float suckingHeight_, largeBoxHeight_;
-
-    // Update offsets based on calibration vision feedback
+    //!
+    //! \brief updateCameraBottomOffset corrects bottom camera offset
+    //! \param update_x offset correction in x
+    //! \param update_y offset correction in y
+    //!
     void updateCameraBottomOffset(float update_x, float update_y);
+
+    //!
+    //! \brief updateTip1Offset corrects relative offset between tip1 and top camera
+    //! \param update_x offset correction in x
+    //! \param update_y offset correction in y
+    //!
     void updateTip1Offset(float update_x, float update_y);
+
+    //!
+    //! \brief updateTip2Offset corrects relative offset between tip2 and top camera
+    //! \param update_x offset correction in x
+    //! \param update_y offset correction in y
+    //!
     void updateTip2Offset(float update_x, float update_y);
+
+    //!
+    //! \brief updatedispenserTipOffset corrects relative offset between dispenser tip and top camera
+    //! \param update_x offset correction in x
+    //! \param update_y offset correction in y
+    //!
     void updatedispenserTipOffset(float update_x, float update_y);
 
-    // Get current offsets (init/calibrated)
+    //!
+    //! \brief updatePlacementData updates component data of desired tip and sets isWaiting flag
+    //! \param data is the new placement data of a component
+    //! \param usedTip selects tip the new placement data is assigned to
+    //!
+    void updatePlacementData(ComponentPlacerData& data, TIP usedTip);
+
+    //!
+    //! \brief getBottomCamCoordinates returns current bottom cam coordinates
+    //!
     Offset getBottomCamCoordinates();
+
+    //!
+    //! \brief getTipCoordinates returns current absolute coordinates of used tip
+    //! \param usedTip selects left or right tip offset
+    //!
     Offset getTipCoordinates(TIP usedTip);
+
+    //!
+    //! \brief getDispenserCoordinates returns current dispenser tip coordinates
+    //!
     Offset getDispenserCoordinates();
 
-
+    //!
+    //! \brief getBoxCoordinates
+    //! \param usedTip selects box of left or right tip component
+    //! \return box coordinates
+    //!
     Offset getBoxCoordinates(TIP usedTip);
+
+    //!
+    //! \brief getCompPickUpCoordinates
+    //! \param usedTip selects component pick-up coordinates of left or right tip component
+    //! \return absolute pick-up coordinates
+    //!
     Offset getCompPickUpCoordinates(TIP usedTip);
 
-	Offset getPCBCalibCoordinates();
-	Offset getPCBCompCoordinates();
+    //!
+    //! \brief getCompPlaceCoordinates
+    //! \param usedTip selects component place coordinates of left or right tip component
+    //! \return absolute place coordinates
+    //!
     Offset getCompPlaceCoordinates(TIP usedTip);
 
+    //!
+    //! \brief getPCBCalibCoordinates
+    //! \return absolute PCB coordinates
+    //!
+    Offset getPCBCalibCoordinates();
+
+    //!
+    //! \brief getCompSuckingHeight
+    //! \param usedTip selects left or right tip component
+    //! \return optimal sucking height for selected component
+    //!
     float getCompSuckingHeight(TIP usedTip);
+
+    //!
+    //! \brief getCompPlaceHeight
+    //! \param usedTip selects left or right tip component
+    //! \return optimal placement height for selected component
+    //!
     float getCompPlaceHeight(TIP usedTip);
 
+    //!
+    //! \brief getBoxNumber
+    //! \param usedTip selects left or right tip component
+    //! \return box number for selected component
+    //!
     int getBoxNumber(TIP usedTip);
+
+    //!
+    //! \brief getComponentHeight
+    //! \param usedTip selects left or right tip component
+    //! \return selected component height
+    //!
     float getComponentHeight(TIP usedTip);
+
+    //!
+    //! \brief getComponentLenth
+    //! \param usedTip selects left or right tip component
+    //! \return selected component length
+    //!
     float getComponentLenth(TIP usedTip);
+
+    //!
+    //! \brief getComponentWidth
+    //! \param usedTip selects left or right tip component
+    //! \return selected component width
+    //!
     float getComponentWidth(TIP usedTip);
+
+    //!
+    //! \brief getFinderType
+    //! \param usedTip selects left or right tip component
+    //! \return corresponding visual finder type for selected component
+    //!
     pap_vision::VISION getFinderType(TIP usedTip);
 
-	void setPickUpCorrectionOffset(float xDiff, float yDiff, float rotDiff);
-	void setPlaceCorrectionOffset(float xDiff, float yDiff, float rotDiff);
-	void setBottomCamCorrectionOffset(float xDiff, float yDiff);
-	void setTip1Offset(float xDiff, float yDiff);
-	void setTip2Offset(float xDiff, float yDiff);
-	void setDispenserOffset(float xDiff, float yDiff);
-
-    void setDispenserVel(double vel);
+    //!
+    //! \brief getDispenserVel
+    //! \return curren dispenser velocity
+    //!
     double getDispenserVel();
+
+    //!
+    //! \brief setDispenserVel
+    //! \param vel new dispenser velocity
+    //!
+    void setDispenserVel(double vel);
+
+    //!
+    //! \brief setPickUpCorrectionOffset
+    //! \param xDiff pick-up correction in x
+    //! \param yDiff pick-up correction in y
+    //! \param rotDiff pick-up rotational correction
+    //!
+    void setPickUpCorrectionOffset(float xDiff, float yDiff, float rotDiff);
+
+    //!
+    //! \brief angleToSteps converts a given angle into steps for a stepper motor with 1.8° resolution
+    //! \param angle in degrees
+    //! \return steps for stepper motor
+    //!
     int angleToSteps(float angle);
 
-	void systemCalibration();
-    void updatePlacementData(ComponentPlacerData& data, TIP usedTip);
-	bool getCalibrationStatus();
 
+    // Absolute offsets
+    Offset cameraBottomOffset;
+    Offset idleCoordinates_;
+    Offset SLOT_QR_Offset_, PCB_QR_Offset_;
+    Offset TAPE_QR_Offset_, BottomCam_QR_Offset_;
+    Offset Checkerboard_top1_Offset_, Checkerboard_top2_Offset_;
+    Offset Checkerboard_bottom1_Offset_, Checkerboard_bottom2_Offset_;
+    Offset pickUpAreaOffset;
+    Offset pcbOriginOffset;
+    Offset lastDestination_;
+
+    // Relative dispenser tip offset
+    Offset dispenserTipOffset;
+
+    // Height parameters for placement process
+    float MovingHeight_, suckingHeight_, largeBoxHeight_;
+
+    // Component placement data for both tips
+    ComponentPlacerData leftTipComponent, rightTipComponent;
+
+    bool pickRelQR_;
+    dispenseInfos dispenseTask;
 
 private:
+
+    // Relative correction feedback from vision for pick-up and place
+    Offset PickUpCorrection, PlaceCorrection;
+
+    // Offsets relative to top camera
+    Offset tip2Offset, tip1Offset;
+
     double corr_dispenser_vel_;
 
-
-
-	// Correction feedback from vision for pick-up and place
-	Offset PickUpCorrection, PlaceCorrection;
-
-	// Current destination coordinates for gotocoord state
-	Offset currentDestination;
 };
 
 #endif // PLACER_CLASS_H_

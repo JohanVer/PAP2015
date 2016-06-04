@@ -741,11 +741,13 @@ bool goToBox(TIP usedTip) {
 
     arduino_client->setLEDTask(placeController.getBoxNumber(usedTip));
     Offset boxCoords = placeController.getBoxCoordinates(usedTip);
+    std::cerr << "Got box coordinates" << std::endl;
     ROS_INFO("Go to: x:%f y:%f z:%f", boxCoords.x, boxCoords.y, boxCoords.z);
 
     if(!driveToCoord(boxCoords.x, boxCoords.y, boxCoords.z))
         return false;
 
+    std::cerr << "Got box coordinates" << std::endl;
     ROS_INFO("Placerstate: GOTOBOX - Vision started");
     float length = placeController.getComponentLenth(usedTip);
     float width = placeController.getComponentWidth(usedTip);

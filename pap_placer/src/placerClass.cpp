@@ -147,14 +147,6 @@ PlaceController::PlaceController() {
     PickUpCorrection.z = 0;
     PickUpCorrection.rot = 0.0;
 
-    // Calibration offsets
-    //	camClibrationOffset_.x = 0.0;
-    //	camClibrationOffset_.y = 0.0;
-    //	tip1ClibrationOffset_.x = 0.0;
-    //	tip1ClibrationOffset_.y = 0.0;
-
-    // Default tip/visual finder
-    finderType = pap_vision::START_CHIP_FINDER;
     pickRelQR_ = false;
 }
 
@@ -295,11 +287,15 @@ float PlaceController::getCompSuckingHeight(TIP usedTip) {
         return largeBoxHeight_;
     }
 
-    if ((currentComponent.box >= 67) && (currentComponent.box <= 86)) {
-        return pickUpAreaOffset.z;
-    } else {
-        if(usedTip == TIP::LEFT_TIP) {
+    if(usedTip == TIP::LEFT_TIP) {
+        if ((leftTipComponent.box >= 67) && (leftTipComponent.box <= 86)) {
+            return pickUpAreaOffset.z;
+        } else {
             return pickUpAreaOffset.z + leftTipComponent.height;
+        }
+    } else {
+        if ((rightTipComponent.box >= 67) && (rightTipComponent.box <= 86)) {
+            return pickUpAreaOffset.z;
         } else {
             return pickUpAreaOffset.z + rightTipComponent.height;
         }
@@ -437,22 +433,6 @@ void PlaceController::updatePlacementData(ComponentPlacerData& data, TIP usedTip
     }
 }
 
-
-
-void PlaceController::setTip1Offset(float xDiff, float yDiff) {
-
-    tip1Offset.x = tip1Offset.x + camClibrationOffset_.x + xDiff;
-    tip1Offset.y = tip1Offset.y + camClibrationOffset_.y + yDiff;
-    ROS_INFO("x/yDiff:: x:%f y:%f", xDiff, yDiff);
-    ROS_INFO("camClibrationOffset_: x:%f y:%f", camClibrationOffset_.x,
-             camClibrationOffset_.y);
-    ROS_INFO("tip1offset: x:%f y:%f", tip1Offset.x, tip1Offset.y);
-}
-
-void PlaceController::setTip2Offset(float xDiff, float yDiff) {
-    tip2Offset.x = tip2Offset.x + xDiff;
-    tip2Offset.y = tip2Offset.y + yDiff;
-}
 
 void PlaceController::setDispenserVel(double vel){
     corr_dispenser_vel_ = vel;

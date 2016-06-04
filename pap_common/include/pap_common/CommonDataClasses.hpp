@@ -11,6 +11,11 @@
 #include <string>
 #include <QRectF>
 #include <QString>
+#include "pap_common/Task.h"
+#include "pap_common/Status.h"
+#include <pap_common/task_message_def.h>
+#include <pap_common/status_message_def.h>
+#include <pap_common/vision_message_def.h>
 
 namespace dispenser_types {
 enum DispenserType{
@@ -50,6 +55,69 @@ public:
         count = 0;
         slot = 0;
     }
+};
+
+class dispenseInfos{
+public:
+        dispenseInfos(){
+                xPos = 0.0;
+                yPos = 0.0;
+                xPos2 = 0.0;
+                yPos2 = 0.0;
+                type = Point;
+                rotation = 0.0;
+                velocity = 0.0;
+                time = 0.0;
+        }
+
+        enum dispensePadType {
+                Point, Long
+        };
+
+        int type;
+        float xPos, yPos, xPos2, yPos2;
+        float rotation;
+        float velocity;
+        float time;
+};
+
+class ComponentPlacerData {
+public:
+        float destX;
+        float destY;
+        float rotation;
+        float length, width, height;
+        int box;
+        float tapeX, tapeY, tapeRot;
+    bool isWaiting;
+    std::string name;
+    pap_vision::VISION finderType;
+
+
+        ComponentPlacerData() {
+                destX = 0.0;
+                destY = 0.0;
+                rotation = 0.0;
+                length = 0.0;
+                width = 0.0;
+                height = 0.0;
+                box = 0;
+                tapeX = 0.0;
+                tapeY = 0.0;
+                tapeRot = 0.0;
+        name = "-";
+        isWaiting = false;
+        }
+private:
+};
+
+class Offset {
+public:
+    double x;
+    double y;
+    double z;
+    double rot;
+private:
 };
 
 
