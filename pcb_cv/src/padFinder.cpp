@@ -63,7 +63,7 @@ bool padFinder::saveOffsetsToFile(){
 
 void padFinder::loadParams(){
     ros::NodeHandle nh;
-    getPAPParam<double>(nh, "px_slot", pxRatioSlot);
+    getPAPParam<double>(nh, "px_tape", pxRatioSlot);
     getPAPParam<double>(nh, "px_tape", pxRatioTape);
     getPAPParam<double>(nh, "px_pcb/x", pxRatioPcb_x);
     getPAPParam<double>(nh, "px_pcb/y", pxRatioPcb_y);
@@ -74,7 +74,7 @@ padFinder::padFinder() {
     foundVia = false;
     partWidth_ = 0.0;
     partHeight_ = 0.0;
-    pxRatioSlot = PIXEL_TO_MM_TOP;
+    pxRatioSlot = PIXEL_TO_MM_TAPE;
     pxRatioTape = PIXEL_TO_MM_TAPE;
     pxRatioPcb_x = PIXEL_TO_MM_PCB;
     pxRatioPcb_y = PIXEL_TO_MM_PCB;

@@ -13,6 +13,7 @@ float32 velY
 float32 velZ
 ---
 int8 success
+float32 height
 ---
 float32 xpos
 float32 ypos

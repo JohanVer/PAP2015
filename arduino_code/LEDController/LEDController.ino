@@ -1,6 +1,7 @@
 #include <ros.h>
 #include <pap_common/ArduinoMsg.h>
 #include <pap_common/Status.h>
+
 #include "FastLED.h"
 #include <Stepper.h>
 
@@ -41,7 +42,6 @@ int counter1 = 0;
 int blinkIteration = 0;
 bool down = false;
 int delayMs = 0;
-//ros::Publisher statusPublisher("arduStatus", &arduMsg);
 
 enum ARDUINO_TASK {
   SETRELAIS = 1,
@@ -194,7 +194,7 @@ void setup()
   FastLED.addLeds<CHIPSET, TOP_LED_PIN,RGB>(top_leds, NUM_TOP_LEDS);
   stepper1.setSpeed(60); // RPM
   nh.initNode();
-  //nh.advertise(statusPublisher);
+  
   nh.subscribe(arduinoMessageSub);
   
   resetAllLEDs();

@@ -37,6 +37,7 @@ ControllerInterface::ControllerInterface(): as_(nh_, "motor_controller_actions",
     yTimeOutTimer = 0;
     zTimeOutTimer = 0;
     block_status_ = false;
+    needle_touched_ = false;
 }
 
 void ControllerInterface::publishControllerStatus(const ros::Publisher& publisher ,const controllerStatus& c1, const controllerStatus& c2, const controllerStatus& c3){
@@ -240,6 +241,40 @@ void ControllerInterface::execute_action(const pap_common::MotorControllerAction
         as_.setSucceeded();
         break;
 
+    case pap_common::HEIGHT_CAL:{
+
+        ros::Rate loop_rate(100);
+        coordError = gotoCoord(controllerState1.position, controllerState2.position,
+                               command->data3, command->velX, command->velY,command->velZ);
+        if (coordError != error_codes::NO_ERROR) {
+            ros::Time start_time = ros::Time::now();
+            needle_touched_ = false;
+            // Wait until needle touched
+            while(!needle_touched_){
+                if(ros::Time::now().toSec() - start_time.toSec() > 15.0){
+                    std::cerr << "Needle not touched within timer...\n";
+                    break;
+                }
+                ros::spinOnce();
+                loop_rate.sleep();
+            }
+
+            if(needle_touched_){
+                stop(pap_common::ZMOTOR);
+                if(checkAllControllers(controllerState1, controllerState2, controllerState3)){
+                    pap_common::MotorControllerActionResult res;
+                    res.height = controllerState3.position;
+                    as_.setSucceeded(res);
+                }else{
+                    as_.setAborted();
+                }
+            }
+        }else{
+            as_.setAborted();
+        }
+    }
+        break;
+
     case pap_common::COORD_VEL:
         coordError = gotoCoord(command->data1, command->data2,
                                command->data3, command->velX, command->velY,100.0);
@@ -267,6 +302,13 @@ void ControllerInterface::execute_action(const pap_common::MotorControllerAction
     }
 
     block_status_ = false;
+}
+
+void ControllerInterface::calSignalCallback(const pap_common::CalibrationSignalConstPtr& msg){
+    if(!msg->touched){
+        needle_touched_ = true;
+        std::cerr << "Cal Signal received...." <<(size_t) msg->touched << std::endl;
+    }
 }
 
 void ControllerInterface::parseTask(const pap_common::TaskConstPtr& taskMsg) {
@@ -333,13 +375,16 @@ void ControllerInterface::parseTask(const pap_common::TaskConstPtr& taskMsg) {
             }
             break;
         }
+
         break;
+
     }
 }
 
 void ControllerInterface::initInterface()
 {
     taskSubscriber_ = nh_.subscribe("/task", 100, &ControllerInterface::parseTask, this);
+    calSignalSub_ = nh_.subscribe("cal_signal", 1, &ControllerInterface::calSignalCallback, this);
     as_.start();
     statusPublisher = nh_.advertise<pap_common::Status>("status", 1000);
 
@@ -354,6 +399,7 @@ void ControllerInterface::startInterface()
 
     while (ros::ok()) {
         loop_rate.sleep();
+
         if(!block_status_){
             if(checkAllControllers(controllerState1, controllerState2, controllerState3)){
                 publishControllerStatus(statusPublisher, controllerState1, controllerState2, controllerState3);
@@ -361,6 +407,7 @@ void ControllerInterface::startInterface()
                 //std::cerr << "Checking devices failed...\n";
             }
         }
+
         loop_rate.sleep();
         ros::spinOnce();
     }

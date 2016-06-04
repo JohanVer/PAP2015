@@ -181,6 +181,23 @@ bool calibrateTip1() {
 }
 
 bool calibrateDispenser() {
+
+    pap_common::MotorControllerActionResult res;
+    if(!motor_send_functions::sendMotorControllerAction(*motor_action_client, pap_common::HEIGHT_CAL,
+                                                        placeController.lastDestination_.x,
+                                                        placeController.lastDestination_.y,
+                                                        10,
+                                                        100,
+                                                        100,
+                                                        1,
+                                                        res)){
+        return false;
+    }
+
+    std::cerr << "JUHUHU : " << res.height << std::endl;
+
+
+    /*
     ROS_INFO("PlacerState: DISPENSER ");
     Offset dispenser = placeController.getDispenserCoordinates();
     ROS_INFO("Go to: x:%f y:%f z:%f", dispenser.x, dispenser.y, dispenser.z);
@@ -212,6 +229,7 @@ bool calibrateDispenser() {
         return false;
 
     ros::Duration(5).sleep();
+    */
     return true;
 }
 

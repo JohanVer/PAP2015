@@ -3,6 +3,7 @@
 
 #include "ros/ros.h"
 #include "std_msgs/String.h"
+#include <pap_common/CalibrationSignal.h>
 #include <pap_common/MotorControllerActionAction.h>
 #include <pap_common/Status.h>
 #include <pap_common/Task.h>
@@ -171,6 +172,8 @@ public:
 
 private:
 
+    void calSignalCallback(const pap_common::CalibrationSignalConstPtr &msg);
+
     ros::NodeHandle nh_;
     ActionServer as_;
     void parseTask(const pap_common::TaskConstPtr& taskMsg);
@@ -184,9 +187,11 @@ private:
     oldControllerState1, oldControllerState2, oldControllerState3;
     ros::Publisher statusPublisher;
     ros::Subscriber taskSubscriber_;
+    ros::Subscriber calSignalSub_;
 
     std::unique_ptr<ActionServer> actionServer_;
     bool block_status_;
+    bool needle_touched_;
 };
 
 

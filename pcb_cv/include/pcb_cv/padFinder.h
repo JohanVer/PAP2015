@@ -45,8 +45,7 @@ typedef dlib::probabilistic_decision_function<kernel_type> probabilistic_funct_t
 typedef dlib::normalized_function<probabilistic_funct_type> pfunct_type;
 
 // Conversion factors for pixel to mm
-// Top-Camera:
-#define PIXEL_TO_MM_TOP 33.1339
+// Top-Camera
 
 #define PIXEL_TO_MM_TAPE 31.9609
 // Bottom-Camera
@@ -120,7 +119,7 @@ public:
     //! \brief findChip searches a chip on given image
     //! \param input input image
     //! \param camera_select selector to choose which camera should be used
-    //! \param part_out found chip
+    //! \param[out] part_out found chip
     //! \return true if successfull
     //!
     bool findChip(cv::Mat* input, unsigned int camera_select, smdPart &part_out);

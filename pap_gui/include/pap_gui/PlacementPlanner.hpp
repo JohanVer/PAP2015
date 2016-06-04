@@ -40,6 +40,7 @@ public:
     bool sendNextTask(pap_gui::QNode& node);
 
     // Clears component placement queues of both tips
+
     void resetQueues();
 
     ComponentPlacerData compToPlaceLeft, compToPlaceRight;

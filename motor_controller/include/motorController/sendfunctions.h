@@ -39,6 +39,9 @@ bool sendMotorControllerAction(Client& action_client, pap_common::TASK task, flo
 //!
 bool sendMotorControllerAction(Client& action_client, pap_common::TASK task,  float x, float y, float z, float velx, float vely);
 
+
+bool sendMotorControllerAction(Client& action_client, pap_common::TASK task,  float x, float y, float z, float velx, float vely, float velz, pap_common::MotorControllerActionResult &res);
+
 //!
 //! \brief sendMotorControllerAction sends a task to the motor controller node
 //! \param action_client ros action client
