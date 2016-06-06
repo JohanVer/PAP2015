@@ -372,7 +372,7 @@ QRectF GerberPadParser::renderImage(QGraphicsScene* scene, int width,
     return pcbSize;
 }
 
-int GerberPadParser::searchId(QPointF position, int height) {
+int GerberPadParser::searchId(QPointF position) {
     QPointF convPoint;
     convPoint.setX(position.x());
     convPoint.setY(position.y());

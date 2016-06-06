@@ -7,6 +7,132 @@
 
 #include <pap_gui/DispenserPlanner.hpp>
 
+DotPlanner::DotPlanner(){
+
+}
+
+DotPlanner::~DotPlanner() {
+    // TODO Auto-generated destructor stub
+}
+
+std::vector<dispenseInfo> DotPlanner::planDispensing(PadInformation padInfoIn, float nozzleDiameter, double percentage_edge_dist, double wait_time, double alpha, DOT_ALIGN alignment){
+    float inX = padInfoIn.rect.x();
+    float inY = padInfoIn.rect.y();
+    float inRot = padInfoIn.rotation;
+    float inWidth = padInfoIn.rect.width();
+    float inHeight = padInfoIn.rect.height();
+
+    std::vector<dispenseInfo> outVector;
+    float distanceFromEdge = percentage_edge_dist * nozzleDiameter;
+
+    tf::Quaternion rotQuat;
+    tf::Transform rotation_;
+    rotQuat.setEuler(0.0, 0.0, inRot*(M_PI/180.0));
+    rotation_.setOrigin(tf::Vector3(0.0, 0.0, 0.0));
+    rotation_.setRotation(rotQuat);
+
+    double nozzle_side_total = 2 * distanceFromEdge + nozzleDiameter;
+
+    unsigned int number_of_lines = 0;
+    unsigned int number_of_cols = 0;
+
+    number_of_lines =  inHeight / nozzle_side_total;
+    number_of_cols = inWidth / nozzle_side_total;
+
+    double dyn_offset_x = 0;
+    double dyn_offset_y = 0;
+
+    double stat_offset_x = 0;
+    double stat_offset_y = 0;
+
+    double nozzle_side_total_x = 0;
+    double nozzle_side_total_y = 0;
+
+    double max_overlap_length = 0;
+
+    if(number_of_lines == 0){
+        number_of_lines = 1;
+        double overlap = (nozzleDiameter - inHeight);
+        dyn_offset_y = - (overlap) / 2;
+        nozzle_side_total_y = nozzleDiameter;
+        if(overlap > max_overlap_length) max_overlap_length = overlap;
+    }else{
+        if(alignment == DOT_ALIGN::CENTER){
+            dyn_offset_y = std::fmod(inHeight, nozzle_side_total) / (number_of_lines + 1);
+            stat_offset_y = 0;
+        }else if(alignment == DOT_ALIGN::LEFT){
+            dyn_offset_y = 0;
+            stat_offset_y = 0;
+        }else if(alignment == DOT_ALIGN::RIGHT){
+            dyn_offset_y = 0;
+            stat_offset_y = std::fmod(inHeight, nozzle_side_total);
+        }
+        nozzle_side_total_y = nozzle_side_total;
+    }
+
+    if(number_of_cols == 0){
+        number_of_cols = 1;
+        double overlap = (nozzleDiameter - inWidth);
+        dyn_offset_x = - (overlap) / 2;
+        nozzle_side_total_x = nozzleDiameter;
+        if(overlap > max_overlap_length) max_overlap_length = overlap;
+    }else{
+        if(alignment == DOT_ALIGN::CENTER){
+            dyn_offset_x = std::fmod(inWidth, nozzle_side_total)  / (number_of_cols + 1) ;
+            stat_offset_x = 0;
+        }else if(alignment == DOT_ALIGN::LEFT){
+            dyn_offset_x = 0;
+            stat_offset_x = 0;
+        }else if(alignment == DOT_ALIGN::RIGHT){
+            dyn_offset_x = 0;
+            stat_offset_x = std::fmod(inHeight, nozzle_side_total);
+        }
+        nozzle_side_total_x = nozzle_side_total;
+    }
+
+
+    double overlap_ratio = max_overlap_length / nozzle_side_total;
+
+    std::cerr << "Wait time reducing factor: " << (alpha * overlap_ratio) << " with alpha: " << alpha << " and overlap_ratio: " << overlap_ratio << std::endl;
+
+    for(auto line = 0; line < number_of_lines; line++){
+        for(auto col = 0; col < number_of_cols; col++){
+            double x = col * (nozzle_side_total_x) + (nozzle_side_total_x / 2) + (col + 1) * dyn_offset_x + stat_offset_x;
+            double y = line * (nozzle_side_total_y) + (nozzle_side_total_y / 2) + (line + 1) * dyn_offset_y + stat_offset_y;
+
+            dispenseInfo point;
+            point.xPos = x - (inWidth / 2);
+            point.xPos2 = point.xPos;
+
+            point.yPos = y - (inHeight / 2);
+            point.yPos2 = point.yPos;
+
+            point.type = dispenser_types::DOT_DISPENSE;
+
+            point.time = wait_time - ((alpha * overlap_ratio) * wait_time);
+
+            outVector.push_back(point);
+        }
+    }
+
+    // Rotate coordinates
+    for(size_t i = 0; i < outVector.size(); i++){
+        tf::Point to_tf_1(outVector.at(i).xPos, outVector.at(i).yPos, 0);
+        tf::Point to_tf_2(outVector.at(i).xPos2, outVector.at(i).yPos2, 0);
+
+        tf::Point transformed_1 = rotation_ * to_tf_1;
+        tf::Point transformed_2 = rotation_ * to_tf_2;
+
+        outVector.at(i).xPos = transformed_1.x() + inX;
+        outVector.at(i).yPos = transformed_1.y() + inY;
+
+        outVector.at(i).xPos2 = transformed_2.x() + inX;
+        outVector.at(i).yPos2 = transformed_2.y() + inY;
+    }
+
+    return outVector;
+}
+
 DispenserPlanner::DispenserPlanner() {
     // TODO Auto-generated constructor stub
 
@@ -17,7 +143,7 @@ DispenserPlanner::~DispenserPlanner() {
 }
 
 std::vector<dispenseInfo> DispenserPlanner::planDispensing(
-        PadInformation padInfoIn, float nozzleDiameter, double percentage_edge_dist, double velocity) {
+        PadInformation padInfoIn, float nozzleDiameter, double percentage_edge_dist, double velocity, double wait_time) {
     float inX = padInfoIn.rect.x();
     float inY = padInfoIn.rect.y();
     float inRot = padInfoIn.rotation;
@@ -105,9 +231,9 @@ std::vector<dispenseInfo> DispenserPlanner::planDispensing(
             outInfo.yPos = yCoord;
             outInfo.xPos2 = xCoord2;
             outInfo.yPos2 = yCoord2;
-            outInfo.type = dispenser_types::DISPENSE;
+            outInfo.type = dispenser_types::LINE_DISPENSE;
             outInfo.velocity = velocity;
-            outInfo.time = 0;
+            outInfo.time = wait_time;
             outVector.push_back(outInfo);
         } else {
             dispenseInfo outInfo;
@@ -133,9 +259,9 @@ std::vector<dispenseInfo> DispenserPlanner::planDispensing(
             outInfo.yPos = yCoord;
             outInfo.xPos2 = xCoord2;
             outInfo.yPos2 = yCoord2;
-            outInfo.type = dispenser_types::DISPENSE;
+            outInfo.type = dispenser_types::LINE_DISPENSE;
             outInfo.velocity = velocity;
-            outInfo.time = 0;
+            outInfo.time = wait_time;
             outVector.push_back(outInfo);
         }
     }

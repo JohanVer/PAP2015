@@ -50,7 +50,7 @@ public:
 	void setSize(float height, float width);
 	QRectF renderImage(QGraphicsScene* scene, int width, int height);
 	void setTable(QTableWidget* table);
-	int searchId(QPointF position, int height);
+    int searchId(QPointF position);
 	float calibratePads(QPointF local1, QPointF local2, QPointF global1,
 			QPointF global2,bool simulationMode);
     void setTransformation(tf::Transform tf);

@@ -314,6 +314,7 @@ private:
     QPixmap cameraPicture1, cameraPicture2;
     CameraGraphicsScene scene_, scene2_;
     DispenserPlanner dispenserPlanner;
+    DotPlanner dotPlanner;
 
     // Structures for holding the rendered image of the pcb
     QPixmap renderedPadsPixmap;
@@ -352,10 +353,13 @@ private:
     cv::Size2d pic_offset_;
 
     // Dispenser settings:
-
     double edge_percentage_;
     double dispenser_velocity_;
     double nozzle_diameter_;
+    double alpha_;
+    enum DOT_ALIGN alignment_;
+    enum PLANNER_SELECT planner_selection_;
+    double wait_time_;
 
     bool tip_thresholding_on;
 };

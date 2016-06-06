@@ -19,7 +19,8 @@
 
 namespace dispenser_types {
 enum DispenserType{
-    DISPENSE,
+    DOT_DISPENSE,
+    LINE_DISPENSE,
     NOT_DISPENSE
 };
 

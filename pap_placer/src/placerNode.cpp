@@ -87,7 +87,7 @@ bool calibrateOffsets() {
         return false;
 
     if(!calibrateTip1())
-        return false;  
+        return false;
 
     //if(!calibrateTip2())
     //    return false;
@@ -384,7 +384,7 @@ bool calibrateDispenserAmount(double tip_diameter, double init_vel){
         dispenseInfo blob;
         blob.time = init_wait;
         blob.velocity = velocity;
-        blob.type = dispenser_types::DISPENSE;
+        blob.type = dispenser_types::LINE_DISPENSE;
 
         blob.xPos = begin_despensing_p.x + i*length_blobs + i *gap_length;
         blob.yPos = begin_despensing_p.y;
@@ -789,7 +789,7 @@ bool dispensePCB(std::vector<dispenseInfo> dispense_task, double dispense_height
         dispenseInfo goal = dispense_task.at(i);
         double velocity = goal.velocity;
 
-        if(goal.type == dispenser_types::DISPENSE){
+        if(goal.type == dispenser_types::LINE_DISPENSE || goal.type == dispenser_types::DOT_DISPENSE ){
             switchDispenser(true);
             if(placeController.getDispenserVel()){
                 velocity = placeController.getDispenserVel();
@@ -805,13 +805,15 @@ bool dispensePCB(std::vector<dispenseInfo> dispense_task, double dispense_height
                  goal.yPos2, dispense_height);
 
 
-        if(!motor_send_functions::sendMotorControllerAction(*motor_action_client, pap_common::COORD_VEL,
-                                                            goal.xPos2,
-                                                            goal.yPos2,
-                                                            dispense_height,
-                                                            velocity,
-                                                            velocity)){
-            return false;
+        if(goal.type == dispenser_types::LINE_DISPENSE ){
+            if(!motor_send_functions::sendMotorControllerAction(*motor_action_client, pap_common::COORD_VEL,
+                                                                goal.xPos2,
+                                                                goal.yPos2,
+                                                                dispense_height,
+                                                                velocity,
+                                                                velocity)){
+                return false;
+            }
         }
 
     }
@@ -1079,7 +1081,7 @@ void placerCallback(const pap_common::TaskConstPtr& taskMsg) {
     switch (taskMsg->destination) {
     case pap_common::PLACER: {
 
-        switch (taskMsg->task) {       
+        switch (taskMsg->task) {
         case pap_common::UPDATE_PLACER: {
 
             ComponentPlacerData tempComponent;
@@ -1105,11 +1107,11 @@ void placerCallback(const pap_common::TaskConstPtr& taskMsg) {
         } break;
 
         case pap_common::START_COMPLETE_PLACEMENT: {
-          if(!multipleCompPlacement()) {
-              placeController.leftTipComponent.isWaiting = false;
-              placeController.leftTipComponent.isWaiting = false;
-              ROS_ERROR("Placer: Multiple component placement failed");
-          }
+            if(!multipleCompPlacement()) {
+                placeController.leftTipComponent.isWaiting = false;
+                placeController.leftTipComponent.isWaiting = false;
+                ROS_ERROR("Placer: Multiple component placement failed");
+            }
         } break;
 
         case pap_common::HOMING: {
@@ -1172,7 +1174,7 @@ void placerCallback(const pap_common::TaskConstPtr& taskMsg) {
         case pap_common::COMPLETEPLACEMENT: {
             //if(!singleCompPlacement()) {
             //    ROS_ERROR("Placer: Complete component placement failed");
-                // TODO: Handle
+            // TODO: Handle
             //}
             break;
         }

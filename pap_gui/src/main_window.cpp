@@ -217,7 +217,12 @@ MainWindow::MainWindow(int version, int argc, char** argv, QWidget *parent) :
 
     edge_percentage_ = 0.1;
     dispenser_velocity_ = 1.0;
-    nozzle_diameter_ = 0.16;
+    nozzle_diameter_ = 0.41;
+    alpha_ = 0.2;
+    planner_selection_ = PLANNER_SELECT::DOT_PLANNER;
+    wait_time_ = 1;
+    alignment_ = DOT_ALIGN::CENTER;
+
     tip_thresholding_on = false;
 }
 
@@ -1992,7 +1997,7 @@ void MainWindow::on_padViewGenerate_button_clicked() {
 }
 
 void MainWindow::padPressed(int numberOfFiducial, QPointF padPos) {
-    id_ = padParser.searchId(padPos, ui.padView_Image->width());
+    id_ = padParser.searchId(padPos);
     setFiducialPads(numberOfFiducial,
                     padParser.padInformationArray_[id_].rect.x(),
                     padParser.padInformationArray_[id_].rect.y());
@@ -2000,7 +2005,7 @@ void MainWindow::padPressed(int numberOfFiducial, QPointF padPos) {
 
 void MainWindow::gotoPad(QPointF padPos) {
     ROS_INFO("GUI: Goto Pad....");
-    id_ = padParser.searchId(padPos, ui.padView_Image->width());
+    id_ = padParser.searchId(padPos);
     ROS_INFO("GUI: ID: %d", id_);
 
     float x = padParser.padInformationArray_[id_].rect.x();
@@ -2017,7 +2022,7 @@ void MainWindow::redrawPadView(){
 }
 
 void MainWindow::deletePad(QPointF padPos) {
-    id_ = padParser.searchId(padPos, ui.padView_Image->width());
+    id_ = padParser.searchId(padPos);
     padParser.deleteEntry(id_);
     redrawPadView();
 }
@@ -2255,6 +2260,8 @@ void MainWindow::on_startDispense_button_clicked() {
 
     std::sort(copy.begin(), copy.end(), compareClass());
 
+    bool left_align = true;
+
     for (size_t i = initialIter; i < copy.size(); i++) {
 
         if (dispenserPaused) {
@@ -2263,22 +2270,47 @@ void MainWindow::on_startDispense_button_clicked() {
                            currentPosition.x, currentPosition.y, 45.0);
             return;
         }
-        std::vector<dispenseInfo> dispInfo = dispenserPlanner.planDispensing(
-                    copy[i], nozzleDiameter, edge_percentage_, dispenser_velocity_ );
+
+        std::vector<dispenseInfo> dispInfo;
+        if(planner_selection_ == PLANNER_SELECT::DOT_PLANNER){
+            enum DOT_ALIGN align_temp;
+            if(left_align){
+                align_temp = DOT_ALIGN::LEFT;
+                left_align = false;
+            }else{
+                align_temp = DOT_ALIGN::RIGHT;
+                left_align = true;
+            }
+
+            dispInfo = dotPlanner.planDispensing(
+                        copy[i], nozzleDiameter, edge_percentage_, wait_time_, alpha_, align_temp);
+        }else if(planner_selection_ == PLANNER_SELECT::LINE_PLANNER){
+            dispInfo = dispenserPlanner.planDispensing(
+                        copy[i], nozzleDiameter, edge_percentage_, dispenser_velocity_, wait_time_);
+        }
 
         //copy.erase(copy.begin());
 
         //std::sort(copy.begin(), copy.end(), compareClass(currentPosition.x,currentPosition.y));
 
         for (size_t j = 0; j < dispInfo.size(); j++) {
-            if(dispInfo.at(j).type == dispenser_types::DISPENSE){
+            if(dispInfo.at(j).type == dispenser_types::DOT_DISPENSE){
+
+                double radius = nozzleDiameter * pxFactor;
+                double x = dispInfo[j].yPos * pxFactor - radius/2 ;
+                double y = - (dispInfo[j].xPos * pxFactor) - radius/2;
+                scenePads_.addEllipse(x, y, radius, radius,QPen(Qt::blue, 0, Qt::SolidLine), QBrush(Qt::blue) );
+
+            }else if(dispInfo.at(j).type == dispenser_types::LINE_DISPENSE){
                 scenePads_.addLine(
                             QLineF(dispInfo[j].yPos * pxFactor,
                                    - (dispInfo[j].xPos * pxFactor),
                                    dispInfo[j].yPos2 * pxFactor,
                                    -(dispInfo[j].xPos2 * pxFactor)),
                             QPen(Qt::blue, nozzleDiameter * pxFactor, Qt::SolidLine));
-            }else{
+
+            }
+            else{
                 scenePads_.addLine(
                             QLineF(dispInfo[j].yPos * pxFactor,
                                    - (dispInfo[j].xPos * pxFactor),
@@ -2319,23 +2351,37 @@ void MainWindow::on_startDispense_button_clicked() {
 }
 
 void MainWindow::dispenseSinglePad(QPointF point) {
-    id_ = padParser.searchId(point, ui.padView_Image->width());
+    id_ = padParser.searchId(point);
     float nozzleDiameter = nozzle_diameter_;
     float pxFactor = padParser.pixelConversionFactor;
     if (id_ != -1) {
-        std::vector<dispenseInfo> dispInfo = dispenserPlanner.planDispensing(
-                    padParser.padInformationArrayPrint_[id_], nozzleDiameter, edge_percentage_, dispenser_velocity_);
-
+        std::vector<dispenseInfo> dispInfo;
+        if(planner_selection_ == PLANNER_SELECT::DOT_PLANNER){
+            dispInfo = dotPlanner.planDispensing(
+                        padParser.padInformationArrayPrint_[id_], nozzleDiameter, edge_percentage_, wait_time_, alpha_, alignment_);
+        }else if(planner_selection_ == PLANNER_SELECT::LINE_PLANNER){
+            dispInfo = dispenserPlanner.planDispensing(
+                        padParser.padInformationArrayPrint_[id_], nozzleDiameter, edge_percentage_, dispenser_velocity_, wait_time_);
+        }
 
         for (size_t j = 0; j < dispInfo.size(); j++) {
-            if(dispInfo.at(j).type == dispenser_types::DISPENSE){
+            if(dispInfo.at(j).type == dispenser_types::DOT_DISPENSE){
+
+                double radius = nozzleDiameter * pxFactor;
+                double x = dispInfo[j].yPos * pxFactor - radius/2 ;
+                double y = - (dispInfo[j].xPos * pxFactor) - radius/2;
+                scenePads_.addEllipse(x, y, radius, radius,QPen(Qt::blue, 0, Qt::SolidLine), QBrush(Qt::blue) );
+
+            }else if(dispInfo.at(j).type == dispenser_types::LINE_DISPENSE){
                 scenePads_.addLine(
                             QLineF(dispInfo[j].yPos * pxFactor,
                                    - (dispInfo[j].xPos * pxFactor),
                                    dispInfo[j].yPos2 * pxFactor,
                                    -(dispInfo[j].xPos2 * pxFactor)),
                             QPen(Qt::blue, nozzleDiameter * pxFactor, Qt::SolidLine));
-            }else{
+
+            }
+            else{
                 scenePads_.addLine(
                             QLineF(dispInfo[j].yPos * pxFactor,
                                    - (dispInfo[j].xPos * pxFactor),
@@ -2347,6 +2393,7 @@ void MainWindow::dispenseSinglePad(QPointF point) {
             padParser.transformDispenserInfo(&dispInfo[j]);
 
         }
+
         qnode.sendDispenserTask(dispInfo);
 
         QEventLoop loop;
@@ -2863,7 +2910,23 @@ void pap_gui::MainWindow::on_disp_settings_apply_clicked()
     nozzle_diameter_ =  ui.nozzleDispCombo->currentText().toFloat();
     edge_percentage_ = ui.edge_perc_edit->text().toFloat();
     dispenser_velocity_ = ui.dispenser_vel_edit->text().toFloat();
+    alpha_ = ui.alpha_text_edit->text().toFloat();
 
+    if(ui.planner_select_combo->currentText() == "Line"){
+        planner_selection_ = PLANNER_SELECT::LINE_PLANNER;
+    }else if(ui.planner_select_combo->currentText() == "Dot"){
+        planner_selection_ = PLANNER_SELECT::DOT_PLANNER;
+    }
+
+    wait_time_ = ui.wait_time_text_edit->text().toFloat();
+
+    if(ui.align_select_combo->currentText() == "Center"){
+        alignment_ = DOT_ALIGN::CENTER;
+    }else if(ui.align_select_combo->currentText() == "Left"){
+        alignment_ = DOT_ALIGN::LEFT;
+    }else if(ui.align_select_combo->currentText() == "Right"){
+        alignment_ = DOT_ALIGN::RIGHT;
+    }
     //qnode.sendTask(pap_common::PLACER, pap_common::ADJUST_DISPENSER,
     //               nozzle_diameter_, dispenser_velocity_, 0);
 

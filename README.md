@@ -9,8 +9,8 @@ Johan:
 * CHECKED Background image fix 
 * CHECKED Calibration button should not make a difference by pressing it twice
 * CHECKED All in one window calibration
-* Implement Dot planner and add parameters to gui
-* Saving all parameters and calibration value in a xml file
+* CHECKED Implement Dot planner and add parameters to gui
+* CHECKED Saving all parameters and calibration value in a xml file
 * CHECKED Documentation: PCB_CV (Algorithms, Stitcher...)
 * CHECKED Documentation: MOTOR_CONTROLLER (Low Level, Interface)
 * Documentation: PAD_FINDER_LEARNER
