@@ -2190,8 +2190,12 @@ void MainWindow::keyReleaseEvent(QKeyEvent *e) {
 }
 
 void MainWindow::on_startTipFinder_Button_clicked() {
+    float camera_select = 0;
+    if(ui.camera_select_tip->currentText() == "Bottom"){
+        camera_select = 1;
+    }
     qnode.sendTask(pap_common::VISION, pap_vision::SEARCH_CIRCLE,
-                   ui.radius_edit->text().toFloat(), 0.0, (float)tip_thresholding_on);
+                   ui.radius_edit->text().toFloat(), (float)tip_thresholding_on, camera_select );
     displaySMDCoords(0.0, 0.0, 0.0, 0);
     displaySMDCoords(0.0, 0.0, 0.0, 1);
 }

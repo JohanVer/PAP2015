@@ -180,10 +180,10 @@
         nh.spinOnce();
         bool reading = digitalRead(11);
       
-      //if(!reading){
+      if(!reading){
          cal_needle_flag.touched = reading;
          calibration_signal.publish(&cal_needle_flag);
-      //}
+      }
       
         delay(2);
       }

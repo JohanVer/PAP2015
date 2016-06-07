@@ -197,7 +197,7 @@ void PcbCvInterface::execute_action(const pap_common::VisionGoalConstPtr& comman
 
     case pap_vision::FEED_STITCH_PIC:
     {
-/*
+        /*
         std::cerr << "Appending picture...\n";
         cameraSelect = command->cameraSelect;
         std::vector<cv::Mat> images;
@@ -223,7 +223,7 @@ void PcbCvInterface::execute_action(const pap_common::VisionGoalConstPtr& comman
 
         //finder.saveStitchingImages();
         //        as_.setSucceeded();
-/*
+        /*
 cv:Mat composed_img = cv::imread(string(getenv("PAPRESOURCES")) + "training_data/1.jpg");
         static size_t stitch_id = 0;
         pap_common::VisionResult res;
@@ -244,7 +244,7 @@ cv:Mat composed_img = cv::imread(string(getenv("PAPRESOURCES")) + "training_data
         as_.setSucceeded(res);
 */
         static size_t stitch_id = 0;
-        cv:Mat composed_img;
+cv:Mat composed_img;
         stitcher_.blendImages(composed_img);
         pap_common::VisionResult res;
         res.data1 = (stitcher_.getURCornerCoord()).x;
@@ -459,6 +459,18 @@ void PcbCvInterface::imageCallback1(const sensor_msgs::ImageConstPtr& msg) {
             }
         }
             break;
+        case CIRCLE:
+            if (cameraSelect == pap_vision::CAMERA_TOP) {
+                if(finder.findTip(input, smd, tip_thresholding, pap_vision::CAMERA_SELECT::CAMERA_TOP)){
+                    visionMsg.task = pap_vision::SEARCH_CIRCLE;
+                    visionMsg.data1 = smd.x;
+                    visionMsg.data2 = smd.y;
+                    visionMsg.data3 = smd.rot;
+                    visionMsg.camera = 1;
+                    statusPublisher.publish(visionMsg);
+                }
+            }
+            break;
         }
     } else {
     }
@@ -522,13 +534,15 @@ void PcbCvInterface::imageCallback2(const sensor_msgs::ImageConstPtr& msg) {
             break;
 
         case CIRCLE:
-            if(finder.findTip(input2, smd, tip_thresholding)){
-                visionMsg.task = pap_vision::SEARCH_CIRCLE;
-                visionMsg.data1 = smd.x;
-                visionMsg.data2 = smd.y;
-                visionMsg.data3 = smd.rot;
-                visionMsg.camera = 1;
-                statusPublisher.publish(visionMsg);
+            if (cameraSelect == pap_vision::CAMERA_BOTTOM) {
+                if(finder.findTip(input2, smd, tip_thresholding, pap_vision::CAMERA_SELECT::CAMERA_BOTTOM)){
+                    visionMsg.task = pap_vision::SEARCH_CIRCLE;
+                    visionMsg.data1 = smd.x;
+                    visionMsg.data2 = smd.y;
+                    visionMsg.data3 = smd.rot;
+                    visionMsg.camera = 1;
+                    statusPublisher.publish(visionMsg);
+                }
             }
             break;
 
@@ -624,8 +638,9 @@ void PcbCvInterface::parseTask(const pap_common::TaskConstPtr& taskMsg) {
             break;
 
         case pap_vision::SEARCH_CIRCLE:
-            finder.setSize(taskMsg->data1, taskMsg->data2);
-            tip_thresholding = (bool) taskMsg->data3;
+            finder.setSize(taskMsg->data1, taskMsg->data1);
+            tip_thresholding = (bool) taskMsg->data2;
+            cameraSelect = taskMsg->data3;
             visionState = CIRCLE;
             break;
         }

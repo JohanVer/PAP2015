@@ -40,7 +40,7 @@
        <locale language="English" country="Australia"/>
       </property>
       <property name="currentIndex">
-       <number>4</number>
+       <number>5</number>
       </property>
       <widget class="QWidget" name="ComponentPlacement">
        <attribute name="title">
@@ -2020,7 +2020,7 @@
                  </sizepolicy>
                 </property>
                 <property name="currentIndex">
-                 <number>1</number>
+                 <number>3</number>
                 </property>
                 <widget class="QWidget" name="tab_7">
                  <attribute name="title">
@@ -2281,6 +2281,26 @@
                     <property name="text">
                      <string>Start Tip Finder</string>
                     </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QComboBox" name="camera_select_tip">
+                    <property name="sizePolicy">
+                     <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                      <horstretch>0</horstretch>
+                      <verstretch>0</verstretch>
+                     </sizepolicy>
+                    </property>
+                    <item>
+                     <property name="text">
+                      <string>Top</string>
+                     </property>
+                    </item>
+                    <item>
+                     <property name="text">
+                      <string>Bottom</string>
+                     </property>
+                    </item>
                    </widget>
                   </item>
                   <item>

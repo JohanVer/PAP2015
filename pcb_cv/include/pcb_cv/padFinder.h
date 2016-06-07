@@ -159,7 +159,7 @@ public:
     //! \param thresholding TODO
     //! \return true if successfull
     //!
-    bool findTip(cv::Mat &final, smdPart &out, bool thresholding);
+    bool findTip(cv::Mat &final, smdPart &out, bool thresholding, pap_vision::CAMERA_SELECT cam_sel);
 
     //!
     //! \brief appendImage appends an image / record_coord to stitching_data_

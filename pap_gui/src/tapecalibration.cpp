@@ -1,6 +1,9 @@
 #include <pap_gui/tapecalibration.h>
 #include "ui_tapecalibration.h"
 
+#define HOLE_DIAMETER 24
+#define WIDTH_DISTANCE 3.5
+
 namespace pap_gui{
 TapeCalibrater::TapeCalibrater(pap_gui::QNode &ros_node):
     ros_node_(ros_node){
@@ -20,6 +23,7 @@ bool TapeCalibrater::calibrateTape(int tapeNumber, float componentWidth,
     temp.y += 261;
     temp.z = 20.2;
 
+    ros_node_.LEDTask(pap_common::SETTOPLED, 0);
 
     if(!motor_send_functions::sendMotorControllerAction(ros_node_.getMotorClientRef(), pap_common::COORD,
                                                         (ros_node_.getStatus(0)).position,
@@ -46,25 +50,18 @@ bool TapeCalibrater::calibrateTape(int tapeNumber, float componentWidth,
     calibrationVal.index = tapeNumber;
 
     pap_common::VisionResult res;
-    if(!vision_send_functions::sendVisionTask(ros_node_.getVisionClientRef(), pap_vision::START_TAPE_FINDER, pap_vision::CAMERA_TOP, componentWidth, componentHeight, 0, res, 50))
-        return false;
 
+    if(!vision_send_functions::sendVisionTask(ros_node_.getVisionClientRef(), pap_vision::SEARCH_CIRCLE, pap_vision::CAMERA_TOP, HOLE_DIAMETER, 0.0, (float) true, res, 10))
+        return true;
+
+    ros_node_.LEDTask(pap_common::RESETTOPLED, 0);
     double xTapeCalibration = res.data1;
-    double yTapeCalibration = res.data2;
+    double yTapeCalibration = res.data2 - WIDTH_DISTANCE;
 
     calibrationVal.x = xTapeCalibration + (ros_node_.getStatus(0)).position;
     calibrationVal.y = yTapeCalibration + (ros_node_.getStatus(1)).position;
 
-    ros::Duration(1).sleep();
-    // Search tape dimensions and rotation
-
-    if(!vision_send_functions::sendVisionTask(ros_node_.getVisionClientRef(), pap_vision::START_TAPE_FINDER, pap_vision::CAMERA_TOP, componentWidth, componentHeight, 1, res, 50))
-        return false;
-
-    calibrationVal.rot = res.data3;
-    if (calibrationVal.rot == -90 || calibrationVal.rot == 90) {
-        calibrationVal.rot = 0;
-    }
+    calibrationVal.rot = 0;
 
     ROS_INFO(" GUI: Tape Calibration: Got x: %f y: %f rot: %f",
              calibrationVal.x, calibrationVal.y, calibrationVal.rot);
@@ -93,8 +90,8 @@ bool TapeCalibrater::calculatePosOfTapePart(int numOfTape, int numOfPart, Offset
     tf::Point pointToTransform;
     // This point should be transformed
     // Distance between comp. on tape is 2 mm (0402 comp.)
-    pointToTransform.setX(0.0);
-    pointToTransform.setY(numOfPart * 2.0);
+    pointToTransform.setX(numOfPart * 2.0);
+    pointToTransform.setY(0.0);
     pointToTransform.setZ(0.0);
 
     // This rotates the component to the tape orientation
@@ -130,6 +127,18 @@ TapeCalibrationDialog::TapeCalibrationDialog(pap_gui::QNode &ros_node, pap_gui::
     ui->tape_view->show();
     current_tape_index_ = tape_nr;
     current_tape_pos_ = 0;
+
+    Offset pos;
+    if(calibrater_.calculatePosOfTapePart(current_tape_index_, current_tape_pos_, pos)){
+        if(!motor_send_functions::sendMotorControllerAction(ros_node_.getMotorClientRef(), pap_common::COORD,
+                                                            pos.x,
+                                                            pos.y,
+                                                            (ros_node_.getStatus(2)).position)){
+            return;
+        }
+    }else{
+        std::cerr << "Couldn't look up tape pos...\n";
+    }
 }
 
 TapeCalibrationDialog::~TapeCalibrationDialog()

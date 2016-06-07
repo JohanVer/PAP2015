@@ -10,7 +10,7 @@ SlotSelectorDialog::SlotSelectorDialog(QVector<componentEntry>* packageList, QVe
 
 	for (size_t i = 0; i < 47; i++) {
 		SlotInformation slot;
-		slot.pos.setX(BoxOffsetTable[i].y);
+        slot.pos.setX(-BoxOffsetTable[i].y);
 		slot.pos.setY(BoxOffsetTable[i].x);
 		slot.pos.setWidth(10);
 		slot.pos.setHeight(10);
@@ -20,7 +20,7 @@ SlotSelectorDialog::SlotSelectorDialog(QVector<componentEntry>* packageList, QVe
 
 	for (size_t i = 47; i < 59; i++) {
 		SlotInformation slot;
-		slot.pos.setX(BoxOffsetTable[i].y - 3);
+        slot.pos.setX(-BoxOffsetTable[i].y - 3);
 		slot.pos.setY(BoxOffsetTable[i].x);
 		slot.pos.setWidth(15);
 		slot.pos.setHeight(15);
@@ -30,7 +30,7 @@ SlotSelectorDialog::SlotSelectorDialog(QVector<componentEntry>* packageList, QVe
 
 	for (size_t i = 59; i < 67; i++) {
 		SlotInformation slot;
-		slot.pos.setX(BoxOffsetTable[i].y - 4);
+        slot.pos.setX(-BoxOffsetTable[i].y - 4);
 		slot.pos.setY(BoxOffsetTable[i].x);
 		slot.pos.setWidth(20);
 		slot.pos.setHeight(20);
@@ -40,7 +40,7 @@ SlotSelectorDialog::SlotSelectorDialog(QVector<componentEntry>* packageList, QVe
 
 	for (size_t i = 0; i < 20; i++) {
 		SlotInformation slot;
-		slot.pos.setX(TapeOffsetTable[i].y);
+        slot.pos.setX(-TapeOffsetTable[i].y);
 		slot.pos.setY(TapeOffsetTable[i].x);
 		slot.pos.setWidth(5);
 		slot.index = 67 + i;
@@ -363,7 +363,6 @@ void SlotSelectorDialog::getName(int SlotIndex, std::string* package,
 }
 
 void SlotSelectorDialog::paintSlots(void) {
-	static bool alreadyflipped = false;
 	bool nameFound = false;
 	std::string package = "Unknown";
 	std::string value;
@@ -371,10 +370,9 @@ void SlotSelectorDialog::paintSlots(void) {
 
 	for (size_t i = 0; i < printedSlots_.size(); i++) {
 		SlotInformation slot = printedSlots_[i];
-		QGraphicsRectItem *rect = new QGraphicsRectItem(slot.pos.x(),
-				slot.pos.y(), slot.pos.width(), slot.pos.height());
+        QGraphicsRectItem *rect = new QGraphicsRectItem(slot.pos.x(),
+                slot.pos.y(), slot.pos.width(), slot.pos.height());
 
-		/* NEW */
 		if (slotUsed(slot.index)) {
 			nameFound = true;
 			getName(slot.index, &package, &value);
@@ -389,10 +387,8 @@ void SlotSelectorDialog::paintSlots(void) {
 
 		// Print box numbers
         QGraphicsTextItem * text = new QGraphicsTextItem;
-        text->setPos(slot.pos.x() + slot.pos.width(), slot.pos.y());
-        //text->scale(-1, 1);
-        //text->scale();
-        text->setScale(-0.2);
+        text->setPos((slot.pos.x()),  slot.pos.y());
+        text->setScale(0.2);
         text->scale();
         text->setDefaultTextColor(Qt::black);
         text->setPlainText(QString::number(i));
@@ -401,13 +397,11 @@ void SlotSelectorDialog::paintSlots(void) {
         // Print name
         if (nameFound) {
             QGraphicsTextItem * text = new QGraphicsTextItem;
-            text->setPos(slot.pos.x() + slot.pos.width(), slot.pos.y() + 4);
-            //text->scale(-1, 1);
+            text->setPos((slot.pos.x()), (slot.pos.y() + 4));
             text->setScale(0.2);
-            text->setDefaultTextColor(Qt::white);
+            text->setDefaultTextColor(Qt::black);
             if (slot.index >= 67) {
-                text->setRotation(90);
-                text->setPos(text->pos().x() - 5, text->pos().y() + 4);
+                text->setPos((text->pos().x() - 5), (text->pos().y() + 4));
             }
             text->setPlainText(value.c_str());
             sceneSlots_.addItem(text);
@@ -415,11 +409,6 @@ void SlotSelectorDialog::paintSlots(void) {
     }
 
 	ui->graphicsView->setScene(&sceneSlots_);
-    ui->graphicsView->scale(-1.5, 1.5);
-    if (!alreadyflipped) {
-		alreadyflipped = true;
-
-    }
 	ui->graphicsView->show();
 }
 

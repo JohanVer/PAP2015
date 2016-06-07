@@ -215,7 +215,7 @@ bool padFinder::findTipAvg(std::vector<cv::Mat> *input, enum pap_vision::CAMERA_
 
     for(size_t i = 0; i < num_img; i++){
         smdPart tip_temp;
-        if(findTip(input->at(i),tip_temp,thresholding)){
+        if(findTip(input->at(i),tip_temp,thresholding, camera_select)){
             tip.x += tip_temp.x;
             tip.y += tip_temp.y;
             tip.rot += tip_temp.rot;
@@ -252,7 +252,7 @@ void padFinder::saveStitchingImages(){
     myfile.close();
 }
 
-bool padFinder::findTip(cv::Mat &final, smdPart &out, bool thresholding) {
+bool padFinder::findTip(cv::Mat &final, smdPart &out, bool thresholding, enum pap_vision::CAMERA_SELECT cam_sel) {
     cv::Mat gray;
     std::vector<smdPart> tipObjects;
     cv::cvtColor(final, gray, CV_BGR2GRAY);
@@ -313,8 +313,14 @@ bool padFinder::findTip(cv::Mat &final, smdPart &out, bool thresholding) {
         double x_middle = out.x;
         double y_middle = out.y;
 
-        out.x = -(((final.rows / 2 - 1) - y_middle) / pxRatioBottom);
-        out.y = ((x_middle - (final.cols / 2 - 1)) / pxRatioBottom);
+        if(cam_sel == pap_vision::CAMERA_SELECT::CAMERA_BOTTOM){
+            out.x = -(((final.rows / 2 - 1) - y_middle) / pxRatioBottom);
+            out.y = ((x_middle - (final.cols / 2 - 1)) / pxRatioBottom);
+        }else if(cam_sel == pap_vision::CAMERA_SELECT::CAMERA_TOP){
+            out.x = ((final.rows / 2 - 1) - y_middle) / pxRatioSlot;
+            out.y = (x_middle - (final.cols / 2 - 1)) / pxRatioSlot;
+        }
+
         return true;
     }
     else{
@@ -584,8 +590,8 @@ bool padFinder::findSMDTape(cv::Mat &final, bool searchTapeRotation, smdPart &ou
     }
     cv::erode(gray, gray, cv::Mat(), cv::Point(-1, -1),1);
 
-    //cv::imshow("tape thresholded", gray);
-    //cv::waitKey(0);
+    cv::imshow("tape thresholded", gray);
+    cv::waitKey(0);
 
     std::vector<std::vector<cv::Point> > contours;
     vector<Vec4i> hierarchy;
