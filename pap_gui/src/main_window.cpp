@@ -30,7 +30,6 @@
 #include <pap_gui/DatabaseClass.hpp>
 #include <pap_gui/packageDialog.hpp>
 
-
 /*****************************************************************************
  ** Namespaces
  ****************************************************************************/
@@ -224,6 +223,8 @@ MainWindow::MainWindow(int version, int argc, char** argv, QWidget *parent) :
     alignment_ = DOT_ALIGN::CENTER;
 
     tip_thresholding_on = false;
+
+    tape_calibrater_ = std::unique_ptr<pap_gui::TapeCalibrater>(new TapeCalibrater(qnode));
 }
 
 
@@ -906,8 +907,10 @@ void MainWindow::transformSingleComp(int currentComp, ComponentPlacerData& singl
     // Is it a tape?
     if ((entryToTransform.box >= 67) && (entryToTransform.box <= 86)) {
         unsigned int tape_nr = entryToTransform.box - 67;
-        tapeCalibrationValue tapePartPos = calculatePosOfTapePart(tape_nr,
-                                                                  tapeCompCounter[tape_nr]);
+        Offset tapePartPos;
+        if(!tape_calibrater_->calculatePosOfTapePart(tape_nr, tapeCompCounter[tape_nr], tapePartPos )){
+           std::cerr << "Error while caluclating tape part position...\n";
+        }
         singleCompData.tapeX = tapePartPos.x;
         singleCompData.tapeY = tapePartPos.y;
         singleCompData.tapeRot = tapePartPos.rot;
@@ -941,8 +944,10 @@ void MainWindow::transformAllComp(vector<ComponentPlacerData>& allCompData) {
         // Is it a tape?
         if ((tmpCompEntry.box >= 67) && (tmpCompEntry.box <= 86)) {
             unsigned int tape_nr = tmpCompEntry.box - 67;
-            tapeCalibrationValue tapePartPos = calculatePosOfTapePart(tape_nr,
-                                                                      tapeCompCounter[tape_nr]);
+            Offset tapePartPos;
+            if(!tape_calibrater_->calculatePosOfTapePart(tape_nr, tapeCompCounter[tape_nr], tapePartPos )){
+               std::cerr << "Error while caluclating tape part position...\n";
+            }
             tmpCompPlaceData.tapeX = tapePartPos.x;
             tmpCompPlaceData.tapeY = tapePartPos.y;
             tmpCompPlaceData.tapeRot = tapePartPos.rot;
@@ -1720,15 +1725,18 @@ void MainWindow::on_startChipFinder_Button_clicked() {
 
 
 void MainWindow::on_startTapeFinder_Button_clicked() {
+
+    bool search_tape = false;
+    search_tape = ui.search_tape_radio_button->isChecked();
     if (ui.tapeFinder_Combo->currentText() == "0805") {
         qnode.sendTask(pap_common::VISION, pap_vision::START_TAPE_FINDER, 1.25,
-                       2.0, 0.0);
+                       2.0, (float) search_tape);
     } else if (ui.tapeFinder_Combo->currentText() == "0603") {
         qnode.sendTask(pap_common::VISION, pap_vision::START_TAPE_FINDER, 0.8,
-                       1.6, 0.0);
+                       1.6, (float) search_tape);
     } else if (ui.tapeFinder_Combo->currentText() == "0402") {
         qnode.sendTask(pap_common::VISION, pap_vision::START_TAPE_FINDER, 0.5,
-                       1.0, 0.0);
+                       1.0, (float) search_tape);
     }
     displaySMDCoords(0.0, 0.0, 0.0, 0);
     displaySMDCoords(0.0, 0.0, 0.0, 1);
@@ -2516,8 +2524,22 @@ void MainWindow::sendTransforms(double x, double y, double z, double nozzle_1,
                                      "/nozzle_2"));
 }
 
-void MainWindow::on_calibrateTapeButton_clicked(void) {
+bool MainWindow::startTapePartSelector(int numOfTape){
+    TapeCalibrationDialog tape_dialog(qnode, *tape_calibrater_, numOfTape );
+    connect(&qnode, SIGNAL(cameraUpdated(int)), &tape_dialog, SLOT(cameraUpdated(int)));
+    tape_dialog.exec();
 
+    int pos = tape_dialog.getTapePos();
+
+    if(pos != -1){
+        tapeCompCounter[numOfTape] = pos;
+        return true;
+    }else{
+        return false;
+    }
+}
+
+void MainWindow::on_calibrateTapeButton_clicked(void) {    
     QVector<int> calibratedTapes;
     for (size_t i = 0; i < componentList.size(); i++) {
         if ((componentList.at(i).box >= 67)
@@ -2526,160 +2548,20 @@ void MainWindow::on_calibrateTapeButton_clicked(void) {
             int tape_nr = componentList.at(i).box - 67;
             if (calibratedTapes.indexOf(tape_nr) == -1) {
                 calibratedTapes.append(tape_nr);
-                calibrateTape(tape_nr, componentList.at(i).width,
-                              componentList.at(i).length);
+                if(tape_calibrater_->calibrateTape(tape_nr, componentList.at(i).width,
+                              componentList.at(i).length)){
+                    startTapePartSelector(tape_nr);
+                }
                 ROS_INFO("GUI: Index : %d Width: %f Height: %f", tape_nr,
                          componentList.at(i).width, componentList.at(i).length);
             }
         }
     }
-    // EXAMPLE: Get 4th position of component in 1st tape
-    //tapeCalibrationValue positionOfComponent = calculatePosOfTapePart(1,4);
 }
 
-tapeCalibrationValue MainWindow::calculatePosOfTapePart(int numOfTape,
-                                                        int numOfPart) {
-    tf::Transform rotation_;
-    tapeCalibrationValue out;
 
-    int indexInVector = -1;
-    for (size_t i = 0; i < tapeCalibrationValues.size(); i++) {
-        if (tapeCalibrationValues[i].index == numOfTape) {
-            indexInVector = i;
-        }
-    }
 
-    if (indexInVector == -1) {
-        ROS_ERROR("Tape calibration values not found!");
-        return out;
-    }
 
-    tf::Point pointToTransform;
-    // This point should be transformed
-    // Distance between comp. on tape is 2 mm (0402 comp.)
-    pointToTransform.setX(0.0);
-    pointToTransform.setY(numOfPart * 2.0);
-    pointToTransform.setZ(0.0);
-
-    // This rotates the component to the tape orientation
-    tf::Quaternion rotQuat;
-    rotQuat.setEuler(0.0, 0.0,
-                     tapeCalibrationValues[indexInVector].rot * (M_PI / 180.0));
-    rotation_.setOrigin(tf::Vector3(0.0, 0.0, 0.0));
-    rotation_.setRotation(rotQuat);
-
-    pointToTransform = rotation_ * pointToTransform;
-
-    out.x = pointToTransform.x() + tapeCalibrationValues[indexInVector].x;
-    out.y = pointToTransform.y() + tapeCalibrationValues[indexInVector].y;
-    out.rot = tapeCalibrationValues[indexInVector].rot;
-
-    ROS_INFO("GUI: Calculated Pos of part in Tape: x %f y %f rot %f", out.x,
-             out.y, out.rot);
-    return out;
-}
-
-void MainWindow::calibrateTape(int tapeNumber, float componentWidth,
-                               float componentHeight) {
-    // TODO{Johan}: Goto tape with index: tapeNumber
-
-    Offset temp = TapeOffsetTable[tapeNumber];
-    temp.x += 108.42;
-    temp.y += 261;
-    temp.z = 20.1;
-    qnode.sendTask(pap_common::PLACER, pap_common::GOTO, temp.x, temp.y,
-                   temp.z);
-
-    QEventLoop loopPos;
-    QTimer *timerPos = new QTimer(this);
-    connect(&qnode, SIGNAL(positionGotoReached()), &loopPos, SLOT(quit()));
-    connect(timerPos, SIGNAL(timeout()), &loopPos, SLOT(quit()));
-    timerPos->setSingleShot(true);
-    timerPos->start(20000);
-    loopPos.exec(); //blocks untill either signalPosition or timeout was fired
-
-    // Is timeout ocurred?
-    if (!timerPos->isActive()) {
-        QMessageBox msgBox;
-        const QString title = "Timeout";
-        msgBox.setWindowTitle(title);
-        msgBox.setText("Position not reached");
-        msgBox.exec();
-        msgBox.close();
-        return;
-    }
-
-    tapeCalibrationValue calibrationVal;
-    calibrationVal.index = tapeNumber;
-
-    // Search for component in tape
-    qnode.sendTask(pap_common::VISION, pap_vision::START_VISION);
-    qnode.sendTask(pap_common::VISION, pap_vision::START_TAPE_FINDER,
-                   componentWidth, componentHeight, 0);
-
-    QEventLoop loop;
-    QTimer *timer = new QTimer(this);
-    connect(&qnode, SIGNAL(smdCoordinates(float ,float ,float,unsigned int )),
-            &loop, SLOT(quit()));
-    connect(timer, SIGNAL(timeout()), &loop, SLOT(quit()));
-    timer->setSingleShot(true);
-    timer->start(1000);
-
-    loop.exec(); //blocks untill either signalPosition or timeout was fired
-
-    // Is timeout ocurred?
-    if (!timer->isActive()) {
-        qnode.sendTask(pap_common::VISION, pap_vision::STOP_VISION);
-        QMessageBox msgBox;
-        const QString title = "Nothing received";
-        msgBox.setWindowTitle(title);
-        msgBox.setText("No component found in tape");
-        msgBox.exec();
-        msgBox.close();
-        return;
-    }
-    qnode.sendTask(pap_common::VISION, pap_vision::STOP_VISION);
-
-    ROS_INFO("GUI: TapeCal: %f CurrentPos: %f", xTapeCalibration,
-             currentPosition.x);
-    calibrationVal.x = xTapeCalibration + currentPosition.x;
-    calibrationVal.y = yTapeCalibration + currentPosition.y;
-    ros::Duration(1).sleep();
-    // Search tape dimensions and rotation
-    qnode.sendTask(pap_common::VISION, pap_vision::START_VISION);
-    qnode.sendTask(pap_common::VISION, pap_vision::START_TAPE_FINDER,
-                   componentWidth, componentHeight, 1);
-
-    QEventLoop loop2;
-    QTimer *timer2 = new QTimer(this);
-    connect(&qnode, SIGNAL(smdCoordinates(float ,float ,float,unsigned int )),
-            &loop2, SLOT(quit()));
-    connect(timer2, SIGNAL(timeout()), &loop, SLOT(quit()));
-    timer2->setSingleShot(true);
-    timer2->start(1000);
-
-    loop2.exec(); //blocks untill either signalPosition or timeout was fired
-
-    // Is timeout ocurred?
-    if (!timer2->isActive()) {
-        qnode.sendTask(pap_common::VISION, pap_vision::STOP_VISION);
-        QMessageBox msgBox;
-        const QString title = "Nothing received";
-        msgBox.setWindowTitle(title);
-        msgBox.setText("No tape dimensions found");
-        msgBox.exec();
-        msgBox.close();
-        return;
-    }
-    calibrationVal.rot = rotTapeCalibration;
-    if (calibrationVal.rot == -90 || calibrationVal.rot == 90) {
-        calibrationVal.rot = 0;
-    }
-    qnode.sendTask(pap_common::VISION, pap_vision::STOP_VISION);
-    ROS_INFO(" GUI: Tape Calibration: Got x: %f y: %f rot: %f",
-             calibrationVal.x, calibrationVal.y, calibrationVal.rot);
-    tapeCalibrationValues.push_back(calibrationVal);
-}
 
 void MainWindow::on_printButton_offsets_clicked() {
     qnode.sendTask(pap_common::PLACER, pap_common::PRINT_OFFSET);
@@ -2822,7 +2704,6 @@ void pap_gui::MainWindow::on_scanButton_clicked()
         msgBox.setText("Images were stitched");
         msgBox.exec();
 
-
         // Create opencv image out of ros image
         cv_bridge::CvImagePtr cv_ptr;
         try
@@ -2942,6 +2823,4 @@ void pap_gui::MainWindow::on_radioButton_clicked(bool checked)
 {
     tip_thresholding_on = checked;
 }
-
-
 

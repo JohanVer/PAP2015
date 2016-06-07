@@ -573,7 +573,6 @@ bool padFinder::findSMDTapeAvg(std::vector<cv::Mat> *input, bool searchTapeRotat
 }
 
 bool padFinder::findSMDTape(cv::Mat &final, bool searchTapeRotation, smdPart &out) {
-
     std::vector<smdPart> smdObjects;
     cv::Mat gray;
     cv::cvtColor(final, gray, CV_BGR2GRAY);
@@ -584,9 +583,9 @@ bool padFinder::findSMDTape(cv::Mat &final, bool searchTapeRotation, smdPart &ou
                               CV_THRESH_BINARY, 801, 2.0);
     }
     cv::erode(gray, gray, cv::Mat(), cv::Point(-1, -1),1);
-    //cv::cvtColor(gray, *input, CV_GRAY2BGR);
-    cv::imshow("tape thresholded", gray);
-    cv::waitKey(0);
+
+    //cv::imshow("tape thresholded", gray);
+    //cv::waitKey(0);
 
     std::vector<std::vector<cv::Point> > contours;
     vector<Vec4i> hierarchy;
@@ -594,8 +593,6 @@ bool padFinder::findSMDTape(cv::Mat &final, bool searchTapeRotation, smdPart &ou
 
     cv::findContours(gray, contours, hierarchy, CV_RETR_TREE,
                      CV_CHAIN_APPROX_SIMPLE);
-
-
 
     std::vector<cv::Point> approx;
     for (int i = 0; i < contours.size(); i++) {
@@ -635,16 +632,12 @@ bool padFinder::findSMDTape(cv::Mat &final, bool searchTapeRotation, smdPart &ou
             float rectConvertedArea = rect.size.width / pxRatioTape
                     * rect.size.height / pxRatioTape;
             if (searchTapeRotation) {
+                //std::cerr << "Tape rotation finder activated...\n";
                 if (isBorderTouched(rect, final.size()) && rectConvertedArea > 30.0) {
                     smdPart smd;
                     smd.x = rect.center.x;
                     smd.y = rect.center.y;
                     smd.rot = rect.angle;
-                    if (rect.size.height < rect.size.width) {
-                        smd.rot = std::fabs(smd.rot);
-                    } else {
-                        smd.rot = -(90.0 + smd.rot);
-                    }
                     //ROS_INFO("Angle : %f Area: %f",rect.angle,rectConvertedArea);
                     smdObjects.push_back(smd);
                     drawRotatedRect(final, rect, CV_RGB(0, 0, 255));
@@ -695,11 +688,6 @@ bool padFinder::findSMDTape(cv::Mat &final, bool searchTapeRotation, smdPart &ou
                         smd.x = mc.x;
                         smd.y = mc.y;
                         smd.rot = rect.angle;
-                        if (rect.size.height < rect.size.width) {
-                            smd.rot = std::fabs(smd.rot);
-                        } else {
-                            smd.rot = -(90.0 + smd.rot);
-                        }
                         smdObjects.push_back(smd);
                         drawRotatedRect(final, rect, CV_RGB(0, 0, 255));
                         circle(final, Point2f(smd.x, smd.y), 5,
@@ -716,6 +704,7 @@ bool padFinder::findSMDTape(cv::Mat &final, bool searchTapeRotation, smdPart &ou
     }
     if (nearestPart(&smdObjects, &out, final.cols, final.rows)) {
         circle(final, Point2f(out.x, out.y), 5, CV_RGB(0, 0, 255), 3);
+
         out.x = (out.x - (final.cols / 2 - 1)) / pxRatioTape;
         out.y = ((final.rows / 2 - 1) - out.y) / pxRatioTape;
         return true;
@@ -771,8 +760,6 @@ cv::Point2f padFinder::findPads(cv::Mat* input, bool startSelect,
 
         if(hierarchy[i][2] != -1 && cv::contourArea(contours.at(hierarchy[i][2])) > MIN_VIA_AREA){
             // Is circle
-            //RotatedRect viaPad = minAreaRect(contours[i]);
-            //drawRotatedRect(final, viaPad, CV_RGB(0, 255, 0));
             float radius;
             cv::Point2f center;
             cv::minEnclosingCircle(contours.at(hierarchy[i][2]), center, radius);

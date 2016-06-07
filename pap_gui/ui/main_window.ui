@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1478</width>
-    <height>761</height>
+    <height>800</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -40,7 +40,7 @@
        <locale language="English" country="Australia"/>
       </property>
       <property name="currentIndex">
-       <number>1</number>
+       <number>4</number>
       </property>
       <widget class="QWidget" name="ComponentPlacement">
        <attribute name="title">
@@ -2020,7 +2020,7 @@
                  </sizepolicy>
                 </property>
                 <property name="currentIndex">
-                 <number>3</number>
+                 <number>1</number>
                 </property>
                 <widget class="QWidget" name="tab_7">
                  <attribute name="title">
@@ -2206,6 +2206,13 @@
                      </widget>
                     </item>
                    </layout>
+                  </item>
+                  <item>
+                   <widget class="QRadioButton" name="search_tape_radio_button">
+                    <property name="text">
+                     <string>Search Tape</string>
+                    </property>
+                   </widget>
                   </item>
                   <item>
                    <spacer name="verticalSpacer_12">

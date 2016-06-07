@@ -18,6 +18,7 @@
 #include <QMainWindow>
 #include "ui_main_window.h"
 #include "slotselectordialog.h"
+#include <pap_gui/tapecalibration.h>
 #include "versionSelectorDialog.h"
 #include "qnode.hpp"
 #include "pap_common/Task.h"
@@ -60,18 +61,6 @@
 #include <opencv/highgui.h>
 #include "DatabaseClass.hpp"
 
-class tapeCalibrationValue {
-public:
-    float x, y, rot;
-    int index;
-
-    tapeCalibrationValue(){
-        x = 0;
-        y = 0;
-        rot = 0;
-        index = 0;
-    }
-};
 
 /*****************************************************************************
 ** Namespace
@@ -192,9 +181,8 @@ public Q_SLOTS:
     void deletePad(QPointF padPos);
 
     void on_calibrateTapeButton_clicked(void);
-    void calibrateTape(int tapeNumber, float componentWidth,
-            float componentHeight);
-    tapeCalibrationValue calculatePosOfTapePart(int numOfTape, int numOfPart);
+    bool startTapePartSelector(int numOfTape);
+
     // Display Functions
     void displaySMDCoords(float x,float y,float rot, unsigned int cameraSelect);
     void setCamera1Point(QPointF point);
@@ -288,6 +276,7 @@ private:
 
     Ui::MainWindowDesign ui;
     QNode qnode;
+    std::unique_ptr<pap_gui::TapeCalibrater> tape_calibrater_;
     bool bottomLayer_;
     bool alreadyFlipped_;
 
@@ -347,8 +336,6 @@ private:
     bool singlePlacementRunning;
     int componentIndicator;
     bool completeCalibrationRunning;
-
-    std::vector<tapeCalibrationValue> tapeCalibrationValues;
 
     cv::Size2d pic_offset_;
 

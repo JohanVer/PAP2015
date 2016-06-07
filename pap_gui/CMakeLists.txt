@@ -60,7 +60,7 @@ catkin_package(
   DEPENDS system_lib
 )
 
-QT5_WRAP_UI(QT_FORMS_HPP ${QT_FORMS} ui/main_window.ui ui/slotselectordialog.ui ui/versionSelectorDialog.ui ui/packageDialog.ui)
+QT5_WRAP_UI(QT_FORMS_HPP ${QT_FORMS} ui/main_window.ui ui/slotselectordialog.ui ui/versionSelectorDialog.ui ui/packageDialog.ui ui/tapecalibration.ui)
 
 add_library(pap_gui
    src/versionSelectorDialog.cpp
@@ -77,6 +77,7 @@ add_library(pap_gui
    src/GerberPadParser.cpp
    src/PadView.cpp
    src/stitchWaypointMaker.cpp
+   src/tapecalibration.cpp
    ${QT_FORMS_HPP}
    include/pap_gui/ClickGraphicsView.hpp
    include/pap_gui/main_window.hpp
@@ -92,6 +93,7 @@ add_library(pap_gui
    include/pap_gui/GerberPadParser.hpp
    include/pap_gui/qnode.hpp
    include/pap_gui/stitchWaypointMaker.h
+   include/pap_gui/tapecalibration.h
  )
 
 target_link_libraries(pap_gui Qt5::Widgets dlib ${OpenCV_LIBS} ${catkin_LIBRARIES})
