@@ -30,7 +30,7 @@ using namespace cv;
 #define ERROR_PERCENT_SMDTAPE 30.0
 
 // Tips
-#define ERROR_PERCENT_TIP 6.0
+#define ERROR_PERCENT_TIP 10.0
 
 template<typename T>
 bool getPAPParam(ros::NodeHandle &nh, const std::string &param_name, T &param){
@@ -271,33 +271,35 @@ bool padFinder::findTip(cv::Mat &final, smdPart &out, bool thresholding, enum pa
         //cv::imshow("Thresholded tip", bF);
         //cv::waitKey(0);
         cv::HoughCircles(bF, circles, CV_HOUGH_GRADIENT, 1, 50, 70,
-                         40, radiusMin, radiusMax);
+                         40, radiusMin, 2 * radiusMax);
     }else{
         cv::adaptiveThreshold(gray, gray, 255, ADAPTIVE_THRESH_GAUSSIAN_C,
                               CV_THRESH_BINARY, 801, 2.0);
         cv::Mat bF;
         cv::bilateralFilter(gray, bF, 15, 800 , 800);
         cv::HoughCircles(bF, circles, CV_HOUGH_GRADIENT, 1, 50, 50,
-                         40, radiusMin, radiusMax);
+                         40, radiusMin, 2 * radiusMax);
         //cv::imshow("Thresholded tip", bF);
         //cv::waitKey(0);
     }
 
 
-    std::cerr << "Circles: " << circles.size() << std::endl;
     for (size_t i = 0; i < circles.size(); i++) {
         Point center(cvRound(circles[i][0]), cvRound(circles[i][1]));
         int radius = cvRound(circles[i][2]);
-        // draw the circle center
-        //cv::circle( final, center, 3, Scalar(255,0,0), -1, 8, 0 );
-        // draw the circle outline
-        cv::circle(final, center, radius, Scalar(0, 0, 255), 3, 8, 0);
+        std::cerr << "Circles with radius: " << radius << " total number:" << circles.size() << std::endl;
+        if(radius > radiusMin && radius < radiusMax){
+            // draw the circle center
+            //cv::circle( final, center, 3, Scalar(255,0,0), -1, 8, 0 );
+            // draw the circle outline
+            cv::circle(final, center, radius, Scalar(0, 0, 255), 3, 8, 0);
 
-        smdPart part;
-        part.x = center.x;
-        part.y = center.y;
-        part.rot = radius;
-        tipObjects.push_back(part);
+            smdPart part;
+            part.x = center.x;
+            part.y = center.y;
+            part.rot = radius;
+            tipObjects.push_back(part);
+        }
     }
 
     if (circlesSorted.size() > 1) {

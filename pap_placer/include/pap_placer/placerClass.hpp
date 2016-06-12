@@ -203,12 +203,14 @@ public:
     Offset pickUpAreaOffset;
     Offset pcbOriginOffset;
     Offset lastDestination_;
+    Offset dispenserCalibOffset;
 
     // Relative dispenser tip offset
     Offset dispenserTipOffset;
 
     // Height parameters for placement process
-    float MovingHeight_, suckingHeight_, largeBoxHeight_;
+    float MovingHeight_, suckingHeight_, largeBoxHeight_, dispenserHeight_;
+    double dispenser_height_offset_;
 
     // Component placement data for both tips
     ComponentPlacerData leftTipComponent, rightTipComponent;

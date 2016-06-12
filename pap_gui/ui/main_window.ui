@@ -1574,7 +1574,7 @@
                         <item>
                          <widget class="QPushButton" name="disp_settings_apply">
                           <property name="text">
-                           <string>Apply and Calibrate</string>
+                           <string>Apply Parameters</string>
                           </property>
                          </widget>
                         </item>
@@ -2020,7 +2020,7 @@
                  </sizepolicy>
                 </property>
                 <property name="currentIndex">
-                 <number>3</number>
+                 <number>0</number>
                 </property>
                 <widget class="QWidget" name="tab_7">
                  <attribute name="title">

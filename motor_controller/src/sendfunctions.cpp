@@ -52,7 +52,7 @@ bool sendMotorControllerAction(Client& action_client, pap_common::TASK task,  fl
 
     // Fill in goal here
     action_client.sendGoal(motor_goal);
-    action_client.waitForResult(ros::Duration(12.0));
+    action_client.waitForResult(ros::Duration(30.0));
     if (action_client.getState() == actionlib::SimpleClientGoalState::SUCCEEDED){
         pap_common::MotorControllerActionResultConstPtr res_ptr = action_client.getResult();
         res = *res_ptr;

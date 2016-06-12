@@ -29,7 +29,7 @@
 #define MOTORCONTROLLER_TIMEOUT 3000
 #define TIP1_DIAMETER_VISION 20.0 //130
 #define TIP2_DIAMETER_VISION 20.0
-#define DISPENSER_DIAMETER_VISION 17
+#define DISPENSER_DIAMETER_VISION 14
 #define CAMERA_DIAMETER_VISION 190.0
 #define DISPENSER_HEIGHT 10.302
 #define DISPENSER_CONN_SPEED 20
@@ -110,6 +110,22 @@ bool placeComp(double height, TIP usedTip);
 //! \return true if all steps executed successfully, otherwise false
 //!
 bool goToPCBOrigin();
+
+//!
+//! \brief dispenseDots dispenses solder paste to certain points on PCB
+//! \param dots list of dots planned to dispense
+//! \param dispense_height
+//! \return true if all dots dispensed successfully, otherwise false
+//!
+bool dispenseDots(std::vector<dispenseInfo>  &dots, double dispense_height);
+
+//!
+//! \brief dispenseLines dispenses solder paste to certain lines on PCB
+//! \param lines list of lines planned to dispense
+//! \param dispense_height
+//! \return true if all lines dispensed successfully, otherwise false
+//!
+bool dispenseLines(std::vector<dispenseInfo>  &lines, double dispense_height);
 
 //!
 //! \brief dispensePCB starts dispensing solder paste onto current PCB
@@ -204,12 +220,23 @@ bool driveAroundPosition(Offset position, int distance_x, int distance_y);
 //! \param z coordinate of destination in z direction
 //! \return true if all movement steps performed successfully, otherwise false
 //!
-bool driveToCoord(const double &x, const double &y, const double &z);
+//bool driveToCoord(const double &x, const double &y, const double &z);
 
 //!
 //! \brief processAllStatusCallbacks
 //!
 void processAllStatusCallbacks();
+
+//!
+//! \brief driveToCoord moves placement/dispensing head to desired destination
+//! \param x destination in x direction
+//! \param y destination in y direction
+//! \param z destination in z direction
+//! \param moving_height
+//! \return true if destination reached successfully, otherwise false
+//!
+bool driveToCoord(const double &x, const double &y, const double &z, const double moving_height = 45.0);
+
 
 //!
 //! \brief dispensePCB starts dispensing solder paste onto current PCB
