@@ -34,7 +34,7 @@
 #define MOTORCONTROLLER_TIMEOUT 3000
 #define TIP1_DIAMETER_VISION 20.0 //130
 #define TIP2_DIAMETER_VISION 20.0
-#define DISPENSER_DIAMETER_VISION 17
+#define DISPENSER_DIAMETER_VISION 14
 #define CAMERA_DIAMETER_VISION 190.0
 #define DISPENSER_HEIGHT 10.302
 #define DISPENSER_CONN_SPEED 20
@@ -124,6 +124,9 @@ bool goToBox(TIP usedTip);
 bool pickUp(double height, TIP usedTip);
 bool placeComp(double height, TIP usedTip);
 bool goToPCBOrigin();
+
+bool dispenseDots(std::vector<dispenseInfo>  &dots, double dispense_height);
+bool dispenseLines(std::vector<dispenseInfo>  &lines, double dispense_height);
 bool dispensePCB();
 
 //!
@@ -182,7 +185,7 @@ void switchVacuum(bool activate);
 void forwardVacuum(enum TIP tip_select, bool activate);
 void moveTip(enum TIP tip_select, bool down);
 bool driveAroundPosition(Offset position, int distance_x, int distance_y);
-bool driveToCoord(const double &x, const double &y, const double &z);
+bool driveToCoord(const double &x, const double &y, const double &z, const double moving_height = 45.0);
 void processAllStatusCallbacks();
 
 bool dispensePCB(std::vector<dispenseInfo> dispense_task, double dispense_height);

@@ -246,12 +246,13 @@ void ControllerInterface::execute_action(const pap_common::MotorControllerAction
         ros::Rate loop_rate(100);
         coordError = gotoCoord(controllerState1.position, controllerState2.position,
                                command->data3, command->velX, command->velY,command->velZ);
-        if (coordError != error_codes::NO_ERROR) {
+        if (coordError == error_codes::NO_ERROR) {
             ros::Time start_time = ros::Time::now();
             needle_touched_ = false;
             // Wait until needle touched
             while(!needle_touched_){
-                if(ros::Time::now().toSec() - start_time.toSec() > 15.0){
+                if(ros::Time::now().toSec() - start_time.toSec() > 30.0){
+                    stop(pap_common::ZMOTOR);
                     std::cerr << "Needle not touched within timer...\n";
                     break;
                 }

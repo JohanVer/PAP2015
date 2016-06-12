@@ -2379,10 +2379,11 @@ void MainWindow::dispenseSinglePad(QPointF point) {
         for (size_t j = 0; j < dispInfo.size(); j++) {
             if(dispInfo.at(j).type == dispenser_types::DOT_DISPENSE){
 
-                double radius = nozzleDiameter * pxFactor;
-                double x = dispInfo[j].yPos * pxFactor - radius/2 ;
-                double y = - (dispInfo[j].xPos * pxFactor) - radius/2;
-                scenePads_.addEllipse(x, y, radius, radius,QPen(Qt::blue, 0, Qt::SolidLine), QBrush(Qt::blue) );
+                double diameter = nozzleDiameter * pxFactor;
+
+                double x = dispInfo[j].yPos * pxFactor - diameter/2 ;
+                double y = - (dispInfo[j].xPos * pxFactor) - diameter/2;
+                scenePads_.addEllipse(x, y, diameter, diameter,QPen(Qt::blue, 0, Qt::SolidLine), QBrush(Qt::blue) );
 
             }else if(dispInfo.at(j).type == dispenser_types::LINE_DISPENSE){
                 scenePads_.addLine(
@@ -2403,6 +2404,7 @@ void MainWindow::dispenseSinglePad(QPointF point) {
             }
 
             padParser.transformDispenserInfo(&dispInfo[j]);
+            std::cerr << "Point in PAP: " << dispInfo[j].xPos << " / " << dispInfo[j].yPos << std::endl;
 
         }
 

@@ -103,7 +103,7 @@ bool calibrateCamera() {
                      pap_common::PLACER_ACTIVE);
 
     arduino_client->LEDTask(pap_common::SETRINGCOLOR, 0);
-    ros::Duration(0.3).sleep();
+    ros::Duration(0.1).sleep();
     arduino_client->LEDTask(pap_common::RESETBOTTOMLED, 0);
 
     Offset bottomCam = placeController.getBottomCamCoordinates();
@@ -112,12 +112,11 @@ bool calibrateCamera() {
     if(!driveToCoord(bottomCam.x, bottomCam.y, bottomCam.z))
         return false;
 
-    ros::Duration(1).sleep();
     ROS_INFO("Placerstate: CAMERA - Start Vision");
     arduino_client->LEDTask(pap_common::SETBOTTOMLED, 0);
-    ros::Duration(0.5).sleep();
+    ros::Duration(0.1).sleep();
     arduino_client->LEDTask(pap_common::SETTOPLED, 0);
-    ros::Duration(0.5).sleep();
+    ros::Duration(0.1).sleep();
     arduino_client->LEDTask(pap_common::SETBRIGHTNESSRING, 45);
     ros::Duration(0.5).sleep();
 
@@ -135,7 +134,7 @@ bool calibrateCamera() {
     if(!driveToCoord(bottomCam.x, bottomCam.y, bottomCam.z))
         return false;
 
-    ros::Duration(5).sleep();
+    ros::Duration(1).sleep();
 
     arduino_client->LEDTask(pap_common::RESETBOTTOMLED, 0);
     arduino_client->LEDTask(pap_common::RESETTOPLED, 0);
@@ -150,11 +149,10 @@ bool calibrateTip1() {
     if(!driveToCoord(tip1.x, tip1.y, tip1.z))
         return false;
 
-    ros::Duration(1).sleep();
     moveTip(TIP::LEFT_TIP, true);
 
     arduino_client->LEDTask(pap_common::SETBOTTOMLED, 0);
-    ros::Duration(0.5).sleep();
+    ros::Duration(0.1).sleep();
     arduino_client->LEDTask(pap_common::SETBRIGHTNESSRING, 200);
     ros::Duration(0.5).sleep();
     ROS_INFO("Placerstate: TIP1 - Start Vision");
@@ -175,29 +173,34 @@ bool calibrateTip1() {
     if(!driveToCoord(tip1.x, tip1.y, tip1.z))
         return false;
 
-    ros::Duration(5).sleep();
+    ros::Duration(1).sleep();
     moveTip(TIP::LEFT_TIP, false);
     return true;
 }
 
 bool calibrateDispenser() {
 
-    pap_common::MotorControllerActionResult res;
+
+    if(!driveToCoord(placeController.dispenserCalibOffset.x, placeController.dispenserCalibOffset.y, placeController.dispenserCalibOffset.z))
+        return false;
+
+    pap_common::MotorControllerActionResult res_motor;
     if(!motor_send_functions::sendMotorControllerAction(*motor_action_client, pap_common::HEIGHT_CAL,
                                                         placeController.lastDestination_.x,
                                                         placeController.lastDestination_.y,
-                                                        10,
+                                                        5,
                                                         100,
                                                         100,
                                                         1,
-                                                        res)){
+                                                        res_motor)){
         return false;
     }
 
-    std::cerr << "JUHUHU : " << res.height << std::endl;
+    std::cerr << "Dispenser calibration height: " << res_motor.height << std::endl;
+    placeController.dispenserHeight_ = res_motor.height;
 
+    placeController.dispenserTipOffset.z = placeController.dispenserHeight_ + placeController.dispenser_height_offset_;
 
-    /*
     ROS_INFO("PlacerState: DISPENSER ");
     Offset dispenser = placeController.getDispenserCoordinates();
     ROS_INFO("Go to: x:%f y:%f z:%f", dispenser.x, dispenser.y, dispenser.z);
@@ -208,7 +211,7 @@ bool calibrateDispenser() {
     ros::Duration(1).sleep();
     arduino_client->LEDTask(pap_common::SETBOTTOMLED, 0);
     ros::Duration(0.5).sleep();
-    arduino_client->LEDTask(pap_common::SETBRIGHTNESSRING, 255);
+    arduino_client->LEDTask(pap_common::SETBRIGHTNESSRING, 40);
     ros::Duration(0.5).sleep();
 
     ROS_INFO("Placerstate: DISPENSER - Start Vision");
@@ -229,7 +232,7 @@ bool calibrateDispenser() {
         return false;
 
     ros::Duration(5).sleep();
-    */
+
     return true;
 }
 
@@ -397,7 +400,7 @@ bool calibrateDispenserAmount(double tip_diameter, double init_vel){
         std::vector<dispenseInfo> blobs;
         blobs.push_back(blob);
 
-        if(!dispensePCB(blobs, 3.64)) return false;
+        if(!dispensePCB(blobs, placeController.dispenserHeight_)) return false;
 
         // Drive with camera to center of blob
         //double blob_center_x = blob.xPos + (blob.xPos2 -blob.xPos) / 2;
@@ -768,58 +771,94 @@ bool goToBox(TIP usedTip) {
     return true;
 }
 
-// Dispense process
-bool dispensePCB(std::vector<dispenseInfo> dispense_task, double dispense_height) {
 
+bool dispenseLines(std::vector<dispenseInfo>  &lines, double dispense_height){
     Offset dispCoord;
-
-    dispenseInfo begin = dispense_task.front();
+    dispenseInfo begin = lines.front();
     dispCoord.x = begin.xPos;
     dispCoord.y = begin.yPos;
     dispCoord.z = dispense_height;
-    ROS_INFO("Go to: x:%f y:%f z:%f", dispCoord.x, dispCoord.y, dispCoord.z);
+
     if(!driveToCoord(dispCoord.x, dispCoord.y, dispCoord.z))
         return false;
 
-    // Turn on dispenser
-    switchDispenser(true);
-    ros::Duration(begin.time).sleep();
+    for(size_t i = 0; i < lines.size(); i++){
+        dispenseInfo goal = lines.at(i);
 
-    for(size_t i = 0; i < dispense_task.size(); i++){
-        dispenseInfo goal = dispense_task.at(i);
         double velocity = goal.velocity;
 
-        if(goal.type == dispenser_types::LINE_DISPENSE || goal.type == dispenser_types::DOT_DISPENSE ){
+        if(goal.type == dispenser_types::LINE_DISPENSE ){
             switchDispenser(true);
-            if(placeController.getDispenserVel()){
-                velocity = placeController.getDispenserVel();
-            }
         }
         else{
             velocity = DISPENSER_CONN_SPEED;
             switchDispenser(false);
         }
 
+        if(i == 0 && goal.type == dispenser_types::LINE_DISPENSE){
+            ros::Duration(begin.time).sleep();
+        }
+
+
         ROS_INFO("PlacerState: GOTOCOORD: x=%f y=%f z=%f",
                  goal.xPos2,
                  goal.yPos2, dispense_height);
 
-
-        if(goal.type == dispenser_types::LINE_DISPENSE ){
-            if(!motor_send_functions::sendMotorControllerAction(*motor_action_client, pap_common::COORD_VEL,
-                                                                goal.xPos2,
-                                                                goal.yPos2,
-                                                                dispense_height,
-                                                                velocity,
-                                                                velocity)){
-                return false;
-            }
+        if(!motor_send_functions::sendMotorControllerAction(*motor_action_client, pap_common::COORD_VEL,
+                                                            goal.xPos2,
+                                                            goal.yPos2,
+                                                            dispense_height,
+                                                            velocity,
+                                                            velocity)){
+            return false;
         }
+    }
+    switchDispenser(false);
+    return true;
+}
+
+bool dispenseDots(std::vector<dispenseInfo>  &dots, double dispense_height){
+    for(size_t i = 0; i < dots.size(); i++){
+        dispenseInfo goal = dots.at(i);
+
+        Offset dispCoord;
+        dispCoord.x = goal.xPos;
+        dispCoord.y = goal.yPos;
+        dispCoord.z = dispense_height;
+
+        if(!driveToCoord(dispCoord.x, dispCoord.y, dispCoord.z, placeController.dispenserHeight_+ 3))
+            return false;
+
+        switchDispenser(true);
+        ros::Duration(goal.time).sleep();
+        switchDispenser(false);
 
     }
-
-    // Turn off dispenser
     switchDispenser(false);
+    return true;
+}
+
+// Dispense process
+bool dispensePCB(std::vector<dispenseInfo> dispense_task, double dispense_height) {
+    dispenseInfo begin = dispense_task.front();
+
+    Offset begin_offset;
+    begin_offset.x = begin.xPos;
+    begin_offset.y = begin.yPos;
+    begin_offset.z = placeController.MovingHeight_;
+
+    if(!driveToCoord(begin_offset.x, begin_offset.y, begin_offset.z))
+        return false;
+
+    if(begin.type == dispenser_types::LINE_DISPENSE ){
+        dispenseLines(dispense_task, dispense_height);
+    }else if (begin.type == dispenser_types::DOT_DISPENSE) {
+        dispenseDots(dispense_task, dispense_height);
+    }
+
+    processAllStatusCallbacks();
+    if(!driveToCoord( placeController.lastDestination_.x,  placeController.lastDestination_.y, 45))
+        return false;
 
     sendPlacerStatus(pap_common::INFO,
                      pap_common::DISPENSER_FINISHED);
@@ -830,6 +869,7 @@ bool goToPCBOrigin() {
     ROS_INFO("Placer: GOTOPCBORIGIN");
     Offset pcbCoords = placeController.getPCBCalibCoordinates();
     ROS_INFO("Go to: x:%f y:%f z:%f", pcbCoords.x, pcbCoords.y, pcbCoords.z);
+
     if(!driveToCoord(pcbCoords.x, pcbCoords.y, pcbCoords.z))
         return false;
     arduino_client->LEDTask(pap_common::SETTOPLED, 0);
@@ -1011,19 +1051,19 @@ bool driveAroundPosition(Offset position, int distance_x, int distance_y) {
     return true;
 }
 
-bool driveToCoord(const double &x, const double &y, const double &z){
+bool driveToCoord(const double &x, const double &y, const double &z, const double moving_height){
     processAllStatusCallbacks();
     if(!motor_send_functions::sendMotorControllerAction(*motor_action_client, pap_common::COORD,
                                                         placeController.lastDestination_.x,
                                                         placeController.lastDestination_.y,
-                                                        placeController.MovingHeight_)){
+                                                        moving_height)){
         return false;
     }
 
     if(!motor_send_functions::sendMotorControllerAction(*motor_action_client, pap_common::COORD,
                                                         x,
                                                         y,
-                                                        placeController.MovingHeight_)){
+                                                        moving_height)){
         return false;
     }
 
@@ -1235,7 +1275,7 @@ void dispenserCallbackPlacer(const pap_common::DispenseTasksConstPtr& taskMsg) {
     }
 
     //ROS_INFO("Dispensing...");
-    dispensePCB(dispense_task, DISPENSER_HEIGHT);
+    dispensePCB(dispense_task, placeController.dispenserHeight_ + 0.2);
 }
 
 void sendPlacerStatus(pap_common::PROCESS process,

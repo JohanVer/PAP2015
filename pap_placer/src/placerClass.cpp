@@ -96,6 +96,11 @@ PlaceController::PlaceController() {
     corr_dispenser_vel_ = 0.0;
 
     MovingHeight_ = 45.0;
+    dispenserHeight_ = 20.0;
+    dispenserCalibOffset.x = 241.0;
+    dispenserCalibOffset.y = 138.0;
+    dispenserCalibOffset.z = dispenserHeight_;
+    dispenser_height_offset_ = 27.15;
 
     idleCoordinates_.x = 5.0;
     idleCoordinates_.y = 5.0;
