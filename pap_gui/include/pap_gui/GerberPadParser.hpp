@@ -8,7 +8,7 @@
 #ifndef PAP_GUI_SRC_GERBERPADPARSER_HPP_
 #define PAP_GUI_SRC_GERBERPADPARSER_HPP_
 
-//#include "DispenserPlanner.hpp"
+#include "DispenserPlanner.hpp"
 #include <string>
 #include <iostream>
 #include <fstream>
@@ -48,7 +48,7 @@ public:
 	void parseShapes(std::string fileName);
 	bool searchShape(int shapeIndex, PadInformation* pad);
 	void setSize(float height, float width);
-	QRectF renderImage(QGraphicsScene* scene, int width, int height);
+    QRectF renderImage(QGraphicsScene* scene, int width, int height, std::set<size_t> dispensed_set);
 	void setTable(QTableWidget* table);
     int searchId(QPointF position);
 	float calibratePads(QPointF local1, QPointF local2, QPointF global1,
@@ -59,6 +59,8 @@ public:
 	visualization_msgs::MarkerArray* getMarkerList(void);
 	void transformDispenserInfo(dispenseInfo *info);
 	void deleteEntry(int index);
+    void setDispenserInfo(double diameter, double perc);
+
 	// TODO: Make getter/setter for this public variable array
 	std::vector<PadInformation> padInformationArray_,padInformationArrayPrint_;
 	double pixelConversionFactor;
@@ -83,6 +85,9 @@ private:
 
     QImage background_;
     QGraphicsPixmapItem*  background_item_;
+
+    double current_nozzle_diameter_;
+    double current_perc_edge_dist_;
 
     //std::vector<std::shared_ptr<QGraphicsRectItem> > gen_data_;
 };

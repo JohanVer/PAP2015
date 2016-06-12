@@ -20,13 +20,46 @@
 using namespace std;
 
 
+namespace pap_placer{
+//!
+//! \brief The plane class describes a coordinate form of a plane
+//!
+class plane{
+
+public:
+    plane(){
+        a_ = 0;
+        b_ = 0;
+        c_ = 0;
+        d_ = 0;
+    }
+
+    plane(double a, double b, double c, double d){
+        a_ = a;
+        b_ = b;
+        c_ = c;
+        d_ = d;
+    }
+
+    double getHeight(double x, double y){
+        return -((a_ * x + b_ * y + d_) / c_);
+    }
+
+private:
+    double a_;
+    double b_;
+    double c_;
+    double d_;
+};
+}
+
 //!
 //! \brief The PlaceController class provides all calibration, placement and dispensing functionalities
 //!
 class PlaceController {
 public:
-	PlaceController();
-	~PlaceController();
+    PlaceController();
+    ~PlaceController();
 
     //!
     //! \brief loadParams restores default parameters (px ratios, offsets)
@@ -203,14 +236,16 @@ public:
     Offset pickUpAreaOffset;
     Offset pcbOriginOffset;
     Offset lastDestination_;
-    Offset dispenserCalibOffset;
+    Offset dispenserCalibOffsetA, dispenserCalibOffsetB, dispenserCalibOffsetC;
 
     // Relative dispenser tip offset
     Offset dispenserTipOffset;
 
     // Height parameters for placement process
-    float MovingHeight_, suckingHeight_, largeBoxHeight_, dispenserHeight_;
+    float MovingHeight_, suckingHeight_, largeBoxHeight_, dispenserHeight_, dispenser_surface_offset_;
     double dispenser_height_offset_;
+    pap_placer::plane dispenser_cal_plane_;
+    bool plane_calibrated_;
 
     // Component placement data for both tips
     ComponentPlacerData leftTipComponent, rightTipComponent;

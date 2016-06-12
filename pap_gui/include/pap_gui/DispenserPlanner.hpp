@@ -14,6 +14,10 @@
 #include <ros/ros.h>
 #include <tf/tf.h>
 
+namespace DispenserPlanner{
+
+bool isPadCompatibleToNozzle(const PadInformation &pad, double nozzle_diameter, double percentage_edge_dist);
+
 enum DOT_ALIGN{
     CENTER,
     LEFT,
@@ -41,6 +45,8 @@ public:
 	// Input: 1. Size of pad,2. Position of pad, 3. Rotation of pad 4. Nozzle diameter
 	// Output:Start/Stop positions , Velocity/Time
     std::vector<dispenseInfo> planDispensing(PadInformation padInfo, float nozzleDiameter, double percentage_edge_dist = 0.1, double velocity = 1, double wait_time = 1);
+
 };
 
+}
 #endif /* PAP2015_PAP_GUI_SRC_DISPENSERPLANNER_HPP_ */

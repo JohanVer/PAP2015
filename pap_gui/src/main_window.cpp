@@ -218,11 +218,14 @@ MainWindow::MainWindow(int version, int argc, char** argv, QWidget *parent) :
     dispenser_velocity_ = 1.0;
     nozzle_diameter_ = 0.41;
     alpha_ = 0.2;
-    planner_selection_ = PLANNER_SELECT::DOT_PLANNER;
+    planner_selection_ = DispenserPlanner::PLANNER_SELECT::DOT_PLANNER;
     wait_time_ = 1;
-    alignment_ = DOT_ALIGN::CENTER;
+    alignment_ = DispenserPlanner::DOT_ALIGN::CENTER;
 
     tip_thresholding_on = false;
+    dispenser_height_offset_ = 0;
+
+    padParser.setDispenserInfo(nozzle_diameter_, edge_percentage_);
 
     tape_calibrater_ = std::unique_ptr<pap_gui::TapeCalibrater>(new TapeCalibrater(qnode));
 }
@@ -2024,7 +2027,7 @@ void MainWindow::gotoPad(QPointF padPos) {
 }
 
 void MainWindow::redrawPadView(){
-    padParser.renderImage(&scenePads_, pic_offset_.width, pic_offset_.height);
+    padParser.renderImage(&scenePads_, pic_offset_.width, pic_offset_.height, dispensed_ids_);
     //padParser.setTable(ui.padTable);
     qnode.sendPcbImage(padParser.getMarkerList());
 }
@@ -2246,6 +2249,7 @@ void MainWindow::on_stopDispense_button_clicked() {
 void MainWindow::on_resetDispense_button_clicked() {
     dispenserPaused = false;
     lastDispenserId = 0;
+    dispensed_ids_.clear();
     redrawPadView();
     QMessageBox msgBox;
     const QString title = "Dispensing information";
@@ -2283,20 +2287,28 @@ void MainWindow::on_startDispense_button_clicked() {
             return;
         }
 
+        if(dispensed_ids_.find(i) != dispensed_ids_.end()){
+            continue;
+        }
+
+        if(!DispenserPlanner::isPadCompatibleToNozzle(copy.at(i), nozzle_diameter_, edge_percentage_)){
+            continue;
+        }
+
         std::vector<dispenseInfo> dispInfo;
-        if(planner_selection_ == PLANNER_SELECT::DOT_PLANNER){
-            enum DOT_ALIGN align_temp;
+        if(planner_selection_ == DispenserPlanner::PLANNER_SELECT::DOT_PLANNER){
+            enum DispenserPlanner::DOT_ALIGN align_temp;
             if(left_align){
-                align_temp = DOT_ALIGN::LEFT;
+                align_temp = DispenserPlanner::DOT_ALIGN::LEFT;
                 left_align = false;
             }else{
-                align_temp = DOT_ALIGN::RIGHT;
+                align_temp = DispenserPlanner::DOT_ALIGN::RIGHT;
                 left_align = true;
             }
 
             dispInfo = dotPlanner.planDispensing(
                         copy[i], nozzleDiameter, edge_percentage_, wait_time_, alpha_, align_temp);
-        }else if(planner_selection_ == PLANNER_SELECT::LINE_PLANNER){
+        }else if(planner_selection_ == DispenserPlanner::PLANNER_SELECT::LINE_PLANNER){
             dispInfo = dispenserPlanner.planDispensing(
                         copy[i], nozzleDiameter, edge_percentage_, dispenser_velocity_, wait_time_);
         }
@@ -2334,7 +2346,7 @@ void MainWindow::on_startDispense_button_clicked() {
             padParser.transformDispenserInfo(&dispInfo[j]);
 
         }
-        qnode.sendDispenserTask(dispInfo);
+        qnode.sendDispenserTask(dispInfo, dispenser_height_offset_);
 
         QEventLoop loop;
         QTimer *timer = new QTimer(this);
@@ -2348,8 +2360,11 @@ void MainWindow::on_startDispense_button_clicked() {
 
         // Is timeout ocurred?
         if (!timer->isActive()) {
+            std::cerr << "Dispensing timeout...\n";
             return;
         }
+
+        dispensed_ids_.insert(i);
 
         scenePads_.addEllipse((copy[i].rect.y()) * pxFactor - 1.0,
                               -(copy[i].rect.x() * pxFactor), 1, 1,
@@ -2367,11 +2382,16 @@ void MainWindow::dispenseSinglePad(QPointF point) {
     float nozzleDiameter = nozzle_diameter_;
     float pxFactor = padParser.pixelConversionFactor;
     if (id_ != -1) {
+
+        if(!DispenserPlanner::isPadCompatibleToNozzle(padParser.padInformationArrayPrint_[id_], nozzle_diameter_, edge_percentage_)){
+            return;
+        }
+
         std::vector<dispenseInfo> dispInfo;
-        if(planner_selection_ == PLANNER_SELECT::DOT_PLANNER){
+        if(planner_selection_ == DispenserPlanner::PLANNER_SELECT::DOT_PLANNER){
             dispInfo = dotPlanner.planDispensing(
                         padParser.padInformationArrayPrint_[id_], nozzleDiameter, edge_percentage_, wait_time_, alpha_, alignment_);
-        }else if(planner_selection_ == PLANNER_SELECT::LINE_PLANNER){
+        }else if(planner_selection_ == DispenserPlanner::PLANNER_SELECT::LINE_PLANNER){
             dispInfo = dispenserPlanner.planDispensing(
                         padParser.padInformationArrayPrint_[id_], nozzleDiameter, edge_percentage_, dispenser_velocity_, wait_time_);
         }
@@ -2408,7 +2428,9 @@ void MainWindow::dispenseSinglePad(QPointF point) {
 
         }
 
-        qnode.sendDispenserTask(dispInfo);
+        dispensed_ids_.insert(id_);
+
+        qnode.sendDispenserTask(dispInfo, dispenser_height_offset_);
 
         QEventLoop loop;
         QTimer *timer = new QTimer(this);
@@ -2424,6 +2446,7 @@ void MainWindow::dispenseSinglePad(QPointF point) {
         if (!timer->isActive()) {
             return;
         }
+
 
         processAllCallbacks();
         ROS_INFO("GUI: Dispensing finished....");
@@ -2785,7 +2808,7 @@ void pap_gui::MainWindow::on_scanButton_clicked()
         pic_offset_.height = 0;
 
         padParser.pixelConversionFactor = px_factor_x;
-        padParser.renderImage(&scenePads_, pic_offset_.width, pic_offset_.height);
+        padParser.renderImage(&scenePads_, pic_offset_.width, pic_offset_.height, dispensed_ids_);
 
         qnode.sendPcbImage(padParser.getMarkerList());
     }
@@ -2798,22 +2821,26 @@ void pap_gui::MainWindow::on_disp_settings_apply_clicked()
     edge_percentage_ = ui.edge_perc_edit->text().toFloat();
     dispenser_velocity_ = ui.dispenser_vel_edit->text().toFloat();
     alpha_ = ui.alpha_text_edit->text().toFloat();
+    dispenser_height_offset_ = ui.disp_height_offset_edit->text().toFloat();
 
     if(ui.planner_select_combo->currentText() == "Line"){
-        planner_selection_ = PLANNER_SELECT::LINE_PLANNER;
+        planner_selection_ = DispenserPlanner::PLANNER_SELECT::LINE_PLANNER;
     }else if(ui.planner_select_combo->currentText() == "Dot"){
-        planner_selection_ = PLANNER_SELECT::DOT_PLANNER;
+        planner_selection_ = DispenserPlanner::PLANNER_SELECT::DOT_PLANNER;
     }
 
     wait_time_ = ui.wait_time_text_edit->text().toFloat();
 
     if(ui.align_select_combo->currentText() == "Center"){
-        alignment_ = DOT_ALIGN::CENTER;
+        alignment_ = DispenserPlanner::DOT_ALIGN::CENTER;
     }else if(ui.align_select_combo->currentText() == "Left"){
-        alignment_ = DOT_ALIGN::LEFT;
+        alignment_ = DispenserPlanner::DOT_ALIGN::LEFT;
     }else if(ui.align_select_combo->currentText() == "Right"){
-        alignment_ = DOT_ALIGN::RIGHT;
+        alignment_ = DispenserPlanner::DOT_ALIGN::RIGHT;
     }
+
+    padParser.setDispenserInfo(nozzle_diameter_, edge_percentage_);
+    redrawPadView();
     //qnode.sendTask(pap_common::PLACER, pap_common::ADJUST_DISPENSER,
     //               nozzle_diameter_, dispenser_velocity_, 0);
 
@@ -2822,7 +2849,7 @@ void pap_gui::MainWindow::on_disp_settings_apply_clicked()
 
 void pap_gui::MainWindow::on_calibrate_dispenser_button_clicked()
 {
-    qnode.sendTask(pap_common::PLACER, pap_common::CALIBRATE_DISPENSER);
+    qnode.sendTask(pap_common::PLACER, pap_common::CALIBRATE_DISPENSER, nozzle_diameter_, 0, 0);
 }
 
 void pap_gui::MainWindow::on_radioButton_clicked(bool checked)

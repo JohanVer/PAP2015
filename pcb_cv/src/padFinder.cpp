@@ -30,7 +30,7 @@ using namespace cv;
 #define ERROR_PERCENT_SMDTAPE 30.0
 
 // Tips
-#define ERROR_PERCENT_TIP 10.0
+#define ERROR_PERCENT_TIP 20.0
 
 template<typename T>
 bool getPAPParam(ros::NodeHandle &nh, const std::string &param_name, T &param){
@@ -260,8 +260,10 @@ bool padFinder::findTip(cv::Mat &final, smdPart &out, bool thresholding, enum pa
     vector<Vec3f> circles;
     std::vector<std::vector<cv::Point> > circlesSorted;
 
-    float radiusMin = ((partWidth_) / 100.0) * (100.0 - ERROR_PERCENT_TIP);
-    float radiusMax = ((partWidth_) / 100.0) * (100.0 + ERROR_PERCENT_TIP);
+    double pixel_diameter = partWidth_ * pxRatioBottom;
+
+    float radiusMin = ((pixel_diameter / 2) / 100.0) * (100.0 - ERROR_PERCENT_TIP);
+    float radiusMax = ((pixel_diameter / 2) / 100.0) * (100.0 + ERROR_PERCENT_TIP);
 
     if(thresholding){
         cv::threshold(gray, gray, 255, 255, CV_THRESH_BINARY | CV_THRESH_OTSU);
@@ -297,7 +299,7 @@ bool padFinder::findTip(cv::Mat &final, smdPart &out, bool thresholding, enum pa
             smdPart part;
             part.x = center.x;
             part.y = center.y;
-            part.rot = radius;
+            part.rot = (radius * 2) / pxRatioBottom;
             tipObjects.push_back(part);
         }
     }

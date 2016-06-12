@@ -29,13 +29,15 @@
 #include <pap_common/arduinosendfunctions.h>
 #include <pap_common/CommonDataClasses.hpp>
 
+#include <eigen3/Eigen/Eigen>
+
 /* Constant parameter definitions */
 #define DISPENSER_TOLERANCE 0.1
 #define MOTORCONTROLLER_TIMEOUT 3000
-#define TIP1_DIAMETER_VISION 20.0 //130
-#define TIP2_DIAMETER_VISION 20.0
-#define DISPENSER_DIAMETER_VISION 14
-#define CAMERA_DIAMETER_VISION 190.0
+#define TIP1_DIAMETER_VISION 1.0
+#define TIP2_DIAMETER_VISION 1.0
+#define DISPENSER_DIAMETER_VISION 0.8
+#define CAMERA_DIAMETER_VISION 9.3596
 #define DISPENSER_HEIGHT 10.302
 #define DISPENSER_CONN_SPEED 20
 
@@ -83,7 +85,6 @@ enum STATE {
     DISPENSE,
     DISPENSETASK
 };
-
 
 //!
 //! \brief statusCallback process feedback from motor controller
@@ -151,9 +152,10 @@ bool calibrateTip1();
 
 //!
 //! \brief calibrateDispenser
+//! \param diameter
 //! \return
 //!
-bool calibrateDispenser();
+bool calibrateDispenser(double diameter);
 
 //!
 //! \brief calibrateTip2
@@ -172,11 +174,6 @@ bool calibrateTopCamDistortion();
 //! \return
 //!
 bool calibrateBottomCamDistortion();
-
-
-
-
-
 
 
 /* General local functions */

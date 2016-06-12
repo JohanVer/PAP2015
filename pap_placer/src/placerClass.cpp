@@ -97,10 +97,22 @@ PlaceController::PlaceController() {
 
     MovingHeight_ = 45.0;
     dispenserHeight_ = 20.0;
-    dispenserCalibOffset.x = 241.0;
-    dispenserCalibOffset.y = 138.0;
-    dispenserCalibOffset.z = dispenserHeight_;
+    // CAL Point A
+    dispenserCalibOffsetA.x = 241.0;
+    dispenserCalibOffsetA.y = 138.0;
+    dispenserCalibOffsetA.z = dispenserHeight_;
+    // CAL Point B
+    dispenserCalibOffsetB.x = 241.0;
+    dispenserCalibOffsetB.y = 138.0;
+    dispenserCalibOffsetB.z = dispenserHeight_;
+    // CAL Point C
+    dispenserCalibOffsetC.x = 241.0;
+    dispenserCalibOffsetC.y = 138.0;
+    dispenserCalibOffsetC.z = dispenserHeight_;
+
+
     dispenser_height_offset_ = 27.15;
+    dispenser_surface_offset_ = 0;
 
     idleCoordinates_.x = 5.0;
     idleCoordinates_.y = 5.0;
@@ -153,6 +165,7 @@ PlaceController::PlaceController() {
     PickUpCorrection.rot = 0.0;
 
     pickRelQR_ = false;
+    plane_calibrated_ = false;
 }
 
 PlaceController::~PlaceController() {

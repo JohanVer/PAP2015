@@ -178,16 +178,19 @@ bool calibrateTip1() {
     return true;
 }
 
-bool calibrateDispenser() {
+bool calibrateDispenser(double diameter) {
 
+    Eigen::Vector3d point_A;
+    Eigen::Vector3d point_B;
+    Eigen::Vector3d point_C;
 
-    if(!driveToCoord(placeController.dispenserCalibOffset.x, placeController.dispenserCalibOffset.y, placeController.dispenserCalibOffset.z))
+    if(!driveToCoord(placeController.dispenserCalibOffsetA.x, placeController.dispenserCalibOffsetA.y, placeController.dispenserCalibOffsetA.z))
         return false;
 
     pap_common::MotorControllerActionResult res_motor;
     if(!motor_send_functions::sendMotorControllerAction(*motor_action_client, pap_common::HEIGHT_CAL,
-                                                        placeController.lastDestination_.x,
-                                                        placeController.lastDestination_.y,
+                                                        placeController.dispenserCalibOffsetA.x,
+                                                        placeController.dispenserCalibOffsetA.y,
                                                         5,
                                                         100,
                                                         100,
@@ -196,10 +199,69 @@ bool calibrateDispenser() {
         return false;
     }
 
-    std::cerr << "Dispenser calibration height: " << res_motor.height << std::endl;
-    placeController.dispenserHeight_ = res_motor.height;
+    point_A[0] = placeController.dispenserCalibOffsetA.x;
+    point_A[1] = placeController.dispenserCalibOffsetA.y;
+    point_A[2] = res_motor.height;
 
-    placeController.dispenserTipOffset.z = placeController.dispenserHeight_ + placeController.dispenser_height_offset_;
+
+    if(!driveToCoord(placeController.dispenserCalibOffsetB.x, placeController.dispenserCalibOffsetB.y, placeController.dispenserCalibOffsetB.z))
+        return false;
+
+    if(!motor_send_functions::sendMotorControllerAction(*motor_action_client, pap_common::HEIGHT_CAL,
+                                                        placeController.dispenserCalibOffsetB.x,
+                                                        placeController.dispenserCalibOffsetB.y,
+                                                        5,
+                                                        100,
+                                                        100,
+                                                        1,
+                                                        res_motor)){
+        return false;
+    }
+
+    std::cerr << "Dispenser calibration height B: " << res_motor.height << std::endl;
+    point_B[0] = placeController.dispenserCalibOffsetB.x;
+    point_B[1] = placeController.dispenserCalibOffsetB.y;
+    point_B[2] = res_motor.height;
+
+
+    if(!driveToCoord(placeController.dispenserCalibOffsetC.x, placeController.dispenserCalibOffsetC.y, placeController.dispenserCalibOffsetC.z))
+        return false;
+
+    if(!motor_send_functions::sendMotorControllerAction(*motor_action_client, pap_common::HEIGHT_CAL,
+                                                        placeController.dispenserCalibOffsetC.x,
+                                                        placeController.dispenserCalibOffsetC.y,
+                                                        5,
+                                                        100,
+                                                        100,
+                                                        1,
+                                                        res_motor)){
+        return false;
+    }
+
+    std::cerr << "Dispenser calibration height C: " << res_motor.height << std::endl;
+    point_C[0] = placeController.dispenserCalibOffsetC.x;
+    point_C[1] = placeController.dispenserCalibOffsetC.y;
+    point_C[2] = res_motor.height;
+
+    // Compute plane coordinate form
+    Eigen::Vector3d vec_AB = point_B - point_A;
+    Eigen::Vector3d vec_AC = point_C - point_A;
+
+    Eigen::Vector3d cross = vec_AB.cross(vec_AC);
+
+    // ax + by + az + d = 0
+    // compute d by inserting point A in equation
+    double a = cross[0];
+    double b = cross[1];
+    double c = cross[2];
+
+    double d = -(point_A[0] * a + point_A[1] * b + point_A[2] * c);
+
+    // Insert new plane
+    placeController.dispenser_cal_plane_ = pap_placer::plane(a, b, c, d);
+    placeController.plane_calibrated_ = true;
+
+    placeController.dispenserTipOffset.z = res_motor.height + placeController.dispenser_height_offset_;
 
     ROS_INFO("PlacerState: DISPENSER ");
     Offset dispenser = placeController.getDispenserCoordinates();
@@ -216,7 +278,7 @@ bool calibrateDispenser() {
 
     ROS_INFO("Placerstate: DISPENSER - Start Vision");
     pap_common::VisionResult res;
-    if(!vision_send_functions::sendVisionTask(*vision_action_client, pap_vision::SEARCH_CIRCLE, pap_vision::CAMERA_BOTTOM, DISPENSER_DIAMETER_VISION, 0.0, (float) true, res, 50))
+    if(!vision_send_functions::sendVisionTask(*vision_action_client, pap_vision::SEARCH_CIRCLE, pap_vision::CAMERA_BOTTOM, diameter, 0.0, (float) true, res, 50))
         return false;
 
     ROS_INFO("Placerstate: DISPENSER - cameraOffset received");
@@ -400,7 +462,11 @@ bool calibrateDispenserAmount(double tip_diameter, double init_vel){
         std::vector<dispenseInfo> blobs;
         blobs.push_back(blob);
 
-        if(!dispensePCB(blobs, placeController.dispenserHeight_)) return false;
+        if(placeController.plane_calibrated_){
+            if(!dispensePCB(blobs, placeController.dispenser_surface_offset_)) return false;
+        }else{
+            std::cerr << "Plane not yet calibrated...\n";
+        }
 
         // Drive with camera to center of blob
         //double blob_center_x = blob.xPos + (blob.xPos2 -blob.xPos) / 2;
@@ -772,12 +838,16 @@ bool goToBox(TIP usedTip) {
 }
 
 
-bool dispenseLines(std::vector<dispenseInfo>  &lines, double dispense_height){
+bool dispenseLines(std::vector<dispenseInfo>  &lines, double dispense_height_offset){
     Offset dispCoord;
+    double height_1 = 0;
+    double height_2 = 0;
     dispenseInfo begin = lines.front();
     dispCoord.x = begin.xPos;
     dispCoord.y = begin.yPos;
-    dispCoord.z = dispense_height;
+
+    height_1 = placeController.dispenser_cal_plane_.getHeight(dispCoord.x, dispCoord.y);
+    dispCoord.z = height_1 + dispense_height_offset;
 
     if(!driveToCoord(dispCoord.x, dispCoord.y, dispCoord.z))
         return false;
@@ -800,14 +870,17 @@ bool dispenseLines(std::vector<dispenseInfo>  &lines, double dispense_height){
         }
 
 
+        height_2 = placeController.dispenser_cal_plane_.getHeight(goal.xPos2, goal.yPos2);
+
         ROS_INFO("PlacerState: GOTOCOORD: x=%f y=%f z=%f",
                  goal.xPos2,
-                 goal.yPos2, dispense_height);
+                 goal.yPos2, height_2 + dispense_height_offset);
+
 
         if(!motor_send_functions::sendMotorControllerAction(*motor_action_client, pap_common::COORD_VEL,
                                                             goal.xPos2,
                                                             goal.yPos2,
-                                                            dispense_height,
+                                                            height_2 + dispense_height_offset,
                                                             velocity,
                                                             velocity)){
             return false;
@@ -817,16 +890,17 @@ bool dispenseLines(std::vector<dispenseInfo>  &lines, double dispense_height){
     return true;
 }
 
-bool dispenseDots(std::vector<dispenseInfo>  &dots, double dispense_height){
+bool dispenseDots(std::vector<dispenseInfo>  &dots, double dispense_height_offset){
     for(size_t i = 0; i < dots.size(); i++){
         dispenseInfo goal = dots.at(i);
 
         Offset dispCoord;
         dispCoord.x = goal.xPos;
         dispCoord.y = goal.yPos;
-        dispCoord.z = dispense_height;
+        double height = placeController.dispenser_cal_plane_.getHeight(dispCoord.x, dispCoord.y);
+        dispCoord.z = height + dispense_height_offset;
 
-        if(!driveToCoord(dispCoord.x, dispCoord.y, dispCoord.z, placeController.dispenserHeight_+ 3))
+        if(!driveToCoord(dispCoord.x, dispCoord.y, dispCoord.z, dispCoord.z + 3))
             return false;
 
         switchDispenser(true);
@@ -839,7 +913,7 @@ bool dispenseDots(std::vector<dispenseInfo>  &dots, double dispense_height){
 }
 
 // Dispense process
-bool dispensePCB(std::vector<dispenseInfo> dispense_task, double dispense_height) {
+bool dispensePCB(std::vector<dispenseInfo> dispense_task, double dispense_height_offset) {
     dispenseInfo begin = dispense_task.front();
 
     Offset begin_offset;
@@ -851,9 +925,9 @@ bool dispensePCB(std::vector<dispenseInfo> dispense_task, double dispense_height
         return false;
 
     if(begin.type == dispenser_types::LINE_DISPENSE ){
-        dispenseLines(dispense_task, dispense_height);
+        dispenseLines(dispense_task, dispense_height_offset);
     }else if (begin.type == dispenser_types::DOT_DISPENSE) {
-        dispenseDots(dispense_task, dispense_height);
+        dispenseDots(dispense_task, dispense_height_offset);
     }
 
     processAllStatusCallbacks();
@@ -1246,7 +1320,7 @@ void placerCallback(const pap_common::TaskConstPtr& taskMsg) {
 
         case pap_common::CALIBRATE_DISPENSER: {
             std::cerr << "Starting dispenser calibration ...\n";
-            if(!calibrateDispenser())
+            if(!calibrateDispenser(taskMsg->data1))
                 std::cerr << "Failed to calibrate dispenser nozzle ...\n";
         }
             break;
@@ -1274,8 +1348,15 @@ void dispenserCallbackPlacer(const pap_common::DispenseTasksConstPtr& taskMsg) {
         dispense_task.push_back(di);
     }
 
+    placeController.dispenser_surface_offset_ = taskMsg->heightOffset;
+
     //ROS_INFO("Dispensing...");
-    dispensePCB(dispense_task, placeController.dispenserHeight_ + 0.2);
+    if(placeController.plane_calibrated_){
+        dispensePCB(dispense_task, placeController.dispenser_surface_offset_);
+    }
+    else{
+        std::cerr << "Plane not yet calibrated...\n";
+    }
 }
 
 void sendPlacerStatus(pap_common::PROCESS process,
