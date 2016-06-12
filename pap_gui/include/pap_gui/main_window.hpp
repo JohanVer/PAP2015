@@ -302,8 +302,8 @@ private:
     // Structures for holding the camera1 image (top camera)
     QPixmap cameraPicture1, cameraPicture2;
     CameraGraphicsScene scene_, scene2_;
-    DispenserPlanner dispenserPlanner;
-    DotPlanner dotPlanner;
+    DispenserPlanner::DispenserPlanner dispenserPlanner;
+    DispenserPlanner::DotPlanner dotPlanner;
 
     // Structures for holding the rendered image of the pcb
     QPixmap renderedPadsPixmap;
@@ -331,6 +331,7 @@ private:
 
     bool dispenserPaused;
     int lastDispenserId;
+    std::set<size_t> dispensed_ids_;
 
     bool completePlacementRunning;
     bool singlePlacementRunning;
@@ -344,9 +345,10 @@ private:
     double dispenser_velocity_;
     double nozzle_diameter_;
     double alpha_;
-    enum DOT_ALIGN alignment_;
-    enum PLANNER_SELECT planner_selection_;
+    enum DispenserPlanner::DOT_ALIGN alignment_;
+    enum DispenserPlanner::PLANNER_SELECT planner_selection_;
     double wait_time_;
+    double dispenser_height_offset_;
 
     bool tip_thresholding_on;
 };

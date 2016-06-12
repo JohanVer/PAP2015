@@ -6,7 +6,7 @@
  */
 
 #include <pap_gui/DispenserPlanner.hpp>
-
+namespace DispenserPlanner{
 DotPlanner::DotPlanner(){
 
 }
@@ -14,6 +14,7 @@ DotPlanner::DotPlanner(){
 DotPlanner::~DotPlanner() {
     // TODO Auto-generated destructor stub
 }
+
 
 std::vector<dispenseInfo> DotPlanner::planDispensing(PadInformation padInfoIn, float nozzleDiameter, double percentage_edge_dist, double wait_time, double alpha, DOT_ALIGN alignment){
     float inX = padInfoIn.rect.x();
@@ -49,6 +50,7 @@ std::vector<dispenseInfo> DotPlanner::planDispensing(PadInformation padInfoIn, f
     double nozzle_side_total_y = 0;
 
     double max_overlap_length = 0;
+    double max_underlap_length = 0;
 
     if(number_of_lines == 0){
         number_of_lines = 1;
@@ -89,7 +91,6 @@ std::vector<dispenseInfo> DotPlanner::planDispensing(PadInformation padInfoIn, f
         }
         nozzle_side_total_x = nozzle_side_total;
     }
-
 
     double overlap_ratio = max_overlap_length / nozzle_side_total;
 
@@ -140,6 +141,36 @@ DispenserPlanner::DispenserPlanner() {
 
 DispenserPlanner::~DispenserPlanner() {
     // TODO Auto-generated destructor stub
+}
+
+bool isPadCompatibleToNozzle(const PadInformation &pad, double nozzle_diameter, double percentage_edge_dist){
+    float inWidth = pad.rect.width();
+    float inHeight = pad.rect.height();
+
+    double distanceFromEdge = percentage_edge_dist * nozzle_diameter;
+
+    double nozzle_side_total = 2 * distanceFromEdge + nozzle_diameter;
+
+    unsigned int number_of_lines = 0;
+    unsigned int number_of_cols = 0;
+
+    number_of_lines =  inHeight / nozzle_side_total;
+    number_of_cols = inWidth / nozzle_side_total;
+
+    if(number_of_cols == 0){
+        double rest_width = nozzle_side_total - inWidth;
+        double rest_ratio = rest_width / nozzle_side_total;
+        if(rest_ratio > 0.3) return false;
+    }
+
+    if(number_of_lines == 0){
+        double rest_height = nozzle_side_total-  inHeight;
+        double rest_ratio = rest_height / nozzle_side_total;
+        if(rest_ratio > 0.3) return false;
+    }
+
+    return true;
+
 }
 
 std::vector<dispenseInfo> DispenserPlanner::planDispensing(
@@ -319,4 +350,6 @@ std::vector<dispenseInfo> DispenserPlanner::planDispensing(
 
     ROS_INFO("Planned %d lines...", numberOfLines);
     return conn_outVector;
+}
+
 }

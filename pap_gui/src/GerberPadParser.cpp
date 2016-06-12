@@ -315,8 +315,13 @@ void GerberPadParser::createPadFromView(QRectF pad){
 
 }
 
+void GerberPadParser::setDispenserInfo(double diameter, double perc){
+    current_nozzle_diameter_ = diameter;
+    current_perc_edge_dist_ = perc;
+}
+
 QRectF GerberPadParser::renderImage(QGraphicsScene* scene, int width,
-                                    int height) {
+                                    int height, std::set<size_t> dispensed_set) {
     //gen_data_.clear();
     printedRects.clear();
     qDeleteAll(scene->items());
@@ -359,8 +364,18 @@ QRectF GerberPadParser::renderImage(QGraphicsScene* scene, int width,
         //std::shared_ptr<QGraphicsRectItem> rect = std::shared_ptr<QGraphicsRectItem>(new QGraphicsRectItem(pad.x(), pad.y(), pad.width(), pad.height()));
         QGraphicsRectItem* rect =  new QGraphicsRectItem(pad.x(), pad.y(), pad.width(), pad.height());
         //gen_data_.push_back(rect);
-        rect->setPen(QPen(Qt::red, 1, Qt::SolidLine));
-        rect->setBrush(Qt::red);
+        if(DispenserPlanner::isPadCompatibleToNozzle(padInfo, current_nozzle_diameter_, current_perc_edge_dist_)){
+            rect->setPen(QPen(Qt::black, 1, Qt::SolidLine));
+            rect->setBrush(Qt::black);
+        }else{
+            rect->setPen(QPen(Qt::red, 1, Qt::SolidLine));
+            rect->setBrush(Qt::red);
+        }
+
+        if(dispensed_set.find(i) != dispensed_set.end()){
+            rect->setPen(QPen(Qt::magenta, 1, Qt::SolidLine));
+            rect->setBrush(Qt::magenta);
+        }
 
         rect->setTransformOriginPoint(padInfo.rect.x() * pixelConversionFactor,
                                       (padInfo.rect.y() * pixelConversionFactor));

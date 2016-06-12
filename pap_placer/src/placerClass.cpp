@@ -97,14 +97,29 @@ PlaceController::PlaceController() {
 
     MovingHeight_ = 45.0;
     dispenserHeight_ = 20.0;
-    dispenserCalibOffset.x = 241.0;
-    dispenserCalibOffset.y = 138.0;
-    dispenserCalibOffset.z = dispenserHeight_;
+    // CAL Point A
+    dispenserCalibOffsetA.x = 229.8;
+    dispenserCalibOffsetA.y = 145.0;
+    dispenserCalibOffsetA.z = dispenserHeight_;
+    // CAL Point B
+    dispenserCalibOffsetB.x = 252.9;
+    dispenserCalibOffsetB.y = 111.0;
+    dispenserCalibOffsetB.z = dispenserHeight_;
+    // CAL Point C
+    dispenserCalibOffsetC.x = 252.9;
+    dispenserCalibOffsetC.y = 184.0;
+    dispenserCalibOffsetC.z = dispenserHeight_;
+
+
     dispenser_height_offset_ = 27.15;
+    dispenser_surface_offset_ = 0;
 
     idleCoordinates_.x = 5.0;
     idleCoordinates_.y = 5.0;
     idleCoordinates_.z = 0.0;
+
+    camera_projection_offset_.x = 0.06;
+    camera_projection_offset_.y = -0.35;
 
     // Height for sucking a component (normal chip, not a tape)
     suckingHeight_ = 20.2;
@@ -153,6 +168,7 @@ PlaceController::PlaceController() {
     PickUpCorrection.rot = 0.0;
 
     pickRelQR_ = false;
+    plane_calibrated_ = false;
 }
 
 PlaceController::~PlaceController() {
@@ -340,6 +356,9 @@ float PlaceController::getCompPlaceHeight(TIP usedTip) {
     }
 }
 
+Offset PlaceController::getCameraProjectionOffset(){
+    return camera_projection_offset_;
+}
 
 /******************************************************
 * Set correction offset for pickup

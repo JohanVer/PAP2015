@@ -24,19 +24,19 @@
 #include <pcb_cv/sendfunctions.h>
 #include <pap_common/arduinosendfunctions.h>
 #include <pap_common/CommonDataClasses.hpp>
+#include <eigen3/Eigen/Eigen>
 
+/* Constant parameter definitions */
 #define DISPENSER_TOLERANCE 0.1
 #define MOTORCONTROLLER_TIMEOUT 3000
-#define TIP1_DIAMETER_VISION 20.0 //130
-#define TIP2_DIAMETER_VISION 20.0
-#define DISPENSER_DIAMETER_VISION 14
-#define CAMERA_DIAMETER_VISION 190.0
+#define TIP1_DIAMETER_VISION 1.0
+#define TIP2_DIAMETER_VISION 1.0
+#define CAMERA_DIAMETER_VISION 9.3596
 #define DISPENSER_HEIGHT 10.302
 #define DISPENSER_CONN_SPEED 20
 
-
 //!
-//! \brief statusCallback processes feedback from motor controller
+//! \brief statusCallback process feedback from motor controller
 //! \param statusMsg received status message
 //!
 void statusCallback(const pap_common::StatusConstPtr& statusMsg);
@@ -135,10 +135,11 @@ bool dispensePCB();
 
 //!
 //! \brief calibrateOffsets starts offset calibration procedure of both tips and
-//! dispenser tip relative to top camera
+//! \param leftTipRadius in mm
+//! \param rightTipRadius in mm
 //! \return true if calibration successfull, otherwise false
 //!
-bool calibrateOffsets();
+bool calibrateOffsets(double leftTipRadius, double rightTipRadius);
 
 //!
 //! \brief calibrateCamera performs
@@ -154,9 +155,9 @@ bool calibrateTip1();
 
 //!
 //! \brief calibrateDispenser calibrates relative offset between top camera and dispenser tip, based on bottom cam
+//! \param diameter of currently used tip
 //! \return true if calibration successfull, otherwise false
-//!
-bool calibrateDispenser();
+bool calibrateDispenser(double diameter);
 
 //!
 //! \brief calibrateTip2 calibrates relative offset between top camera and tip2, based on bottom cam

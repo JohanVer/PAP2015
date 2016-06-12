@@ -363,7 +363,7 @@ void QNode::sendTask(pap_common::DESTINATION destination, pap_common::TASK task,
     task_publisher.publish(taskMsg);
 }
 
-void QNode::sendDispenserTask(std::vector<dispenseInfo> dispenseTask) {
+void QNode::sendDispenserTask(std::vector<dispenseInfo> dispenseTask, double height_offset) {
     pap_common::DispenseTasks msg;
 
     for(size_t i = 0; i < dispenseTask.size(); i++){
@@ -378,6 +378,8 @@ void QNode::sendDispenserTask(std::vector<dispenseInfo> dispenseTask) {
         task.type = act.type;
         msg.lines.push_back(task);
     }
+
+    msg.heightOffset = height_offset;
 
     dispenser_publisher_.publish(msg);
 }

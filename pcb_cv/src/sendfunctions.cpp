@@ -9,7 +9,7 @@ bool sendVisionTask(Client &action_client, enum pap_vision::VISION task) {
     vis_goal.task = task;
     // Fill in goal here
     action_client.sendGoal(vis_goal);
-    action_client.waitForResult(ros::Duration(12.0));
+    action_client.waitForResult(ros::Duration(20.0));
     if (action_client.getState() == actionlib::SimpleClientGoalState::SUCCEEDED){
         return true;
     }else{
@@ -30,7 +30,7 @@ bool sendVisionTask(Client &action_client, enum pap_vision::VISION task, enum pa
 
     // Fill in goal here
     action_client.sendGoal(vis_goal);
-    action_client.waitForResult(ros::Duration(12.0));
+    action_client.waitForResult(ros::Duration(20.0));
     if (action_client.getState() == actionlib::SimpleClientGoalState::SUCCEEDED){
         pap_common::VisionResultConstPtr res_ptr = action_client.getResult();
         res = *res_ptr;
@@ -50,7 +50,7 @@ bool sendVisionTask(Client &action_client, enum pap_vision::VISION task,enum pap
     vis_goal.numAverages = num_averages;
     // Fill in goal here
     action_client.sendGoal(vis_goal);
-    action_client.waitForResult(ros::Duration(12.0));
+    action_client.waitForResult(ros::Duration(20.0));
     if (action_client.getState() == actionlib::SimpleClientGoalState::SUCCEEDED){
         pap_common::VisionResultConstPtr res_ptr = action_client.getResult();
         res = *res_ptr;
