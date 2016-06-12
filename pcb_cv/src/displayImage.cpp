@@ -87,8 +87,10 @@ void PcbCvInterface::execute_action(const pap_common::VisionGoalConstPtr& comman
         if(finder.findChipAvg(&images, (pap_vision::CAMERA_SELECT) cameraSelect, chip)){
             pap_common::VisionResult res;
             res.cameraSelect = cameraSelect;
-            res.data1 = chip.y;
-            res.data2 = chip.x;
+
+            res.data1 = chip.y ;
+            res.data2 = chip.x ;
+
             res.data3 = chip.rot;
             res.data4 = chip.width;
             res.data5 = chip.height;
@@ -113,8 +115,10 @@ void PcbCvInterface::execute_action(const pap_common::VisionGoalConstPtr& comman
         smdPart chip;
         if(finder.findSMDTapeAvg(&images, searchTapeRotation, chip)){
             pap_common::VisionResult res;
+
             res.data1 = chip.y;
             res.data2 = chip.x;
+
             res.data3 = chip.rot;
             res.cameraSelect = 0;
             std::cerr << "Tape finder result: " << chip.y << " , " << chip.x << " , " << chip.rot << std::endl;
@@ -290,6 +294,7 @@ cv:Mat composed_img;
             if (position.x != 0.0 && position.y != 0.0) {
                 std::cerr << "Fiducial found" << std::endl;
                 pap_common::VisionResult res;
+
                 res.data1 = position.y;
                 res.data2 = position.x;
                 res.cameraSelect = 0;
@@ -329,8 +334,11 @@ cv:Mat composed_img;
         smdPart tip;
         if(finder.findTipAvg(&images, (pap_vision::CAMERA_SELECT) cameraSelect, tip,thresholding)){
             pap_common::VisionResult res;
+
             res.data1 = tip.x;
             res.data2 = tip.y;
+
+
             res.data3 = tip.rot;
             res.cameraSelect = cameraSelect;
             std::cerr << "Circle finder result: " << tip.x << " , " << tip.y << " , " << tip.rot << std::endl;

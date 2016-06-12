@@ -28,7 +28,6 @@
 #include <actionlib/server/simple_action_server.h>
 #include <pcb_cv/pcbstitcher.h>
 
-
 namespace pcb_cv{
 
 typedef actionlib::SimpleActionServer<pap_common::VisionAction> ActionServer;

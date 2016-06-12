@@ -107,6 +107,12 @@ public:
     void updatePlacementData(ComponentPlacerData& data, TIP usedTip);
 
     //!
+    //! \brief getCameraProjectionOffset Gets offset from top camera to its focus point
+    //! \return Offset
+    //!
+    Offset getCameraProjectionOffset();
+
+    //!
     //! \brief getBottomCamCoordinates returns current bottom cam coordinates
     //!
     Offset getBottomCamCoordinates();
@@ -254,6 +260,8 @@ public:
     dispenseInfos dispenseTask;
 
 private:
+
+    Offset camera_projection_offset_;
 
     // Relative correction feedback from vision for pick-up and place
     Offset PickUpCorrection, PlaceCorrection;

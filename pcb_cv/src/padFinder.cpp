@@ -262,8 +262,9 @@ bool padFinder::findTip(cv::Mat &final, smdPart &out, bool thresholding, enum pa
 
     double pixel_diameter = partWidth_ * pxRatioBottom;
 
-    float radiusMin = ((pixel_diameter / 2) / 100.0) * (100.0 - ERROR_PERCENT_TIP);
-    float radiusMax = ((pixel_diameter / 2) / 100.0) * (100.0 + ERROR_PERCENT_TIP);
+    float radiusMin = ((pixel_diameter ) / 100.0) * (100.0 - ERROR_PERCENT_TIP);
+    float radiusMax = ((pixel_diameter ) / 100.0) * (100.0 + ERROR_PERCENT_TIP);
+    //std::cerr << "Calculated pixel radius: " << pixel_diameter << " radiusMin: " << radiusMin << " radiusMax: " << radiusMax << std::endl;
 
     if(thresholding){
         cv::threshold(gray, gray, 255, 255, CV_THRESH_BINARY | CV_THRESH_OTSU);

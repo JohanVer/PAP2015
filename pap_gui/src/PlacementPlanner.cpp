@@ -19,7 +19,7 @@ PlacementPlanner::~PlacementPlanner() {
 void PlacementPlanner::setTipDiameters(float leftTip, float rightTip) {
     leftTipDiameter = leftTip;
     rightTipDiameter = rightTip;
-    std::cerr << "Tip diameters updated to: " << leftTipDiameter << ", " << rightTipDiameter << std::endl;
+    std::cerr << "PlacementPlanner: Tip diameters updated to: " << leftTipDiameter << ", " << rightTipDiameter << std::endl;
 }
 
 

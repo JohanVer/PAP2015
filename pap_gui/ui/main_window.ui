@@ -40,7 +40,7 @@
        <locale language="English" country="Australia"/>
       </property>
       <property name="currentIndex">
-       <number>1</number>
+       <number>5</number>
       </property>
       <widget class="QWidget" name="ComponentPlacement">
        <attribute name="title">
@@ -1373,7 +1373,7 @@
                              <x>0</x>
                              <y>0</y>
                              <width>293</width>
-                             <height>361</height>
+                             <height>295</height>
                             </rect>
                            </property>
                            <layout class="QVBoxLayout" name="verticalLayout_33">

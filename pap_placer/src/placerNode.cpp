@@ -261,6 +261,9 @@ bool calibrateDispenser(double diameter) {
     placeController.dispenser_cal_plane_ = pap_placer::plane(a, b, c, d);
     placeController.plane_calibrated_ = true;
 
+    double test = placeController.dispenser_cal_plane_.getHeight(point_C[0], point_C[1]);
+    std::cerr << "Calculated height: " << test << " expected: " << res_motor.height << std::endl;
+
     placeController.dispenserTipOffset.z = res_motor.height + placeController.dispenser_height_offset_;
 
     ROS_INFO("PlacerState: DISPENSER ");
@@ -830,7 +833,9 @@ bool goToBox(TIP usedTip) {
                                               pap_vision::CAMERA_TOP, length, width, height, res, 100))
         return false;
 
-    placeController.setPickUpCorrectionOffset(res.data1, res.data2, res.data3);
+    const Offset &camera_offset = placeController.getCameraProjectionOffset();
+
+    placeController.setPickUpCorrectionOffset(res.data1 + camera_offset.x , res.data2 + camera_offset.y, res.data3);
     ROS_INFO("PickUp correction offset: x:%f y:%f, rot:%f",res.data1, res.data2, res.data3);
 
     ros::Duration(3).sleep();
@@ -923,7 +928,7 @@ bool dispensePCB(std::vector<dispenseInfo> dispense_task, double dispense_height
 
     if(!driveToCoord(begin_offset.x, begin_offset.y, begin_offset.z))
         return false;
-
+    /*
     if(begin.type == dispenser_types::LINE_DISPENSE ){
         dispenseLines(dispense_task, dispense_height_offset);
     }else if (begin.type == dispenser_types::DOT_DISPENSE) {
@@ -936,6 +941,7 @@ bool dispensePCB(std::vector<dispenseInfo> dispense_task, double dispense_height
 
     sendPlacerStatus(pap_common::INFO,
                      pap_common::DISPENSER_FINISHED);
+                     */
     return true;
 }
 
@@ -1198,9 +1204,11 @@ void placerCallback(const pap_common::TaskConstPtr& taskMsg) {
         switch (taskMsg->task) {
         case pap_common::UPDATE_PLACER: {
 
+            const Offset &camera_offset = placeController.getCameraProjectionOffset();
+
             ComponentPlacerData tempComponent;
-            tempComponent.destX = taskMsg->data1;
-            tempComponent.destY = taskMsg->data2;
+            tempComponent.destX = taskMsg->data1 + camera_offset.x;
+            tempComponent.destY = taskMsg->data2 + camera_offset.y;
             tempComponent.rotation = taskMsg->data3;
             tempComponent.box = taskMsg->box;
             tempComponent.height = taskMsg->height;
@@ -1243,10 +1251,16 @@ void placerCallback(const pap_common::TaskConstPtr& taskMsg) {
             break;
         }
 
+        case pap_common::SET_TIP_RADIUS: {
+            placeController.leftTipComponent.tipRadius = taskMsg->data1;
+            placeController.rightTipComponent.tipRadius = taskMsg->data2;
+            std::cerr << "Tip radius updated to: " << taskMsg->data1 << " (tip1), " << taskMsg->data2 << " (tip2)" << std::endl;
+            break;
+        }
+
         case pap_common::CALIBRATION_OFFSET: {
             if(!calibrateOffsets()) {
                 ROS_ERROR("Placer: Offset calibration failed");
-                // TODO: Handle
             } else {
                 sendPlacerStatus(pap_common::OFFSET_CALIBRATION,
                                  pap_common::PLACER_FINISHED);
@@ -1332,7 +1346,7 @@ void placerCallback(const pap_common::TaskConstPtr& taskMsg) {
 void dispenserCallbackPlacer(const pap_common::DispenseTasksConstPtr& taskMsg) {
     std::cerr << "received dispenser task\n";
 
-    Offset tipOffset = placeController.dispenserTipOffset;
+    Offset tipOffset = placeController.dispenserTipOffset + placeController.getCameraProjectionOffset();
 
     std::vector<dispenseInfo> dispense_task;
     for(size_t i = 0; i < taskMsg->lines.size(); i++){

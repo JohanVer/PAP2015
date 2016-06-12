@@ -155,6 +155,9 @@ MainWindow::MainWindow(int version, int argc, char** argv, QWidget *parent) :
     tip1Pos_ = 0.0;
     tip2Pos_ = 0.0;
 
+    currentLeftNozzle = 0.0;
+    currentRightNozzle = 0.0;
+
     completePlacementRunning = false;
     singlePlacementRunning = false;
     componentIndicator = 0;
@@ -1038,7 +1041,6 @@ void MainWindow::updateCurrentNozzles() {
     // Get current nozzles
     QString leftNozzle = ui.leftNozzle_comboBox->currentText();
     QString rightNozzle = ui.rightNozzle_comboBox->currentText();
-    float currentLeftNozzle, currentRightNozzle = 0.0;
 
     if(leftNozzle == "-") {
         currentLeftNozzle = 0.0;
@@ -1051,7 +1053,6 @@ void MainWindow::updateCurrentNozzles() {
     } else {
         currentRightNozzle = rightNozzle.toFloat();
     }
-
     placementPlanner.setTipDiameters(currentLeftNozzle, currentRightNozzle);
 }
 
@@ -2040,6 +2041,8 @@ void MainWindow::deletePad(QPointF padPos) {
 
 void MainWindow::on_calibrationButton_offsets_clicked() {
     ui.tab_manager->setCurrentIndex(4);
+    qnode.sendTask(pap_common::PLACER, pap_common::SET_TIP_RADIUS,
+                         currentLeftNozzle, currentRightNozzle, 0);
     qnode.sendTask(pap_common::PLACER, pap_common::CALIBRATION_OFFSET);
 }
 
