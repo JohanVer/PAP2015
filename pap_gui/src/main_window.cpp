@@ -223,7 +223,6 @@ MainWindow::MainWindow(int version, int argc, char** argv, QWidget *parent) :
     alignment_ = DOT_ALIGN::CENTER;
 
     tip_thresholding_on = false;
-
     tape_calibrater_ = std::unique_ptr<pap_gui::TapeCalibrater>(new TapeCalibrater(qnode));
 }
 

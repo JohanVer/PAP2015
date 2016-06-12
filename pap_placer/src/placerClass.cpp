@@ -428,8 +428,10 @@ void PlaceController::updatePlacementData(ComponentPlacerData& data, TIP usedTip
     // Select corresponding vision
     if(compToUpdate->box <= 66) {
         compToUpdate->finderType = pap_vision::START_CHIP_FINDER;
+        std::cerr << "Chiper finder selected" << std::endl;
     } else {
         compToUpdate->finderType = pap_vision::START_TAPE_FINDER;
+        std::cerr << "Tape finder selected" << std::endl;
     }
 }
 

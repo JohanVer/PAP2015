@@ -8,6 +8,8 @@
 #include <pap_gui/PlacementPlanner.hpp>
 #include <QMessageBox>
 
+#define TIP_SIZE_SAFETY_FACTOR 0.7
+
 PlacementPlanner::PlacementPlanner() {
     // TODO Auto-generated constructor stub
 }
@@ -29,6 +31,12 @@ bool PlacementPlanner::startSingleCompPlacement(pap_gui::QNode& node, ComponentP
     float length = compToPlace.length;
     float width = compToPlace.width;
     int box = compToPlace.box;
+
+    if(checkTipSize(leftTipDiameter, length, width)) {
+        std::cerr << "box reachable" << std::endl;
+    } else {
+        std::cerr << "box not reachable" << std::endl;
+    }
 
     // Select tip, update placement data and start process
     if(checkTipSize(leftTipDiameter, length, width) && boxReachable(box, TIP::LEFT_TIP)) {               // Left nozzle suitable
@@ -100,6 +108,8 @@ bool PlacementPlanner::startCompletePlacement(pap_gui::QNode& node, vector<Compo
             nonSuitableComps++;
         }
     }
+    
+    //std::cerr << "All compo"
 
     QMessageBox msgBox;
     compToPlaceRight.isWaiting = false;
@@ -206,11 +216,12 @@ bool PlacementPlanner::checkTipSize(float tipDiameter, float length, float width
 
     if(tipDiameter > 0.0) {
         // Consider shorter component edge
+        std::cerr << "width: " << width << " - length:  " << length << std::endl;
         if(width <= length) {
-            if(width >= 0.8 * tipDiameter)
+            if(width >= TIP_SIZE_SAFETY_FACTOR * tipDiameter)
                 return true;
         } else {
-            if(length >= 0.8 * tipDiameter)
+            if(length >= TIP_SIZE_SAFETY_FACTOR * tipDiameter)
                 return true;
         }
     }

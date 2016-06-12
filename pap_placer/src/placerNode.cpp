@@ -671,7 +671,7 @@ bool singleCompPlacement() {
         activeTip = TIP::RIGHT_TIP;
         std::cerr << "PlaceController: Right tip used" << std::endl;
     } else {
-        std::cerr << "PlaceController: No component data available for placement" << std::endl;
+        std::cerr << "PlaceController: No component data waiting for placement" << std::endl;
         return false;
     }
 
@@ -741,7 +741,7 @@ bool goToBox(TIP usedTip) {
 
     arduino_client->setLEDTask(placeController.getBoxNumber(usedTip));
     Offset boxCoords = placeController.getBoxCoordinates(usedTip);
-    std::cerr << "Got box coordinates" << std::endl;
+    std::cerr << "Got box coordinates: " << boxCoords.x << ", " << boxCoords.y  << std::endl;
     ROS_INFO("Go to: x:%f y:%f z:%f", boxCoords.x, boxCoords.y, boxCoords.z);
 
     if(!driveToCoord(boxCoords.x, boxCoords.y, boxCoords.z))
@@ -754,7 +754,7 @@ bool goToBox(TIP usedTip) {
     float height = placeController.getComponentHeight(usedTip);
     pap_common::VisionResult res;
 
-    std::cerr << "sizes: " << length << ", " << width << ", " << height << std::endl;
+    std::cerr << "Sizes passed to vision: " << length << ", " << width << ", " << height << std::endl;
 
     ROS_INFO("Placerstate: componentFinder started");
     if(!vision_send_functions::sendVisionTask(*vision_action_client, placeController.getFinderType(usedTip),

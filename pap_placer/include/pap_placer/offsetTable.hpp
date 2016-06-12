@@ -2,7 +2,7 @@
 #define OFFSETTABLE_H_
 
 //!
-//! \brief BoxOffsetTable provides a coordinate look-up table for all boxes available
+//! \brief BoxOffsetTable provides a global coordinate look-up table for all boxes available
 //!
 const Offset BoxOffsetTable[67] = {
 		// Small boxes
@@ -26,7 +26,7 @@ const Offset BoxOffsetTable[67] = {
 
 
 //!
-//! \brief TapeOffsetTable provides a coordinate look-up table for all tapes available
+//! \brief TapeOffsetTable provides a global coordinate look-up table for all tapes available
 //!
 const Offset TapeOffsetTable[20] = { 	{ 341.43, -40.0 }, { 341.43, -51.0 }, { 341.43, -62.0 }, { 341.43, -73.0 },
 										{ 341.43, -84.0 }, { 341.43, -95.0 }, { 341.43, -106.0 }, { 341.43, -117.0 },
