@@ -229,7 +229,6 @@ MainWindow::MainWindow(int version, int argc, char** argv, QWidget *parent) :
     dispenser_height_offset_ = 0;
 
     padParser.setDispenserInfo(nozzle_diameter_, edge_percentage_);
-
     tape_calibrater_ = std::unique_ptr<pap_gui::TapeCalibrater>(new TapeCalibrater(qnode));
 }
 
@@ -2044,8 +2043,7 @@ void MainWindow::deletePad(QPointF padPos) {
 
 void MainWindow::on_calibrationButton_offsets_clicked() {
     ui.tab_manager->setCurrentIndex(4);
-    qnode.sendTask(pap_common::PLACER, pap_common::SET_TIP_RADIUS,
-                         currentLeftNozzle, currentRightNozzle, 0);
+                       //  currentLeftNozzle, currentRightNozzle, 0);
     qnode.sendTask(pap_common::PLACER, pap_common::CALIBRATION_OFFSET);
 }
 

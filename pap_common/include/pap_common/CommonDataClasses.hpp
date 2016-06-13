@@ -90,7 +90,6 @@ public:
     float length, width, height;
     int box;
     float tapeX, tapeY, tapeRot;
-    float tipRadius;
     bool isWaiting;
     std::string name;
     pap_vision::VISION finderType;
@@ -108,7 +107,6 @@ public:
         tapeY = 0.0;
         tapeRot = 0.0;
         name = "-";
-        tipRadius = 0.0;
         isWaiting = false;
     }
 private:
