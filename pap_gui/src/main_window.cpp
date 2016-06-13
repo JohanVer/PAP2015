@@ -1918,6 +1918,9 @@ void MainWindow::sendGotoFiducial(int indexOfFiducial) {
 void MainWindow::on_inputPad_Button_clicked() {
     //get a filename to open
 
+    dispensed_ids_.clear();
+    padParser.reset();
+
     if (!sizeDefined_) {
         QMessageBox msgBox;
         const QString title = "Not initialized";
@@ -2102,6 +2105,8 @@ void MainWindow::on_calcOrientation_Button_clicked() {
                             qnode.fakePadPos_);
     padParser.rotatePads();
 
+    qnode.sendPcbImage(padParser.getMarkerList());
+
     QMessageBox msgBox;
     const QString title = "Calibration";
     msgBox.setWindowTitle(title);
@@ -2266,11 +2271,12 @@ void MainWindow::on_startDispense_button_clicked() {
     float pxFactor = padParser.pixelConversionFactor;
     float nozzleDiameter = nozzle_diameter_;
 
-    size_t initialIter = 0;
-    if (dispenserPaused) {
+    if(dispenserPaused){
         dispenserPaused = false;
-        initialIter = lastDispenserId;
     }
+
+    size_t initialIter = 0;
+
     std::vector<PadInformation> copy;
     copy = padParser.padInformationArrayPrint_;
 
@@ -2284,13 +2290,12 @@ void MainWindow::on_startDispense_button_clicked() {
     for (size_t i = initialIter; i < copy.size(); i++) {
 
         if (dispenserPaused) {
-            lastDispenserId = i;
             qnode.sendTask(pap_common::PLACER, pap_common::GOTO,
                            currentPosition.x, currentPosition.y, 45.0);
             return;
         }
 
-        if(dispensed_ids_.find(i) != dispensed_ids_.end()){
+        if(dispensed_ids_.find(copy.at(i).id) != dispensed_ids_.end()){
             continue;
         }
 
@@ -2314,6 +2319,12 @@ void MainWindow::on_startDispense_button_clicked() {
         }else if(planner_selection_ == DispenserPlanner::PLANNER_SELECT::LINE_PLANNER){
             dispInfo = dispenserPlanner.planDispensing(
                         copy[i], nozzleDiameter, edge_percentage_, dispenser_velocity_, wait_time_);
+        }
+
+        if(i == 0 || i == initialIter){
+            if(!driveToCoord(dispInfo.front().xPos  -52 , dispInfo.front().yPos +39, 45)){
+                std::cerr << "Could not drive to initial dispense pos...\n";
+            }
         }
 
         //copy.erase(copy.begin());
@@ -2357,7 +2368,7 @@ void MainWindow::on_startDispense_button_clicked() {
         connect(&qnode, SIGNAL(dispenserFinished()), &loop, SLOT(quit()));
         connect(timer, SIGNAL(timeout()), &loop, SLOT(quit()));
         timer->setSingleShot(true);
-        timer->start(10000);
+        timer->start(60000);
 
         loop.exec(); //blocks untill either signalPosition or timeout was fired
 
@@ -2367,7 +2378,7 @@ void MainWindow::on_startDispense_button_clicked() {
             return;
         }
 
-        dispensed_ids_.insert(i);
+        dispensed_ids_.insert(copy.at(i).id);
 
         scenePads_.addEllipse((copy[i].rect.y()) * pxFactor - 1.0,
                               -(copy[i].rect.x() * pxFactor), 1, 1,
@@ -2431,7 +2442,11 @@ void MainWindow::dispenseSinglePad(QPointF point) {
 
         }
 
-        dispensed_ids_.insert(id_);
+        dispensed_ids_.insert(padParser.padInformationArrayPrint_[id_].id);
+
+        if(!driveToCoord(dispInfo.front().xPos  -52 , dispInfo.front().yPos +39, 45)){
+            std::cerr << "Could not drive to initial dispense pos...\n";
+        }
 
         qnode.sendDispenserTask(dispInfo, dispenser_height_offset_);
 
@@ -2441,9 +2456,14 @@ void MainWindow::dispenseSinglePad(QPointF point) {
         connect(&qnode, SIGNAL(dispenserFinished()), &loop, SLOT(quit()));
         connect(timer, SIGNAL(timeout()), &loop, SLOT(quit()));
         timer->setSingleShot(true);
-        timer->start(10000);
+        timer->start(60000);
 
         loop.exec(); //blocks untill either signalPosition or timeout was fired
+
+        processAllCallbacks();
+        ROS_INFO("GUI: Dispensing finished....");
+        qnode.sendTask(pap_common::PLACER, pap_common::GOTO, currentPosition.x,
+                       currentPosition.y, 45.0);
 
         // Is timeout ocurred?
         if (!timer->isActive()) {
@@ -2451,10 +2471,6 @@ void MainWindow::dispenseSinglePad(QPointF point) {
         }
 
 
-        processAllCallbacks();
-        ROS_INFO("GUI: Dispensing finished....");
-        qnode.sendTask(pap_common::PLACER, pap_common::GOTO, currentPosition.x,
-                       currentPosition.y, 45.0);
 
     } else {
         ROS_ERROR("No pad selected...");
@@ -2728,8 +2744,8 @@ void pap_gui::MainWindow::on_scanButton_clicked()
     pap_common::VisionResult res;
     if(vision_send_functions::sendVisionTask(qnode.getVisionClientRef(), pap_vision::STITCH_PICTURES,  pap_vision::CAMERA_TOP,0,0,0,res,1)){
 
-        padParser.padInformationArray_.clear();
-        padParser.padInformationArrayPrint_.clear();
+        padParser.reset();
+        dispensed_ids_.clear();
         padFileLoaded_ = false;
 
         QMessageBox msgBox;
@@ -2786,6 +2802,8 @@ void pap_gui::MainWindow::on_scanButton_clicked()
 
             pad.rotation = pads.at(i).angle;
             pad.shapeStr = "rectangle";
+
+            pad.id = i;
 
             padParser.padInformationArray_.push_back(pad);
             padParser.padInformationArrayPrint_.push_back(pad);
@@ -2858,5 +2876,31 @@ void pap_gui::MainWindow::on_calibrate_dispenser_button_clicked()
 void pap_gui::MainWindow::on_radioButton_clicked(bool checked)
 {
     tip_thresholding_on = checked;
+}
+
+bool pap_gui::MainWindow::driveToCoord(const double &x, const double &y, const double &z, const double moving_height){
+    processAllCallbacks();
+    if(!motor_send_functions::sendMotorControllerAction(qnode.getMotorClientRef(), pap_common::COORD,
+                                                        currentPosition.x,
+                                                        currentPosition.y,
+                                                        45)){
+        return false;
+    }
+
+    if(!motor_send_functions::sendMotorControllerAction(qnode.getMotorClientRef(), pap_common::COORD,
+                                                        x,
+                                                        y,
+                                                        45)){
+        return false;
+    }
+
+    if(!motor_send_functions::sendMotorControllerAction(qnode.getMotorClientRef(), pap_common::COORD,
+                                                        x,
+                                                        y,
+                                                        z)){
+        return false;
+    }
+
+    return true;
 }
 

@@ -233,6 +233,8 @@ public Q_SLOTS:
     void transformAllComp(vector<ComponentPlacerData>& allCompData);
     void transformSingleComp(int currentComp, ComponentPlacerData& singleCompData);
 
+    bool driveToCoord(const double &x, const double &y, const double &z, const double moving_height = 45);
+
     // Print Buttons
     void on_printButton_offsets_clicked();
 

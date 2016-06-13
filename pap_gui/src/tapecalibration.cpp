@@ -1,7 +1,7 @@
 #include <pap_gui/tapecalibration.h>
 #include "ui_tapecalibration.h"
 
-#define HOLE_DIAMETER 24
+#define HOLE_DIAMETER 1.33
 #define WIDTH_DISTANCE 3.5
 
 namespace pap_gui{

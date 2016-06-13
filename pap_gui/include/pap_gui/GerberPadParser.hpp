@@ -60,6 +60,7 @@ public:
 	void transformDispenserInfo(dispenseInfo *info);
 	void deleteEntry(int index);
     void setDispenserInfo(double diameter, double perc);
+    void reset();
 
 	// TODO: Make getter/setter for this public variable array
 	std::vector<PadInformation> padInformationArray_,padInformationArrayPrint_;
@@ -88,6 +89,8 @@ private:
 
     double current_nozzle_diameter_;
     double current_perc_edge_dist_;
+
+    unsigned int pad_counter_;
 
     //std::vector<std::shared_ptr<QGraphicsRectItem> > gen_data_;
 };

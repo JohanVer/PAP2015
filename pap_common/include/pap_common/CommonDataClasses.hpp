@@ -173,11 +173,13 @@ class PadInformation {
 public:
     PadInformation() {
         rotation = 0.0;
+        id = 0;
     }
     QRectF rect;
     std::string shapeStr;
     float rotation;
     bool dispensed;
+    unsigned int id;
 };
 
 class ShapeInformation {

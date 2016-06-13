@@ -14,6 +14,8 @@ std::unique_ptr<arduino_send_functions::ArduinoSender> arduino_client;
 PlaceController placeController;
 static motor_controller::controllerStatus motorcontrollerStatus[2];
 
+bool simulation_mode_active_ = false;
+
 /******************************************************************************************
  *  Main function - Implements entire placer state machine
  ******************************************************************************************/
@@ -25,10 +27,17 @@ int main(int argc, char **argv) {
         ROS_INFO("PlacerNode did not start...");
         return 0;
     }
+
+
     ROS_INFO("Place controller started");
     placeController.loadParams();
 
     ros::NodeHandle n_;
+    if (n_.getParam("/fakePadPos", simulation_mode_active_)) {
+        ROS_INFO("GUI: Param: %d", simulation_mode_active_);
+    }else{
+        simulation_mode_active_ = false;
+    }
     task_publisher = n_.advertise<pap_common::Task>("task", 1000);
     placerStatus_publisher_ = n_.advertise<pap_common::PlacerStatus>("placerStatus", 100);
     statusSubsriber_ = n_.subscribe("status", 100, &statusCallback);
@@ -851,11 +860,15 @@ bool dispenseLines(std::vector<dispenseInfo>  &lines, double dispense_height_off
     dispCoord.x = begin.xPos;
     dispCoord.y = begin.yPos;
 
-    height_1 = placeController.dispenser_cal_plane_.getHeight(dispCoord.x, dispCoord.y);
+    if(simulation_mode_active_){
+        height_1 = 9 - dispense_height_offset;
+    }else{
+        height_1 = placeController.dispenser_cal_plane_.getHeight(dispCoord.x, dispCoord.y);
+    }
     dispCoord.z = height_1 + dispense_height_offset;
 
-    if(!driveToCoord(dispCoord.x, dispCoord.y, dispCoord.z))
-        return false;
+//    if(!driveToCoord(dispCoord.x, dispCoord.y, dispCoord.z))
+//        return false;
 
     for(size_t i = 0; i < lines.size(); i++){
         dispenseInfo goal = lines.at(i);
@@ -902,12 +915,20 @@ bool dispenseDots(std::vector<dispenseInfo>  &dots, double dispense_height_offse
         Offset dispCoord;
         dispCoord.x = goal.xPos;
         dispCoord.y = goal.yPos;
-        double height = placeController.dispenser_cal_plane_.getHeight(dispCoord.x, dispCoord.y);
+        double height = 0;
+
+        if(simulation_mode_active_){
+            height = 9 - dispense_height_offset;
+            std::cerr << "Current dispensing height: " << "3 .. simulation mode active" << std::endl;
+        }else{
+            height = placeController.dispenser_cal_plane_.getHeight(dispCoord.x, dispCoord.y);
+        }
+
         dispCoord.z = height + dispense_height_offset;
-
-        if(!driveToCoord(dispCoord.x, dispCoord.y, dispCoord.z, dispCoord.z + 3))
-            return false;
-
+        if(i > 0){
+            if(!driveToCoord(dispCoord.x, dispCoord.y, dispCoord.z, dispCoord.z + 3))
+                return false;
+        }
         switchDispenser(true);
         ros::Duration(goal.time).sleep();
         switchDispenser(false);
@@ -924,24 +945,25 @@ bool dispensePCB(std::vector<dispenseInfo> dispense_task, double dispense_height
     Offset begin_offset;
     begin_offset.x = begin.xPos;
     begin_offset.y = begin.yPos;
-    begin_offset.z = placeController.MovingHeight_;
 
-    if(!driveToCoord(begin_offset.x, begin_offset.y, begin_offset.z))
+    if(simulation_mode_active_){
+        begin_offset.z = 9;
+    }else{
+        begin_offset.z = placeController.dispenser_cal_plane_.getHeight(begin.xPos, begin.yPos) + dispense_height_offset;
+    }
+
+    if(!driveToCoord(begin_offset.x, begin_offset.y, begin_offset.z, begin_offset.z + 5))
         return false;
-    /*
+
     if(begin.type == dispenser_types::LINE_DISPENSE ){
         dispenseLines(dispense_task, dispense_height_offset);
     }else if (begin.type == dispenser_types::DOT_DISPENSE) {
         dispenseDots(dispense_task, dispense_height_offset);
     }
 
-    processAllStatusCallbacks();
-    if(!driveToCoord( placeController.lastDestination_.x,  placeController.lastDestination_.y, 45))
-        return false;
-
     sendPlacerStatus(pap_common::INFO,
                      pap_common::DISPENSER_FINISHED);
-                     */
+
     return true;
 }
 
@@ -1365,7 +1387,7 @@ void dispenserCallbackPlacer(const pap_common::DispenseTasksConstPtr& taskMsg) {
     placeController.dispenser_surface_offset_ = taskMsg->heightOffset;
 
     //ROS_INFO("Dispensing...");
-    if(placeController.plane_calibrated_){
+    if(placeController.plane_calibrated_ || simulation_mode_active_){
         dispensePCB(dispense_task, placeController.dispenser_surface_offset_);
     }
     else{
