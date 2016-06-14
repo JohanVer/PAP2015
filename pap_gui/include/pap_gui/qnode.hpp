@@ -43,6 +43,7 @@
 #include <pap_common/vision_message_def.h>
 #include <pap_common/placer_message_def.h>
 #include "pap_common/PlacerStatus.h"
+#include <pap_common/Pressure.h>
 
 #include <motorController/controller_interface.h>
 #include <motorController/sendfunctions.h>
@@ -112,6 +113,7 @@ public:
 	void setBottomLEDTask();
 	void resetBottomLEDTask();
 	void LEDTask(int task, int data);
+    void pressureCallback(const pap_common::PressureConstPtr& pressure_Msg);
 
    motor_send_functions::Client& getMotorClientRef(){
        return *motor_action_client;
@@ -133,6 +135,7 @@ Q_SIGNALS:
     void dispenserFinished();
     void tipToggled(int,bool);
     void positionGotoReached();
+    void updatePressure(float pressure);
 
 private:
     std::unique_ptr<motor_send_functions::Client> motor_action_client;
@@ -145,6 +148,7 @@ private:
 	ros::Subscriber placerStatusSubscriber_;
 	ros::Subscriber visionStatusSubsriber_;
 	ros::Subscriber qrCodeScannerSubscriber_;
+    ros::Subscriber pressure_Subscriber_;
     QStringListModel logging_model;
     image_transport::Subscriber image_sub_;
     image_transport::Subscriber image_sub2_;
@@ -160,6 +164,7 @@ private:
 public:
     float pcbWidth_,pcbHeight_;
     bool fakePadPos_;
+    float pressure_;
 };
 
 }  // namespace pap_gui

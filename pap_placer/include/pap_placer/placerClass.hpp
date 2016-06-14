@@ -242,13 +242,18 @@ public:
     Offset pickUpAreaOffset;
     Offset pcbOriginOffset;
     Offset lastDestination_;
+    Offset tipHeightCalibrationOffset_;
     Offset dispenserCalibOffsetA, dispenserCalibOffsetB, dispenserCalibOffsetC;
 
     // Relative dispenser tip offset
     Offset dispenserTipOffset;
 
+    //
+    float leftTipPCBHeight_, rightTipPCBHeight_;
+    float leftTipSuckingHeight_, rightTipSuckingHeight_;
+
     // Height parameters for placement process
-    float MovingHeight_, suckingHeight_, largeBoxHeight_, dispenserHeight_, dispenser_surface_offset_;
+    float MovingHeight_, largeBoxHeight_, dispenserHeight_, dispenser_surface_offset_;
     double dispenser_height_offset_;
     pap_placer::plane dispenser_cal_plane_;
     bool plane_calibrated_;
@@ -259,6 +264,10 @@ public:
     bool pickRelQR_;
     dispenseInfos dispenseTask;
 
+    // Offsets relative to top camera
+    Offset tip2Offset, tip1Offset;
+
+
 private:
 
     Offset camera_projection_offset_;
@@ -266,8 +275,6 @@ private:
     // Relative correction feedback from vision for pick-up and place
     Offset PickUpCorrection, PlaceCorrection;
 
-    // Offsets relative to top camera
-    Offset tip2Offset, tip1Offset;
 
     double corr_dispenser_vel_;
 

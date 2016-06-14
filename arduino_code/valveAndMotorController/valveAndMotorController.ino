@@ -2,6 +2,7 @@
       #include <pap_common/ArduinoMsg.h>
       #include <pap_common/Status.h>
       #include <pap_common/CalibrationSignal.h>
+      #include <pap_common/Pressure.h>
       #include <Stepper.h>
       
       #define MOTORSTEPS 200
@@ -15,8 +16,10 @@
       ros::NodeHandle  nh;
       ros::Subscriber<pap_common::ArduinoMsg> arduinoMessageSub("arduinoTx", messageCb );
       pap_common::CalibrationSignal cal_needle_flag;
+      pap_common::Pressure pressure_msg;
+      
       ros::Publisher calibration_signal("cal_signal", &cal_needle_flag);
-      //ros::Publisher statusPublisher("arduStatus", &arduMsg);
+      ros::Publisher pressure_signal("pressure", &pressure_msg);
       
       enum ARDUINO_TASK {
         SETRELAIS = 1,
@@ -172,11 +175,14 @@
         //nh.advertise(statusPublisher);
         nh.subscribe(arduinoMessageSub);
         nh.advertise(calibration_signal);
+        nh.advertise(pressure_signal);
         
       }
       
       void loop()
       {
+        static unsigned int pressure_counter = 0;
+        
         nh.spinOnce();
         bool reading = digitalRead(11);
       
@@ -184,6 +190,19 @@
          cal_needle_flag.touched = reading;
          calibration_signal.publish(&cal_needle_flag);
       }
+      
+      if(pressure_counter == 500){
+       pressure_counter = 0;
+       float volt = analogRead(A0) * 0.0049;
+       float pressure = (volt)  / 0.033333333;
+       pressure = (pressure-15) / 9;
+       pressure_msg.pressure = pressure;
+       pressure_signal.publish(&pressure_msg);              
+      }else{
+       pressure_counter++; 
+      }
+      
+      
       
         delay(2);
       }

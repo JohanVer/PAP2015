@@ -61,6 +61,7 @@
 #include <opencv/highgui.h>
 #include "DatabaseClass.hpp"
 
+#define MIN_PRESSURE 4
 
 /*****************************************************************************
 ** Namespace
@@ -163,6 +164,7 @@ public Q_SLOTS:
     void changeRingColor(int comboValue);
     void on_blinkBackButton_clicked();
     void on_blinkRingButton_clicked();
+    void updatePressure(float pressure);
 
 
 
@@ -214,6 +216,8 @@ public Q_SLOTS:
 
     void keyPressEvent(QKeyEvent *e);
     void keyReleaseEvent(QKeyEvent *e);
+
+    bool isPressureEnough();
 
     void on_calibrationButton_offsets_clicked();
     void on_calibrationButton_ratios_clicked();
@@ -282,7 +286,7 @@ private:
     bool bottomLayer_;
     bool alreadyFlipped_;
 
-    float currentLeftNozzle, currentRightNozzle;
+    float leftTipRadius, rightTipRadius;
     PlacementPlanner placementPlanner;
     DataIO dataIO;
 
@@ -353,6 +357,7 @@ private:
     double dispenser_height_offset_;
 
     bool tip_thresholding_on;
+    float pressure_;
 };
 
 }  // namespace pap_gui

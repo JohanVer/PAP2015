@@ -29,9 +29,9 @@
 /* Constant parameter definitions */
 #define DISPENSER_TOLERANCE 0.1
 #define MOTORCONTROLLER_TIMEOUT 3000
-#define TIP1_DIAMETER_VISION 1.0
-#define TIP2_DIAMETER_VISION 1.0
-#define CAMERA_DIAMETER_VISION 9.3596
+#define TIP1_DIAMETER_VISION 0.5
+#define TIP2_DIAMETER_VISION 0.5
+#define CAMERA_DIAMETER_VISION (9.3596/2)
 #define DISPENSER_HEIGHT 10.302
 #define DISPENSER_CONN_SPEED 20
 
@@ -151,7 +151,20 @@ bool calibrateCamera();
 //! \brief calibrateTip1 calibrates relative offset between top camera and tip1, based on bottom cam
 //! \return true if calibration successfull, otherwise false
 //!
-bool calibrateTip1();
+
+//!
+//! \brief calibrateTip1 calibrates relative offset between top camera and tip1, based on bottom cam
+//! \param tipRadius of currently mounted tip
+//! \return true if calibration successfull, otherwise false
+//!
+bool calibrateTip1(double tipRadius);
+
+//!
+//! \brief calibrateTipHeight sets height offsets of corresponding tip
+//! \param selectedTip selects left or right tip for height calibration
+//! \return true if tip height calibrated succesffully, otherwise false
+//!
+bool calibrateTipHeight(TIP selectedTip);
 
 //!
 //! \brief calibrateDispenser calibrates relative offset between top camera and dispenser tip, based on bottom cam
@@ -161,9 +174,10 @@ bool calibrateDispenser(double diameter);
 
 //!
 //! \brief calibrateTip2 calibrates relative offset between top camera and tip2, based on bottom cam
+//! \param tipRadius of currently mounted tip
 //! \return true if calibration successfull, otherwise false
 //!
-bool calibrateTip2();
+bool calibrateTip2(double tipRadius);
 
 //!
 //!//! \brief calibrateTopCamDistortion performs a checkerboard calibration of top camera

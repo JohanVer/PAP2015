@@ -76,13 +76,12 @@ void PlaceController::loadParams(){
  *****************************************************************************/
 PlaceController::PlaceController() {
     //Relative offsets to camera
-
     tip1Offset.x = -95;
     tip1Offset.y = 0;
     tip1Offset.z = 50;
 
     tip2Offset.x = -94.08;
-    tip2Offset.y = 64.709;
+    tip2Offset.y = 70.2;
     tip2Offset.z = 50;
 
     cameraBottomOffset.x = 236;
@@ -98,18 +97,17 @@ PlaceController::PlaceController() {
     MovingHeight_ = 45.0;
     dispenserHeight_ = 20.0;
     // CAL Point A
-    dispenserCalibOffsetA.x = 229.8;
-    dispenserCalibOffsetA.y = 145.0;
+    dispenserCalibOffsetA.x = 175;
+    dispenserCalibOffsetA.y = 117;
     dispenserCalibOffsetA.z = dispenserHeight_;
     // CAL Point B
-    dispenserCalibOffsetB.x = 252.9;
-    dispenserCalibOffsetB.y = 111.0;
+    dispenserCalibOffsetB.x = 240;
+    dispenserCalibOffsetB.y = 153;
     dispenserCalibOffsetB.z = dispenserHeight_;
     // CAL Point C
-    dispenserCalibOffsetC.x = 252.9;
-    dispenserCalibOffsetC.y = 184.0;
+    dispenserCalibOffsetC.x = 240;
+    dispenserCalibOffsetC.y = 90;
     dispenserCalibOffsetC.z = dispenserHeight_;
-
 
     dispenser_height_offset_ = 27.15;
     dispenser_surface_offset_ = 0;
@@ -122,8 +120,16 @@ PlaceController::PlaceController() {
     camera_projection_offset_.y = -0.35;
 
     // Height for sucking a component (normal chip, not a tape)
-    suckingHeight_ = 20.2;
     largeBoxHeight_ = 18.2;
+
+    leftTipPCBHeight_ = 25.6;
+    rightTipPCBHeight_ = 25.6;
+    leftTipSuckingHeight_ = 21.0;
+    rightTipSuckingHeight_ = 21.0;
+
+    tipHeightCalibrationOffset_.x = 280;
+    tipHeightCalibrationOffset_.y = 41.35;
+    tipHeightCalibrationOffset_.z = 30.0;
 
     // Absolut offests
     pcbOriginOffset.x = 300;
@@ -131,22 +137,23 @@ PlaceController::PlaceController() {
     pcbOriginOffset.z = 25.6;
     pickUpAreaOffset.x = 108.42;	// + tape_x -> 449.85 = max.x destination
     pickUpAreaOffset.y = 261;
-    pickUpAreaOffset.z = suckingHeight_;
+    pickUpAreaOffset.z = 45;
 
     // Calibration offsets - QR Code positions
     SLOT_QR_Offset_.x = 109.92;
     SLOT_QR_Offset_.y = 261.008;
-    SLOT_QR_Offset_.z = pickUpAreaOffset.z;
+    SLOT_QR_Offset_.z = 45;
     PCB_QR_Offset_.x = 293.04;
     PCB_QR_Offset_.y = 133.027;
-    PCB_QR_Offset_.z = pcbOriginOffset.z;
+    PCB_QR_Offset_.z = 45;
     TAPE_QR_Offset_.x = 389.554;
     TAPE_QR_Offset_.y = 110.429;
-    TAPE_QR_Offset_.z = pickUpAreaOffset.z;
+    TAPE_QR_Offset_.z = 45;
     BottomCam_QR_Offset_.x = 218;
     BottomCam_QR_Offset_.y = 177;
     BottomCam_QR_Offset_.z = 20.15;
 
+    /*
     Checkerboard_top1_Offset_.x = 377;
     Checkerboard_top1_Offset_.y = 77;
     Checkerboard_top1_Offset_.z = pickUpAreaOffset.z;
@@ -160,7 +167,7 @@ PlaceController::PlaceController() {
     Checkerboard_bottom2_Offset_.x = 324.15;
     Checkerboard_bottom2_Offset_.y = 155.2;
     Checkerboard_bottom2_Offset_.z = 18.6;
-
+*/
     // Correction offsets
     PickUpCorrection.x = 0;
     PickUpCorrection.y = 0;
@@ -273,14 +280,15 @@ Offset PlaceController::getCompPickUpCoordinates(TIP usedTip) {
 
     Offset temp;
     ComponentPlacerData* currentComp;
-    temp.z = suckingHeight_ + 10.0; // Sucking Height plus 10 mm
 
     if(usedTip == TIP::LEFT_TIP) {
         currentComp = &leftTipComponent;
+        temp.z = leftTipSuckingHeight_ + 10.0;
         temp.x = tip1Offset.x;
         temp.y = tip1Offset.y;
     } else {
         currentComp = &rightTipComponent;
+        temp.z = rightTipSuckingHeight_ + 10.0;
         temp.x = tip2Offset.x;
         temp.y = tip2Offset.y;
     }
@@ -310,15 +318,17 @@ float PlaceController::getCompSuckingHeight(TIP usedTip) {
 
     if(usedTip == TIP::LEFT_TIP) {
         if ((leftTipComponent.box >= 67) && (leftTipComponent.box <= 86)) {
-            return pickUpAreaOffset.z;
+            return leftTipSuckingHeight_;
         } else {
-            return pickUpAreaOffset.z + leftTipComponent.height;
+            //return pickUpAreaOffset.z + leftTipComponent.height;
+            return leftTipSuckingHeight_ + leftTipComponent.height;
         }
     } else {
         if ((rightTipComponent.box >= 67) && (rightTipComponent.box <= 86)) {
-            return pickUpAreaOffset.z;
+            return rightTipSuckingHeight_;
         } else {
-            return pickUpAreaOffset.z + rightTipComponent.height;
+            //return pickUpAreaOffset.z + rightTipComponent.height;
+            return rightTipSuckingHeight_ + rightTipComponent.height;
         }
     }
 }
@@ -329,13 +339,13 @@ Offset PlaceController::getCompPlaceCoordinates(TIP usedTip) {
     case LEFT_TIP:
         temp.x = leftTipComponent.destX + tip1Offset.x;
         temp.y = leftTipComponent.destY + tip1Offset.y;
-        temp.z = 45.0;
+        temp.z = leftTipPCBHeight_ + leftTipComponent.height + 10;
         temp.rot = leftTipComponent.rotation;   // Not used
         break;
     case RIGHT_TIP:
         temp.x = rightTipComponent.destX + tip2Offset.x;
         temp.y = rightTipComponent.destY + tip2Offset.y;
-        temp.z = 45.0;
+        temp.z = rightTipPCBHeight_ + rightTipComponent.height + 10;
         temp.rot = rightTipComponent.rotation;   // Not used
         break;
     }
@@ -348,11 +358,11 @@ float PlaceController::getCompPlaceHeight(TIP usedTip) {
     }
 
     if(usedTip == TIP::LEFT_TIP) {
-        ROS_INFO("PCBOrigin: %f, CompHeight: %f",pcbOriginOffset.z ,leftTipComponent.height);
-        return pcbOriginOffset.z + leftTipComponent.height;
+        ROS_INFO("PCBOrigin: %f, CompHeight: %f",leftTipPCBHeight_ ,leftTipComponent.height);
+        return leftTipPCBHeight_ + leftTipComponent.height;
     } else {
-        ROS_INFO("PCBOrigin: %f, CompHeight: %f",pcbOriginOffset.z ,rightTipComponent.height);
-        return pcbOriginOffset.z + rightTipComponent.height;
+        ROS_INFO("PCBOrigin: %f, CompHeight: %f",rightTipPCBHeight_ ,rightTipComponent.height);
+        return rightTipPCBHeight_ + rightTipComponent.height;
     }
 }
 

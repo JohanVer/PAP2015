@@ -260,10 +260,10 @@ bool padFinder::findTip(cv::Mat &final, smdPart &out, bool thresholding, enum pa
     vector<Vec3f> circles;
     std::vector<std::vector<cv::Point> > circlesSorted;
 
-    double pixel_diameter = partWidth_ * pxRatioBottom;
+    double pixel_radius = partWidth_ * pxRatioBottom;
 
-    float radiusMin = ((pixel_diameter ) / 100.0) * (100.0 - ERROR_PERCENT_TIP);
-    float radiusMax = ((pixel_diameter ) / 100.0) * (100.0 + ERROR_PERCENT_TIP);
+    float radiusMin = ((pixel_radius ) / 100.0) * (100.0 - ERROR_PERCENT_TIP);
+    float radiusMax = ((pixel_radius ) / 100.0) * (100.0 + ERROR_PERCENT_TIP);
     //std::cerr << "Calculated pixel radius: " << pixel_diameter << " radiusMin: " << radiusMin << " radiusMax: " << radiusMax << std::endl;
 
     if(thresholding){
@@ -290,7 +290,7 @@ bool padFinder::findTip(cv::Mat &final, smdPart &out, bool thresholding, enum pa
     for (size_t i = 0; i < circles.size(); i++) {
         Point center(cvRound(circles[i][0]), cvRound(circles[i][1]));
         int radius = cvRound(circles[i][2]);
-        std::cerr << "Circles with radius: " << radius << " total number:" << circles.size() << std::endl;
+        std::cerr << "Circles with radius: " << radius / pxRatioBottom << " total number:" << circles.size() << std::endl;
         if(radius > radiusMin && radius < radiusMax){
             // draw the circle center
             //cv::circle( final, center, 3, Scalar(255,0,0), -1, 8, 0 );

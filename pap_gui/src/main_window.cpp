@@ -131,6 +131,9 @@ MainWindow::MainWindow(int version, int argc, char** argv, QWidget *parent) :
     connect(ui.ringColorCombo, SIGNAL(activated(int)), this,
             SLOT(changeRingColor(int)));
 
+    // Pressure
+    connect(&qnode, SIGNAL(updatePressure(float)) , this, SLOT(updatePressure(float)));
+
     connect(ui.xManPos, SIGNAL(released()), this, SLOT(releasexManPos()));
     connect(ui.xManNeg, SIGNAL(released()), this, SLOT(releasexManNeg()));
     connect(ui.YManPos, SIGNAL(released()), this, SLOT(releaseyManPos()));
@@ -155,8 +158,8 @@ MainWindow::MainWindow(int version, int argc, char** argv, QWidget *parent) :
     tip1Pos_ = 0.0;
     tip2Pos_ = 0.0;
 
-    currentLeftNozzle = 0.0;
-    currentRightNozzle = 0.0;
+    leftTipRadius = 0.0;
+    rightTipRadius = 0.0;
 
     completePlacementRunning = false;
     singlePlacementRunning = false;
@@ -490,6 +493,8 @@ void MainWindow::on_compPackageButton_clicked() {
 }
 
 void MainWindow::on_startPlacementButton_clicked() {
+
+    if(!isPressureEnough()) return;
 
     // Components to place?
     if (componentList.isEmpty()) {
@@ -914,7 +919,7 @@ void MainWindow::transformSingleComp(int currentComp, ComponentPlacerData& singl
         unsigned int tape_nr = entryToTransform.box - 67;
         Offset tapePartPos;
         if(!tape_calibrater_->calculatePosOfTapePart(tape_nr, tapeCompCounter[tape_nr], tapePartPos )){
-           std::cerr << "Error while caluclating tape part position...\n";
+            std::cerr << "Error while caluclating tape part position...\n";
         }
         singleCompData.tapeX = tapePartPos.x;
         singleCompData.tapeY = tapePartPos.y;
@@ -951,7 +956,7 @@ void MainWindow::transformAllComp(vector<ComponentPlacerData>& allCompData) {
             unsigned int tape_nr = tmpCompEntry.box - 67;
             Offset tapePartPos;
             if(!tape_calibrater_->calculatePosOfTapePart(tape_nr, tapeCompCounter[tape_nr], tapePartPos )){
-               std::cerr << "Error while caluclating tape part position...\n";
+                std::cerr << "Error while caluclating tape part position...\n";
             }
             tmpCompPlaceData.tapeX = tapePartPos.x;
             tmpCompPlaceData.tapeY = tapePartPos.y;
@@ -976,6 +981,8 @@ void MainWindow::transformAllComp(vector<ComponentPlacerData>& allCompData) {
 }
 
 void MainWindow::on_placeSingleComponentButton_clicked() {
+
+    if(!isPressureEnough()) return;
 
     int currentComp = ui.tableWidget->currentRow();
 
@@ -1042,17 +1049,17 @@ void MainWindow::updateCurrentNozzles() {
     QString rightNozzle = ui.rightNozzle_comboBox->currentText();
 
     if(leftNozzle == "-") {
-        currentLeftNozzle = 0.0;
+        leftTipRadius = 0.0;
     } else {
-        currentLeftNozzle = leftNozzle.toFloat();
+        leftTipRadius = (leftNozzle.toFloat())/2;
     }
 
     if(rightNozzle == "-") {
-        currentRightNozzle = 0.0;
+        rightTipRadius = 0.0;
     } else {
-        currentRightNozzle = rightNozzle.toFloat();
+        rightTipRadius = (rightNozzle.toFloat())/2;
     }
-    placementPlanner.setTipDiameters(currentLeftNozzle, currentRightNozzle);
+    placementPlanner.setTipDiameters(leftTipRadius, rightTipRadius);
 }
 
 void MainWindow::showSelectCompMessage() {
@@ -1172,12 +1179,7 @@ void MainWindow::cameraUpdated(int index) {
 }
 
 void MainWindow::on_startHoming_clicked(bool check) {
-    //Removed 24.03 - Why is this needed?
-    //qnode.sendTask(pap_common::CONTROLLER, pap_common::COORD, currentPosition.x,
-    //		currentPosition.y, 45.0);
-    //ros::Duration(2.0).sleep();
     qnode.sendTask(pap_common::PLACER, pap_common::HOMING);
-    //qnode.sendTask(pap_common::CONTROLLER, pap_common::HOMING);
 }
 
 void MainWindow::on_switchCurrent_clicked(bool check) {
@@ -1259,31 +1261,31 @@ void MainWindow::placerStatusUpdated(int state, int status) {
 
     // Calibration running
     if(state == pap_common::RATIO_CALIBRATION
-            && status == pap_common::PLACER_FINISHED
-            && completeCalibrationRunning) {
+            && status == pap_common::PLACER_FINISHED) {
         QMessageBox msgBox;
-        msgBox.setWindowTitle("Confirm to continue calibration");
-        msgBox.setText(QString("Please switch to a small nozzle."));
+        msgBox.setWindowTitle("Ratio calibration finished");
+        msgBox.setText(QString("All ratios are now calibrated.\nWant to continue with offset calibration?"));
         msgBox.setStandardButtons(QMessageBox::Yes);
         msgBox.addButton(QMessageBox::No);
         msgBox.setDefaultButton(QMessageBox::No);
         if (msgBox.exec() == QMessageBox::Yes) {
-            qnode.sendTask(pap_common::PLACER, pap_common::CALIBRATION_OFFSET);
-        } else {
-            completeCalibrationRunning = false;
+            on_calibrationButton_offsets_clicked();
+            //qnode.sendTask(pap_common::PLACER, pap_common::CALIBRATION_OFFSET);
+            //completeCalibrationRunning = false;
         }
     }
 
     if(state == pap_common::OFFSET_CALIBRATION
-            && status == pap_common::PLACER_FINISHED
-            && completeCalibrationRunning) {
-        completeCalibrationRunning = false;
+            && status == pap_common::PLACER_FINISHED) {
         QMessageBox msgBox;
-        const QString title = "Calibration finished!";
-        msgBox.setWindowTitle(title);
-        msgBox.setText("All ratios and offset are now calibrated.");
-        msgBox.exec();
-        msgBox.close();
+        msgBox.setWindowTitle("Offset calibration finished");
+        msgBox.setText(QString("All offset are now calibrated.\nWant to home system now?"));
+        msgBox.setStandardButtons(QMessageBox::Yes);
+        msgBox.addButton(QMessageBox::No);
+        msgBox.setDefaultButton(QMessageBox::No);
+        if (msgBox.exec() == QMessageBox::Yes) {
+            qnode.sendTask(pap_common::PLACER, pap_common::HOMING);
+        }
     }
 
 
@@ -1705,6 +1707,11 @@ void MainWindow::changeRingColor(int comboValue) {
     }
 }
 
+void MainWindow::updatePressure(float pressure){
+    pressure_ = pressure;
+    ui.pressure_label->setText(QString::fromStdString(std::to_string(pressure_)));
+}
+
 void MainWindow::on_startChipFinder_Button_clicked() {
     unsigned int cameraSelect = 3;
 
@@ -2043,13 +2050,52 @@ void MainWindow::deletePad(QPointF padPos) {
 
 void MainWindow::on_calibrationButton_offsets_clicked() {
     ui.tab_manager->setCurrentIndex(4);
-                       //  currentLeftNozzle, currentRightNozzle, 0);
-    qnode.sendTask(pap_common::PLACER, pap_common::CALIBRATION_OFFSET);
+    if(isPressureEnough()){
+        qnode.sendTask(pap_common::PLACER, pap_common::GOTO,
+                       currentPosition.x, currentPosition.y, 30.0);
+        QMessageBox msgBox;
+        msgBox.setWindowTitle("Preparing offset calibration");
+        msgBox.setText(QString("Insert desired nozzles and confirm to start offset calibration."));
+        msgBox.setStandardButtons(QMessageBox::Yes);
+        msgBox.addButton(QMessageBox::No);
+        msgBox.setDefaultButton(QMessageBox::No);
+        if (msgBox.exec() == QMessageBox::Yes) {
+            updateCurrentNozzles();
+            qnode.sendTask(pap_common::PLACER, pap_common::CALIBRATION_OFFSET, leftTipRadius, rightTipRadius, 0.0);
+        }
+    }
+}
+
+bool MainWindow::isPressureEnough(){
+    if(pressure_ > MIN_PRESSURE){
+        return true;
+    }else{
+        QMessageBox msgBox;
+        const QString title = "Pressure warning";
+        msgBox.setWindowTitle(title);
+        msgBox.setText("Pressure is too low");
+        msgBox.exec();
+        msgBox.close();
+        return false;
+    }
 }
 
 void MainWindow::on_calibrationButton_ratios_clicked() {
     ui.tab_manager->setCurrentIndex(4);
-    qnode.sendTask(pap_common::PLACER, pap_common::CALIBRATION_RATIO);
+    if(isPressureEnough()){
+        qnode.sendTask(pap_common::PLACER, pap_common::GOTO,
+                       currentPosition.x, currentPosition.y, 30.0);
+        QMessageBox msgBox;
+        msgBox.setWindowTitle("Preparing ratio calibration");
+        msgBox.setText(QString("Insert a nozzle (2.5 mm diameter) into tip1 and confirm to start ratio calibration."));
+        msgBox.setStandardButtons(QMessageBox::Yes);
+        msgBox.addButton(QMessageBox::No);
+        msgBox.setDefaultButton(QMessageBox::No);
+        if (msgBox.exec() == QMessageBox::Yes) {
+            updateCurrentNozzles();
+            qnode.sendTask(pap_common::PLACER, pap_common::CALIBRATION_RATIO);
+        }
+    }
 }
 
 void MainWindow::on_calcOrientation_Button_clicked() {
@@ -2269,6 +2315,8 @@ void MainWindow::on_startDispense_button_clicked() {
     float pxFactor = padParser.pixelConversionFactor;
     float nozzleDiameter = nozzle_diameter_;
 
+    if(!isPressureEnough()) return;
+
     if(dispenserPaused){
         dispenserPaused = false;
     }
@@ -2393,6 +2441,8 @@ void MainWindow::dispenseSinglePad(QPointF point) {
     id_ = padParser.searchId(point);
     float nozzleDiameter = nozzle_diameter_;
     float pxFactor = padParser.pixelConversionFactor;
+
+    if(!isPressureEnough()) return;
     if (id_ != -1) {
 
         if(!DispenserPlanner::isPadCompatibleToNozzle(padParser.padInformationArrayPrint_[id_], nozzle_diameter_, edge_percentage_)){
@@ -2595,7 +2645,7 @@ void MainWindow::on_calibrateTapeButton_clicked(void) {
             if (calibratedTapes.indexOf(tape_nr) == -1) {
                 calibratedTapes.append(tape_nr);
                 if(tape_calibrater_->calibrateTape(tape_nr, componentList.at(i).width,
-                              componentList.at(i).length)){
+                                                   componentList.at(i).length)){
                     startTapePartSelector(tape_nr);
                 }
                 ROS_INFO("GUI: Index : %d Width: %f Height: %f", tape_nr,

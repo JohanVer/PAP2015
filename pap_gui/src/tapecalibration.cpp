@@ -1,7 +1,7 @@
 #include <pap_gui/tapecalibration.h>
 #include "ui_tapecalibration.h"
 
-#define HOLE_DIAMETER 1.33
+#define HOLE_DIAMETER 0.6
 #define WIDTH_DISTANCE 3.5
 
 namespace pap_gui{
@@ -127,6 +127,7 @@ TapeCalibrationDialog::TapeCalibrationDialog(pap_gui::QNode &ros_node, pap_gui::
     ui->tape_view->show();
     current_tape_index_ = tape_nr;
     current_tape_pos_ = 0;
+    ui->current_pos_label->setText(QString::fromStdString(std::to_string(current_tape_pos_)));
 
     Offset pos;
     if(calibrater_.calculatePosOfTapePart(current_tape_index_, current_tape_pos_, pos)){
@@ -158,23 +159,28 @@ void TapeCalibrationDialog::cameraUpdated(int index) {
 void TapeCalibrationDialog::on_next_button_clicked()
 {
     current_tape_pos_++;
+    ui->current_pos_label->setText(QString::fromStdString(std::to_string(current_tape_pos_)));
     Offset pos;
-    if(calibrater_.calculatePosOfTapePart(current_tape_index_, current_tape_pos_, pos)){
+    /*if(calibrater_.calculatePosOfTapePart(current_tape_index_, current_tape_pos_, pos)){
         if(!motor_send_functions::sendMotorControllerAction(ros_node_.getMotorClientRef(), pap_common::COORD,
                                                             pos.x,
                                                             pos.y,
                                                             (ros_node_.getStatus(2)).position)){
             return;
         }
+
     }else{
         std::cerr << "Couldn't look up tape pos...\n";
     }
+    */
 }
 
 void TapeCalibrationDialog::on_before_button_clicked()
 {
     if(current_tape_pos_ > 0) current_tape_pos_ = current_tape_pos_ -1;
+    ui->current_pos_label->setText(QString::fromStdString(std::to_string(current_tape_pos_)));
     Offset pos;
+    /*
     if(calibrater_.calculatePosOfTapePart(current_tape_index_, current_tape_pos_, pos)){
         if(!motor_send_functions::sendMotorControllerAction(ros_node_.getMotorClientRef(), pap_common::COORD,
                                                             pos.x,
@@ -185,6 +191,7 @@ void TapeCalibrationDialog::on_before_button_clicked()
     }else{
         std::cerr << "Couldn't look up tape pos...\n";
     }
+    */
 }
 
 void TapeCalibrationDialog::on_buttonBox_2_accepted()

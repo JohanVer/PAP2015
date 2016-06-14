@@ -59,6 +59,7 @@ find_package(catkin REQUIRED genmsg actionlib_msgs actionlib)
    DispenseTasks.msg
    DispenseStatus.msg
    CalibrationSignal.msg
+   Pressure.msg
  )
 
 add_action_files(DIRECTORY action FILES MotorControllerAction.action Vision.action)
