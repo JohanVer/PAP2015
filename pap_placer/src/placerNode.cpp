@@ -1,6 +1,6 @@
 #include <pap_placer/placerNode.hpp>
 
-#define PCB_CALIB_PLATE_DIFF 4.4
+#define PCB_CALIB_PLATE_DIFF 3.4
 #define CALIB_PCB_THICKNESS 1.6
 #define CALIB_PCB_CAMERA_FOCUS_DIFF 51.0
 
@@ -19,6 +19,7 @@ PlaceController placeController;
 static motor_controller::controllerStatus motorcontrollerStatus[2];
 
 bool simulation_mode_active_ = false;
+
 
 /******************************************************************************************
  *  Main function - Implements entire placer state machine
@@ -226,13 +227,32 @@ bool calibrateTip1(double tipRadius) {
     ros::Duration(0.5).sleep();
     ROS_INFO("Placerstate: TIP1 - Start Vision");
 
-    pap_common::VisionResult res;
-    if(!vision_send_functions::sendVisionTask(*vision_action_client, pap_vision::SEARCH_CIRCLE, pap_vision::CAMERA_BOTTOM, tipRadius, 0.0, (float) true, res, 50))
-        return true;
+    //arduino_client->sendStepperTask(TIP::LEFT_TIP, -placeController.leftTipRotSteps);
+    placeController.leftTipRotOffsets.clear();
+    placeController.leftTipRotSteps = 0;
+    //ros::Duration(1).sleep();
 
-    ROS_INFO("Placerstate: TIP1 - cameraOffset received");
-    placeController.updateTip1Offset(res.data1, res.data2);
+    //int steps = placeController.angleToSteps(-180, TIP::LEFT_TIP);
+    //arduino_client->sendStepperTask(TIP::LEFT_TIP, steps);
+    //ros::Duration(1).sleep();
 
+    for(double rot = 0; rot <= 360; rot += 18) {
+        ros::Duration(0.5).sleep();
+        pap_common::VisionResult res;
+        if(!vision_send_functions::sendVisionTask(*vision_action_client, pap_vision::SEARCH_CIRCLE, pap_vision::CAMERA_BOTTOM, tipRadius, 0.0, (float) true, res, 5))
+            return true;
+
+        Offset currentRotOffset;
+        currentRotOffset.x = res.data1;
+        currentRotOffset.y = res.data2;
+        placeController.leftTipRotOffsets[placeController.stepsToAngle(placeController.leftTipRotSteps)] = currentRotOffset;
+        std::cerr << "Offset at " << rot << ": " << currentRotOffset.x << ", " << currentRotOffset.y << std::endl;
+
+        int steps = placeController.angleToSteps(18, TIP::LEFT_TIP);
+        arduino_client->sendStepperTask(TIP::LEFT_TIP, steps);
+    }
+
+    std::cerr << "Final rotation: " << placeController.stepsToAngle(placeController.leftTipRotSteps) << std::endl;
     arduino_client->LEDTask(pap_common::RESETBOTTOMLED, 0);
 
     ROS_INFO("PlacerState: CORRECTED_TIP1");
@@ -248,38 +268,38 @@ bool calibrateTip1(double tipRadius) {
 }
 
 bool calibrateTip2(double tipRadius) {
-    ROS_INFO("PlacerState: TIP2 ");
-    Offset tip2 = placeController.getTipCoordinates(TIP::RIGHT_TIP);
-    ROS_INFO("Go to: x:%f y:%f z:%f", tip2.x, tip2.y, tip2.z);
+    //    ROS_INFO("PlacerState: TIP2 ");
+    //    Offset tip2 = placeController.getTipCoordinates(TIP::RIGHT_TIP);
+    //    ROS_INFO("Go to: x:%f y:%f z:%f", tip2.x, tip2.y, tip2.z);
 
-    if(!driveToCoord(tip2.x, tip2.y, tip2.z))
-        return false;
+    //    if(!driveToCoord(tip2.x, tip2.y, tip2.z))
+    //        return false;
 
-    moveTip(TIP::RIGHT_TIP, true);
+    //    moveTip(TIP::RIGHT_TIP, true);
 
-    arduino_client->LEDTask(pap_common::SETBOTTOMLED, 0);
-    ros::Duration(0.1).sleep();
-    arduino_client->LEDTask(pap_common::SETBRIGHTNESSRING, 200);
-    ros::Duration(0.5).sleep();
-    ROS_INFO("Placerstate: TIP2 - Start Vision");
+    //    arduino_client->LEDTask(pap_common::SETBOTTOMLED, 0);
+    //    ros::Duration(0.1).sleep();
+    //    arduino_client->LEDTask(pap_common::SETBRIGHTNESSRING, 200);
+    //    ros::Duration(0.5).sleep();
+    //    ROS_INFO("Placerstate: TIP2 - Start Vision");
 
-    pap_common::VisionResult res;
-    if(!vision_send_functions::sendVisionTask(*vision_action_client, pap_vision::SEARCH_CIRCLE, pap_vision::CAMERA_BOTTOM, tipRadius, 0.0, (float) true, res, 50))
-        return true;
+    //    pap_common::VisionResult res;
+    //    if(!vision_send_functions::sendVisionTask(*vision_action_client, pap_vision::SEARCH_CIRCLE, pap_vision::CAMERA_BOTTOM, tipRadius, 0.0, (float) true, res, 50))
+    //        return true;
 
-    ROS_INFO("Placerstate: TIP2 - cameraOffset received");
-    placeController.updateTip2Offset(res.data1, res.data2);
-    arduino_client->LEDTask(pap_common::RESETBOTTOMLED, 0);
+    //    ROS_INFO("Placerstate: TIP2 - cameraOffset received");
+    //    placeController.updateTip2Offset(res.data1, res.data2);
+    //    arduino_client->LEDTask(pap_common::RESETBOTTOMLED, 0);
 
-    ROS_INFO("PlacerState: CORRECTED_TIP2");
-    tip2 = placeController.getTipCoordinates(TIP::RIGHT_TIP);
-    ROS_INFO("Go to: x:%f y:%f z:%f", tip2.x, tip2.y, tip2.z);
+    //    ROS_INFO("PlacerState: CORRECTED_TIP2");
+    //    tip2 = placeController.getTipCoordinates(TIP::RIGHT_TIP);
+    //    ROS_INFO("Go to: x:%f y:%f z:%f", tip2.x, tip2.y, tip2.z);
 
-    if(!driveToCoord(tip2.x, tip2.y, tip2.z))
-        return false;
+    //    if(!driveToCoord(tip2.x, tip2.y, tip2.z))
+    //        return false;
 
-    ros::Duration(1).sleep();
-    moveTip(TIP::RIGHT_TIP, false);
+    //    ros::Duration(1).sleep();
+    //    moveTip(TIP::RIGHT_TIP, false);
     return true;
 }
 
@@ -816,6 +836,8 @@ bool singleCompPlacement() {
         return false;
     }
 
+    arduino_client->LEDTask(pap_common::RESETTOPLED, 0);
+
     int box = placeController.getBoxNumber(activeTip);
     if(box < 67) {
         if(!goToBox(activeTip))
@@ -830,26 +852,27 @@ bool singleCompPlacement() {
 
     ROS_INFO("PLACER: Picking up component");
     pickupCoord.z = placeController.getCompSuckingHeight(activeTip);
-    pickUp(pickupCoord.z, activeTip);
 
-    ROS_INFO("PLACER: Check pickup");
-    Offset checkCoord = placeController.getTipCoordinates(activeTip);
-    checkCoord.z += placeController.getComponentHeight(activeTip);
-    ROS_INFO("PLACER: Go to x:%f y:%f z:%f", checkCoord.x, checkCoord.y, checkCoord.z);
-    if(!driveToCoord(checkCoord.x, checkCoord.y, checkCoord.z))
-        return false;
+    if(!pickUp(pickupCoord.z, activeTip)) return false;
 
-    moveTip(activeTip, true);           // Set tip
-    arduino_client->LEDTask(pap_common::SETBOTTOMLED, 0);
+    //    ROS_INFO("PLACER: Check pickup");
+    //    Offset checkCoord = placeController.getTipCoordinates(activeTip);
+    //    checkCoord.z += placeController.getComponentHeight(activeTip);
+    //    ROS_INFO("PLACER: Go to x:%f y:%f z:%f", checkCoord.x, checkCoord.y, checkCoord.z);
+    //    if(!driveToCoord(checkCoord.x, checkCoord.y, checkCoord.z))
+    //        return false;
 
-    ros::Duration(5).sleep();
+    //    moveTip(activeTip, true);           // Set tip
+    //    arduino_client->LEDTask(pap_common::SETBOTTOMLED, 0);
+
+    //    ros::Duration(5).sleep();
     float rotation = placeController.getCompPickUpCoordinates(activeTip).rot;
-    int steps = placeController.angleToSteps(rotation);
+    int steps = placeController.angleToSteps(rotation, activeTip);
     arduino_client->sendStepperTask(activeTip, steps);
-    ros::Duration(5).sleep();
+    //    ros::Duration(5).sleep();
 
-    arduino_client->LEDTask(pap_common::RESETBOTTOMLED, 0);
-    moveTip(activeTip, false);           // Release tip
+    //    arduino_client->LEDTask(pap_common::RESETBOTTOMLED, 0);
+    //    moveTip(activeTip, false);           // Release tip
 
     ROS_INFO("PLACER: Going to place coord");
     sendPlacerStatus(pap_common::GOTOPCBCOMP_STATE, pap_common::PLACER_ACTIVE);
@@ -860,7 +883,7 @@ bool singleCompPlacement() {
 
     ROS_INFO("PLACER: Placing component");
     placeCoord.z = placeController.getCompPlaceHeight(activeTip);
-    placeComp(placeCoord.z, activeTip);
+    if(!placeComp(placeCoord.z, activeTip)) return false;
 
     if(activeTip == TIP::LEFT_TIP) {
         placeController.leftTipComponent.isWaiting = false;
@@ -875,6 +898,8 @@ bool singleCompPlacement() {
 }
 
 bool goToBox(TIP usedTip) {
+
+    ros::Duration(0.1).sleep();
     ROS_INFO("Placerstate: GOTOBOX");
     sendPlacerStatus(pap_common::IDLE_STATE, pap_common::PLACER_IDLE);
     sendPlacerStatus(pap_common::GOTOBOX_STATE, pap_common::PLACER_ACTIVE);
@@ -882,8 +907,6 @@ bool goToBox(TIP usedTip) {
     arduino_client->setLEDTask(placeController.getBoxNumber(usedTip));
     Offset boxCoords = placeController.getBoxCoordinates(usedTip);
     std::cerr << "Got box coordinates: " << boxCoords.x << ", " << boxCoords.y  << std::endl;
-    ROS_INFO("Go to: x:%f y:%f z:%f", boxCoords.x, boxCoords.y, boxCoords.z);
-
     if(!driveToCoord(boxCoords.x, boxCoords.y, boxCoords.z))
         return false;
 
@@ -894,7 +917,7 @@ bool goToBox(TIP usedTip) {
     float height = placeController.getComponentHeight(usedTip);
     pap_common::VisionResult res;
 
-    std::cerr << "Sizes passed to vision: " << length << ", " << width << ", " << height << std::endl;
+    //std::cerr << "Sizes passed to vision: " << length << ", " << width << ", " << height << std::endl;
 
     ROS_INFO("Placerstate: componentFinder started");
     if(!vision_send_functions::sendVisionTask(*vision_action_client, placeController.getFinderType(usedTip),
@@ -906,7 +929,14 @@ bool goToBox(TIP usedTip) {
     placeController.setPickUpCorrectionOffset(res.data1 + camera_offset.x , res.data2 + camera_offset.y, res.data3);
     ROS_INFO("PickUp correction offset: x:%f y:%f, rot:%f",res.data1, res.data2, res.data3);
 
+
+    boxCoords = placeController.getCompCamCoordinates(usedTip);
+    std::cerr << "Got comp coordinates: " << boxCoords.x << ", " << boxCoords.y  << std::endl;
+    ROS_INFO("Go to: x:%f y:%f z:%f", boxCoords.x, boxCoords.y, boxCoords.z);
+    if(!driveToCoord(boxCoords.x, boxCoords.y, boxCoords.z))
+        return false;
     ros::Duration(3).sleep();
+
     return true;
 }
 
@@ -926,8 +956,8 @@ bool dispenseLines(std::vector<dispenseInfo>  &lines, double dispense_height_off
     }
     dispCoord.z = height_1 + dispense_height_offset;
 
-//    if(!driveToCoord(dispCoord.x, dispCoord.y, dispCoord.z))
-//        return false;
+    //    if(!driveToCoord(dispCoord.x, dispCoord.y, dispCoord.z))
+    //        return false;
 
     for(size_t i = 0; i < lines.size(); i++){
         dispenseInfo goal = lines.at(i);
@@ -1042,9 +1072,7 @@ bool pickUp(double height, TIP usedTip){
     processAllStatusCallbacks();
     sendPlacerStatus(pap_common::STARTPICKUP_STATE,
                      pap_common::PLACER_ACTIVE);
-    ros::Duration(1).sleep();
     moveTip(usedTip, true);         // Activate tip
-    ros::Duration(1).sleep();
 
     if(!motor_send_functions::sendMotorControllerAction(*motor_action_client, pap_common::COORD,
                                                         placeController.lastDestination_.x,
@@ -1053,11 +1081,11 @@ bool pickUp(double height, TIP usedTip){
     }
 
     switchVacuum(true);
+    ros::Duration(1).sleep();
     forwardVacuum(usedTip, true);
-    ros::Duration(1).sleep();
-
+    ros::Duration(0.5).sleep();
     moveTip(usedTip, false);		// Release tip
-    ros::Duration(1).sleep();
+    ros::Duration(0.5).sleep();
     return true;
 }
 
@@ -1068,20 +1096,30 @@ bool placeComp(double height, TIP usedTip){
                      pap_common::PLACER_ACTIVE);
 
     moveTip(usedTip, true);         // Activate cylinder
-    ros::Duration(1).sleep();
-
     if(!motor_send_functions::sendMotorControllerAction(*motor_action_client, pap_common::COORD,
                                                         placeController.lastDestination_.x,
                                                         placeController.lastDestination_.y, height)){
         return false;
     }
 
-    switchVacuum(false);
-    forwardVacuum(usedTip, false);
-    ros::Duration(1).sleep();
+    //switchVacuum(false);
+    //ros::Duration(1.5).sleep();
+    //forwardVacuum(usedTip, false);
+    //ros::Duration(1.5).sleep();
 
+    switchVacuum(false);
+    ros::Duration(0.1).sleep();
+    forwardVacuum(usedTip, false);
+    ros::Duration(0.1).sleep();
+    activatePressure(true);
+    ros::Duration(0.2).sleep();
+    activatePressure(false);
+    ros::Duration(0.1).sleep();
+    forwardVacuum(usedTip, true);
+    ros::Duration(0.3).sleep();
+    forwardVacuum(usedTip, false);
+    ros::Duration(0.5).sleep();
     moveTip(usedTip, false);		// Release tip
-    ros::Duration(1).sleep();
     return true;
 }
 
@@ -1126,6 +1164,14 @@ void switchVacuum(bool activate){
     {
         arduino_client->sendRelaisTask(2, false);		// Turn off vacuum
         arduino_client->sendRelaisTask(1, true);
+    }
+}
+
+void activatePressure(bool activate){
+    if(activate){
+        arduino_client->sendRelaisTask(9, true);
+    }else{
+        arduino_client->sendRelaisTask(9, false);
     }
 }
 
@@ -1412,6 +1458,13 @@ void placerCallback(const pap_common::TaskConstPtr& taskMsg) {
                 std::cerr << "Failed to calibrate dispenser nozzle ...\n";
         }
             break;
+
+        case pap_common::STEPPER_ROTATION: {
+            int steps = placeController.angleToSteps(taskMsg->data1, (TIP)taskMsg->data2);
+            arduino_client->sendStepperTask((TIP)taskMsg->data2, steps);
+        }
+            break;
+
         }
     }
     }

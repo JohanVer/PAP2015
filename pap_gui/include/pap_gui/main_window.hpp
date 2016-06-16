@@ -218,6 +218,7 @@ public Q_SLOTS:
     void keyReleaseEvent(QKeyEvent *e);
 
     bool isPressureEnough();
+    bool isPCBCalibrated();
 
     void on_calibrationButton_offsets_clicked();
     void on_calibrationButton_ratios_clicked();
@@ -233,7 +234,6 @@ public Q_SLOTS:
     void on_deletePackageButton_clicked();
     void updateCompDimensions();
 
-    int angleToSteps(float angle);
     void transformAllComp(vector<ComponentPlacerData>& allCompData);
     void transformSingleComp(int currentComp, ComponentPlacerData& singleCompData);
 
@@ -277,6 +277,7 @@ private slots:
     void on_calibrate_dispenser_button_clicked();
 
     void on_radioButton_clicked(bool checked);
+
 
 private:
 
@@ -358,6 +359,8 @@ private:
 
     bool tip_thresholding_on;
     float pressure_;
+
+    bool PCBTransformCalibrated_;
 };
 
 }  // namespace pap_gui

@@ -18,7 +18,6 @@
 
 #define MOTORSTEPS 200
 Stepper stepper1(MOTORSTEPS, A0, A1, A2 ,A3);
-int previousSteps1 = 0;
 
 CRGB leds[NUM_LEDS];
 CRGB bottom_leds[NUM_BOT_LEDS];
@@ -74,22 +73,9 @@ enum LED_STATE{
 void messageCb( const pap_common::ArduinoMsg& arduinoMsg){
   
   if(arduinoMsg.command == RUNSTEPPER1) {
-    
     int steps = arduinoMsg.data;    
-    if((previousSteps1 + steps) > 100) {
-      steps = steps - 200;                     // full rotation = 200 Steps
-    } else if((previousSteps1 + steps) < -100) {
-      steps = 200 - steps;
-    }
-    previousSteps1 = previousSteps1 + steps;
     stepper1.step(steps);
   }
-  
-  if(arduinoMsg.command == RESETSTEPPERS ){
-    stepper1.step(-previousSteps1);
-    previousSteps1 = 0;
-  }
-  
   
   if(arduinoMsg.command == SETLED ){  
     //leds[arduinoMsg.data] = CRGB::Green;

@@ -79,20 +79,6 @@ public:
     void updateCameraBottomOffset(float update_x, float update_y);
 
     //!
-    //! \brief updateTip1Offset corrects relative offset between tip1 and top camera
-    //! \param update_x offset correction in x
-    //! \param update_y offset correction in y
-    //!
-    void updateTip1Offset(float update_x, float update_y);
-
-    //!
-    //! \brief updateTip2Offset corrects relative offset between tip2 and top camera
-    //! \param update_x offset correction in x
-    //! \param update_y offset correction in y
-    //!
-    void updateTip2Offset(float update_x, float update_y);
-
-    //!
     //! \brief updatedispenserTipOffset corrects relative offset between dispenser tip and top camera
     //! \param update_x offset correction in x
     //! \param update_y offset correction in y
@@ -124,6 +110,20 @@ public:
     Offset getTipCoordinates(TIP usedTip);
 
     //!
+    //! \brief roundToNextAngleInMap
+    //! \param angle
+    //! \return
+    //!
+    double roundToNextAngleInMap(double angle);
+
+    //!
+    //! \brief getTipRelativeCoordinates
+    //! \param usedTip
+    //! \return
+    //!
+    Offset getTipRelativeCoordinates(TIP usedTip);
+
+    //!
     //! \brief getDispenserCoordinates returns current dispenser tip coordinates
     //!
     Offset getDispenserCoordinates();
@@ -141,6 +141,13 @@ public:
     //! \return absolute pick-up coordinates
     //!
     Offset getCompPickUpCoordinates(TIP usedTip);
+
+    //!
+    //! \brief getCompCamCoordinates
+    //! \param usedTip
+    //! \return
+    //!
+    Offset getCompCamCoordinates(TIP usedTip);
 
     //!
     //! \brief getCompPlaceCoordinates
@@ -229,7 +236,14 @@ public:
     //! \param angle in degrees
     //! \return steps for stepper motor
     //!
-    int angleToSteps(float angle);
+    int angleToSteps(float angle, TIP usedTip);
+
+    //!
+    //! \brief stepsToAngle
+    //! \param steps
+    //! \return angle in degrees
+    //!
+    double stepsToAngle(int steps);
 
 
     // Absolute offsets
@@ -247,6 +261,9 @@ public:
 
     // Relative dispenser tip offset
     Offset dispenserTipOffset;
+
+    std::map<double, Offset> leftTipRotOffsets;
+    std::map<double, Offset> rightTipRotOffsets;
 
     //
     float leftTipPCBHeight_, rightTipPCBHeight_;
@@ -266,6 +283,10 @@ public:
 
     // Offsets relative to top camera
     Offset tip2Offset, tip1Offset;
+
+    // Stepper rotation
+    int leftTipRotSteps;
+    int rightTipRotSteps;
 
 
 private:

@@ -8,7 +8,6 @@
       #define MOTORSTEPS 200
       
       Stepper stepper2(MOTORSTEPS, A4, A5, 12, 13);
-      int previousSteps2 = 0;
       
       void messageCb( const pap_common::ArduinoMsg& arduinoMsg);
       
@@ -130,21 +129,10 @@
           }
         } 
       
-        if(arduinoMsg.command == RUNSTEPPER2 ){   
+        if(arduinoMsg.command == RUNSTEPPER2 ){ 
           int steps = arduinoMsg.data;  
-          if((previousSteps2 + steps) > 100) {
-            steps = steps - 200;                     // full rotation = 200 Steps
-          } else if((previousSteps2 + steps) < -100) {
-            steps = 200 - steps;
-          }
-          previousSteps2 = previousSteps2 + steps;
           stepper2.step(steps);
         } 
-       
-        if(arduinoMsg.command == RESETSTEPPERS ){
-          stepper2.step(-previousSteps2);
-          previousSteps2 = 0;
-        }
          
       }
       

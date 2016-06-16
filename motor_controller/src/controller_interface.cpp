@@ -217,6 +217,14 @@ void ControllerInterface::execute_action(const pap_common::MotorControllerAction
         break;
 
     case pap_common::COORD:
+
+        if(command->data1 > 445 || command->data2 > 275 || command->data3 > 60 || command->data1 < 0 || command->data2 < 0 || command->data3 < 0){
+            while(1){
+                std::cerr << "MOTOR INPUT WAS OUT OF BOUNDS !!! PLEASE RESTART! \n";
+                ros::Duration(1).sleep();
+            }
+        }
+
         coordError = gotoCoord(command->data1, command->data2,
                                command->data3,50.0,300.0,100.0);
 

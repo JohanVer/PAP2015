@@ -115,6 +115,12 @@ private:
 class Offset {
 public:
 
+//    Offset() {
+//        x = 0.0;
+//        y = 0.0;
+//        z = 0.0;
+//    }
+
     Offset operator+(const Offset& b)
     {
         Offset out;
@@ -129,6 +135,7 @@ public:
     double y;
     double z;
     double rot;
+
 private:
 };
 

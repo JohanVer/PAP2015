@@ -167,6 +167,12 @@ bool calibrateTip1(double tipRadius);
 bool calibrateTipHeight(TIP selectedTip);
 
 //!
+//!\brief calibrateDispenserHeights calibrates the heights for the dispenser nozzle
+//! \return
+//!
+bool calibrateDispenserHeights();
+
+//!
 //! \brief calibrateDispenser calibrates relative offset between top camera and dispenser tip, based on bottom cam
 //! \param diameter of currently used tip
 //! \return true if calibration successfull, otherwise false
@@ -211,6 +217,8 @@ void switchVacuum(bool activate);
 //! \param activate - value state is set to
 //!
 void forwardVacuum(enum TIP tip_select, bool activate);
+
+void activatePressure(bool activate);
 
 //!
 //! \brief moveTip activates/deactivates selected cylinder
