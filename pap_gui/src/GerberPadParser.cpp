@@ -16,6 +16,7 @@ GerberPadParser::GerberPadParser() {
     pcbSize.setX(0.0);
     pcbSize.setY(0.0);
     differenceAngle_ = 0.0;
+    pad_counter_ = 0;
 
     // Initial Transform for simulation
     transTransformIntoRobot_.setOrigin(tf::Vector3(300.0, 150.0, 0.0));
@@ -35,6 +36,13 @@ GerberPadParser::~GerberPadParser() {
         delete background_item_;
         background_item_ = NULL;
     }
+}
+
+void GerberPadParser::reset(){
+padInformationArray_.clear();
+padInformationArrayPrint_.clear();
+deleteBackground();
+printedRects.clear();
 }
 
 float GerberPadParser::strToFloat(const std::string &in){
@@ -204,6 +212,7 @@ void GerberPadParser::loadFile(std::string fileName, bool bottomLayer) {
     infile.open(fileName.c_str(), std::ios::in);
     padInformationArray_.clear();
     padInformationArrayPrint_.clear();
+    pad_counter_ = 0;
 
     float xParsed, yParsed = 0.0;
     std::string line;
@@ -271,6 +280,8 @@ void GerberPadParser::loadFile(std::string fileName, bool bottomLayer) {
                 //newPad.rect.setY(yParsed * 25.4);
                 // Convert d-code using tabular out of whl file
                 if (searchShape(dCodeShape, &newPad)) {
+                    newPad.id = pad_counter_;
+                    pad_counter_++;
                     padInformationArray_.push_back(newPad);
                     padInformationArrayPrint_.push_back(newPad);
                     //ROS_INFO(
@@ -309,6 +320,9 @@ void GerberPadParser::createPadFromView(QRectF pad){
     newPad.rect.setHeight((double)tf.width() / pixelConversionFactor);
     newPad.rect.setWidth((double)tf.height() / pixelConversionFactor);
     newPad.rotation = 0;
+
+    newPad.id = pad_counter_;
+    pad_counter_++;
 
     padInformationArray_.push_back(newPad);
     padInformationArrayPrint_.push_back(newPad);

@@ -73,6 +73,9 @@ bool QNode::init() {
 
     dispenser_publisher_ = n_.advertise<pap_common::DispenseTasks>(
                 "dispenseTask", 100);
+
+    pressure_Subscriber_ = n_.subscribe("pressure", 1, &QNode::pressureCallback,this);
+
     //imagePub_ = it_.advertise("renderedPcb", 1);
     imagePub_ = n_.advertise<sensor_msgs::PointCloud2>("renderedPcb", 2);
     markerPub_ = n_.advertise<visualization_msgs::MarkerArray>("marker", 2);
@@ -398,6 +401,11 @@ void QNode::qrCodeCallback(const std_msgs::StringConstPtr& qrMsg) {
     ROS_INFO("GUI: QR Code message received");
     //QString qrCode = &qrMsg;
     //Q_EMIT
+}
+
+void QNode::pressureCallback(const pap_common::PressureConstPtr& pressure_Msg) {
+    pressure_ = pressure_Msg->pressure;
+    Q_EMIT updatePressure(pressure_);
 }
 
 void QNode::sendPcbImage(visualization_msgs::MarkerArray *markerList) {

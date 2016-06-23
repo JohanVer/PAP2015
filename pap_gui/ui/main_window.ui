@@ -408,7 +408,7 @@
           <x>20</x>
           <y>420</y>
           <width>301</width>
-          <height>221</height>
+          <height>291</height>
          </rect>
         </property>
         <property name="title">
@@ -588,14 +588,35 @@
               <string>2.5</string>
              </property>
             </item>
-            <item>
-             <property name="text">
-              <string>3.8</string>
-             </property>
-            </item>
            </widget>
           </item>
          </layout>
+        </widget>
+        <widget class="QPushButton" name="pushButton_3">
+         <property name="geometry">
+          <rect>
+           <x>110</x>
+           <y>200</y>
+           <width>161</width>
+           <height>27</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>recalibrate left tip</string>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="pushButton_4">
+         <property name="geometry">
+          <rect>
+           <x>110</x>
+           <y>230</y>
+           <width>161</width>
+           <height>27</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>recalibrate right tip</string>
+         </property>
         </widget>
        </widget>
        <widget class="QGroupBox" name="groupBox_5">
@@ -995,11 +1016,6 @@
              <string>2.5</string>
             </property>
            </item>
-           <item>
-            <property name="text">
-             <string>3.8</string>
-            </property>
-           </item>
           </widget>
          </item>
         </layout>
@@ -1217,7 +1233,7 @@
                        </sizepolicy>
                       </property>
                       <property name="currentIndex">
-                       <number>2</number>
+                       <number>0</number>
                       </property>
                       <widget class="QWidget" name="tab_14">
                        <attribute name="title">
@@ -1257,7 +1273,7 @@
                            </sizepolicy>
                           </property>
                           <property name="text">
-                           <string>Calculate Orientation</string>
+                           <string>Calculate PCB Transformation</string>
                           </property>
                          </widget>
                         </item>
@@ -1624,6 +1640,13 @@
                             </item>
                            </layout>
                           </widget>
+                         </widget>
+                        </item>
+                        <item>
+                         <widget class="QPushButton" name="calib_disp_heights_button">
+                          <property name="text">
+                           <string>Calibrate Dispenser Heights</string>
+                          </property>
                          </widget>
                         </item>
                         <item>
@@ -4092,19 +4115,6 @@
          </property>
         </widget>
        </widget>
-       <widget class="QPushButton" name="scanQRButton">
-        <property name="geometry">
-         <rect>
-          <x>500</x>
-          <y>590</y>
-          <width>150</width>
-          <height>27</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string>Scan QR Code</string>
-        </property>
-       </widget>
        <widget class="QPushButton" name="calibrateTopCamButton">
         <property name="geometry">
          <rect>
@@ -4130,6 +4140,32 @@
         <property name="text">
          <string>Calib. bottom cam</string>
         </property>
+       </widget>
+       <widget class="QWidget" name="layoutWidget">
+        <property name="geometry">
+         <rect>
+          <x>480</x>
+          <y>570</y>
+          <width>191</width>
+          <height>19</height>
+         </rect>
+        </property>
+        <layout class="QHBoxLayout" name="horizontalLayout_25">
+         <item>
+          <widget class="QLabel" name="label_42">
+           <property name="text">
+            <string>Pressure</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="pressure_label">
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </widget>
       </widget>
      </widget>

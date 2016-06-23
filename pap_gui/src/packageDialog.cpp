@@ -29,9 +29,9 @@ PackageDialog::PackageDialog(QVector<databaseEntry> *database, QVector<std::stri
 	}
 }
 
-void PackageDialog::on_buttonBox_clicked(QAbstractButton* button) {
+void PackageDialog::on_accept_package_clicked(QAbstractButton* button) {
 	// OK clicked to accept values
-    if (ui->buttonBox->button(QDialogButtonBox::Ok) == (QPushButton*)button) {
+    if (ui->accept_package->button(QDialogButtonBox::Ok) == (QPushButton*)button) {
     	bool ok;
     	QString package = ui->nameLine->text();
     	float length = ui->lengthLine->text().toFloat(&ok);

@@ -14,33 +14,53 @@
 #include <math.h>
 #include <ros/ros.h>
 #include <tf/tf.h>
-#include <queue>          // std::queue
+#include <queue>
 
-
+//!
+//! \brief PlacementPlanner takes a single component or an entire component list, initiates corresponding placement process if possible
+//! and sends following placement tasks if necessary
+//!
 class PlacementPlanner {
 public:
+
     PlacementPlanner();
 	virtual ~PlacementPlanner();
 
-    // Update both tip diameters
+    //!
+    //! \brief setTipDiameters updates tip radius of both tips
+    //! \param leftTip current left tip radius
+    //! \param rightTip current left tip radius
+    //!
     void setTipDiameters(float leftTip, float rightTip);
 
-    // Gets componentToPlace, selects best tip available and sends componentData +
-    // start placement command to placeController.
-    // Returns true if process successfully started, false otherwise
+    //!
+    //! \brief startSingleCompPlacement takes care of starting a singel component placement process
+    //! \param node ROS communication node reference passed to be able to send messages
+    //! \param compToPlace component to be placed
+    //! \param singlePlacementRunning flag reference for GUI
+    //! \return true if placement process successfully started, otherwise false
+    //!
     bool startSingleCompPlacement(pap_gui::QNode& node, ComponentPlacerData& compToPlace, bool& singlePlacementRunning);
 
-    // Gets list of componentsToPlace, sorts components to best suitable tips, sends componentData +
-    // start placement command to placeController.
-    // Returns true if process successfully started, false otherwise
+    //!
+    //! \brief startCompletePlacement takes care of starting a complete placement process
+    //! \param node ROS communication node reference passed to be able to send messages
+    //! \param allCompToPlace vector of all components to be placed, already transformed into global coordinate system
+    //! \param completePlacementRunning flage reference for GUI
+    //! \return true if placement process successfully started, otherwise false
+    //!
     bool startCompletePlacement(pap_gui::QNode& node, vector<ComponentPlacerData>& allCompToPlace, bool& completePlacementRunning);
 
-    // Last task finished -> update components and start next placement task
-    // Returns false if no components left to place, otherwise true
+    //!
+    //! \brief sendNextTask send next components to be placed in case there are some left
+    //! \param node ROS communication node reference passed to be able to send messages
+    //! \return true if next components send successfully, otherwise false
+    //!
     bool sendNextTask(pap_gui::QNode& node);
 
-    // Clears component placement queues of both tips
-
+    //!
+    //! \brief resetQueues clears both component queues
+    //!
     void resetQueues();
 
     ComponentPlacerData compToPlaceLeft, compToPlaceRight;
@@ -48,16 +68,28 @@ public:
     std::queue<ComponentPlacerData> rightTipQueue;
 
 private:
-     // Returns true if tipDiameter suits component diameters for a safe pick-up,
-     // otherwise returns false
-     bool checkTipSize(float tipDiameter, float length, float width);
+    //!
+    //! \brief checkTipSize checks if tipDiameter suits component size for a safe pick-up
+    //! \param tipDiameter of currenlty used tip
+    //! \param length of component to be placed
+    //! \param width of component to be placed
+    //! \return true if tip suitable, otherwise false
+    //!
+    bool checkTipSize(float tipDiameter, float length, float width);
 
-     // Checks if box can be reach by usedTip, if thats the case returns
-     // true, otherwise false
-     bool boxReachable(int box, TIP usedTip);
+    //!
+    //! \brief boxReachable checks if box can be reached by usedTip
+    //! \param box current component box
+    //! \param usedTip left or right tip
+    //! \return true if box can be reached, otherwise false
+    //!
+    bool boxReachable(int box, TIP usedTip);
 
-     // Resets given component data to default values
-     void resetCompData(ComponentPlacerData& comp);
+    //!
+    //! \brief resetCompData sets component variables to default values
+    //! \param comp selected component
+    //!
+    void resetCompData(ComponentPlacerData& comp);
 
     float leftTipDiameter, rightTipDiameter;
 };

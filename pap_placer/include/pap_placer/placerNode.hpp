@@ -29,9 +29,9 @@
 /* Constant parameter definitions */
 #define DISPENSER_TOLERANCE 0.1
 #define MOTORCONTROLLER_TIMEOUT 3000
-#define TIP1_DIAMETER_VISION 1.0
-#define TIP2_DIAMETER_VISION 1.0
-#define CAMERA_DIAMETER_VISION 9.3596
+#define TIP1_DIAMETER_VISION 0.5
+#define TIP2_DIAMETER_VISION 0.5
+#define CAMERA_DIAMETER_VISION (9.3596/2)
 #define DISPENSER_HEIGHT 10.302
 #define DISPENSER_CONN_SPEED 20
 
@@ -151,7 +151,26 @@ bool calibrateCamera();
 //! \brief calibrateTip1 calibrates relative offset between top camera and tip1, based on bottom cam
 //! \return true if calibration successfull, otherwise false
 //!
-bool calibrateTip1();
+
+//!
+//! \brief calibrateTip1 calibrates relative offset between top camera and tip1, based on bottom cam
+//! \param tipRadius of currently mounted tip
+//! \return true if calibration successfull, otherwise false
+//!
+bool calibrateTip1(double tipRadius);
+
+//!
+//! \brief calibrateTipHeight sets height offsets of corresponding tip
+//! \param selectedTip selects left or right tip for height calibration
+//! \return true if tip height calibrated succesffully, otherwise false
+//!
+bool calibrateTipHeight(TIP selectedTip);
+
+//!
+//!\brief calibrateDispenserHeights calibrates the heights for the dispenser nozzle
+//! \return
+//!
+bool calibrateDispenserHeights();
 
 //!
 //! \brief calibrateDispenser calibrates relative offset between top camera and dispenser tip, based on bottom cam
@@ -161,16 +180,18 @@ bool calibrateDispenser(double diameter);
 
 //!
 //! \brief calibrateTip2 calibrates relative offset between top camera and tip2, based on bottom cam
+//! \param tipRadius of currently mounted tip
 //! \return true if calibration successfull, otherwise false
 //!
-bool calibrateTip2();
+bool calibrateTip2(double tipRadius);
 
 //!
 //! \brief calibrateTip calibrates relative offset between top camera and selected tip, based on bottom cam
-//! \param selectedTip selected left or right tip
+//! \param tipRadius of currently mounted tip
+//! \param selectedTip selects left or right tip
 //! \return true if calibration successfull, otherwise false
 //!
-bool calibrateTip(TIP selectedTip);
+bool calibrateTip(double tipRadius, TIP selectedTip);
 
 //!
 //!//! \brief calibrateTopCamDistortion performs a checkerboard calibration of top camera
@@ -204,6 +225,8 @@ void switchVacuum(bool activate);
 //! \param activate - value state is set to
 //!
 void forwardVacuum(enum TIP tip_select, bool activate);
+
+void activatePressure(bool activate);
 
 //!
 //! \brief moveTip activates/deactivates selected cylinder

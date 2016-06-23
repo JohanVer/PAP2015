@@ -20,7 +20,15 @@ public:
 	int version;
 
 public Q_SLOTS:
+
+    //!
+    //! \brief developerButton_clicked set developer flag for GUI
+    //!
 	void developerButton_clicked();
+
+    //!
+    //! \brief userButton_clicked set user flag for GUI
+    //!
 	void userButton_clicked();
 
 private:

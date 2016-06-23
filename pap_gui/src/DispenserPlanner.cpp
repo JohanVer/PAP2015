@@ -87,7 +87,7 @@ std::vector<dispenseInfo> DotPlanner::planDispensing(PadInformation padInfoIn, f
             stat_offset_x = 0;
         }else if(alignment == DOT_ALIGN::RIGHT){
             dyn_offset_x = 0;
-            stat_offset_x = std::fmod(inHeight, nozzle_side_total);
+            stat_offset_x = std::fmod(inWidth, nozzle_side_total);
         }
         nozzle_side_total_x = nozzle_side_total;
     }

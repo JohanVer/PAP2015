@@ -19,8 +19,8 @@ PlacementPlanner::~PlacementPlanner() {
 }
 
 void PlacementPlanner::setTipDiameters(float leftTip, float rightTip) {
-    leftTipDiameter = leftTip;
-    rightTipDiameter = rightTip;
+    leftTipDiameter = 2*leftTip;
+    rightTipDiameter = 2*rightTip;
     std::cerr << "PlacementPlanner: Tip diameters updated to: " << leftTipDiameter << ", " << rightTipDiameter << std::endl;
 }
 
@@ -108,8 +108,6 @@ bool PlacementPlanner::startCompletePlacement(pap_gui::QNode& node, vector<Compo
             nonSuitableComps++;
         }
     }
-    
-    //std::cerr << "All compo"
 
     QMessageBox msgBox;
     compToPlaceRight.isWaiting = false;
@@ -117,7 +115,7 @@ bool PlacementPlanner::startCompletePlacement(pap_gui::QNode& node, vector<Compo
 
     if((nonSuitableComps > 0) && (nonSuitableComps < allCompToPlace.size())) {
         QString message =
-                QString("There are %1 out of %2 components that cannot be placed with the current nozzle configuration. If you want to start the placement process anyways press yes.\n").arg(nonSuitableComps).arg(allCompToPlace.size());
+                QString("There are %1 out of %2 components that cannot be placed with the current nozzle configuration.\n\nIf you want to start the placement process anyways press yes.\n").arg(nonSuitableComps).arg(allCompToPlace.size());
         msgBox.setWindowTitle("Confirm to start placement");
         msgBox.setText(message);
         msgBox.setStandardButtons(QMessageBox::Yes);
@@ -128,13 +126,13 @@ bool PlacementPlanner::startCompletePlacement(pap_gui::QNode& node, vector<Compo
             return false;
         }
     } else if(nonSuitableComps == allCompToPlace.size()) {      // Both queues are empty!!
-        msgBox.setText("Not able to place any components.");
+        msgBox.setText("Not able to place any components \n(tip cannot be used or box not reachable).");
         msgBox.exec();
         msgBox.close();
         return false;
     } else {
         QString message =
-                QString("You are about to start a complete placement proces with %1 components.\n \nClick yes to start process.\n").arg(allCompToPlace.size());
+                QString("You are about to start a complete placement proces with %1 components.\n\nClick yes to start process.\n").arg(allCompToPlace.size());
         msgBox.setWindowTitle("Confirm to start placement");
         msgBox.setText(message);
         msgBox.setStandardButtons(QMessageBox::Yes);
@@ -147,36 +145,28 @@ bool PlacementPlanner::startCompletePlacement(pap_gui::QNode& node, vector<Compo
     }
 
     // Check queues and send data to palceController
-    if(leftTipQueue.empty()) {                              // Right tip queue is non-empty
-        resetCompData(compToPlaceLeft);
+    if(!(rightTipQueue.empty())) {                              // Right tip queue is non-empty
         compToPlaceRight = rightTipQueue.front();
         rightTipQueue.pop();
         compToPlaceRight.isWaiting = true;
         node.sendTask(pap_common::PLACER, pap_common::UPDATE_PLACER,
                                compToPlaceRight, TIP::RIGHT_TIP);
-
-    } else if(rightTipQueue.empty()) {                      // Left tip queue is non-empty
+    } else {
         resetCompData(compToPlaceRight);
-        compToPlaceLeft = leftTipQueue.front();
-        leftTipQueue.pop();
-        compToPlaceLeft.isWaiting = true;
-        node.sendTask(pap_common::PLACER, pap_common::UPDATE_PLACER,
-                               compToPlaceLeft, TIP::LEFT_TIP);
+    }
 
-    } else {                                                // Both queues are non-empty
+    if(!(leftTipQueue.empty())) {                               // Left tip queue is non-empty
         compToPlaceLeft = leftTipQueue.front();
         leftTipQueue.pop();
-        compToPlaceRight = rightTipQueue.front();
-        rightTipQueue.pop();
-        compToPlaceRight.isWaiting = true;
         compToPlaceLeft.isWaiting = true;
         node.sendTask(pap_common::PLACER, pap_common::UPDATE_PLACER,
                                compToPlaceLeft, TIP::LEFT_TIP);
-        node.sendTask(pap_common::PLACER, pap_common::UPDATE_PLACER,
-                               compToPlaceRight, TIP::RIGHT_TIP);
+    } else {
+        resetCompData(compToPlaceLeft);
     }
 
     completePlacementRunning = true;
+    node.sendTask(pap_common::PLACER, pap_common::START_COMPLETE_PLACEMENT);
     return true;
 }
 
@@ -203,8 +193,10 @@ bool PlacementPlanner::boxReachable(int box, TIP usedTip) {
             return true;
 
     } else {
-        if(((box >= 42) && (box <= 46))             // Small boxes
+        if(((box >= 37) && (box <= 46))             // Small boxes
+                || (box == 51) || (box == 57)       // Middle boxes
                 || (box == 52) || (box == 58)       // Middle boxes
+                || (box == 61) || (box == 65)       // Large boxes
                 || (box == 62) || (box == 66)       // Large boxes
                 || ((box >= 70) && (box <= 86)))    // Tapes
             return true;
@@ -216,7 +208,7 @@ bool PlacementPlanner::checkTipSize(float tipDiameter, float length, float width
 
     if(tipDiameter > 0.0) {
         // Consider shorter component edge
-        std::cerr << "width: " << width << " - length:  " << length << std::endl;
+        //std::cerr << "width: " << width << " - length:  " << length << std::endl;
         if(width <= length) {
             if(width >= TIP_SIZE_SAFETY_FACTOR * tipDiameter)
                 return true;

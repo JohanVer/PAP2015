@@ -115,6 +115,12 @@ private:
 class Offset {
 public:
 
+//    Offset() {
+//        x = 0.0;
+//        y = 0.0;
+//        z = 0.0;
+//    }
+
     Offset operator+(const Offset& b)
     {
         Offset out;
@@ -129,6 +135,7 @@ public:
     double y;
     double z;
     double rot;
+
 private:
 };
 
@@ -171,11 +178,13 @@ class PadInformation {
 public:
     PadInformation() {
         rotation = 0.0;
+        id = 0;
     }
     QRectF rect;
     std::string shapeStr;
     float rotation;
     bool dispensed;
+    unsigned int id;
 };
 
 class ShapeInformation {

@@ -18,12 +18,24 @@
 #include <QTableWidget>
 #include <pap_common/CommonDataClasses.hpp>
 
-
+//!
+//! \brief The DataIO class implements load and store functionalities of specific files and databases for this project
+//!
 class DataIO {
 public:
     DataIO();
     virtual ~DataIO();
+
+    //!
+    //! \brief loadDatabase
+    //! \param database vector with all packages loaded
+    //!
     void loadDatabase(QVector<databaseEntry>& database);
+
+    //!
+    //! \brief loadGerberFile
+    //! \param components vector with all components in project
+    //!
     //void loadGerberFile(QVector<componentEntry>& components);
 
 private:
