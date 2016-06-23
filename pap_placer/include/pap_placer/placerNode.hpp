@@ -166,6 +166,13 @@ bool calibrateDispenser(double diameter);
 bool calibrateTip2();
 
 //!
+//! \brief calibrateTip calibrates relative offset between top camera and selected tip, based on bottom cam
+//! \param selectedTip selected left or right tip
+//! \return true if calibration successfull, otherwise false
+//!
+bool calibrateTip(TIP selectedTip);
+
+//!
 //!//! \brief calibrateTopCamDistortion performs a checkerboard calibration of top camera
 //!           !! calibTopCamera-Node needs to be started as well !!
 //!//! \return true if calibration successfull, otherwise false

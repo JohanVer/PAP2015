@@ -86,7 +86,7 @@ bool calibrateOffsets(double leftTipRadius, double rightTipRadius) {
     if(!calibrateCamera())
         return false;
 
-    if(!calibrateTip1())
+    if(!calibrateTip(TIP::LEFT_TIP))
         return false;
 
     //if(!calibrateTip2())
@@ -298,6 +298,46 @@ bool calibrateDispenser(double diameter) {
 
     ros::Duration(5).sleep();
 
+    return true;
+}
+
+bool calibrateTip(TIP selectedTip) {
+
+
+    Offset tip = placeController.getTipCoordinates(selectedTip);
+    ROS_INFO("Go to: x:%f y:%f z:%f", tip.x, tip.y, tip.z);
+    if(!driveToCoord(tip.x, tip.y, tip.z))
+        return false;
+
+    moveTip(selectedTip, true);
+    arduino_client->LEDTask(pap_common::SETBOTTOMLED, 0);
+    ros::Duration(0.1).sleep();
+    arduino_client->LEDTask(pap_common::SETBRIGHTNESSRING, 200);
+    ros::Duration(0.5).sleep();
+    ROS_INFO("Placerstate: TIP - Start Vision");
+
+    pap_common::VisionResult res;
+    if(selcetedTip == TIP::LEFT_TIP) {
+        if(!vision_send_functions::sendVisionTask(*vision_action_client, pap_vision::SEARCH_CIRCLE, pap_vision::CAMERA_BOTTOM, TIP1_DIAMETER_VISION, 0.0, (float) true, res, 50))
+            return true;
+        placeController.updateTip1Offset(res.data1, res.data2);
+    } else {
+        if(!vision_send_functions::sendVisionTask(*vision_action_client, pap_vision::SEARCH_CIRCLE, pap_vision::CAMERA_BOTTOM, TIP1_DIAMETER_VISION, 0.0, (float) true, res, 50))
+            return true;
+        placeController.updateTip2Offset(res.data1, res.data2);
+    }
+
+    ROS_INFO("Placerstate: TIP - offset updated");
+    arduino_client->LEDTask(pap_common::RESETBOTTOMLED, 0);
+
+    ROS_INFO("PlacerState: CORRECTED_TIP");
+    tip = placeController.getTipCoordinates(selectedTip);
+    ROS_INFO("Go to: x:%f y:%f z:%f", tip.x, tip.y, tip.z);
+    if(!driveToCoord(tip.x, tip.y, tip.z))
+        return false;
+
+    ros::Duration(1).sleep();
+    moveTip(selectedTip, false);
     return true;
 }
 
