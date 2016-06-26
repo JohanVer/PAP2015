@@ -113,7 +113,7 @@ PlaceController::PlaceController() {
     dispenser_surface_offset_ = 0;
 
     idleCoordinates_.x = 5.0;
-    idleCoordinates_.y = 115.0;
+    idleCoordinates_.y = 5.0; // 115
     idleCoordinates_.z = 0.0;
 
     camera_projection_offset_.x = 0.2218;
@@ -184,6 +184,7 @@ PlaceController::PlaceController() {
 
     pickRelQR_ = false;
     plane_calibrated_ = false;
+    vision_active_ = true;
 }
 
 PlaceController::~PlaceController() {
@@ -220,6 +221,7 @@ Offset PlaceController::getBottomCamCoordinates() {
 }
 
 double PlaceController::roundToNextAngleInMap(double angle) {
+    if(!vision_active_) return 0.0;
     double rest = std::fmod(angle, 18.0);
     if(rest > 9) {
         return angle = angle - rest + 18;

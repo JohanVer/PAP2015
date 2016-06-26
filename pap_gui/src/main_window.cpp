@@ -506,46 +506,6 @@ bool MainWindow::isPCBCalibrated(){
     return false;
 }
 
-void MainWindow::on_startPlacementButton_clicked() {
-
-    if(!isPressureEnough()) return;
-    if(!isPCBCalibrated()) return;
-
-    // Components to place?
-    if (componentList.isEmpty()) {
-        QMessageBox msgBox;
-        msgBox.setText("Component table empty. Please load gerber file first.");
-        msgBox.exec();
-        msgBox.close();
-        return;
-    }
-
-    // Missing slots? (all packages known -> if not slot cannot be assigned.)
-    if (emptySlots()) {
-        QMessageBox msgBox;
-        msgBox.setText("There are still components without assigned slot.");
-        msgBox.exec();
-        msgBox.close();
-        return;
-    }
-    // Start placement process
-    if (!completePlacementRunning && !singlePlacementRunning) {
-        vector<ComponentPlacerData> allCompData;
-        transformAllComp(allCompData);
-        updateCurrentNozzles();
-        if(placementPlanner.startCompletePlacement(qnode, allCompData, completePlacementRunning)) {
-            ui.label_compTotalLeft->setText(QString::number(placementPlanner.leftTipQueue.size()));
-            ui.label_compTotalRight->setText(QString::number(placementPlanner.rightTipQueue.size()));
-            updatePlacementInfo();
-        }
-    } else {
-        QMessageBox msgBox;
-        msgBox.setText("Placement process already running - stop first.");
-        msgBox.exec();
-        msgBox.close();
-    }
-}
-
 bool MainWindow::emptySlots() {
     for (size_t k = 0; k < componentList.size(); k++) {
         if (componentList.at(k).box == -1)
@@ -995,6 +955,46 @@ void MainWindow::transformAllComp(vector<ComponentPlacerData>& allCompData) {
     }
 }
 
+void MainWindow::on_startPlacementButton_clicked() {
+
+    if(!isPressureEnough()) return;
+    if(!isPCBCalibrated()) return;
+
+    // Components to place?
+    if (componentList.isEmpty()) {
+        QMessageBox msgBox;
+        msgBox.setText("Component table empty. Please load gerber file first.");
+        msgBox.exec();
+        msgBox.close();
+        return;
+    }
+
+    // Missing slots? (all packages known -> if not slot cannot be assigned.)
+    if (emptySlots()) {
+        QMessageBox msgBox;
+        msgBox.setText("There are still components without assigned slot.");
+        msgBox.exec();
+        msgBox.close();
+        return;
+    }
+    // Start placement process
+    if (!completePlacementRunning && !singlePlacementRunning) {
+        vector<ComponentPlacerData> allCompData;
+        transformAllComp(allCompData);
+        updateCurrentNozzles();
+        if(placementPlanner.startCompletePlacement(qnode, allCompData, completePlacementRunning)) {
+            ui.label_compTotalLeft->setText(QString::number(placementPlanner.leftTipQueue.size()));
+            ui.label_compTotalRight->setText(QString::number(placementPlanner.rightTipQueue.size()));
+            updatePlacementInfo();
+        }
+    } else {
+        QMessageBox msgBox;
+        msgBox.setText("Placement process already running - stop first.");
+        msgBox.exec();
+        msgBox.close();
+    }
+}
+
 void MainWindow::on_placeSingleComponentButton_clicked() {
 
     if(!isPressureEnough()) return;
@@ -1039,11 +1039,11 @@ void MainWindow::updatePlacementInfo() {
     if(placementPlanner.compToPlaceLeft.isWaiting) {
         ui.label_placementLeft->setText("Running");
         ui.label_currentCompLeft->setText(QString::fromStdString(placementPlanner.compToPlaceLeft.name));
-        ui.label_compTotalLeft->setText(QString::number(placementPlanner.leftTipQueue.size()));
+        ui.label_missingCompLeft->setText(QString::number(placementPlanner.leftTipQueue.size()));
     } else {
         ui.label_placementLeft->setText("Finished");
-        ui.label_compTotalLeft->setText(QString::number(placementPlanner.leftTipQueue.size()));
         ui.label_currentCompLeft->setText("-");
+        ui.label_missingCompLeft->setText(QString::number(placementPlanner.leftTipQueue.size()));
         ui.label_compTotalLeft->setText(QString::number(0));
     }
 
@@ -1053,8 +1053,8 @@ void MainWindow::updatePlacementInfo() {
         ui.label_compTotalRight->setText(QString::number(placementPlanner.rightTipQueue.size()));
     } else {
         ui.label_placementRight->setText("Finished");
-        ui.label_compTotalRight->setText(QString::number(placementPlanner.rightTipQueue.size()));
         ui.label_currentCompRight->setText("-");
+        ui.label_missingCompRight->setText(QString::number(placementPlanner.rightTipQueue.size()));
         ui.label_compTotalRight->setText(QString::number(0));
     }
 }
@@ -1273,7 +1273,7 @@ void MainWindow::releasezManNeg() {
 
 void MainWindow::placerStatusUpdated(int state, int status) {
 
-    ROS_INFO("GUI: placerStatusUpdated: %d, %d !!", state, status);
+    //ROS_INFO("GUI: placerStatusUpdated: %d, %d !!", state, status);
 
     // Calibration running
     if(state == pap_common::RATIO_CALIBRATION
@@ -1720,7 +1720,11 @@ void MainWindow::changeRingColor(int comboValue) {
 }
 
 void MainWindow::updatePressure(float pressure){
-    pressure_ = pressure;
+    if(qnode.fakePadPos_) {
+        pressure_ = 15.0;
+    } else {
+        pressure_ = pressure;
+    }
     ui.pressure_label->setText(QString::fromStdString(std::to_string(pressure_)));
 }
 

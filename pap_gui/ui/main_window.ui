@@ -613,7 +613,7 @@
                   <item>
                    <widget class="QPushButton" name="pushButton_recalibrate_left_tip">
                     <property name="text">
-                     <string>recalibrate</string>
+                     <string>Recalibrate</string>
                     </property>
                    </widget>
                   </item>
@@ -1002,7 +1002,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QLabel" name="label_missingCompLeft_2">
+          <widget class="QLabel" name="label_missingCompRight">
            <property name="text">
             <string>0</string>
            </property>

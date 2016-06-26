@@ -288,6 +288,8 @@ public:
     int leftTipRotSteps;
     int rightTipRotSteps;
 
+    bool vision_active_;
+
 
 private:
 

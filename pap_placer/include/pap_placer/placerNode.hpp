@@ -74,10 +74,15 @@ void sendPlacerStatus(pap_common::PROCESS process, pap_common::PLACER_STATUS sta
 bool singleCompPlacement();
 
 //!
-//! \brief multipleCompPlacement performs an entire placement process with both tips
+//! \brief resetAllIndicators
+//!
+void resetAllIndicators();
+
+//!
+//! \brief doubleCompPlacement performs an entire placement process with both tips
 //! \return true if all placement steps executed successfully, otherwise false
 //!
-bool multipleCompPlacement();
+bool doubleCompPlacement();
 
 //!
 //! \brief goToBox moves placement head to selected component box, starts vision to find the

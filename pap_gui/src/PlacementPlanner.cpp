@@ -85,7 +85,7 @@ bool PlacementPlanner::startSingleCompPlacement(pap_gui::QNode& node, ComponentP
 bool PlacementPlanner::startCompletePlacement(pap_gui::QNode& node, vector<ComponentPlacerData>& allCompToPlace, bool& completePlacementRunning) {
 
     resetQueues();
-    std::cerr << "Planner compList size: " << allCompToPlace.size() << std::endl;
+    std::cerr << "PlacementPlanner: compList size " << allCompToPlace.size() << std::endl;
     int nonSuitableComps = 0;
 
     // Push components to suitable tip queue
@@ -108,6 +108,9 @@ bool PlacementPlanner::startCompletePlacement(pap_gui::QNode& node, vector<Compo
             nonSuitableComps++;
         }
     }
+
+    std::cerr << "PlacementPlanner: left tip queue size " << leftTipQueue.size() << std::endl;
+    std::cerr << "PlacementPlanner: right tip queue size " << rightTipQueue.size() << std::endl;
 
     QMessageBox msgBox;
     compToPlaceRight.isWaiting = false;
@@ -144,7 +147,7 @@ bool PlacementPlanner::startCompletePlacement(pap_gui::QNode& node, vector<Compo
         }
     }
 
-    // Check queues and send data to palceController
+    // Check queues and send data to placeController
     if(!(rightTipQueue.empty())) {                              // Right tip queue is non-empty
         compToPlaceRight = rightTipQueue.front();
         rightTipQueue.pop();
