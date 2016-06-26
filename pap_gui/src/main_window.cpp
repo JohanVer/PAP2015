@@ -165,6 +165,8 @@ MainWindow::MainWindow(int version, int argc, char** argv, QWidget *parent) :
     singlePlacementRunning = false;
     componentIndicator = 0;
     completeCalibrationRunning = false;
+    ui.pushButton_recalibrate_left_tip->setEnabled(false);
+    ui.pushButton_recalibrate_right_tip->setEnabled(false);
 
     xTapeCalibration = 0.0;
     yTapeCalibration = 0.0;
@@ -1300,6 +1302,8 @@ void MainWindow::placerStatusUpdated(int state, int status) {
         if (msgBox.exec() == QMessageBox::Yes) {
             qnode.sendTask(pap_common::PLACER, pap_common::HOMING);
         }
+        ui.pushButton_recalibrate_left_tip->setEnabled(true);
+        ui.pushButton_recalibrate_right_tip->setEnabled(true);
     }
 
 
@@ -2057,10 +2061,10 @@ void MainWindow::deletePad(QPointF padPos) {
 }
 
 void MainWindow::on_calibrationButton_offsets_clicked() {
-    ui.tab_manager->setCurrentIndex(4);
     if(isPressureEnough()){
+        ui.tab_manager->setCurrentIndex(4);
         qnode.sendTask(pap_common::PLACER, pap_common::GOTO,
-                       currentPosition.x, currentPosition.y, 30.0);
+                       currentPosition.x, currentPosition.y, 45.0);
         QMessageBox msgBox;
         msgBox.setWindowTitle("Preparing offset calibration");
         msgBox.setText(QString("Insert desired nozzles and confirm to start offset calibration."));
@@ -2964,3 +2968,41 @@ bool pap_gui::MainWindow::driveToCoord(const double &x, const double &y, const d
     return true;
 }
 
+
+void pap_gui::MainWindow::on_pushButton_recalibrate_left_tip_clicked()
+{
+    if(isPressureEnough()){
+        ui.tab_manager->setCurrentIndex(4);
+        qnode.sendTask(pap_common::PLACER, pap_common::GOTO,
+                       currentPosition.x, currentPosition.y, 45.0);
+        QMessageBox msgBox;
+        msgBox.setWindowTitle("Preparing left tip offset recalibration");
+        msgBox.setText(QString("Insert desired nozzles and confirm to start recalibration."));
+        msgBox.setStandardButtons(QMessageBox::Yes);
+        msgBox.addButton(QMessageBox::No);
+        msgBox.setDefaultButton(QMessageBox::No);
+        if (msgBox.exec() == QMessageBox::Yes) {
+            updateCurrentNozzles();
+            qnode.sendTask(pap_common::PLACER, pap_common::RECALIBRATE_LEFT_TIP, leftTipRadius, rightTipRadius, 0.0);
+        }
+    }
+}
+
+void pap_gui::MainWindow::on_pushButton_recalibrate_right_tip_clicked()
+{
+    if(isPressureEnough()){
+        ui.tab_manager->setCurrentIndex(4);
+        qnode.sendTask(pap_common::PLACER, pap_common::GOTO,
+                       currentPosition.x, currentPosition.y, 45.0);
+        QMessageBox msgBox;
+        msgBox.setWindowTitle("Preparing right tip offset recalibration");
+        msgBox.setText(QString("Insert desired nozzles and confirm to start recalibration."));
+        msgBox.setStandardButtons(QMessageBox::Yes);
+        msgBox.addButton(QMessageBox::No);
+        msgBox.setDefaultButton(QMessageBox::No);
+        if (msgBox.exec() == QMessageBox::Yes) {
+            updateCurrentNozzles();
+            qnode.sendTask(pap_common::PLACER, pap_common::RECALIBRATE_RIGHT_TIP, leftTipRadius, rightTipRadius, 0.0);
+        }
+    }
+}

@@ -7,6 +7,6 @@
   <node name="Placer" pkg="pap_placer" type="pap_placer_node" output="screen" />
   <node name="Motor_controller" pkg="motor_controller" type="motor_controller_node" output="screen" />
   <node name="Vision" pkg="pcb_cv" type="displayImage" output="screen" />
-  <node name="Arduino" pkg="rosserial_python" type="serial_node.py" args="_port:=/dev/ttyACM2" output="screen" /> 
+  <node name="Arduino" pkg="rosserial_python" type="serial_node.py" args="_port:=/dev/ttyACM0" output="screen" /> 
   <node name="Arduino2" pkg="rosserial_python" type="serial_node.py" args="_port:=/dev/ttyACM1" output="screen" />
 </launch>

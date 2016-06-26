@@ -278,6 +278,9 @@ private slots:
 
     void on_radioButton_clicked(bool checked);
 
+    void on_pushButton_recalibrate_left_tip_clicked();
+
+    void on_pushButton_recalibrate_right_tip_clicked();
 
 private:
 

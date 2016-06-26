@@ -148,9 +148,20 @@ bool calibrateOffsets(double leftTipRadius, double rightTipRadius);
 bool calibrateCamera();
 
 //!
-//! \brief calibrateTip1 calibrates relative offset between top camera and tip1, based on bottom cam
+//! \brief calibrateTip calibrates relative offset between top camera and selected tip, based on bottom cam
+//! \param tipRadius of currently mounted tip
+//! \param selectedTip selects left or right tip
 //! \return true if calibration successfull, otherwise false
 //!
+bool calibrateTip(double tipRadius, TIP selectedTip);
+
+//!
+//! \brief recalibrateTip
+//! \param tipRadius
+//! \param selectedTip
+//! \return
+//!
+bool recalibrateTip(double tipRadius, TIP selectedTip);
 
 //!
 //! \brief calibrateTip1 calibrates relative offset between top camera and tip1, based on bottom cam
@@ -177,21 +188,6 @@ bool calibrateDispenserHeights();
 //! \param diameter of currently used tip
 //! \return true if calibration successfull, otherwise false
 bool calibrateDispenser(double diameter);
-
-//!
-//! \brief calibrateTip2 calibrates relative offset between top camera and tip2, based on bottom cam
-//! \param tipRadius of currently mounted tip
-//! \return true if calibration successfull, otherwise false
-//!
-bool calibrateTip2(double tipRadius);
-
-//!
-//! \brief calibrateTip calibrates relative offset between top camera and selected tip, based on bottom cam
-//! \param tipRadius of currently mounted tip
-//! \param selectedTip selects left or right tip
-//! \return true if calibration successfull, otherwise false
-//!
-bool calibrateTip(double tipRadius, TIP selectedTip);
 
 //!
 //!//! \brief calibrateTopCamDistortion performs a checkerboard calibration of top camera

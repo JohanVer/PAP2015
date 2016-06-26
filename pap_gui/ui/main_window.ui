@@ -40,7 +40,7 @@
        <locale language="English" country="Australia"/>
       </property>
       <property name="currentIndex">
-       <number>5</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="ComponentPlacement">
        <attribute name="title">
@@ -407,8 +407,8 @@
          <rect>
           <x>20</x>
           <y>420</y>
-          <width>301</width>
-          <height>291</height>
+          <width>331</width>
+          <height>411</height>
          </rect>
         </property>
         <property name="title">
@@ -484,9 +484,9 @@
         <widget class="QWidget" name="verticalLayoutWidget_12">
          <property name="geometry">
           <rect>
-           <x>110</x>
+           <x>120</x>
            <y>30</y>
-           <width>91</width>
+           <width>101</width>
            <height>161</height>
           </rect>
          </property>
@@ -592,31 +592,58 @@
           </item>
          </layout>
         </widget>
-        <widget class="QPushButton" name="pushButton_3">
+        <widget class="QWidget" name="verticalLayoutWidget_11">
          <property name="geometry">
           <rect>
-           <x>110</x>
-           <y>200</y>
-           <width>161</width>
-           <height>27</height>
+           <x>120</x>
+           <y>190</y>
+           <width>211</width>
+           <height>80</height>
           </rect>
          </property>
-         <property name="text">
-          <string>recalibrate left tip</string>
-         </property>
-        </widget>
-        <widget class="QPushButton" name="pushButton_4">
-         <property name="geometry">
-          <rect>
-           <x>110</x>
-           <y>230</y>
-           <width>161</width>
-           <height>27</height>
-          </rect>
-         </property>
-         <property name="text">
-          <string>recalibrate right tip</string>
-         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_58">
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_26">
+            <item>
+             <layout class="QVBoxLayout" name="verticalLayout_54">
+              <item>
+               <layout class="QHBoxLayout" name="horizontalLayout_27">
+                <item>
+                 <layout class="QVBoxLayout" name="verticalLayout_49">
+                  <item>
+                   <widget class="QPushButton" name="pushButton_recalibrate_left_tip">
+                    <property name="text">
+                     <string>recalibrate</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+                <item>
+                 <layout class="QVBoxLayout" name="verticalLayout_50">
+                  <item>
+                   <widget class="QPushButton" name="pushButton_recalibrate_right_tip">
+                    <property name="text">
+                     <string>Recalibrate</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+               </layout>
+              </item>
+              <item>
+               <widget class="QPushButton" name="calibrationButton_offsets">
+                <property name="text">
+                 <string>Calibrate Offsets</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+           </layout>
+          </item>
+         </layout>
         </widget>
        </widget>
        <widget class="QGroupBox" name="groupBox_5">
@@ -918,9 +945,9 @@
        <widget class="QWidget" name="verticalLayoutWidget_4">
         <property name="geometry">
          <rect>
-          <x>230</x>
+          <x>250</x>
           <y>450</y>
-          <width>91</width>
+          <width>101</width>
           <height>161</height>
          </rect>
         </property>
@@ -1389,7 +1416,7 @@
                              <x>0</x>
                              <y>0</y>
                              <width>293</width>
-                             <height>295</height>
+                             <height>294</height>
                             </rect>
                            </property>
                            <layout class="QVBoxLayout" name="verticalLayout_33">
@@ -4073,19 +4100,6 @@
          </property>
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
-         </property>
-        </widget>
-        <widget class="QPushButton" name="calibrationButton_offsets">
-         <property name="geometry">
-          <rect>
-           <x>0</x>
-           <y>30</y>
-           <width>101</width>
-           <height>27</height>
-          </rect>
-         </property>
-         <property name="text">
-          <string>Calib. Offsets</string>
          </property>
         </widget>
         <widget class="QPushButton" name="calibrationButton_ratios">

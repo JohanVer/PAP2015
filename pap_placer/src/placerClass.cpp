@@ -81,7 +81,7 @@ PlaceController::PlaceController() {
     tip1Offset.z = 50;
 
     tip2Offset.x = -94.08;
-    tip2Offset.y = 70.2;
+    tip2Offset.y = 76.5;
     tip2Offset.z = 50;
 
     cameraBottomOffset.x = 236;
@@ -113,7 +113,7 @@ PlaceController::PlaceController() {
     dispenser_surface_offset_ = 0;
 
     idleCoordinates_.x = 5.0;
-    idleCoordinates_.y = 5.0;
+    idleCoordinates_.y = 115.0;
     idleCoordinates_.z = 0.0;
 
     camera_projection_offset_.x = 0.2218;
