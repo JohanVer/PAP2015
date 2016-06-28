@@ -705,9 +705,9 @@ bool doubleCompPlacement() {
         ros::Duration(1).sleep();
 
         // Pick-up right tip component
-        box = placeController.getBoxNumber(TIP::LEFT_TIP);
+        box = placeController.getBoxNumber(TIP::RIGHT_TIP);
         if(box < 67) {
-            if(!goToBox(TIP::LEFT_TIP)) return false;
+            if(!goToBox(TIP::RIGHT_TIP)) return false;
         }
         std::cerr << "PLACER: Going to pickup coords of right tip" << std::endl;
         pickupCoord = placeController.getCompPickUpCoordinates(TIP::RIGHT_TIP);

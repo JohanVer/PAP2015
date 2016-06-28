@@ -111,11 +111,6 @@ PlaceController::PlaceController() {
 
     dispenser_height_offset_ = 25.15;
     dispenser_surface_offset_ = 0;
-
-    idleCoordinates_.x = 5.0;
-    idleCoordinates_.y = 5.0; // 115
-    idleCoordinates_.z = 0.0;
-
     camera_projection_offset_.x = -0.6272; // 0.2218;
     camera_projection_offset_.y = 0.28;//-0.25;
 
@@ -184,7 +179,7 @@ PlaceController::PlaceController() {
 
     pickRelQR_ = false;
     plane_calibrated_ = false;
-    vision_active_ = false;
+    vision_active_ = true;
 }
 
 PlaceController::~PlaceController() {
