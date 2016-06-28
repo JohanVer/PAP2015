@@ -268,14 +268,16 @@ void GerberPadParser::loadFile(std::string fileName, bool bottomLayer) {
                 PadInformation newPad;
 
                 bottomLayer_ = bottomLayer;
-                newPad.rect.setX((yParsed * 25.4));
+
                 if (bottomLayer) {
                     //ROS_INFO("Bottom layer detected");
-                    newPad.rect.setY((xParsed * 25.4));
+                    newPad.rect.setY((-xParsed * 25.4));
+                    newPad.rect.setX((yParsed * 25.4));
 
                 } else {
                     //ROS_INFO("Top layer detected");
                     newPad.rect.setY((xParsed * 25.4));
+                    newPad.rect.setX((yParsed * 25.4));
                 }
                 //newPad.rect.setY(yParsed * 25.4);
                 // Convert d-code using tabular out of whl file

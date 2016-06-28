@@ -520,8 +520,6 @@ void MainWindow::on_stopPlacementButton_clicked() {
 
     // Clear component queues
     placementPlanner.resetQueues();
-    //updatePlacementInfo();
-
     // Reset flags
     completePlacementRunning = false;
     singlePlacementRunning = false;
@@ -983,8 +981,12 @@ void MainWindow::on_startPlacementButton_clicked() {
         transformAllComp(allCompData);
         updateCurrentNozzles();
         if(placementPlanner.startCompletePlacement(qnode, allCompData, completePlacementRunning)) {
-            ui.label_compTotalLeft->setText(QString::number(placementPlanner.leftTipQueue.size()));
-            ui.label_compTotalRight->setText(QString::number(placementPlanner.rightTipQueue.size()));
+            if(placementPlanner.leftTipQueue.size() > 0) {
+                ui.label_compTotalLeft->setText(QString::number(placementPlanner.leftTipQueue.size()+1));
+            }
+            if(placementPlanner.rightTipQueue.size() > 0) {
+                ui.label_compTotalRight->setText(QString::number(placementPlanner.rightTipQueue.size()+1));
+            }
             updatePlacementInfo();
         }
     } else {
@@ -1023,8 +1025,12 @@ void MainWindow::on_placeSingleComponentButton_clicked() {
         transformSingleComp(currentComp, compPlaceData);
         updateCurrentNozzles();
         if(placementPlanner.startSingleCompPlacement(qnode, compPlaceData, singlePlacementRunning)) {
-            ui.label_compTotalLeft->setText(QString::number(placementPlanner.leftTipQueue.size()));
-            ui.label_compTotalRight->setText(QString::number(placementPlanner.rightTipQueue.size()));
+            if(placementPlanner.compToPlaceLeft.isWaiting) {
+                ui.label_compTotalLeft->setText(QString::number(1));
+            }
+            if(placementPlanner.compToPlaceRight.isWaiting) {
+                ui.label_compTotalRight->setText(QString::number(1));
+            }
             updatePlacementInfo();
         }
     } else {
@@ -1039,22 +1045,22 @@ void MainWindow::updatePlacementInfo() {
     if(placementPlanner.compToPlaceLeft.isWaiting) {
         ui.label_placementLeft->setText("Running");
         ui.label_currentCompLeft->setText(QString::fromStdString(placementPlanner.compToPlaceLeft.name));
-        ui.label_missingCompLeft->setText(QString::number(placementPlanner.leftTipQueue.size()));
+        ui.label_missingCompLeft->setText(QString::number(placementPlanner.leftTipQueue.size()+1));
     } else {
         ui.label_placementLeft->setText("Finished");
         ui.label_currentCompLeft->setText("-");
-        ui.label_missingCompLeft->setText(QString::number(placementPlanner.leftTipQueue.size()));
+        ui.label_missingCompLeft->setText(QString::number(0));
         ui.label_compTotalLeft->setText(QString::number(0));
     }
 
     if(placementPlanner.compToPlaceRight.isWaiting) {
         ui.label_placementRight->setText("Running");
         ui.label_currentCompRight->setText(QString::fromStdString(placementPlanner.compToPlaceRight.name));
-        ui.label_compTotalRight->setText(QString::number(placementPlanner.rightTipQueue.size()));
+        ui.label_missingCompRight->setText(QString::number(placementPlanner.rightTipQueue.size()+1));
     } else {
         ui.label_placementRight->setText("Finished");
         ui.label_currentCompRight->setText("-");
-        ui.label_missingCompRight->setText(QString::number(placementPlanner.rightTipQueue.size()));
+        ui.label_missingCompRight->setText(QString::number(0));
         ui.label_compTotalRight->setText(QString::number(0));
     }
 }
@@ -1309,11 +1315,22 @@ void MainWindow::placerStatusUpdated(int state, int status) {
 
     // Complete PCB placement running
     if (state == pap_common::PLACECOMPONENT_STATE
-            && status == pap_common::PLACER_FINISHED
-            && completePlacementRunning) {
+            && status == pap_common::PLACER_FINISHED) {
 
-        if(!placementPlanner.sendNextTask(qnode)){
-            completePlacementRunning = false;
+        //Remove placed components from table
+        for(int i = 0; i  < componentList.size(); i++) {
+            if((componentList.at(i).name.compare(placementPlanner.compToPlaceLeft.name) == 0) ||
+                    (componentList.at(i).name.compare(placementPlanner.compToPlaceRight.name) == 0)){
+                componentList.remove(i);
+            }
+        }
+        updateComponentTable();
+        updateComponentInformation();
+
+        if(completePlacementRunning) {
+            if(!placementPlanner.sendNextTask(qnode)){
+                completePlacementRunning = false;
+            }
         }
         updatePlacementInfo();
     }
@@ -1323,6 +1340,7 @@ void MainWindow::placerStatusUpdated(int state, int status) {
             && status == pap_common::PLACER_FINISHED
             && singlePlacementRunning) {
         singlePlacementRunning = false;
+        placementPlanner.resetQueues();
         updatePlacementInfo();
     }
 
@@ -1334,7 +1352,6 @@ void MainWindow::placerStatusUpdated(int state, int status) {
     p.setPen(pen);
     QBrush brushWhite(Qt::white);
     QBrush brushGreen(Qt::green);
-    QBrush brushYellow(Qt::yellow);
     QBrush brushRed(Qt::red);
 
     switch (status) {
@@ -1345,7 +1362,6 @@ void MainWindow::placerStatusUpdated(int state, int status) {
         p.setBrush(brushGreen);
         break;
     case pap_common::PLACER_FINISHED:
-        //p.setBrush(brushYellow);
         p.setBrush(brushGreen);
         break;
     case pap_common::PLACER_ERROR:
@@ -1355,9 +1371,6 @@ void MainWindow::placerStatusUpdated(int state, int status) {
     p.drawEllipse(5, 5, 10, 10);
 
     switch (state) {
-    case 1:
-        ui.label_indicator1->setPixmap(statePixmap);
-        break;
     case 2:
         break;
     case 3:
@@ -1393,7 +1406,6 @@ void MainWindow::statusUpdated() {
     } else {
         ui.powerLabel2->setText("off");
     }
-
     if ((qnode.getStatus(2)).energized) {
         ui.powerLabel3->setText("on");
     } else {

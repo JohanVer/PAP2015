@@ -472,6 +472,116 @@ void SlotSelectorDialog::on_autoSlotSelectButton_clicked() {
 	paintSlots();
 }
 
+int SlotSelectorDialog::rightTipSlotAvailable(float requiredArea) {
+    /* First try: Small boxes */
+    if (requiredArea < safetyFactor * 100.00) {
+        for (size_t i = 37; i < 47; i++) {
+            if(usedSlots_[i] == false)
+                return i;
+        }
+    /* Second try: Middle boxes */
+    } else if (requiredArea < safetyFactor * 225.00) {
+        if(usedSlots_[51] == false) {
+            return 51;
+        } else if(usedSlots_[52] == false) {
+            return 52;
+        } else if(usedSlots_[57] == false) {
+            return 57;
+        } else if(usedSlots_[58] == false) {
+            return 58;
+        }
+    /* Third try: Large boxes */
+    } else if (requiredArea < safetyFactor * 400.00){
+        if(usedSlots_[61] == false) {
+            return 61;
+        } else if(usedSlots_[62] == false) {
+            return 62;
+        } else if(usedSlots_[65] == false) {
+            return 65;
+        } else if(usedSlots_[66] == false) {
+            return 66;
+        }
+    }
+    return -1;
+}
+
+int SlotSelectorDialog::leftTipSlotAvailable(float requiredArea) {
+    /* First try: Small boxes */
+    if (requiredArea < safetyFactor * 100.00) {
+        for (size_t i = 0; i < 37; i++) {
+            if(usedSlots_[i] == false)
+                return i;
+        }
+    /* Second try: Middle boxes */
+    } else if (requiredArea < safetyFactor * 225.00) {
+        for (size_t i = 47; i < 51; i++) {
+            if(usedSlots_[i] == false)
+                return i;
+        }
+        for (size_t i = 53; i < 57; i++) {
+            if(usedSlots_[i] == false)
+                return i;
+        }
+    /* Third try: Large boxes */
+    } else if (requiredArea < safetyFactor * 400.00){
+        if(usedSlots_[59] == false) {
+            return 59;
+        } else if(usedSlots_[60] == false) {
+            return 60;
+        } else if(usedSlots_[63] == false) {
+            return 63;
+        } else if(usedSlots_[64] == false) {
+            return 64;
+        }
+    }
+}
+
+void SlotSelectorDialog::on_equalizedAutoSlotSelectButton_clicked() {
+    // Update missing part List
+    missingPartListActive = true;
+    updateMissingPartList();
+
+    int leftTipComponentCount = 0;
+    int rightTipComponentCount = 0;
+
+    bool allFound = true;
+    // Iterate over missingPartList
+    for (size_t part_index=0; part_index < missingPartList.size(); part_index++) {
+
+        /* Get package information */
+        float length, width;
+        getCompDimensions(missingPartList.at(part_index).package, missingPartList.at(part_index).value, &length, &width);
+        int compNumber = missingPartList.at(part_index).count;
+        float totCompArea = length * width * compNumber;
+
+        int slotID = rightTipSlotAvailable(totCompArea);
+        if((rightTipComponentCount <= leftTipComponentCount) && slotID != -1) {
+            setSlot(part_index, slotID);
+            rightTipComponentCount += compNumber;
+        } else {
+            slotID = leftTipSlotAvailable(totCompArea);
+            if(slotID > -1) {
+                setSlot(part_index, slotID);
+                leftTipComponentCount += compNumber;
+            } else {
+                allFound = false;
+            }
+        }
+    }
+
+    if(!allFound){
+        updateMissingPartList();
+        QMessageBox msgBox;
+        msgBox.setText("There are parts left that don't fit into any slot!");
+        msgBox.exec();
+        msgBox.close();
+    } else {
+        missingPartListActive = false;
+    }
+    updateTable();
+    paintSlots();
+}
+
 void SlotSelectorDialog::setSlot(int compIndex, int slot) {
 
 	int index = compIndex;

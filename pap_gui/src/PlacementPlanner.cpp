@@ -38,6 +38,9 @@ bool PlacementPlanner::startSingleCompPlacement(pap_gui::QNode& node, ComponentP
         std::cerr << "box not reachable" << std::endl;
     }
 
+    compToPlaceRight.isWaiting = false;
+    compToPlaceLeft.isWaiting = false;
+
     // Select tip, update placement data and start process
     if(checkTipSize(leftTipDiameter, length, width) && boxReachable(box, TIP::LEFT_TIP)) {               // Left nozzle suitable
         QString message =
@@ -48,6 +51,8 @@ bool PlacementPlanner::startSingleCompPlacement(pap_gui::QNode& node, ComponentP
         msgBox.addButton(QMessageBox::No);
         msgBox.setDefaultButton(QMessageBox::No);
         if (msgBox.exec() == QMessageBox::Yes) {
+            compToPlaceLeft = compToPlace;
+            compToPlaceLeft.isWaiting = true;
             node.sendTask(pap_common::PLACER, pap_common::UPDATE_PLACER,
                                    compToPlace, TIP::LEFT_TIP);
             node.sendTask(pap_common::PLACER, pap_common::START_SINGLE_PLACEMENT);
@@ -65,6 +70,8 @@ bool PlacementPlanner::startSingleCompPlacement(pap_gui::QNode& node, ComponentP
         msgBox.addButton(QMessageBox::No);
         msgBox.setDefaultButton(QMessageBox::No);
         if (msgBox.exec() == QMessageBox::Yes) {
+            compToPlaceRight = compToPlace;
+            compToPlaceRight.isWaiting = true;
             node.sendTask(pap_common::PLACER, pap_common::UPDATE_PLACER,
                                    compToPlace, TIP::RIGHT_TIP);
             node.sendTask(pap_common::PLACER, pap_common::START_SINGLE_PLACEMENT);
@@ -226,6 +233,8 @@ bool PlacementPlanner::checkTipSize(float tipDiameter, float length, float width
 void PlacementPlanner::resetQueues() {
     while(!leftTipQueue.empty()) leftTipQueue.pop();
     while(!rightTipQueue.empty()) rightTipQueue.pop();
+    compToPlaceRight.isWaiting = false;
+    compToPlaceLeft.isWaiting = false;
 }
 
 bool PlacementPlanner::sendNextTask(pap_gui::QNode& node) {

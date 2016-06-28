@@ -116,8 +116,8 @@ PlaceController::PlaceController() {
     idleCoordinates_.y = 5.0; // 115
     idleCoordinates_.z = 0.0;
 
-    camera_projection_offset_.x = 0.2218;
-    camera_projection_offset_.y = -0.25;
+    camera_projection_offset_.x = -0.6272; // 0.2218;
+    camera_projection_offset_.y = 0.28;//-0.25;
 
     // Height for sucking a component (normal chip, not a tape)
     largeBoxHeight_ = 18.2;
@@ -184,7 +184,7 @@ PlaceController::PlaceController() {
 
     pickRelQR_ = false;
     plane_calibrated_ = false;
-    vision_active_ = true;
+    vision_active_ = false;
 }
 
 PlaceController::~PlaceController() {
@@ -491,29 +491,19 @@ int PlaceController::angleToSteps(float angle, TIP usedTip) {
     std::cerr << "Angle: " << angle << ", steps: " << steps << std::endl;
 
     if(usedTip == TIP::LEFT_TIP) {
-//        if((leftTipRotSteps + steps) > 100) {
-//          steps = steps - 200;                     // full rotation = 200 Steps
-//        } else if((leftTipRotSteps + steps) < -100) {
-//          steps = 200 - steps;
-//        }
         leftTipRotSteps = (leftTipRotSteps + steps)%200;
         if(leftTipRotSteps < 0) {
           leftTipRotSteps = 200 + leftTipRotSteps;
         }
 
     } else {
-//        if((rightTipRotSteps + steps) > 100) {
-//          steps = steps - 200;                     // full rotation = 200 Steps
-//        } else if((rightTipRotSteps + steps) < -100) {
-//          steps = 200 - steps;
-//        }
         rightTipRotSteps = (rightTipRotSteps + steps)%200;
         if(rightTipRotSteps < 0) {
           rightTipRotSteps = 200 + rightTipRotSteps;
         }
     }
-    std::cerr << "Current steps: " << leftTipRotSteps << ", " << rightTipRotSteps << std::endl;
-    std::cerr << "Current angles: " << stepsToAngle(leftTipRotSteps) << ", " << stepsToAngle(rightTipRotSteps) << std::endl;
+    std::cerr << "PLACER: Current steps: " << leftTipRotSteps << ", " << rightTipRotSteps << std::endl;
+    std::cerr << "PLACER: Current angles: " << stepsToAngle(leftTipRotSteps) << ", " << stepsToAngle(rightTipRotSteps) << std::endl;
     return steps;
 }
 
@@ -529,10 +519,10 @@ void PlaceController::updatePlacementData(ComponentPlacerData& data, TIP usedTip
     ComponentPlacerData* compToUpdate;
     if(usedTip == TIP::LEFT_TIP) {
         compToUpdate = &leftTipComponent;
-        std::cerr << "PlaceController: Placement data for left tip is updated" << std::endl;
+        std::cerr << "PLACER: Placement data for left tip is updated" << std::endl;
     } else {
         compToUpdate = &rightTipComponent;
-        std::cerr << "PlaceController: Placement data for right tip is updated" << std::endl;
+        std::cerr << "PLACER: Placement data for right tip is updated" << std::endl;
     }
 
     compToUpdate->box = data.box;
@@ -550,10 +540,10 @@ void PlaceController::updatePlacementData(ComponentPlacerData& data, TIP usedTip
     // Select corresponding vision
     if(compToUpdate->box <= 66) {
         compToUpdate->finderType = pap_vision::START_CHIP_FINDER;
-        std::cerr << "Chiper finder selected" << std::endl;
+        std::cerr << "PLACER: Chiper finder selected" << std::endl;
     } else {
         compToUpdate->finderType = pap_vision::START_TAPE_FINDER;
-        std::cerr << "Tape finder selected" << std::endl;
+        std::cerr << "PLACER: Tape finder selected" << std::endl;
     }
 }
 

@@ -713,17 +713,10 @@
            <x>0</x>
            <y>30</y>
            <width>141</width>
-           <height>201</height>
+           <height>181</height>
           </rect>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_52">
-          <item>
-           <widget class="QLabel" name="label_24">
-            <property name="text">
-             <string>IDLE</string>
-            </property>
-           </widget>
-          </item>
           <item>
            <widget class="QLabel" name="label_81">
             <property name="text">
@@ -767,17 +760,10 @@
            <x>140</x>
            <y>30</y>
            <width>31</width>
-           <height>201</height>
+           <height>181</height>
           </rect>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_53">
-          <item>
-           <widget class="QLabel" name="label_indicator1">
-            <property name="text">
-             <string/>
-            </property>
-           </widget>
-          </item>
           <item>
            <widget class="QLabel" name="label_indicator3">
             <property name="text">

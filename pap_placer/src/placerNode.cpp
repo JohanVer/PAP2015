@@ -879,12 +879,12 @@ bool goToBox(TIP usedTip) {
 
     arduino_client->setLEDTask(placeController.getBoxNumber(usedTip));
     Offset boxCoords = placeController.getBoxCoordinates(usedTip);
-    std::cerr << "Got box coordinates: " << boxCoords.x << ", " << boxCoords.y  << std::endl;
+    std::cerr << "PLACER: Got box coordinates: " << boxCoords.x << ", " << boxCoords.y  << std::endl;
     if(!driveToCoord(boxCoords.x, boxCoords.y, boxCoords.z))
         return false;
 
     if(placeController.vision_active_) {
-        std::cerr << "Got box - Vision started" << std::endl;
+        std::cerr << "PLACER: Got box - Vision started" << std::endl;
         float length = placeController.getComponentLenth(usedTip);
         float width = placeController.getComponentWidth(usedTip);
         float height = placeController.getComponentHeight(usedTip);
@@ -896,12 +896,12 @@ bool goToBox(TIP usedTip) {
 
         const Offset &camera_offset = placeController.getCameraProjectionOffset();
         placeController.setPickUpCorrectionOffset(res.data1 + camera_offset.x , res.data2 + camera_offset.y, res.data3);
-        ROS_INFO("PickUp correction offset: x:%f y:%f, rot:%f",res.data1, res.data2, res.data3);
+        //ROS_INFO("PickUp correction offset: x:%f y:%f, rot:%f",res.data1, res.data2, res.data3);
     }
 
 
     boxCoords = placeController.getCompCamCoordinates(usedTip);
-    std::cerr << "Got comp coordinates: " << boxCoords.x << ", " << boxCoords.y  << std::endl;
+    std::cerr << "PLACER: Got comp coordinates: " << boxCoords.x << ", " << boxCoords.y  << std::endl;
     ROS_INFO("Go to: x:%f y:%f z:%f", boxCoords.x, boxCoords.y, boxCoords.z);
     if(!driveToCoord(boxCoords.x, boxCoords.y, boxCoords.z))
         return false;

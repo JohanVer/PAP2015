@@ -185,14 +185,29 @@
   <widget class="QPushButton" name="autoSlotSelectButton">
    <property name="geometry">
     <rect>
-     <x>920</x>
-     <y>510</y>
+     <x>620</x>
+     <y>590</y>
      <width>131</width>
      <height>61</height>
     </rect>
    </property>
    <property name="text">
-    <string>Auto Slot Select</string>
+    <string>Simple Auto 
+Slot Select</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="equalizedAutoSlotSelectButton">
+   <property name="geometry">
+    <rect>
+     <x>770</x>
+     <y>590</y>
+     <width>131</width>
+     <height>61</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Equalized Auto 
+Slot Select</string>
    </property>
   </widget>
  </widget>

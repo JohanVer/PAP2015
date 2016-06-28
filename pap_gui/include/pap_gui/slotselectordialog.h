@@ -83,7 +83,13 @@ Q_SIGNALS:
     //!
 	void setLed(int indexOfSlot);
 
+private slots:
+    void on_equalizedAutoSlotSelectButton_clicked();
+
 private:
+
+    int leftTipSlotAvailable(float requiredArea);
+    int rightTipSlotAvailable(float requiredArea);
 
     //!
     //! \brief searchId searches for slot id clicked on
