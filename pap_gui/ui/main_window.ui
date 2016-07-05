@@ -40,7 +40,7 @@
        <locale language="English" country="Australia"/>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>5</number>
       </property>
       <widget class="QWidget" name="ComponentPlacement">
        <attribute name="title">
@@ -4091,9 +4091,9 @@
         <widget class="QPushButton" name="calibrationButton_ratios">
          <property name="geometry">
           <rect>
-           <x>110</x>
+           <x>0</x>
            <y>30</y>
-           <width>91</width>
+           <width>141</width>
            <height>27</height>
           </rect>
          </property>
@@ -4104,9 +4104,9 @@
         <widget class="QPushButton" name="calibrateTapeButton">
          <property name="geometry">
           <rect>
-           <x>210</x>
+           <x>160</x>
            <y>30</y>
-           <width>91</width>
+           <width>141</width>
            <height>27</height>
           </rect>
          </property>
@@ -4166,6 +4166,136 @@
           </widget>
          </item>
         </layout>
+       </widget>
+       <widget class="QGroupBox" name="groupBox_6">
+        <property name="geometry">
+         <rect>
+          <x>30</x>
+          <y>570</y>
+          <width>351</width>
+          <height>181</height>
+         </rect>
+        </property>
+        <property name="title">
+         <string>Top camera offset</string>
+        </property>
+        <widget class="Line" name="line_15">
+         <property name="geometry">
+          <rect>
+           <x>0</x>
+           <y>10</y>
+           <width>341</width>
+           <height>20</height>
+          </rect>
+         </property>
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+        </widget>
+        <widget class="QWidget" name="horizontalLayoutWidget">
+         <property name="geometry">
+          <rect>
+           <x>0</x>
+           <y>40</y>
+           <width>341</width>
+           <height>122</height>
+          </rect>
+         </property>
+         <layout class="QHBoxLayout" name="horizontalLayout_28">
+          <item>
+           <layout class="QVBoxLayout" name="verticalLayout_61">
+            <item>
+             <widget class="QLabel" name="label_24">
+              <property name="text">
+               <string>x-offset</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignCenter</set>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="horizontalLayout_29">
+              <item>
+               <widget class="QPushButton" name="decreaseCamOffsetX_pushButton">
+                <property name="text">
+                 <string>- 10 µm</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="increaseCamOffsetX_pushButton">
+                <property name="text">
+                 <string>+ 10 µm</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <widget class="QLabel" name="label_43">
+              <property name="text">
+               <string>y-offset</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignCenter</set>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="horizontalLayout_30">
+              <item>
+               <widget class="QPushButton" name="decreaseCamOffsetY_pushButton">
+                <property name="text">
+                 <string>- 10 µm</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="increaseCamOffsetY_pushButton">
+                <property name="text">
+                 <string>+ 10 µm</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QVBoxLayout" name="verticalLayout_62">
+            <item>
+             <layout class="QHBoxLayout" name="horizontalLayout_33"/>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="horizontalLayout_31">
+              <item>
+               <widget class="QLabel" name="camOffsetX_label">
+                <property name="text">
+                 <string/>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QVBoxLayout" name="verticalLayout_70"/>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="horizontalLayout_32">
+              <item>
+               <widget class="QLabel" name="camOffsetY_label">
+                <property name="text">
+                 <string/>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
        </widget>
       </widget>
      </widget>
