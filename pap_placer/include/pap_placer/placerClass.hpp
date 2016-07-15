@@ -289,10 +289,10 @@ public:
 
     bool vision_active_;
 
+    Offset camera_projection_offset_;
 
 private:
 
-    Offset camera_projection_offset_;
 
     // Relative correction feedback from vision for pick-up and place
     Offset PickUpCorrection, PlaceCorrection;

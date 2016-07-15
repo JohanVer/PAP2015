@@ -4173,7 +4173,7 @@
           <x>30</x>
           <y>570</y>
           <width>351</width>
-          <height>181</height>
+          <height>241</height>
          </rect>
         </property>
         <property name="title">
@@ -4219,14 +4219,14 @@
               <item>
                <widget class="QPushButton" name="decreaseCamOffsetX_pushButton">
                 <property name="text">
-                 <string>- 10 µm</string>
+                 <string>-</string>
                 </property>
                </widget>
               </item>
               <item>
                <widget class="QPushButton" name="increaseCamOffsetX_pushButton">
                 <property name="text">
-                 <string>+ 10 µm</string>
+                 <string>+</string>
                 </property>
                </widget>
               </item>
@@ -4247,14 +4247,14 @@
               <item>
                <widget class="QPushButton" name="decreaseCamOffsetY_pushButton">
                 <property name="text">
-                 <string>- 10 µm</string>
+                 <string>-</string>
                 </property>
                </widget>
               </item>
               <item>
                <widget class="QPushButton" name="increaseCamOffsetY_pushButton">
                 <property name="text">
-                 <string>+ 10 µm</string>
+                 <string>+</string>
                 </property>
                </widget>
               </item>
@@ -4295,6 +4295,19 @@
            </layout>
           </item>
          </layout>
+        </widget>
+        <widget class="QPushButton" name="startCamProjectionCalibration_pushButton">
+         <property name="geometry">
+          <rect>
+           <x>30</x>
+           <y>170</y>
+           <width>191</width>
+           <height>27</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Calib. cam projection</string>
+         </property>
         </widget>
        </widget>
       </widget>

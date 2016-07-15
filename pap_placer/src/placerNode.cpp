@@ -82,6 +82,18 @@ bool homeSystem() {
     return true;
 }
 
+bool calibrateCameraProjectionOffset() {
+
+    // Go to point
+    //if(!driveToCoord())
+    //    return false;
+
+    // Start vision and go to corrected coordinates
+
+    // Move tip to coreected position
+
+}
+
 
 bool calibrateOffsets(double leftTipRadius, double rightTipRadius) {
 
@@ -1348,6 +1360,30 @@ void placerCallback(const pap_common::TaskConstPtr& taskMsg) {
             break;
         }
 
+        case pap_common::START_CAM_PROJECTION_CALIBRATION: {
+
+        } break;
+
+        case pap_common::INCR_CAM_PROJECTION_OFFSET_X: {
+            if(!updateCamProjectionOffset(0.05, 0.0))
+                cerr << "updating camera projection offset failed" << endl;
+        } break;
+
+        case pap_common::DECR_CAM_PROJECTION_OFFSET_X: {
+            if(!updateCamProjectionOffset(-0.05, 0.0))
+                cerr << "updating camera projection offset failed" << endl;
+        } break;
+
+        case pap_common::INCR_CAM_PROJECTION_OFFSET_Y: {
+            if(!updateCamProjectionOffset(0.0, 0.05))
+                cerr << "updating camera projection offset failed" << endl;
+        } break;
+
+        case pap_common::DECR_CAM_PROJECTION_OFFSET_Y: {
+            if(!updateCamProjectionOffset(0.0, -0.05))
+                cerr << "updating camera projection offset failed" << endl;
+        } break;
+
         case pap_common::CALIBRATION_OFFSET: {
             std::cerr << "Tip radius: " << taskMsg->data1 << " (tip1), " << taskMsg->data2 << " (tip2)" << std::endl;
             if(!calibrateOffsets(taskMsg->data1, taskMsg->data2)) {
@@ -1446,6 +1482,18 @@ void placerCallback(const pap_common::TaskConstPtr& taskMsg) {
         }
     }
     }
+}
+
+bool updateCamProjectionOffset(double delta_x, double delta_y) {
+
+    placeController.camera_projection_offset_.x += delta_x;
+    placeController.camera_projection_offset_.y += delta_y;
+
+    if(!driveToCoord(placeController.lastDestination_.x+delta_x, placeController.lastDestination_.y+delta_y, placeController.lastDestination_.z)) {
+        ROS_ERROR("GOTO-Command failed");
+        return false;
+    }
+    return true;
 }
 
 void dispenserCallbackPlacer(const pap_common::DispenseTasksConstPtr& taskMsg) {

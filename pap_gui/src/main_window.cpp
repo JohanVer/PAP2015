@@ -3022,3 +3022,36 @@ void pap_gui::MainWindow::on_pushButton_recalibrate_right_tip_clicked()
         }
     }
 }
+
+void pap_gui::MainWindow::on_increaseCamOffsetX_pushButton_clicked()
+{
+    // Increase offset by 10 µm
+    qnode.sendTask(pap_common::PLACER, pap_common::INCR_CAM_PROJECTION_OFFSET_X);
+
+    // Update label
+    //double offset =
+    //ui.camOffsetX_label->setText();
+}
+
+void pap_gui::MainWindow::on_decreaseCamOffsetX_pushButton_clicked()
+{
+    //
+    qnode.sendTask(pap_common::PLACER, pap_common::DECR_CAM_PROJECTION_OFFSET_X);
+}
+
+
+void pap_gui::MainWindow::on_increaseCamOffsetY_pushButton_clicked()
+{
+    qnode.sendTask(pap_common::PLACER, pap_common::INCR_CAM_PROJECTION_OFFSET_Y);
+}
+
+void pap_gui::MainWindow::on_decreaseCamOffsetY_pushButton_clicked()
+{
+    qnode.sendTask(pap_common::PLACER, pap_common::DECR_CAM_PROJECTION_OFFSET_Y);
+}
+
+void pap_gui::MainWindow::on_startCamProjectionCalibration_pushButton_clicked()
+{
+    qnode.sendTask(pap_common::PLACER, pap_common::START_CAM_PROJECTION_CALIBRATION);
+
+}
