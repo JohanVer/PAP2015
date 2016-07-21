@@ -683,7 +683,7 @@ void PcbCvInterface::runVision(){
                                                               1000);
 
     //image_rect_color
-    image_transport::Subscriber camera1sub = it_.subscribe("/Camera1/image_raw",
+    image_transport::Subscriber camera1sub = it_.subscribe("/Camera1/image_rect_color",
                                                            2, &PcbCvInterface::imageCallback1, this);
     image_transport::Subscriber camera2sub = it_.subscribe("/Camera2/image_rect_color",
                                                            2, &PcbCvInterface::imageCallback2, this);

@@ -1,8 +1,8 @@
 #include <pap_placer/placerNode.hpp>
 
-#define PCB_CALIB_PLATE_DIFF 3.4
+#define PCB_CALIB_PLATE_DIFF 3.6
 #define CALIB_PCB_THICKNESS 1.6
-#define CALIB_PCB_CAMERA_FOCUS_DIFF 51.0
+#define CALIB_PLATE_TO_BOT_FOCUS 32.82
 
 ros::Publisher task_publisher, arduino_publisher_, placerStatus_publisher_;
 ros::Subscriber statusSubsriber_;
@@ -159,18 +159,19 @@ bool calibrateTipHeight(TIP selectedTip) {
 
     moveTip(selectedTip, false);         // Activate tip
 
+    std::cout << "Detected Height: " << res_motor.height << std::endl;
     if(selectedTip == TIP::LEFT_TIP) {
         placeController.leftTipPCBHeight_ = res_motor.height + PCB_CALIB_PLATE_DIFF;
         placeController.leftTipSuckingHeight_ = res_motor.height - CALIB_PCB_THICKNESS;
-        placeController.tip1Offset.z = res_motor.height + CALIB_PCB_CAMERA_FOCUS_DIFF;
-        if(placeController.tip1Offset.z > 50.0)
-            placeController.tip1Offset.z = 50.0;
+        placeController.tip1Offset.z = res_motor.height + CALIB_PLATE_TO_BOT_FOCUS;
+        if(placeController.tip1Offset.z > 58.0)
+            placeController.tip1Offset.z = 58.0;
     } else {
         placeController.rightTipPCBHeight_ = res_motor.height + PCB_CALIB_PLATE_DIFF;
         placeController.rightTipSuckingHeight_ = res_motor.height - CALIB_PCB_THICKNESS;
-        placeController.tip2Offset.z = res_motor.height + CALIB_PCB_CAMERA_FOCUS_DIFF;
-        if(placeController.tip2Offset.z > 50.0)
-            placeController.tip2Offset.z = 50.0;
+        placeController.tip2Offset.z = res_motor.height + CALIB_PLATE_TO_BOT_FOCUS;
+        if(placeController.tip2Offset.z > 58.0)
+            placeController.tip2Offset.z = 58.0;
     }
 
     return true;
@@ -456,16 +457,15 @@ bool calibrateQR() {
     ROS_INFO("PlacerState: GOTO_QR");
     Offset gotoOffset = placeController.BottomCam_QR_Offset_;
     ROS_INFO("Go to: x:%f y:%f z:%f", gotoOffset.x, gotoOffset.y, gotoOffset.z);
-
     if(!driveToCoord(gotoOffset.x, gotoOffset.y, gotoOffset.z))
         return false;
 
-    pickUp(placeController.largeBoxHeight_+1, TIP::LEFT_TIP);
+    pickUp(placeController.largeBoxHeight_+2, TIP::LEFT_TIP);
 
     ROS_INFO("PlacerState: CAM_QR");
     std::cerr << "Goto tip1\n";
     Offset QROffset = placeController.getTipCoordinates(TIP::LEFT_TIP);
-    QROffset.z += 1.0;
+    QROffset.z += 2.0;
     ROS_INFO("Go to: x:%f y:%f z:%f", QROffset.x, QROffset.y, QROffset.z);
 
     if(!driveToCoord(QROffset.x, QROffset.y, QROffset.z))

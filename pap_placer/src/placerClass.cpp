@@ -78,19 +78,19 @@ PlaceController::PlaceController() {
     //Relative offsets to camera
     tip1Offset.x = -95;
     tip1Offset.y = 0;
-    tip1Offset.z = 50;
+    tip1Offset.z = 50; // Will be overwritten
 
     tip2Offset.x = -94.08;
     tip2Offset.y = 76.5;
-    tip2Offset.z = 50;
+    tip2Offset.z = 50; // Will be overwritten
 
     cameraBottomOffset.x = 236;
     cameraBottomOffset.y = 195.65;
-    cameraBottomOffset.z = 8.17;
+    cameraBottomOffset.z = 9.17;
 
     dispenserTipOffset.x = -52.499;
     dispenserTipOffset.y = 38.988;
-    dispenserTipOffset.z = 36;
+    dispenserTipOffset.z = 36; // Will be overwritten
 
     corr_dispenser_vel_ = 0.0;
 
@@ -109,10 +109,10 @@ PlaceController::PlaceController() {
     dispenserCalibOffsetC.y = 90;
     dispenserCalibOffsetC.z = dispenserHeight_;
 
-    dispenser_height_offset_ = 25.15;
+    dispenser_height_offset_ = 29.22;
     dispenser_surface_offset_ = 0;
-    camera_projection_offset_.x = 0.0; //-0.6272; // 0.2218;
-    camera_projection_offset_.y = 0.0; //0.28;//-0.25;
+    camera_projection_offset_.x = 0.0;
+    camera_projection_offset_.y = 0.0;
 
     // Height for sucking a component (normal chip, not a tape)
     largeBoxHeight_ = 18.2;
@@ -132,18 +132,18 @@ PlaceController::PlaceController() {
     pcbOriginOffset.z = 25.6;
     pickUpAreaOffset.x = 108.42;	// + tape_x -> 449.85 = max.x destination
     pickUpAreaOffset.y = 261;
-    pickUpAreaOffset.z = 22;
+    pickUpAreaOffset.z = 21.61;
 
     // Calibration offsets - QR Code positions
     SLOT_QR_Offset_.x = 109.92;
     SLOT_QR_Offset_.y = 261.008;
-    SLOT_QR_Offset_.z = 22;
+    SLOT_QR_Offset_.z = 21.61;
     PCB_QR_Offset_.x = 293.04;
     PCB_QR_Offset_.y = 133.027;
     PCB_QR_Offset_.z = 25.6;
     TAPE_QR_Offset_.x = 389.554;
     TAPE_QR_Offset_.y = 110.429;
-    TAPE_QR_Offset_.z = 22;
+    TAPE_QR_Offset_.z = 20.4;
     BottomCam_QR_Offset_.x = 218;
     BottomCam_QR_Offset_.y = 177;
     BottomCam_QR_Offset_.z = 20.15;

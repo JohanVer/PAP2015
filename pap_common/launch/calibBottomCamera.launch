@@ -1,7 +1,6 @@
 <launch>
   <node name="calibCamera2" pkg="camera_calibration" type="cameracalibrator.py" 
-  	args="	--size 4x4 --square 0.00106
-  		--size 5x5 --square 0.00141" output="screen" >  	
+  	args="	--size 5x5 --square 0.00141" output="screen" >  	
   	<remap from="image" to="/Camera2/image_raw"/>
   	<remap from="camera" to="/Camera2"/>
   </node>  

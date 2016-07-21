@@ -9,6 +9,7 @@
 #include <opencv2/stitching/detail/blenders.hpp>
 #include <opencv2/stitching/detail/matchers.hpp>
 #include <opencv2/core.hpp>
+#include "opencv2/reg/map.hpp"
 #include "opencv2/reg/mapaffine.hpp"
 #include "opencv2/reg/mapshift.hpp"
 #include "opencv2/reg/mapprojec.hpp"

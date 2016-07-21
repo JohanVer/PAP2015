@@ -270,6 +270,7 @@ void ControllerInterface::execute_action(const pap_common::MotorControllerAction
 
             if(needle_touched_){
                 stop(pap_common::ZMOTOR);
+                ros::Duration(0.5).sleep();
                 if(checkAllControllers(controllerState1, controllerState2, controllerState3)){
                     pap_common::MotorControllerActionResult res;
                     res.height = controllerState3.position;
