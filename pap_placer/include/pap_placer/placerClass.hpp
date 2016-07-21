@@ -229,7 +229,7 @@ public:
     //! \param yDiff pick-up correction in y
     //! \param rotDiff pick-up rotational correction
     //!
-    void setPickUpCorrectionOffset(float xDiff, float yDiff, float rotDiff);
+    void setPickUpCorrectionOffset(float xDiff, float yDiff, float rotDiff, TIP usedTip);
 
     //!
     //! \brief angleToSteps converts a given angle into steps for a stepper motor with 1.8° resolution
@@ -295,7 +295,8 @@ private:
 
 
     // Relative correction feedback from vision for pick-up and place
-    Offset PickUpCorrection, PlaceCorrection;
+    Offset PlaceCorrection;
+    Offset leftTipPickUpCorrection, rightTipPickUpCorrection;
 
 
     double corr_dispenser_vel_;
