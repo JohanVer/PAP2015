@@ -78,24 +78,24 @@ PlaceController::PlaceController() {
     //Relative offsets to camera
     tip1Offset.x = -95;
     tip1Offset.y = 0;
-    tip1Offset.z = 50;
+    tip1Offset.z = 50; // Will be overwritten
 
     tip2Offset.x = -94.08;
     tip2Offset.y = 76.5;
-    tip2Offset.z = 50;
+    tip2Offset.z = 50; // Will be overwritten
 
     cameraBottomOffset.x = 236;
     cameraBottomOffset.y = 195.65;
-    cameraBottomOffset.z = 8.17;
+    cameraBottomOffset.z = 9.17;
 
     dispenserTipOffset.x = -52.499;
     dispenserTipOffset.y = 38.988;
-    dispenserTipOffset.z = 36;
+    dispenserTipOffset.z = 36; // Will be overwritten
 
     corr_dispenser_vel_ = 0.0;
 
     MovingHeight_ = 45.0;
-    dispenserHeight_ = 20.0;
+    dispenserHeight_ = 12.0;
     // CAL Point A
     dispenserCalibOffsetA.x = 175;
     dispenserCalibOffsetA.y = 117;
@@ -109,10 +109,10 @@ PlaceController::PlaceController() {
     dispenserCalibOffsetC.y = 90;
     dispenserCalibOffsetC.z = dispenserHeight_;
 
-    dispenser_height_offset_ = 25.15;
+    dispenser_height_offset_ = 29.22;
     dispenser_surface_offset_ = 0;
-    camera_projection_offset_.x = -0.6272; // 0.2218;
-    camera_projection_offset_.y = 0.28;//-0.25;
+    camera_projection_offset_.x = 0.0525;
+    camera_projection_offset_.y = -0.23;
 
     // Height for sucking a component (normal chip, not a tape)
     largeBoxHeight_ = 18.2;
@@ -124,7 +124,7 @@ PlaceController::PlaceController() {
 
     tipHeightCalibrationOffset_.x = 287;
     tipHeightCalibrationOffset_.y = 41.35;
-    tipHeightCalibrationOffset_.z = 30.0;
+    tipHeightCalibrationOffset_.z = 24;
 
     // Absolut offests
     pcbOriginOffset.x = 300;
@@ -132,18 +132,18 @@ PlaceController::PlaceController() {
     pcbOriginOffset.z = 25.6;
     pickUpAreaOffset.x = 108.42;	// + tape_x -> 449.85 = max.x destination
     pickUpAreaOffset.y = 261;
-    pickUpAreaOffset.z = 22;
+    pickUpAreaOffset.z = 21.61;
 
     // Calibration offsets - QR Code positions
     SLOT_QR_Offset_.x = 109.92;
     SLOT_QR_Offset_.y = 261.008;
-    SLOT_QR_Offset_.z = 22;
+    SLOT_QR_Offset_.z = 21.61;
     PCB_QR_Offset_.x = 293.04;
     PCB_QR_Offset_.y = 133.027;
     PCB_QR_Offset_.z = 25.6;
     TAPE_QR_Offset_.x = 389.554;
     TAPE_QR_Offset_.y = 110.429;
-    TAPE_QR_Offset_.z = 22;
+    TAPE_QR_Offset_.z = 20.4;
     BottomCam_QR_Offset_.x = 218;
     BottomCam_QR_Offset_.y = 177;
     BottomCam_QR_Offset_.z = 20.15;
@@ -164,10 +164,14 @@ PlaceController::PlaceController() {
     Checkerboard_bottom2_Offset_.z = 18.6;
 */
     // Correction offsets
-    PickUpCorrection.x = 0;
-    PickUpCorrection.y = 0;
-    PickUpCorrection.z = 0;
-    PickUpCorrection.rot = 0.0;
+    leftTipPickUpCorrection.x = 0.0;
+    leftTipPickUpCorrection.y = 0.0;
+    leftTipPickUpCorrection.z = 0.0;
+    leftTipPickUpCorrection.rot = 0.0;
+    rightTipPickUpCorrection.x = 0.0;
+    rightTipPickUpCorrection.y = 0.0;
+    rightTipPickUpCorrection.z = 0.0;
+    rightTipPickUpCorrection.rot = 0.0;
 
     Offset tmp;
     tmp.x = 0;
@@ -248,11 +252,11 @@ Offset PlaceController::getTipCoordinates(TIP usedTip) {
 
     Offset tipOffset = getTipRelativeCoordinates(usedTip);
     Offset tipCoordinate;
-    if(usedTip == TIP::LEFT_TIP) {       
+    if(usedTip == TIP::LEFT_TIP) {
         tipCoordinate.x = cameraBottomOffset.x + tipOffset.x;
         tipCoordinate.y = cameraBottomOffset.y + tipOffset.y;
         tipCoordinate.z = tipOffset.z;
-    } else {   
+    } else {
         tipCoordinate.x = cameraBottomOffset.x + tipOffset.x;
         tipCoordinate.y = cameraBottomOffset.y + tipOffset.y;
         tipCoordinate.z = tipOffset.z;
@@ -303,27 +307,30 @@ Offset PlaceController::getCompPickUpCoordinates(TIP usedTip) {
     Offset temp;
     ComponentPlacerData* currentComp;
     Offset tipOffset = getTipRelativeCoordinates(usedTip);
+    Offset correction;
 
     if(usedTip == TIP::LEFT_TIP) {
         currentComp = &leftTipComponent;
         temp.z = leftTipSuckingHeight_ + 10.0;
         temp.x = tipOffset.x;
         temp.y = tipOffset.y;
+        correction = leftTipPickUpCorrection;
     } else {
         currentComp = &rightTipComponent;
         temp.z = rightTipSuckingHeight_ + 10.0;
         temp.x = tipOffset.x;
         temp.y = tipOffset.y;
+        correction = rightTipPickUpCorrection;
     }
 
     if (currentComp->box < 67) {
         temp.x += (pickUpAreaOffset.x
                    + BoxOffsetTable[currentComp->box].x
-                + PickUpCorrection.x);
+                + correction.x);
         temp.y += (pickUpAreaOffset.y
                    + BoxOffsetTable[currentComp->box].y
-                + PickUpCorrection.y);
-        temp.rot = PickUpCorrection.rot + fmod(currentComp->rotation,180);
+                + correction.y);
+        temp.rot = correction.rot + fmod(currentComp->rotation,180);
 
     } else if ((currentComp->box >= 67) && (currentComp->box <= 86)) {
         // Its a tape
@@ -339,21 +346,24 @@ Offset PlaceController::getCompCamCoordinates(TIP usedTip) {
     Offset temp;
     ComponentPlacerData* currentComp;
     temp.z = pickUpAreaOffset.z;
+    Offset correction;
 
     if(usedTip == TIP::LEFT_TIP) {
         currentComp = &leftTipComponent;
+        correction = leftTipPickUpCorrection;
     } else {
         currentComp = &rightTipComponent;
+        correction = rightTipPickUpCorrection;
     }
 
     if (currentComp->box < 67) {
         temp.x = (pickUpAreaOffset.x
-                   + BoxOffsetTable[currentComp->box].x
-                + PickUpCorrection.x);
+                  + BoxOffsetTable[currentComp->box].x
+                + correction.x);
         temp.y = (pickUpAreaOffset.y
-                   + BoxOffsetTable[currentComp->box].y
-                + PickUpCorrection.y);
-        temp.rot = PickUpCorrection.rot + fmod(currentComp->rotation,180);
+                  + BoxOffsetTable[currentComp->box].y
+                + correction.y);
+        temp.rot = correction.rot + fmod(currentComp->rotation,180);
 
     } else if ((currentComp->box >= 67) && (currentComp->box <= 86)) {
         // Its a tape
@@ -371,16 +381,16 @@ float PlaceController::getCompSuckingHeight(TIP usedTip) {
 
     if(usedTip == TIP::LEFT_TIP) {
         if ((leftTipComponent.box >= 67) && (leftTipComponent.box <= 86)) {
-            return leftTipSuckingHeight_;
+            return leftTipSuckingHeight_ - 1.0;
         } else {
-            //return pickUpAreaOffset.z + leftTipComponent.height;
+            std::cout << "Left comp height: " << leftTipComponent.height << std::endl;
             return leftTipSuckingHeight_ + leftTipComponent.height;
         }
     } else {
         if ((rightTipComponent.box >= 67) && (rightTipComponent.box <= 86)) {
-            return rightTipSuckingHeight_;
+            return rightTipSuckingHeight_ - 1.0;
         } else {
-            //return pickUpAreaOffset.z + rightTipComponent.height;
+            std::cout << "Right comp height: " << rightTipComponent.height << std::endl;
             return rightTipSuckingHeight_ + rightTipComponent.height;
         }
     }
@@ -427,10 +437,16 @@ Offset PlaceController::getCameraProjectionOffset(){
 /******************************************************
 * Set correction offset for pickup
 ******************************************************/
-void PlaceController::setPickUpCorrectionOffset(float xDiff, float yDiff, float rotDiff) {
-    PickUpCorrection.x = xDiff;
-    PickUpCorrection.y = yDiff;
-    PickUpCorrection.rot = rotDiff;
+void PlaceController::setPickUpCorrectionOffset(float xDiff, float yDiff, float rotDiff, TIP usedTip) {
+    if(usedTip == TIP::LEFT_TIP) {
+        leftTipPickUpCorrection.x = xDiff;
+        leftTipPickUpCorrection.y = yDiff;
+        leftTipPickUpCorrection.rot = rotDiff;
+    } else {
+        rightTipPickUpCorrection.x = xDiff;
+        rightTipPickUpCorrection.y = yDiff;
+        rightTipPickUpCorrection.rot = rotDiff;
+    }
 }
 
 
@@ -488,13 +504,13 @@ int PlaceController::angleToSteps(float angle, TIP usedTip) {
     if(usedTip == TIP::LEFT_TIP) {
         leftTipRotSteps = (leftTipRotSteps + steps)%200;
         if(leftTipRotSteps < 0) {
-          leftTipRotSteps = 200 + leftTipRotSteps;
+            leftTipRotSteps = 200 + leftTipRotSteps;
         }
 
     } else {
         rightTipRotSteps = (rightTipRotSteps + steps)%200;
         if(rightTipRotSteps < 0) {
-          rightTipRotSteps = 200 + rightTipRotSteps;
+            rightTipRotSteps = 200 + rightTipRotSteps;
         }
     }
     std::cerr << "PLACER: Current steps: " << leftTipRotSteps << ", " << rightTipRotSteps << std::endl;

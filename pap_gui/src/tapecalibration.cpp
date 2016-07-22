@@ -2,7 +2,7 @@
 #include "ui_tapecalibration.h"
 
 #define HOLE_DIAMETER 0.6
-#define WIDTH_DISTANCE 3.5
+#define WIDTH_DISTANCE 3.4
 
 namespace pap_gui{
 TapeCalibrater::TapeCalibrater(pap_gui::QNode &ros_node):
@@ -21,7 +21,7 @@ bool TapeCalibrater::calibrateTape(int tapeNumber, float componentWidth,
     Offset temp = TapeOffsetTable[tapeNumber];
     temp.x += 108.42;
     temp.y += 261;
-    temp.z = 20.2;
+    temp.z = 21.61;
 
     ros_node_.LEDTask(pap_common::SETTOPLED, 0);
 
@@ -52,7 +52,7 @@ bool TapeCalibrater::calibrateTape(int tapeNumber, float componentWidth,
     pap_common::VisionResult res;
 
     if(!vision_send_functions::sendVisionTask(ros_node_.getVisionClientRef(), pap_vision::SEARCH_CIRCLE, pap_vision::CAMERA_TOP, HOLE_DIAMETER, 0.0, (float) true, res, 10))
-        return true;
+        return false;
 
     ros_node_.LEDTask(pap_common::RESETTOPLED, 0);
     double xTapeCalibration = res.data1;

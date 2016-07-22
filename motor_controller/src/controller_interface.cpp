@@ -218,7 +218,7 @@ void ControllerInterface::execute_action(const pap_common::MotorControllerAction
 
     case pap_common::COORD:
 
-        if(command->data1 > 445 || command->data2 > 275 || command->data3 > 60 || command->data1 < 0 || command->data2 < 0 || command->data3 < 0){
+        if(command->data1 > 450 || command->data2 > 275 || command->data3 > 60 || command->data1 < 0 || command->data2 < 0 || command->data3 < 0){
             while(1){
                 std::cerr << "MOTOR INPUT WAS OUT OF BOUNDS !!! PLEASE RESTART! \n";
                 ros::Duration(1).sleep();
@@ -269,7 +269,7 @@ void ControllerInterface::execute_action(const pap_common::MotorControllerAction
             }
 
             if(needle_touched_){
-                stop(pap_common::ZMOTOR);
+                stop(pap_common::ZMOTOR);;
                 if(checkAllControllers(controllerState1, controllerState2, controllerState3)){
                     pap_common::MotorControllerActionResult res;
                     res.height = controllerState3.position;

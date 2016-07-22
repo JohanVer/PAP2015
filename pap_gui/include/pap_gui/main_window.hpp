@@ -301,6 +301,16 @@ private slots:
 
     void on_pushButton_recalibrate_right_tip_clicked();
 
+    void on_decreaseCamOffsetX_pushButton_clicked();
+
+    void on_increaseCamOffsetX_pushButton_clicked();
+
+    void on_decreaseCamOffsetY_pushButton_clicked();
+
+    void on_increaseCamOffsetY_pushButton_clicked();
+
+    void on_startCamProjectionCalibration_pushButton_clicked();
+
 private:
 
     Ui::MainWindowDesign ui;

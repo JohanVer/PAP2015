@@ -534,6 +534,7 @@ int SlotSelectorDialog::leftTipSlotAvailable(float requiredArea) {
             return 64;
         }
     }
+    return -1;
 }
 
 void SlotSelectorDialog::on_equalizedAutoSlotSelectButton_clicked() {

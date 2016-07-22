@@ -155,6 +155,7 @@ MainWindow::MainWindow(int version, int argc, char** argv, QWidget *parent) :
     valve8Active_ = false;
     alreadyFlipped_ = false;
 
+
     tip1Pos_ = 0.0;
     tip2Pos_ = 0.0;
 
@@ -2048,8 +2049,8 @@ void MainWindow::on_padViewGenerate_button_clicked() {
 void MainWindow::padPressed(int numberOfFiducial, QPointF padPos) {
     id_ = padParser.searchId(padPos);
     setFiducialPads(numberOfFiducial,
-                    padParser.padInformationArray_[id_].rect.x(),
-                    padParser.padInformationArray_[id_].rect.y());
+                    padParser.padInformationArrayPrint_[id_].rect.x(),
+                    padParser.padInformationArrayPrint_[id_].rect.y());
 }
 
 void MainWindow::gotoPad(QPointF padPos) {
@@ -2671,15 +2672,15 @@ void MainWindow::on_calibrateTapeButton_clicked(void) {
     for (size_t i = 0; i < componentList.size(); i++) {
         if ((componentList.at(i).box >= 67)
                 && (componentList.at(i).box <= 86)) {
-            ROS_INFO("GUI: Calibrated tape: %d", componentList.at(i).box);
             int tape_nr = componentList.at(i).box - 67;
             if (calibratedTapes.indexOf(tape_nr) == -1) {
                 calibratedTapes.append(tape_nr);
                 if(tape_calibrater_->calibrateTape(tape_nr, componentList.at(i).width,
                                                    componentList.at(i).length)){
                     startTapePartSelector(tape_nr);
+                    ROS_INFO("GUI: Calibrated tape: %d", componentList.at(i).box);
                 }
-                ROS_INFO("GUI: Index : %d Width: %f Height: %f", tape_nr,
+                ROS_INFO("GUI: Tape nr: %d, Width: %f Height: %f", tape_nr,
                          componentList.at(i).width, componentList.at(i).length);
             }
         }
@@ -2789,11 +2790,11 @@ void pap_gui::MainWindow::on_scanButton_clicked()
     if(qnode.pcbHeight_ == 0 || qnode.pcbWidth_ == 0) return;
 
     // Lower left corner of pcb holder
-    const QVector3D init(311.204, 153.019, 27.0);
+    const QVector3D init(311.204, 153.019, 25.6);
     const QVector2D pcb_size(qnode.pcbHeight_, qnode.pcbWidth_);
 
     // Calculate waypoints for gathering all images for the stitching process
-    std::vector<QVector3D> waypoints = stitch_waypoint_maker::generateWaypoints(init, 50, pcb_size, 31 , 31, 27.0);
+    std::vector<QVector3D> waypoints = stitch_waypoint_maker::generateWaypoints(init, 50, pcb_size, 31 , 31, 25.6);
 
     qnode.LEDTask(pap_common::SETTOPLED, 0);
     // Drive along waypoints
@@ -3021,4 +3022,37 @@ void pap_gui::MainWindow::on_pushButton_recalibrate_right_tip_clicked()
             qnode.sendTask(pap_common::PLACER, pap_common::RECALIBRATE_RIGHT_TIP, leftTipRadius, rightTipRadius, 0.0);
         }
     }
+}
+
+void pap_gui::MainWindow::on_increaseCamOffsetX_pushButton_clicked()
+{
+    // Increase offset by 10 µm
+    qnode.sendTask(pap_common::PLACER, pap_common::INCR_CAM_PROJECTION_OFFSET_X);
+
+    // Update label
+    //double offset =
+    //ui.camOffsetX_label->setText();
+}
+
+void pap_gui::MainWindow::on_decreaseCamOffsetX_pushButton_clicked()
+{
+    //
+    qnode.sendTask(pap_common::PLACER, pap_common::DECR_CAM_PROJECTION_OFFSET_X);
+}
+
+
+void pap_gui::MainWindow::on_increaseCamOffsetY_pushButton_clicked()
+{
+    qnode.sendTask(pap_common::PLACER, pap_common::INCR_CAM_PROJECTION_OFFSET_Y);
+}
+
+void pap_gui::MainWindow::on_decreaseCamOffsetY_pushButton_clicked()
+{
+    qnode.sendTask(pap_common::PLACER, pap_common::DECR_CAM_PROJECTION_OFFSET_Y);
+}
+
+void pap_gui::MainWindow::on_startCamProjectionCalibration_pushButton_clicked()
+{
+    qnode.sendTask(pap_common::PLACER, pap_common::START_CAM_PROJECTION_CALIBRATION);
+
 }

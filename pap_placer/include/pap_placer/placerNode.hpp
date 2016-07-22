@@ -60,6 +60,14 @@ void placerCallback(const pap_common::TaskConstPtr& taskMsg);
 void dispenserCallbackPlacer(const pap_common::DispenseTasksConstPtr &taskMsg);
 
 //!
+//! \brief updateCamProjectionOffset set new cam projection offsets and moves tip to new position
+//! \param delta_x
+//! \param delta_y
+//! \return
+//!
+bool updateCamProjectionOffset(double delta_x, double delta_y);
+
+//!
 //! \brief sendPlacerStatus broadcasts current placer status
 //! \param process process the placer want to update
 //! \param status placer status within corresponding process

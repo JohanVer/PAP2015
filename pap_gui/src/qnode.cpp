@@ -33,6 +33,8 @@ QNode::QNode(int argc, char** argv) : init_argc(argc), init_argv(argv) {
     fakePadPos_ = false;
     pcbWidth_ = 0;
     pcbHeight_ = 0;
+
+
 }
 
 QNode::~QNode() {
@@ -84,6 +86,10 @@ bool QNode::init() {
     vision_action_client = std::unique_ptr<vision_send_functions::Client>(new vision_send_functions::Client("vision_actions", true));
 
     start();
+
+    // Reset tip 2 actuator
+    sendRelaisTask(6, false);
+    sendRelaisTask(3, true);
     return true;
 }
 
