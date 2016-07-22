@@ -6,9 +6,13 @@
  */
 
 #include <pap_gui/PlacementPlanner.hpp>
+#include "../../pap_placer/include/pap_placer/offsetTable.hpp"
 #include <QMessageBox>
 
 #define TIP_SIZE_SAFETY_FACTOR 0.7
+
+#define TIP_DISTANCE_Y 100.0
+#define MAX_DOUBLE_PLACEMENT_DIST 150.0
 
 PlacementPlanner::PlacementPlanner() {
     // TODO Auto-generated constructor stub
@@ -31,13 +35,6 @@ bool PlacementPlanner::startSingleCompPlacement(pap_gui::QNode& node, ComponentP
     float length = compToPlace.length;
     float width = compToPlace.width;
     int box = compToPlace.box;
-
-    if(checkTipSize(leftTipDiameter, length, width)) {
-        std::cerr << "box reachable" << std::endl;
-    } else {
-        std::cerr << "box not reachable" << std::endl;
-    }
-
     compToPlaceRight.isWaiting = false;
     compToPlaceLeft.isWaiting = false;
 
@@ -95,26 +92,112 @@ bool PlacementPlanner::startCompletePlacement(pap_gui::QNode& node, vector<Compo
     std::cerr << "PlacementPlanner: compList size " << allCompToPlace.size() << std::endl;
     int nonSuitableComps = 0;
 
-    // Push components to suitable tip queue
+    vector<bool> componentAssigned(allCompToPlace.size(), false);
+    float length, width;
+    int box;
+    float minDist = MAX_DOUBLE_PLACEMENT_DIST;
+    int compIndex = -1;
+
+    // Iterate over all components not assigned to a tip
     for(int i = 0; i <  allCompToPlace.size(); i++) {
 
-        float length = allCompToPlace[i].length;
-        float width = allCompToPlace[i].width;
-        int box = allCompToPlace[i].box;
+        // If component has not been assigned to a tip
+        if(!componentAssigned[i]) {
+            length = allCompToPlace[i].length;
+            width = allCompToPlace[i].width;
+            box = allCompToPlace[i].box;
 
-        // Select tip and push component to corresponding queue
-        if(checkTipSize(rightTipDiameter, length, width) && boxReachable(box, TIP::RIGHT_TIP)) {            // Right nozzle suitable
-            // Right tip can be used for this component and box is reachable
-            rightTipQueue.push(allCompToPlace[i]);
+            // Check if right tip can be used for this component and box is reachable
+            if(checkTipSize(rightTipDiameter, length, width) && boxReachable(box, TIP::RIGHT_TIP)) {
+                rightTipQueue.push(allCompToPlace[i]);
+                componentAssigned[i]  = true;
 
-        } else if(checkTipSize(leftTipDiameter, length, width) && boxReachable(box, TIP::LEFT_TIP)) {       // Left nozzle suitable
-            // Left tip can be used for this component and box is reachable
-            leftTipQueue.push(allCompToPlace[i]);
+                QPointF optLeftTipBoxPos = getBoxPosition(box);
+                optLeftTipBoxPos.setY(optLeftTipBoxPos.y() + TIP_DISTANCE_Y);
+                minDist = MAX_DOUBLE_PLACEMENT_DIST;
+                compIndex = -1;
 
-        } else {       // No nozzles suitable
-            nonSuitableComps++;
+                // Find closest component for left tip by iterating over all missing components
+                for(int j = 0; j <  allCompToPlace.size(); j++) {
+
+                    // If component has not been assigned yet
+                    if(!componentAssigned[j]) {
+                        length = allCompToPlace[j].length;
+                        width = allCompToPlace[j].width;
+                        box = allCompToPlace[j].box;
+
+                        // Check if left tip can be used for this component and box is reachable
+                        if(checkTipSize(leftTipDiameter, length, width) && boxReachable(box, TIP::LEFT_TIP)) {
+
+                            // Compute euclidean distance
+                            QPointF boxPos = getBoxPosition(box);
+                            float dist = computeDistance(optLeftTipBoxPos, boxPos);
+
+                            if(dist < minDist) {
+                                minDist = dist;
+                                compIndex = j;
+                            }
+                        }
+                    }
+                }
+
+                if(compIndex != -1) {
+                    // Check if left tip can be used for this component and box is reachable
+                    leftTipQueue.push(allCompToPlace[compIndex]);
+                    componentAssigned[compIndex]  = true;
+                } else {
+                    // Include NOP entry to wait with left tip until right tip placement finished
+                    ComponentPlacerData nop;
+                    nop.box = -1;
+                    leftTipQueue.push(nop);
+                }
+            }
         }
     }
+
+    std::cerr << "PlacementPlanner: left tip queue size " << leftTipQueue.size() << std::endl;
+    std::cerr << "PlacementPlanner: right tip queue size " << rightTipQueue.size() << std::endl;
+
+    // Iterate over all components not assigned yet - right tip not suitable!
+    for(int i = 0; i <  allCompToPlace.size(); i++) {
+
+        // If component has not been assigned to a tip
+        if(!componentAssigned[i]) {
+            length = allCompToPlace[i].length;
+            width = allCompToPlace[i].width;
+            box = allCompToPlace[i].box;
+
+            // Check if left tip can be used for this component and box is reachable
+            if(checkTipSize(leftTipDiameter, length, width) && boxReachable(box, TIP::LEFT_TIP)) {
+                leftTipQueue.push(allCompToPlace[i]);
+                componentAssigned[i]  = true;
+            } else {
+                nonSuitableComps++;
+            }
+        }
+    }
+
+
+    // Push components to suitable tip queue
+//    for(int i = 0; i <  allCompToPlace.size(); i++) {
+
+//        float length = allCompToPlace[i].length;
+//        float width = allCompToPlace[i].width;
+//        int box = allCompToPlace[i].box;
+
+//        // Select tip and push component to corresponding queue
+//        if(checkTipSize(rightTipDiameter, length, width) && boxReachable(box, TIP::RIGHT_TIP)) {            // Right nozzle suitable
+//            // Right tip can be used for this component and box is reachable
+//            rightTipQueue.push(allCompToPlace[i]);
+
+//        } else if(checkTipSize(leftTipDiameter, length, width) && boxReachable(box, TIP::LEFT_TIP)) {       // Left nozzle suitable
+//            // Left tip can be used for this component and box is reachable
+//            leftTipQueue.push(allCompToPlace[i]);
+
+//        } else {       // No nozzles suitable
+//            nonSuitableComps++;
+//        }
+//    }
 
     std::cerr << "PlacementPlanner: left tip queue size " << leftTipQueue.size() << std::endl;
     std::cerr << "PlacementPlanner: right tip queue size " << rightTipQueue.size() << std::endl;
@@ -166,11 +249,14 @@ bool PlacementPlanner::startCompletePlacement(pap_gui::QNode& node, vector<Compo
     }
 
     if(!(leftTipQueue.empty())) {                               // Left tip queue is non-empty
-        compToPlaceLeft = leftTipQueue.front();
+        ComponentPlacerData next = leftTipQueue.front();
         leftTipQueue.pop();
-        compToPlaceLeft.isWaiting = true;
-        node.sendTask(pap_common::PLACER, pap_common::UPDATE_PLACER,
-                               compToPlaceLeft, TIP::LEFT_TIP);
+        if(next.box != -1) {
+            compToPlaceLeft = next;
+            compToPlaceLeft.isWaiting = true;
+            node.sendTask(pap_common::PLACER, pap_common::UPDATE_PLACER,
+                          compToPlaceLeft, TIP::LEFT_TIP);
+        }
     } else {
         resetCompData(compToPlaceLeft);
     }
@@ -178,6 +264,25 @@ bool PlacementPlanner::startCompletePlacement(pap_gui::QNode& node, vector<Compo
     completePlacementRunning = true;
     node.sendTask(pap_common::PLACER, pap_common::START_COMPLETE_PLACEMENT);
     return true;
+}
+
+QPointF PlacementPlanner::getBoxPosition(const int box) {
+
+    QPointF boxPos(-1.0,-1.0);
+    if (box < 67) {
+        boxPos.setX(BoxOffsetTable[box].x);
+        boxPos.setY(BoxOffsetTable[box].y);
+    } else if ((box >= 67) && (box <= 86)) {
+        boxPos.setX(TapeOffsetTable[box-67].x);
+        boxPos.setY(TapeOffsetTable[box-67].y);
+    }
+    return boxPos;
+}
+
+float PlacementPlanner::computeDistance(const QPointF& p1, const QPointF& p2) {
+    float diffY = p1.y() - p2.y();
+    float diffX = p1.x() - p2.x();
+    return sqrt((diffY * diffY) + (diffX * diffX));
 }
 
 void PlacementPlanner::resetCompData(ComponentPlacerData& comp) {
@@ -255,21 +360,26 @@ bool PlacementPlanner::sendNextTask(pap_gui::QNode& node) {
                                compToPlaceRight, TIP::RIGHT_TIP);
 
     } else if(rightTipQueue.empty()) {                      // Left tip queue is non-empty
-        compToPlaceLeft = leftTipQueue.front();
+        ComponentPlacerData next = leftTipQueue.front();
         leftTipQueue.pop();
-        compToPlaceLeft.isWaiting = true;
-        node.sendTask(pap_common::PLACER, pap_common::UPDATE_PLACER,
-                               compToPlaceLeft, TIP::LEFT_TIP);
-
+        if(next.box != -1) {
+            compToPlaceLeft = next;
+            compToPlaceLeft.isWaiting = true;
+            node.sendTask(pap_common::PLACER, pap_common::UPDATE_PLACER,
+                          compToPlaceLeft, TIP::LEFT_TIP);
+        }
     } else {                                                // Both queues are non-empty
-        compToPlaceLeft = leftTipQueue.front();
+        ComponentPlacerData next = leftTipQueue.front();
         leftTipQueue.pop();
+        if(next.box != -1) {
+            compToPlaceLeft = next;
+            compToPlaceLeft.isWaiting = true;
+            node.sendTask(pap_common::PLACER, pap_common::UPDATE_PLACER,
+                          compToPlaceLeft, TIP::LEFT_TIP);
+        }
         compToPlaceRight = rightTipQueue.front();
         rightTipQueue.pop();
         compToPlaceRight.isWaiting = true;
-        compToPlaceLeft.isWaiting = true;
-        node.sendTask(pap_common::PLACER, pap_common::UPDATE_PLACER,
-                               compToPlaceLeft, TIP::LEFT_TIP);
         node.sendTask(pap_common::PLACER, pap_common::UPDATE_PLACER,
                                compToPlaceRight, TIP::RIGHT_TIP);
     }

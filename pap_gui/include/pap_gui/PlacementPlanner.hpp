@@ -91,6 +91,21 @@ private:
     //!
     void resetCompData(ComponentPlacerData& comp);
 
+    //!
+    //! \brief getBoxPosition returns box relative box coordinates given box number
+    //! \param box
+    //! \return box position, relative to pickUpArea offset
+    //!
+    QPointF getBoxPosition(int box);
+
+    //!
+    //! \brief computeDistance (euclidean distance) between two 2D Point
+    //! \param p1
+    //! \param p2
+    //! \return euclidean distance
+    //!
+    float computeDistance(const QPointF& p1, const QPointF& p2);
+
     float leftTipDiameter, rightTipDiameter;
 };
 
