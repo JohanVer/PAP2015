@@ -163,7 +163,7 @@ public Q_SLOTS:
 
     void updateCurrentNozzles();
 
-    bool emptySlots();
+
 
     void on_tableWidget_clicked();
 
@@ -237,7 +237,9 @@ public Q_SLOTS:
     void keyReleaseEvent(QKeyEvent *e);
 
     bool isPressureEnough();
+    bool checkSlotsAndTapeCalibration();
     bool isPCBCalibrated();
+    bool isTapeCalibrated();
 
     void on_calibrationButton_offsets_clicked();
     void on_calibrationButton_ratios_clicked();
@@ -392,7 +394,7 @@ private:
     bool tip_thresholding_on;
     float pressure_;
 
-    bool PCBTransformCalibrated_;
+    bool PCBTransformCalibrated_, tapeCalibrated_;
 };
 
 }  // namespace pap_gui

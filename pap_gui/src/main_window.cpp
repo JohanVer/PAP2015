@@ -234,6 +234,7 @@ MainWindow::MainWindow(int version, int argc, char** argv, QWidget *parent) :
     tip_thresholding_on = false;
     dispenser_height_offset_ = 0;
     PCBTransformCalibrated_ = false;
+    tapeCalibrated_ = false;
 
     padParser.setDispenserInfo(nozzle_diameter_, edge_percentage_);
     tape_calibrater_ = std::unique_ptr<pap_gui::TapeCalibrater>(new TapeCalibrater(qnode));
@@ -507,12 +508,32 @@ bool MainWindow::isPCBCalibrated(){
     return false;
 }
 
-bool MainWindow::emptySlots() {
-    for (size_t k = 0; k < componentList.size(); k++) {
-        if (componentList.at(k).box == -1)
-            return true;
-    }
+bool MainWindow::isTapeCalibrated(){
+    if(tapeCalibrated_)
+       return true;
+
+    QMessageBox msgBox;
+    msgBox.setText("Please calibrate tapes first.");
+    msgBox.exec();
+    msgBox.close();
     return false;
+}
+
+bool MainWindow::checkSlotsAndTapeCalibration() {
+    for (size_t k = 0; k < componentList.size(); k++) {
+        int box = componentList.at(k).box;
+        if (box == -1) {
+            QMessageBox msgBox;
+            msgBox.setText("There are still components without assigned slot.");
+            msgBox.exec();
+            msgBox.close();
+            return false;
+        } else if((box >= 67) && (box <= 86)) {
+            if(!isTapeCalibrated())
+                return false;
+        }
+    }
+    return true;
 }
 
 void MainWindow::on_stopPlacementButton_clicked() {
@@ -967,15 +988,8 @@ void MainWindow::on_startPlacementButton_clicked() {
         msgBox.close();
         return;
     }
+    if (!checkSlotsAndTapeCalibration()) return;
 
-    // Missing slots? (all packages known -> if not slot cannot be assigned.)
-    if (emptySlots()) {
-        QMessageBox msgBox;
-        msgBox.setText("There are still components without assigned slot.");
-        msgBox.exec();
-        msgBox.close();
-        return;
-    }
     // Start placement process
     if (!completePlacementRunning && !singlePlacementRunning) {
         vector<ComponentPlacerData> allCompData;
@@ -1012,12 +1026,15 @@ void MainWindow::on_placeSingleComponentButton_clicked() {
     }
 
     // Missing slots?
-    if (componentList.at(currentComp).box == -1) {
+    int box = componentList.at(currentComp).box;
+    if (box == -1) {
         QMessageBox msgBox;
         msgBox.setText("Please assign slot first.");
         msgBox.exec();
         msgBox.close();
         return;
+    } else if((box >= 67) && (box <= 86)) {
+        if(!isTapeCalibrated()) return;
     }
 
     // Start placement process
@@ -2667,29 +2684,36 @@ bool MainWindow::startTapePartSelector(int numOfTape){
     }
 }
 
-void MainWindow::on_calibrateTapeButton_clicked(void) {    
-    QVector<int> calibratedTapes;
-    for (size_t i = 0; i < componentList.size(); i++) {
-        if ((componentList.at(i).box >= 67)
-                && (componentList.at(i).box <= 86)) {
-            int tape_nr = componentList.at(i).box - 67;
-            if (calibratedTapes.indexOf(tape_nr) == -1) {
-                calibratedTapes.append(tape_nr);
-                if(tape_calibrater_->calibrateTape(tape_nr, componentList.at(i).width,
-                                                   componentList.at(i).length)){
-                    startTapePartSelector(tape_nr);
-                    ROS_INFO("GUI: Calibrated tape: %d", componentList.at(i).box);
+void MainWindow::on_calibrateTapeButton_clicked(void) {
+    QMessageBox msgBox;
+    QString message =
+            QString("You are about to start a tape calibration process. Please make sure all tapes are placed correctly.");
+    msgBox.setWindowTitle("Confirm to start calibration");
+    msgBox.setText(message);
+    msgBox.setStandardButtons(QMessageBox::Yes);
+    msgBox.addButton(QMessageBox::No);
+    msgBox.setDefaultButton(QMessageBox::No);
+    if (msgBox.exec() == QMessageBox::Yes) {
+        QVector<int> calibratedTapes;
+        for (size_t i = 0; i < componentList.size(); i++) {
+            if ((componentList.at(i).box >= 67)
+                    && (componentList.at(i).box <= 86)) {
+                int tape_nr = componentList.at(i).box - 67;
+                if (calibratedTapes.indexOf(tape_nr) == -1) {
+                    calibratedTapes.append(tape_nr);
+                    if(tape_calibrater_->calibrateTape(tape_nr, componentList.at(i).width,
+                                                       componentList.at(i).length)){
+                        startTapePartSelector(tape_nr);
+                        ROS_INFO("GUI: Calibrated tape: %d", componentList.at(i).box);
+                    }
+                    ROS_INFO("GUI: Tape nr: %d, Width: %f Height: %f", tape_nr,
+                             componentList.at(i).width, componentList.at(i).length);
                 }
-                ROS_INFO("GUI: Tape nr: %d, Width: %f Height: %f", tape_nr,
-                         componentList.at(i).width, componentList.at(i).length);
             }
         }
+        tapeCalibrated_ = true;
     }
 }
-
-
-
-
 
 void MainWindow::on_printButton_offsets_clicked() {
     qnode.sendTask(pap_common::PLACER, pap_common::PRINT_OFFSET);
@@ -2701,8 +2725,7 @@ MainWindow::~MainWindow() {
 }
 // namespace pap_gui
 
-void pap_gui::MainWindow::on_calibrateTopCamButton_clicked()
-{
+void pap_gui::MainWindow::on_calibrateTopCamButton_clicked() {
     QMessageBox msgBox;
     msgBox.setWindowTitle("Confirm to start calibration");
     msgBox.setText(QString("You are about to calibrate the top camera. Make sure 'calibTopCamera.launch'' has been started."));
