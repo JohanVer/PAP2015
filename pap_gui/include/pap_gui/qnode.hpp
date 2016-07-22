@@ -155,7 +155,6 @@ private:
     cv_bridge::CvImagePtr cv_ptr;
     motor_controller::controllerStatus motorcontrollerStatus[3];
     QImage cameraImage_, cameraImage2_;
-    //image_transport::Publisher imagePub_;
     ros::Publisher imagePub_;
     ros::Publisher markerPub_;
     uchar dataArray[640*480 * 3];

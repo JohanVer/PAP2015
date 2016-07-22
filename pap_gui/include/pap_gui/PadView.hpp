@@ -18,6 +18,10 @@
 #include <QGraphicsRectItem>
 #include <QGraphicsObject>
 
+//!
+//! \brief The graphicsScene class implements a
+//! QGraphicsScene with some event handling
+//!
 class graphicsScene: public QGraphicsScene {
 Q_OBJECT
 public:
@@ -30,36 +34,33 @@ Q_SIGNALS:
     void deletePad(QPointF point);
     void createPad(QRectF pad);
 
-
 public Q_SLOTS:
-void mousePressEvent(QGraphicsSceneMouseEvent *event);
-void mouseMoveEvent(QGraphicsSceneMouseEvent *event);
-void mouseReleaseEvent(QGraphicsSceneMouseEvent *event);
-void contextMenuEvent(QGraphicsSceneContextMenuEvent *event);
+    void mousePressEvent(QGraphicsSceneMouseEvent *event);
+    void mouseMoveEvent(QGraphicsSceneMouseEvent *event);
+    void mouseReleaseEvent(QGraphicsSceneMouseEvent *event);
+    void contextMenuEvent(QGraphicsSceneContextMenuEvent *event);
 
 private:
-QGraphicsRectItem *temp_rect;
-double x_press, y_press;
-double width_press_, height_press_;
-bool drawing;
+    QGraphicsRectItem *temp_rect;
+    double x_press, y_press;
+    double width_press_, height_press_;
+    bool drawing;
 };
 
-
+//!
+//! \brief The PadView class
+//!
 class PadView: public QGraphicsView {
-Q_OBJECT
-public:
-	explicit PadView(QWidget *parent = 0);
-	PadView();
-	virtual ~PadView();
+    Q_OBJECT
+    public:
+        explicit PadView(QWidget *parent = 0);
+        PadView();
+        virtual ~PadView();
 
-Q_SIGNALS:
-	void sendMousePoint(QPointF point);
-	void setFiducial(QPointF point);
+    Q_SIGNALS:
 
-public Q_SLOTS:
-	virtual void wheelEvent(QWheelEvent * event);
-
-private:
+    public Q_SLOTS:
+        virtual void wheelEvent(QWheelEvent * event);
 };
 
 #endif /* PAP_GUI_SRC_PADVIEW_H_ */

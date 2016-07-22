@@ -5,8 +5,7 @@
  *      Author: johan
  */
 /* Class which inherited QTableWidget.
- * This is needed to make the table clickable in order
- * to show a context menu.
+ *
  */
 
 
@@ -21,14 +20,19 @@
 #include <QTableWidget>
 #include <QItemSelectionModel>
 
+//!
+//! \brief The MyContextMenuTable class - this is needed to make the table
+//! clickable in order to show a context menu.
+//!
 class MyContextMenuTable: public QTableWidget {
 	Q_OBJECT
-public:
-	explicit MyContextMenuTable(QWidget *parent = 0);
+    public:
+
+    explicit MyContextMenuTable(QWidget *parent = 0);
 	virtual ~MyContextMenuTable();
 
 	Q_SIGNALS:
-	void sendGotoFiducial(int indexOfFiducial);
+    void sendGotoFiducial(int indexOfFiducial);
 
 	public Q_SLOTS:
 	void contextMenuEvent(QContextMenuEvent *event);

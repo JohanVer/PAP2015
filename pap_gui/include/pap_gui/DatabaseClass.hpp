@@ -19,7 +19,8 @@
 #include <pap_common/CommonDataClasses.hpp>
 
 //!
-//! \brief The DataIO class implements load and store functionalities of specific files and databases for this project
+//! \brief The DataIO class implements input/output functionalities
+//! of specific files and databases for this project
 //!
 class DataIO {
 public:

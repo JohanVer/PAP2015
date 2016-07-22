@@ -23,39 +23,40 @@
 #include <QGraphicsRectItem>
 #include <QGraphicsObject>
 
+//!
+//! \brief The SlotGraphicsScene class implements a QGraphicsScene
+//! with some contextMenuEvent handling
+//!
 class SlotGraphicsScene: public QGraphicsScene {
-Q_OBJECT
-public:
-	explicit SlotGraphicsScene(QWidget *parent = 0);
+    Q_OBJECT
+    public:
+        explicit SlotGraphicsScene(QWidget *parent = 0);
 
-Q_SIGNALS:
-	void sendMousePoint(int indexOfFiducial,QPointF point);
-	void gotoPad(QPointF point);
-	void dispensePad(QPointF point);
+    Q_SIGNALS:
+        void sendMousePoint(int indexOfFiducial,QPointF point);
+        void gotoPad(QPointF point);
+        void dispensePad(QPointF point);
 
-public Q_SLOTS:
-
-void contextMenuEvent(QGraphicsSceneContextMenuEvent *event);
-
-private:
+    public Q_SLOTS:
+        void contextMenuEvent(QGraphicsSceneContextMenuEvent *event);
 };
 
 
-
+//!
+//! \brief The SlotGraphicsView class implements a QGraphicsScene
+//! with some wheelEvent handling
+//!
 class SlotGraphicsView: public QGraphicsView {
-Q_OBJECT
-public:
-	explicit SlotGraphicsView(QWidget *parent = 0);
-	SlotGraphicsView();
-	virtual ~SlotGraphicsView();
+    Q_OBJECT
+    public:
+        explicit SlotGraphicsView(QWidget *parent = 0);
+        SlotGraphicsView();
+        virtual ~SlotGraphicsView();
 
-Q_SIGNALS:
+    Q_SIGNALS:
 
-
-public Q_SLOTS:
-	virtual void wheelEvent(QWheelEvent * event);
-
-private:
+    public Q_SLOTS:
+        virtual void wheelEvent(QWheelEvent * event);
 };
 
 #endif /* PAP_GUI_SRC_CLICKGRAPHICSVIEW_H_ */

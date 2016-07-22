@@ -18,9 +18,9 @@ namespace DispenserPlanner{
 
 //!
 //! \brief isPadCompatibleToNozzle checks if selected pad is dispensable with current nozzle
-//! \param pad selected pad reference
+//! \param pad - selected pad reference
 //! \param nozzle_diameter of currently used nozzle
-//! \param percentage_edge_dist minimal distance to pad edge
+//! \param percentage_edge_dist - minimal distance to pad edge
 //! \return
 //!
 bool isPadCompatibleToNozzle(const PadInformation &pad, double nozzle_diameter, double percentage_edge_dist);
@@ -42,6 +42,11 @@ enum PLANNER_SELECT{
     DOT_PLANNER
 };
 
+
+//!
+//! \brief The DotPlanner class implements planning functionalities for
+//! dispensing a single pad with dots
+//!
 class DotPlanner{
 public:
     DotPlanner();
@@ -60,6 +65,10 @@ public:
     std::vector<dispenseInfo> planDispensing(PadInformation padInfo, float nozzleDiameter, double percentage_edge_dist = 0.1, double wait_time = 1, double alpha =0.5, enum DOT_ALIGN alignment = DOT_ALIGN::RIGHT);
 };
 
+//!
+//! \brief The DispenserPlanner class implements planning functionalities for
+//! dispensing a single pad with a line/multiple lines
+//!
 class DispenserPlanner {
 public:
 	DispenserPlanner();

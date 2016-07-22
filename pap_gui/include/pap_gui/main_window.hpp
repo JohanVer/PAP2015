@@ -66,34 +66,52 @@
 /*****************************************************************************
 ** Namespace
 *****************************************************************************/
-
 namespace pap_gui {
+
 
 /*****************************************************************************
 ** Interface [MainWindow]
 *****************************************************************************/
-/**
- * @brief Qt central, all operations relating to the view part here.
- */
+//!
+//! \brief The MainWindow class implements all operations relating to the GUI
+//!
 class MainWindow : public QMainWindow {
-Q_OBJECT
 
+Q_OBJECT
 public:
     MainWindow(int verions, int argc, char** argv, QWidget *parent = 0);
     ~MainWindow();
 
-    void ReadSettings(); // Load up qt program settings at startup
-    void WriteSettings(); // Save qt program settings when closing
+    //!
+    //! \brief ReadSettings load up qt program settings at startup
+    //!
+    void ReadSettings();
 
+    //!
+    //! \brief WriteSettings saves qt program settings when closing
+    //!
+    void WriteSettings();
+
+    //!
+    //! \brief closeEvent
+    //! \param event
+    //!
     void closeEvent(QCloseEvent *event); // Overloaded function
+
+    //!
+    //! \brief showNoMasterMessage
+    //!
     void showNoMasterMessage();
+
+    //!
+    //! \brief showSelectCompMessage
+    //!
     void showSelectCompMessage();
-    void updateCurrentNozzles();
 
 public Q_SLOTS:
-    /******************************************
-    ** Auto-connections (connectSlotsByName())
-    *******************************************/
+    ///******************************************
+    ///** Auto-connections (connectSlotsByName())
+    ///*******************************************/
     void on_actionAbout_triggered();
     void on_button_connect_clicked(bool check );
     void on_startHoming_clicked(bool check);
@@ -125,22 +143,25 @@ public Q_SLOTS:
     void releaseyManNeg();
     void releasezManNeg();
 
-
-
-    // Complete PCB Tab
+    //!
+    //! \brief PCB Placer-Tab Slots
+    //!
     void on_loadGerberFileButton_clicked();
     void on_clearTableButton_clicked();
-
     void on_startSlotWizard_clicked();
     void on_compDeleteButton_clicked();
     void on_compOrientButton_clicked();
     void on_compPackageButton_clicked();
-
     void on_startPlacementButton_clicked();
     void on_stopPlacementButton_clicked();
     void on_placeSingleComponentButton_clicked();
+
+
+
+
     void updatePlacementInfo();
 
+    void updateCurrentNozzles();
 
     bool emptySlots();
 
@@ -151,8 +172,6 @@ public Q_SLOTS:
     void updateComponentTable();
     void updateComponentInformation();
     void updateDatabaseTable();
-
-
 
     void on_setLEDButton_clicked();
     void setLedFromSelection(int);

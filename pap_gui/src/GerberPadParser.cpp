@@ -39,10 +39,10 @@ GerberPadParser::~GerberPadParser() {
 }
 
 void GerberPadParser::reset(){
-padInformationArray_.clear();
-padInformationArrayPrint_.clear();
-deleteBackground();
-printedRects.clear();
+    padInformationArray_.clear();
+    padInformationArrayPrint_.clear();
+    deleteBackground();
+    printedRects.clear();
 }
 
 float GerberPadParser::strToFloat(const std::string &in){

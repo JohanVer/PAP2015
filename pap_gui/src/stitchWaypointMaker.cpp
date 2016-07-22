@@ -57,8 +57,6 @@ std::vector<QVector3D> generateWaypoints(const QVector3D &init_point, unsigned i
     }
 
     return waypoints;
-
-
 }
 
 }

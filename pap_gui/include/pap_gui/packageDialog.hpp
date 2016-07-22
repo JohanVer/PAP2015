@@ -13,6 +13,11 @@
 
 namespace Ui { class PackageDialog;}
 
+
+//!
+//! \brief The PackageDialog class implements package
+//! editing functionalities
+//!
 class PackageDialog: public QDialog {
 	Q_OBJECT
 

@@ -11,6 +11,10 @@
 
 namespace Ui { class VersionSelectorDialog;}
 
+//!
+//! \brief The VersionSelectorDialog class implements a QDialog
+//! user interface vor selecting software version
+//!
 class VersionSelectorDialog: public QDialog {
 	Q_OBJECT
 

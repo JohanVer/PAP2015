@@ -16,6 +16,9 @@ namespace Ui {
 class SlotSelectorDialog;
 }
 
+//!
+//! \brief The SlotInformation class
+//!
 class SlotInformation{
 public:
 	QRectF pos;
@@ -29,12 +32,16 @@ public:
 };
 
 
+//!
+//! \brief The SlotSelectorDialog class implements an user dialog
+//! for selecting slots for all package types
+//!
 class SlotSelectorDialog: public QDialog {
 Q_OBJECT
 
 public:
     //!
-    //! \brief SlotSelectorDialog implements an user dialog for selecting slots for all package types
+    //! \brief SlotSelectorDialog
     //! \param packageList list of all packages needed for currently loaded components
     //! \param databaseVector list of all component dimension information available
     //! \param parent QWidget
