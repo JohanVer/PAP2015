@@ -158,7 +158,7 @@
         digitalWrite(9, HIGH);
         digitalWrite(10, HIGH);
         digitalWrite(11, HIGH);
-        stepper2.setSpeed(60);  //RPM
+        stepper2.setSpeed(30);  //RPM
         nh.initNode();
         //nh.advertise(statusPublisher);
         nh.subscribe(arduinoMessageSub);

@@ -67,7 +67,7 @@ SlotSelectorDialog::SlotSelectorDialog(QVector<componentEntry>* packageList, QVe
 
 int SlotSelectorDialog::searchId(QPointF position) {
 	Q_EMIT setLed(-1);
-	ros::Duration(0.5).sleep();
+    ros::Duration(1).sleep();
 	QPointF convPoint;
 	convPoint.setX(position.x());
 	convPoint.setY(position.y());
@@ -78,8 +78,8 @@ int SlotSelectorDialog::searchId(QPointF position) {
 	for (std::size_t i = 0; i < printedSlots_.size(); i++) {
 		if (printedSlots_[i].pos.contains(convPoint)) {
 			if (i < 59) {
-				Q_EMIT setLed(i);
-			}
+                Q_EMIT setLed(i);
+            }
 			printedSlots_[i].occupied = true;
 			paintSlots();
 			return i;
@@ -331,7 +331,7 @@ void SlotSelectorDialog::on_resetSlotButton_clicked() {
 }
 
 void SlotSelectorDialog::on_showAllPartsButton_clicked() {
-	ui->resetSlotButton->setEnabled(true);
+    ui->resetSlotButton->setEnabled(true);
 	missingPartListActive = false;
 	updateTable();
 }
@@ -362,7 +362,7 @@ void SlotSelectorDialog::getName(int SlotIndex, std::string* package,
 	}
 }
 
-void SlotSelectorDialog::paintSlots(void) {
+void SlotSelectorDialog::paintSlots(int highlightBox) {
 	bool nameFound = false;
 	std::string package = "Unknown";
 	std::string value;
@@ -382,6 +382,11 @@ void SlotSelectorDialog::paintSlots(void) {
 			nameFound = false;
 			rect->setPen(QPen(Qt::blue, 1, Qt::SolidLine));
 			rect->setBrush(Qt::blue);
+        }
+
+        if(i == highlightBox) {
+            rect->setPen(QPen(Qt::red, 1, Qt::SolidLine));
+            rect->setBrush(Qt::red);
         }
 		sceneSlots_.addItem(rect);
 
@@ -621,4 +626,20 @@ SlotSelectorDialog::~SlotSelectorDialog() {
 	missingPartList.clear();
 	partList.clear();
 	delete ui;
+}
+
+void SlotSelectorDialog::on_partTable_clicked(const QModelIndex &index)
+{
+    int currentPart = ui->partTable->currentRow();
+    int box = -1;
+
+    if (missingPartListActive) {
+        box = missingPartList[currentPart].slot;
+    } else {
+        box = partList[currentPart].slot;
+    }
+
+    if (box < 59)
+        Q_EMIT setLed(box);
+    paintSlots(box);
 }

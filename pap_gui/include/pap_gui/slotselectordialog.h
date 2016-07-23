@@ -93,6 +93,8 @@ Q_SIGNALS:
 private slots:
     void on_equalizedAutoSlotSelectButton_clicked();
 
+    void on_partTable_clicked(const QModelIndex &index);
+
 private:
 
     int leftTipSlotAvailable(float requiredArea);
@@ -116,7 +118,7 @@ private:
     //!
     //! \brief paintSlots draws all slots into a scene
     //!
-	void paintSlots(void);
+    void paintSlots(int highlightBox = -1);
 
     //!
     //! \brief updateTable updates table content

@@ -178,7 +178,7 @@ void setup()
   FastLED.addLeds<CHIPSET, LED_PIN, RGB>(leds, NUM_LEDS);
   FastLED.addLeds<CHIPSET, BOT_LED_PIN,RGB>(bottom_leds, NUM_BOT_LEDS);
   FastLED.addLeds<CHIPSET, TOP_LED_PIN,RGB>(top_leds, NUM_TOP_LEDS);
-  stepper1.setSpeed(60); // RPM
+  stepper1.setSpeed(30); // RPM
   nh.initNode();
   
   nh.subscribe(arduinoMessageSub);

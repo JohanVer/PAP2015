@@ -124,7 +124,7 @@ PlaceController::PlaceController() {
 
     tipHeightCalibrationOffset_.x = 287;
     tipHeightCalibrationOffset_.y = 41.35;
-    tipHeightCalibrationOffset_.z = 24;
+    tipHeightCalibrationOffset_.z = 26;
 
     // Absolut offests
     pcbOriginOffset.x = 300;
@@ -234,6 +234,7 @@ Offset PlaceController::getTipRelativeCoordinates(TIP usedTip) {
     Offset tipCoordinate, tipOffset;
     if(usedTip == TIP::LEFT_TIP) {
         double angle = roundToNextAngleInMap(stepsToAngle(leftTipRotSteps));
+        std::cout << "Rounded angle: " << angle << std::endl;
         tipOffset = leftTipRotOffsets.at(angle);
         tipCoordinate.x = tip1Offset.x + tipOffset.x;
         tipCoordinate.y = tip1Offset.y + tipOffset.y;
@@ -300,6 +301,24 @@ Offset PlaceController::getBoxCoordinates(TIP usedTip) {
     }
 
     return temp;
+}
+
+double PlaceController::getRotateAngle(TIP usedTip){
+    if(usedTip == TIP::LEFT_TIP){
+        if(leftTipComponent.box >= 67 && leftTipComponent.box <= 86){
+            return  leftTipComponent.tapeRot + fmod(leftTipComponent.rotation,180);
+        }else{
+            return  leftTipPickUpCorrection.rot + fmod(leftTipComponent.rotation,180);
+        }
+    }
+    else{
+        if(rightTipComponent.box >= 67 && rightTipComponent.box <= 86){
+            return  rightTipComponent.tapeRot + fmod(rightTipComponent.rotation,180);
+        }
+        else{
+            return  rightTipPickUpCorrection.rot + fmod(rightTipComponent.rotation,180);
+        }
+    }
 }
 
 Offset PlaceController::getCompPickUpCoordinates(TIP usedTip) {

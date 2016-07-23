@@ -385,6 +385,7 @@ private:
     double edge_percentage_;
     double dispenser_velocity_;
     double nozzle_diameter_;
+    std::string disp_needle_name_;
     double alpha_;
     enum DispenserPlanner::DOT_ALIGN alignment_;
     enum DispenserPlanner::PLANNER_SELECT planner_selection_;
@@ -395,6 +396,9 @@ private:
     float pressure_;
 
     bool PCBTransformCalibrated_, tapeCalibrated_;
+
+    std::map<std::string, double> disp_needle_to_od_;
+    std::map<std::string, double> disp_needle_to_id_;
 };
 
 }  // namespace pap_gui

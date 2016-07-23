@@ -142,6 +142,8 @@ public:
     //!
     Offset getCompPickUpCoordinates(TIP usedTip);
 
+    double getRotateAngle(TIP usedTip);
+
     //!
     //! \brief getCompCamCoordinates
     //! \param usedTip

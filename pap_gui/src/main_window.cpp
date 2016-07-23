@@ -238,6 +238,11 @@ MainWindow::MainWindow(int version, int argc, char** argv, QWidget *parent) :
 
     padParser.setDispenserInfo(nozzle_diameter_, edge_percentage_);
     tape_calibrater_ = std::unique_ptr<pap_gui::TapeCalibrater>(new TapeCalibrater(qnode));
+
+    disp_needle_to_od_["Blue"] = 0.72;
+    disp_needle_to_id_["Blue"] = 0.41;
+    disp_needle_to_od_["Orange"] = 0.64;
+    disp_needle_to_id_["Orange"] = 0.34;
 }
 
 
@@ -499,7 +504,7 @@ void MainWindow::on_compPackageButton_clicked() {
 
 bool MainWindow::isPCBCalibrated(){
     if(PCBTransformCalibrated_)
-       return true;
+        return true;
 
     QMessageBox msgBox;
     msgBox.setText("Please compute PCB transform first.");
@@ -510,7 +515,7 @@ bool MainWindow::isPCBCalibrated(){
 
 bool MainWindow::isTapeCalibrated(){
     if(tapeCalibrated_)
-       return true;
+        return true;
 
     QMessageBox msgBox;
     msgBox.setText("Please calibrate tapes first.");
@@ -2941,7 +2946,9 @@ void pap_gui::MainWindow::on_scanButton_clicked()
 
 void pap_gui::MainWindow::on_disp_settings_apply_clicked()
 {
-    nozzle_diameter_ =  ui.nozzleDispCombo->currentText().toFloat();
+    disp_needle_name_ = ui.nozzleDispCombo->currentText().toStdString();
+    nozzle_diameter_ = disp_needle_to_id_.at(disp_needle_name_);
+
     edge_percentage_ = ui.edge_perc_edit->text().toFloat();
     dispenser_velocity_ = ui.dispenser_vel_edit->text().toFloat();
     alpha_ = ui.alpha_text_edit->text().toFloat();
@@ -2973,7 +2980,8 @@ void pap_gui::MainWindow::on_disp_settings_apply_clicked()
 
 void pap_gui::MainWindow::on_calibrate_dispenser_button_clicked()
 {
-    qnode.sendTask(pap_common::PLACER, pap_common::CALIBRATE_DISPENSER, nozzle_diameter_, 0, 0);
+    double disp_or = disp_needle_to_od_.at(disp_needle_name_) / 2;
+    qnode.sendTask(pap_common::PLACER, pap_common::CALIBRATE_DISPENSER, disp_or, 0, 0);
 }
 
 void pap_gui::MainWindow::on_radioButton_clicked(bool checked)
