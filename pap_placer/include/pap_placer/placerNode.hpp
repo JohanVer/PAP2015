@@ -74,13 +74,6 @@ bool updateCamProjectionOffset(double delta_x, double delta_y);
 //
 void sendPlacerStatus(pap_common::PROCESS process, pap_common::PLACER_STATUS status);
 
-
-//!
-//! \brief singleCompPlacement performs an entire placement process with one component
-//! \return true if all placement steps executed successfully, otherwise false
-//!
-bool singleCompPlacement();
-
 //!
 //! \brief resetAllIndicators
 //!

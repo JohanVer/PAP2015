@@ -1350,10 +1350,13 @@ void MainWindow::placerStatusUpdated(int state, int status) {
         updateComponentTable();
         updateComponentInformation();
 
-        if(completePlacementRunning) {
+        if(completePlacementRunning && isPressureEnough()) {
             if(!placementPlanner.sendNextTask(qnode)){
                 completePlacementRunning = false;
             }
+        } else {
+            placementPlanner.resetQueues();
+            completePlacementRunning = false;
         }
         updatePlacementInfo();
     }

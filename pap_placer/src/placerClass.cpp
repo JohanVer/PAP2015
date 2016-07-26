@@ -111,8 +111,10 @@ PlaceController::PlaceController() {
 
     dispenser_height_offset_ = 29.22;
     dispenser_surface_offset_ = 0;
-    camera_projection_offset_.x = 0.0525;
-    camera_projection_offset_.y = -0.23;
+    camera_projection_offset_l_.x = 0.0775;
+    camera_projection_offset_l_.y = -0.33;
+    camera_projection_offset_r_.x = 0.1;
+    camera_projection_offset_r_.y = -0.3;
 
     // Height for sucking a component (normal chip, not a tape)
     largeBoxHeight_ = 18.2;
@@ -449,8 +451,12 @@ float PlaceController::getCompPlaceHeight(TIP usedTip) {
     }
 }
 
-Offset PlaceController::getCameraProjectionOffset(){
-    return camera_projection_offset_;
+Offset PlaceController::getCameraProjectionOffset(TIP usedTip){
+    if(usedTip == TIP::LEFT_TIP) {
+        return camera_projection_offset_l_;
+    } else {
+        return camera_projection_offset_r_;
+    }
 }
 
 /******************************************************

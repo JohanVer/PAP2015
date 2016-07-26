@@ -96,7 +96,7 @@ public:
     //! \brief getCameraProjectionOffset Gets offset from top camera to its focus point
     //! \return Offset
     //!
-    Offset getCameraProjectionOffset();
+    Offset getCameraProjectionOffset(TIP usedTip);
 
     //!
     //! \brief getBottomCamCoordinates returns current bottom cam coordinates
@@ -291,7 +291,7 @@ public:
 
     bool vision_active_;
 
-    Offset camera_projection_offset_;
+    Offset camera_projection_offset_l_, camera_projection_offset_r_;
 
 private:
 
